@@ -1,20 +1,35 @@
 # TASKS: Prisoners DAOllema
 
 ## Priority guide
-- **P0** = required for a working hackathon submission
+- **P0** = required for a serious hackathon submission and safe pilot path
 - **P1** = strong improvement if time allows
-- **P2** = nice to have
+- **P2** = stretch
 
-## P0 — product definition
-- [ ] Finalize one-sentence pitch
-- [ ] Finalize v1 scope
-- [ ] Freeze core rules in `SPEC.md`
-- [ ] Freeze default game parameters
-- [ ] Freeze demo success criteria
+## First read
+Before implementing, use:
+1. `CANON.md`
+2. `ARCHITECTURE.md`
+3. `BUILD_PLAN.md`
+4. `TEST_PLAN.md`
+5. `PARAMETERS.md`
+6. `LAUNCH_PLAN.md`
+7. `SKILLS.md`
+
+---
+
+## P0 — planning freeze
+- [ ] Review `CANON.md`
+- [ ] Review `ARCHITECTURE.md`
+- [ ] Review `BUILD_PLAN.md`
+- [ ] Review `TEST_PLAN.md`
+- [ ] Review `PARAMETERS.md`
+- [ ] Review `LAUNCH_PLAN.md`
+- [ ] Resolve the most important open question(s) in `OPEN_QUESTIONS.md`
+
+---
 
 ## P0 — contract core
-- [ ] Initialize contract project structure
-- [ ] Implement game phases
+- [ ] Implement game phases and one-active-game lifecycle
 - [ ] Implement join flow
 - [ ] Implement commit flow
 - [ ] Implement reveal flow
@@ -24,95 +39,145 @@
 - [ ] Implement refund path
 - [ ] Implement cause whitelist management
 - [ ] Implement creator fee and cause cut
+- [ ] Implement per-game parameter snapshots
+- [ ] Implement per-game cause-routing snapshots
+- [ ] Enforce `maxPlayers`
+- [ ] Enforce `maxCauses`
 
-## P0 — tests
-- [ ] Test join success
-- [ ] Test duplicate join rejection
-- [ ] Test invalid cause rejection
-- [ ] Test commit / reveal happy path
-- [ ] Test reveal mismatch rejection
-- [ ] Test non-reveal treated as `SHARE`
-- [ ] Test catchers-only outcome
-- [ ] Test sharers-only streak progression
-- [ ] Test stealers-only outcome
-- [ ] Test sharers + catchers outcome
-- [ ] Test stealers + catchers outcome
-- [ ] Test stealers + sharers outcome
-- [ ] Test all-three outcome
-- [ ] Test sole survivor ending condition
-- [ ] Test winner claim math
-- [ ] Test no-winner distribution
-- [ ] Test refunds when `minPlayers` is not met
+---
 
-## P0 — agent path
-- [ ] Decide the v1 identity gate
-- [ ] Implement agent authorization flow
-- [ ] Build a simple agent join script
-- [ ] Build a simple agent commit script
-- [ ] Build a simple agent reveal script
-- [ ] Build a game-state read helper
+## P0 — auth / admission
+- [ ] Finalize SIWA admission design
+- [ ] Implement onchain `AgentAuthRegistry`
+- [ ] Implement wallet -> agent binding
+- [ ] Implement expiry / replay protection
+- [ ] Implement join-time auth enforcement
+- [ ] Implement duplicate-agent rejection
+- [ ] Implement auth status tooling
+
+---
+
+## P0 — Foundry test suites
+- [ ] State-machine tests
+- [ ] Join/admission tests
+- [ ] Commit/reveal tests
+- [ ] Truth-table tests for all 7 cases
+- [ ] Share-streak tests
+- [ ] Sole-survivor tests
+- [ ] Winner-claim tests
+- [ ] No-winner distribution tests
+- [ ] Refund tests
+- [ ] Snapshot/mutability tests
+- [ ] Event/replay sufficiency tests
+
+---
+
+## P0 — fuzz / invariants
+- [ ] Add invariants for value conservation
+- [ ] Add invariants for no double claim / refund
+- [ ] Add invariants for phase monotonicity
+- [ ] Add invariants for one identity per seat
+- [ ] Add fuzz tests for timing boundaries
+- [ ] Add fuzz tests for cause distributions
+
+---
+
+## P0 — Anvil load harness
+- [ ] Build single-game 250-player stress harness
+- [ ] Build sequential-game soak harness
+- [ ] Build multi-instance local stress harness
+- [ ] Add chaos profile (missed reveals / invalid attempts / auth expiry)
+- [ ] Emit machine-readable load reports
+- [ ] Record gas summaries by action
+- [ ] Verify replay consistency after stress runs
+
+---
+
+## P0 — Base Sepolia readiness
+- [ ] Finalize Sepolia parameter profile
+- [ ] Deploy canary contracts to Base Sepolia
+- [ ] Verify auth flow on testnet
+- [ ] Run first small canary game
+- [ ] Produce replay artifact from Sepolia data
+- [ ] Run repeated pilot games on Sepolia
+- [ ] Validate payout and refund behavior on Sepolia
+
+---
+
+## P0 — agent tooling
+- [ ] Build auth/join script
+- [ ] Build commit script
+- [ ] Build reveal script
+- [ ] Build claim script
+- [ ] Build state-read helper
+- [ ] Build round-summary helper
+- [ ] Define `agent.json` shape
 - [ ] Validate end-to-end play with a small agent set
 
-## P0 — observer / demo surface
+---
+
+## P0 — observer / replay
 - [ ] Show current game phase
 - [ ] Show joined players and causes
 - [ ] Show round number
-- [ ] Show reveal / resolution output
-- [ ] Show end state and winners
+- [ ] Show reveal/resolution output
+- [ ] Show winners or no-winner outcome
 - [ ] Show payout destinations
-- [ ] Produce a simple replay or summary view
+- [ ] Export replay summary
+- [ ] Export chat-vs-move summary
+
+---
 
 ## P0 — coordination layer
-- [ ] Define cause-linked message flow
-- [ ] Define sender verification rules for gameplay use
+- [ ] Finalize minimal public message model
+- [ ] Implement signed message ingestion
+- [ ] Implement global and cause-scoped grouping
 - [ ] Capture messages for post-game analysis
-- [ ] Show at least one coordination interaction in the demo
+- [ ] Ensure outsiders can be filtered from strategic analysis
 
-## P0 — submission readiness
-- [ ] Write `DEMO.md`
-- [ ] Write `PRIZES.md`
-- [ ] Record a backup demo video
-- [ ] Prepare screenshots
+---
+
+## P0 — mainnet launch readiness
+- [ ] Freeze mainnet pilot parameters
+- [ ] Prepare deployment checklist
+- [ ] Prepare incident / pause checklist
+- [ ] Prepare contract address + config sheet
+- [ ] Prepare first invited-agent mainnet pilot
+
+---
+
+## P1 — prize/quality improvements
+- [ ] Add ENS display support
+- [ ] Add demo ENS subnames if useful
+- [ ] Add optional MetaMask Delegations path
+- [ ] Improve observer UI
+- [ ] Improve replay visualization
+- [ ] Improve agent behavior summaries
+
+---
+
+## P1 — documentation and submission
+- [ ] Update `DEMO.md`
+- [ ] Update `PRIZES.md`
 - [ ] Prepare architecture diagram
-- [ ] Prepare short judge explanation
+- [ ] Prepare backup demo video
+- [ ] Prepare screenshots
+- [ ] Prepare judge-friendly proof pack
 
-## P1 — performance and resilience
-- [ ] Tune join / commit / reveal timings
-- [ ] Test with 10+ agents
-- [ ] Test with 30+ agents
-- [ ] Measure gas for join / commit / reveal / resolve
-- [ ] Identify the first scalability bottlenecks
-- [ ] Add fallback scripts for flaky live-demo conditions
-
-## P1 — usability
-- [ ] Improve player status visibility
-- [ ] Improve event summaries
-- [ ] Improve payout clarity in the UI
-- [ ] Add a cleaner observer layout
-
-## P1 — analytics
-- [ ] Export per-game event summary
-- [ ] Export message summary by cause
-- [ ] Export outcome statistics
-- [ ] Produce one post-game analysis artifact for judges
+---
 
 ## P2 — stretch work
-- [ ] Support larger-scale automated simulations
-- [ ] Add stronger anti-spam logic for message feeds
-- [ ] Add relayer or batching path
-- [ ] Add richer replay tooling
-- [ ] Add multi-game support
+- [ ] Private/encrypted comms experiments
+- [ ] Larger-scale automated simulations
+- [ ] Richer replay search/filtering
+- [ ] More advanced identity/reputation layers
 
-## Immediate order of attack
-1. Finish `PROJECT.md`, `SPEC.md`, `DEMO.md`, and `PRIZES.md`
-2. Implement the contract skeleton and tests
-3. Get a minimal end-to-end agent play loop working
-4. Add the observer and coordination layer
-5. Harden the live demo
+---
 
-## Definition of done for hackathon v1
+## Definition of done for v1
 We are done when:
-- the game can be played end to end,
-- the demo is understandable without a long explanation,
-- payouts work,
-- and the project is packaged clearly for judging.
+- the onchain game works end to end,
+- the rules are fully locked by tests,
+- Anvil stress has tried hard to break it,
+- Base Sepolia pilots succeed,
+- and a small Base mainnet pilot can be launched responsibly.

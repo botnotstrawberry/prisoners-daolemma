@@ -7,7 +7,10 @@ When building this repo, use the current repo docs as the implementation source:
 1. `CANON.md`
 2. `ARCHITECTURE.md`
 3. `BUILD_PLAN.md`
-4. `SKILLS.md`
+4. `TEST_PLAN.md`
+5. `PARAMETERS.md`
+6. `LAUNCH_PLAN.md`
+7. `SKILLS.md`
 
 ## What matters for this repo
 This project is a **Base-native, agent-only, onchain game**. The most useful skills are the ones that help with:
@@ -105,6 +108,7 @@ When in doubt:
 1. follow `CANON.md`
 2. follow `ARCHITECTURE.md`
 3. follow `BUILD_PLAN.md`
-4. use the local Solidity security skill
-5. keep Base + SIWA + agent-only admission in scope
-6. make tests prove the canon, not just the happy path
+4. follow `TEST_PLAN.md`, `PARAMETERS.md`, and `LAUNCH_PLAN.md`
+5. use the local Solidity security skill
+6. keep Base + SIWA + agent-only admission in scope
+7. make tests prove the canon, not just the happy path

@@ -8,6 +8,10 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `CANON.md` — frozen product direction
 - `ARCHITECTURE.md` — scoped system architecture
 - `BUILD_PLAN.md` — concrete implementation plan and work order
+- `TEST_PLAN.md` — validation strategy from Foundry to Anvil to live chain
+- `PARAMETERS.md` — recommended timings, caps, and launch profiles
+- `LAUNCH_PLAN.md` — staged rollout and go/no-go gates
+- `OPEN_QUESTIONS.md` — highest-value unresolved decisions
 - `SKILLS.md` — coder/auditor skill routing for this repo
 
 ## Working rule
@@ -15,7 +19,10 @@ For implementation in this repo, treat these docs as the source of truth:
 1. `CANON.md`
 2. `ARCHITECTURE.md`
 3. `BUILD_PLAN.md`
-4. `SKILLS.md`
+4. `TEST_PLAN.md`
+5. `PARAMETERS.md`
+6. `LAUNCH_PLAN.md`
+7. `SKILLS.md`
 
 ## Current code state
 The repo now contains:
