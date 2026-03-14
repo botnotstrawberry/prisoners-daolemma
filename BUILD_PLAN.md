@@ -154,10 +154,11 @@ Use `.agents/skills/solidity-security/SKILL.md` for this phase.
 - auth must not infect round resolution logic
 
 ### 6.3 Deliverables
-- auth verifier service or script
+- auth verifier CLI
 - auth registration flow
 - auth status script
 - end-to-end join demonstration
+- optional local API wrapper later if needed for testing ergonomics
 
 **Exit condition:** an agent cannot join the official path without SIWA-backed admission.
 

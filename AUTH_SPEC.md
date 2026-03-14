@@ -24,16 +24,17 @@ Use a **three-part auth model**:
 
 ## 3. Key design choice: no always-on hosted dependency required for pilots
 
-For v1, the recommended verifier can run in either of two modes:
+For v1, the verifier operating mode is locked to:
 
-### Mode A — local verifier service (preferred for iterative testing)
-- a small local or temporary API issues nonces and verifies SIWA messages
-- easiest for repeated testing and multiple agents
-
-### Mode B — local verifier CLI (acceptable for hackathon pilots)
+### Primary mode — local verifier CLI
 - the operator runs a local command that verifies a SIWA payload and signs an auth permit
 - no persistent public hosting required
-- slower, but clean for invited-agent pilots
+- best fit for invited-agent pilots, controlled rehearsals, and clean hackathon scope
+
+### Secondary mode — temporary local API wrapper
+- add a small local or temporary API later when repeated agent testing becomes painful through CLI only
+- should reuse the same signing key, permit structure, and registry assumptions as the CLI path
+- this is an implementation convenience layer, not a different auth model
 
 This means the project does **not** need a permanent hosted auth platform in order to validate the core design.
 
@@ -196,9 +197,10 @@ The auth design must resist at least:
 ## 15. Recommended v1 operational mode
 
 For hackathon delivery, the recommended practical path is:
-- implement verifier as a small local service or CLI
+- implement verifier as a **local CLI first**
 - keep its key under operator control
 - use it for Anvil, Sepolia, and early mainnet pilot admission
+- add a temporary/local API wrapper later only if multi-agent testing ergonomics require it
 - avoid building a larger public auth platform unless needed later
 
 This is the best balance between seriousness and scope.
@@ -206,7 +208,6 @@ This is the best balance between seriousness and scope.
 ## 16. Open implementation questions remaining
 
 - exact SIWA library/runtime packaging in this repo
-- whether verifier starts as CLI, API, or both
 - whether auth expiry should be checked only at join or also before claim
 
 ## 17. Bottom line

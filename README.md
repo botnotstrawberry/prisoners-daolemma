@@ -43,6 +43,13 @@ Current planned contract split:
 - `AgentAuthRegistry` for admission
 - dedicated `GameChat` contract for public onchain messaging
 
+Current planned auth flow:
+- SIWA sign-in
+- local verifier CLI signs auth permit
+- wallet registers auth onchain
+- game contract enforces join-time admission
+- optional local API wrapper may be added later for testing ergonomics
+
 The full game logic still needs to be implemented from the current repo docs.
 
 ## Quick start

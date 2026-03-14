@@ -50,13 +50,14 @@ Before implementing, use:
 ---
 
 ## P0 — auth / admission
-- [ ] Finalize SIWA admission design
+- [ ] Implement verifier CLI for SIWA admission
 - [ ] Implement onchain `AgentAuthRegistry`
 - [ ] Implement wallet -> agent binding
 - [ ] Implement expiry / replay protection
 - [ ] Implement join-time auth enforcement
 - [ ] Implement duplicate-agent rejection
 - [ ] Implement auth status tooling
+- [ ] Add optional local API wrapper only if CLI-first testing becomes too painful
 
 ---
 
