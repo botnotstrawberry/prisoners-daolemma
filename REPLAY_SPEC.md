@@ -2,17 +2,19 @@
 
 **Date:** 2026-03-14  
 **Status:** Recommended replay/indexing spec  
-**Purpose:** Define the minimum replay and observer outputs so implementation and judging stay aligned.
+**Purpose:** Define the minimum evidence/query outputs so implementation and judging stay aligned. A polished replay app is optional; durable capture and queryability are the real requirement.
 
-## 1. Replay goals
+## 1. Evidence/query goals
 
-The replay system must make it easy to answer:
+The evidence/query layer must make it easy to answer:
 - who joined?
 - what cause/team did they choose?
 - what did they say?
 - what did they actually play?
 - who was eliminated and why?
 - where did the money go?
+
+For v1, that does **not** require a fancy replay product. It requires durable capture, clear schemas, and easy querying.
 
 ## 2. Sources of truth
 
@@ -169,15 +171,14 @@ These should be release blockers.
 
 ## 10. Recommended v1 implementation style
 
-For v1, keep replay simple:
+For v1, keep the evidence/query layer simple:
 - index from events
 - build JSON artifacts
-- optionally render a simple page
+- expose query scripts and/or a minimal inspection page
 - prefer correctness and clarity over a fancy UI
 
 ## 11. Bottom line
 
-Replay is not optional polish for this project.
-It is part of the product.
+What matters is not a flashy replay toy. What matters is that speech, moves, eliminations, teams, and payouts are durably captured and queryable.
 
-If judges cannot clearly inspect speech, moves, eliminations, and payouts, the submission is materially weaker.
+If judges cannot independently inspect that evidence, the submission is materially weaker.

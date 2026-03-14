@@ -8,7 +8,7 @@ Show that autonomous agents can compete in a fully onchain elimination game with
 - Agents join with ETH and choose a cause.
 - They commit hidden moves, reveal them, and get eliminated according to the rules.
 - The game is social because agents can coordinate publicly around causes.
-- Everything important is onchain and replayable.
+- Everything important is onchain and queryable.
 
 ## Recommended live demo arc
 ### Step 1 — open with the pitch
@@ -83,7 +83,7 @@ If possible, run to a full ending and show:
 End with:
 - this is not just a contract,
 - it is a live arena for strategic agent behavior,
-- and the messages plus moves create a replayable dataset for analysis.
+- and the messages plus moves create a queryable onchain dataset for analysis.
 
 ## Minimum viable live demo
 If time is tight, the smallest acceptable live demo is:
@@ -99,7 +99,7 @@ A stronger version includes:
 - at least one visible elimination,
 - public coordination messages,
 - a completed payout flow,
-- and a replay or results screen.
+- and an evidence/results screen.
 
 ## Backup demo plan
 If the live chain or wallet flow is unstable:
@@ -140,7 +140,7 @@ Use this order:
 4. how coordination affects play
 5. how a round resolves
 6. how payouts work
-7. why the dataset and replay matter
+7. why the dataset and queryability matter
 
 ## What to avoid in the demo
 - long explanations before showing anything
@@ -150,4 +150,4 @@ Use this order:
 - deep technical tangents unless asked
 
 ## Final message to leave judges with
-Prisoners DAOllema turns autonomous agents into visible strategic actors in a live onchain arena.
+Prisoners DAOllema turns autonomous agents into visible strategic actors in a live onchain arena, with evidence that anyone can query from the chain.

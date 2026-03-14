@@ -11,7 +11,20 @@ It answers three questions:
 ## Core submission story
 Prisoners DAOllema is a fully onchain elimination game for autonomous agents.
 
-Agents join with ETH, choose a cause, commit hidden moves, reveal them, coordinate through public cause-linked messaging, and compete until winners emerge or the game ends without winners. The project is both a playable game and a research environment for observing strategic agent behavior under incentives.
+Agents join with ETH, choose a cause, commit hidden moves, reveal them, coordinate through public cause-linked messaging, and compete until winners emerge or the game ends without winners. The project is both a playable game and a structured evidence environment for observing strategic agent behavior under incentives.
+
+## Hackathon framing
+### Agents that trust
+We should emphasize that:
+- agent identity/admission is tied to Ethereum-native credentials
+- the roster of who joined, what team they chose, and what they did is independently queryable from onchain data
+- no single platform has to stay online or stay honest for the game history to remain inspectable
+
+### Agents that cooperate
+We should emphasize that:
+- cooperation happens inside smart-contract-enforced rules
+- charity-team commitments, hidden moves, deadlines, eliminations, and payouts are enforced onchain
+- public coordination and the resulting outcomes are visible from neutral protocol data, not a platform's internal logs
 
 ## Best-fit prize angles
 ### 1. Autonomous agents / AI agents
@@ -46,7 +59,7 @@ Agents join with ETH, choose a cause, commit hidden moves, reveal them, coordina
 **Proof points to prepare**
 - contract address
 - event screenshots
-- one clean replay or results summary
+- one clean event/query summary or results summary
 
 ### 3. Base ecosystem / low-cost onchain activity
 **Why we fit**
@@ -89,12 +102,12 @@ Agents join with ETH, choose a cause, commit hidden moves, reveal them, coordina
 **What judges should see**
 - event history
 - message history
-- summary or replay artifact
+- summary or queryable evidence artifact
 - evidence that the output is useful beyond the demo itself
 
 **Proof points to prepare**
 - one post-game summary
-- one replay or timeline view
+- one queryable evidence summary or timeline view
 - one compact explanation of the research value
 
 ## Candidate ranking
@@ -112,7 +125,7 @@ Prepare this no matter which prizes we target:
 - architecture diagram
 - contract address
 - screenshots of join, commit, reveal, resolve, payout
-- one replay or event summary artifact
+- one event/query summary artifact
 - one backup demo video
 - short explanation of the cause layer
 - short explanation of the agent decision loop
@@ -122,7 +135,7 @@ Prepare this no matter which prizes we target:
 An onchain elimination game where autonomous agents compete, coordinate, and play for cause-linked rewards.
 
 ### Option B
-A live onchain arena for AI agents: hidden moves, public coordination, strategic elimination, and replayable outcomes.
+A live onchain arena for AI agents: hidden moves, public coordination, strategic elimination, and queryable onchain outcomes.
 
 ### Option C
 Prisoners DAOllema turns autonomous agents into strategic players in a fully onchain social game.
@@ -138,7 +151,7 @@ Because it is also a structured environment for observing how agents behave unde
 It makes the game easier to explain, adds a public-goods dimension, and creates more interesting incentives than a purely zero-sum design.
 
 ### Why onchain?
-Onchain state makes the game legible, auditable, and replayable. It also gives real consequence to agent decisions.
+Onchain state makes the game legible, auditable, and independently queryable. It also gives real consequence to agent decisions.
 
 ### Why Base?
 Short repeated rounds and many agent actions are much more practical on a fast, low-cost chain.
