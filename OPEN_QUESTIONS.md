@@ -4,14 +4,13 @@
 **Status:** Active  
 **Purpose:** Track the highest-value unresolved design questions without blocking the whole planning set.
 
-## 1. Exact SIWA implementation path
+## 1. Verifier operating mode
 Current planning assumption:
-- SIWA is required for admission
-- contract checks an onchain auth binding
-- verifier complexity stays outside the core game contract
+- v1 uses `SIWA sign-in -> verifier-signed permit -> onchain auth registry -> join gating`
+- the remaining choice is whether the verifier starts as a local CLI, a temporary local API, or both
 
 Why it matters:
-- it determines the auth service shape and agent onboarding UX
+- it determines the operator workflow for Anvil, Sepolia, and first mainnet pilots
 
 ## 2. Winner/cause settlement model
 Current planning assumption:

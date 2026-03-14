@@ -10,10 +10,13 @@ Use these files, in order:
 1. `CANON.md`
 2. `ARCHITECTURE.md`
 3. `BUILD_PLAN.md`
-4. `TEST_PLAN.md`
-5. `PARAMETERS.md`
-6. `LAUNCH_PLAN.md`
-7. `SKILLS.md`
+4. `AUTH_SPEC.md`
+5. `CONTRACT_SPEC.md`
+6. `REPLAY_SPEC.md`
+7. `TEST_PLAN.md`
+8. `PARAMETERS.md`
+9. `LAUNCH_PLAN.md`
+10. `SKILLS.md`
 
 If a question is not answered here, ask the human instead of inventing product behavior.
 
