@@ -1,0 +1,53 @@
+{
+  "name": "prisoners-daollema",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "account": "yarn foundry:account",
+    "account:generate": "yarn foundry:generate",
+    "account:import": "yarn foundry:account-import",
+    "account:reveal-pk": "yarn workspace @prisoners-daollema/foundry account:reveal-pk",
+    "chain": "yarn foundry:chain",
+    "compile": "yarn foundry:compile",
+    "deploy": "yarn foundry:deploy",
+    "flatten": "yarn foundry:flatten",
+    "fork": "yarn foundry:fork",
+    "format": "yarn next:format && yarn foundry:format",
+    "foundry:account": "yarn workspace @prisoners-daollema/foundry account",
+    "foundry:account-import": "yarn workspace @prisoners-daollema/foundry account:import",
+    "foundry:chain": "yarn workspace @prisoners-daollema/foundry chain",
+    "foundry:clean": "yarn workspace @prisoners-daollema/foundry clean",
+    "foundry:compile": "yarn workspace @prisoners-daollema/foundry compile",
+    "foundry:deploy": "yarn workspace @prisoners-daollema/foundry deploy",
+    "foundry:flatten": "yarn workspace @prisoners-daollema/foundry flatten",
+    "foundry:fork": "yarn workspace @prisoners-daollema/foundry fork",
+    "foundry:format": "yarn workspace @prisoners-daollema/foundry format",
+    "foundry:generate": "yarn workspace @prisoners-daollema/foundry account:generate",
+    "foundry:lint": "yarn workspace @prisoners-daollema/foundry lint",
+    "foundry:test": "yarn workspace @prisoners-daollema/foundry test",
+    "foundry:verify": "yarn workspace @prisoners-daollema/foundry verify",
+    "generate": "yarn foundry:generate",
+    "ipfs": "yarn workspace @prisoners-daollema/nextjs ipfs",
+    "lint": "yarn next:lint && yarn foundry:lint",
+    "next:build": "yarn workspace @prisoners-daollema/nextjs build",
+    "next:check-types": "yarn workspace @prisoners-daollema/nextjs check-types",
+    "next:format": "yarn workspace @prisoners-daollema/nextjs format",
+    "next:lint": "yarn workspace @prisoners-daollema/nextjs lint",
+    "next:serve": "yarn workspace @prisoners-daollema/nextjs serve",
+    "start": "yarn workspace @prisoners-daollema/nextjs dev",
+    "test": "yarn foundry:test",
+    "vercel": "yarn workspace @prisoners-daollema/nextjs vercel",
+    "vercel:login": "yarn workspace @prisoners-daollema/nextjs vercel:login",
+    "vercel:yolo": "yarn workspace @prisoners-daollema/nextjs vercel:yolo",
+    "verify": "yarn foundry:verify"
+  },
+  "packageManager": "yarn@3.2.3",
+  "engines": {
+    "node": ">=20.18.3"
+  }
+}

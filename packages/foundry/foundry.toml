@@ -1,0 +1,25 @@
+[profile.default]
+src = 'contracts'
+out = 'out'
+libs = ['lib', 'node_modules']
+fs_permissions = [{ access = "read-write", path = "./"}]
+
+[rpc_endpoints]
+default_network = "http://127.0.0.1:8545"
+
+mainnet = "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+base = "https://mainnet.base.org"
+baseSepolia = "https://sepolia.base.org"
+localhost = "http://127.0.0.1:8545"
+
+[etherscan]
+base = { key = "${BASESCAN_API_KEY}" }
+baseSepolia = { key = "${BASESCAN_API_KEY}" }
+
+[fmt]
+line_length = 120
+tab_width = 4
+quote_style = "double"
+bracket_spacing = true
+int_types = "long"
