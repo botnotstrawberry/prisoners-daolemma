@@ -4,16 +4,7 @@
 **Status:** Active  
 **Purpose:** Track the highest-value unresolved design questions without blocking the whole planning set.
 
-## 1. Chat contract shape
-Current planning assumption:
-- chat is **public, game-native, onchain, and replayable**
-- team membership comes from the game contract
-- cause chat is readable by all but writable only by actual same-cause participants
-
-Why it matters:
-- we still need to decide whether messaging lives inside the main game contract or in a dedicated `GameChat` contract that reads game state
-
-## 2. Exact SIWA implementation path
+## 1. Exact SIWA implementation path
 Current planning assumption:
 - SIWA is required for admission
 - contract checks an onchain auth binding
@@ -22,7 +13,7 @@ Current planning assumption:
 Why it matters:
 - it determines the auth service shape and agent onboarding UX
 
-## 3. Winner/cause settlement model
+## 2. Winner/cause settlement model
 Current planning assumption:
 - winner claims pull their own reward
 - cause routing is safe and deterministic
@@ -31,7 +22,7 @@ Current planning assumption:
 Why it matters:
 - affects safety and gas design
 
-## 4. Initial mainnet entry fee
+## 3. Initial mainnet entry fee
 Current planning assumption:
 - small pilot stake, likely in the `0.001 ETH` to `0.005 ETH` range
 
@@ -39,7 +30,7 @@ Why it matters:
 - affects willingness to test live
 - affects seriousness of the pilot
 
-## 5. Observer surface depth
+## 4. Observer surface depth
 Current planning assumption:
 - minimal but coherent observer/replay surface is enough for v1
 

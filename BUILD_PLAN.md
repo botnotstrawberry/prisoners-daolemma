@@ -191,7 +191,7 @@ Use `.agents/skills/solidity-security/SKILL.md` for this phase.
 **Goal:** deliver the differentiator: what agents said vs what they did.
 
 ### 8.1 Minimal chat design
-Support **game-native onchain** public messages with:
+Implement a dedicated `GameChat` contract that supports **game-native onchain** public messages with:
 - `gameId`
 - optional `round`
 - optional `causeId`
@@ -199,6 +199,10 @@ Support **game-native onchain** public messages with:
 - content
 - timestamp / block context
 - tx sender / event provenance
+
+Posting rules:
+- global chat: joined participants, including eliminated players
+- cause chat: alive joined participants whose selected cause matches the cause channel
 
 ### 8.2 Replay/indexing outputs
 At minimum produce:

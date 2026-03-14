@@ -290,8 +290,8 @@ A player's selected cause defines that player's team for the active game.
 
 ### 12.3 Posting rules
 Recommended v1 behavior:
-- global messages may be posted only by joined participants
-- cause-scoped messages may be posted only by joined participants whose selected cause matches that cause
+- global messages may be posted by joined participants, including eliminated players
+- cause-scoped messages may be posted only by **alive** joined participants whose selected cause matches that cause
 - all messages remain publicly readable
 
 ### 12.4 Gameplay filtering

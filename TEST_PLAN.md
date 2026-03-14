@@ -293,8 +293,10 @@ Must test:
 
 ## 7.1 Chat validation
 Must prove:
-- only joined participants can post to the in-game public message layer
-- only actual same-cause participants can post to a given cause-scoped channel
+- only joined participants can post to the in-game global channel
+- eliminated participants may still post to the global channel
+- only **alive** same-cause participants can post to a given cause-scoped channel
+- eliminated players cannot continue posting to cause chat
 - global vs cause-scoped messages are labeled deterministically
 - message timestamps and round association are reconstructable
 - team labels derived from contract state are correct

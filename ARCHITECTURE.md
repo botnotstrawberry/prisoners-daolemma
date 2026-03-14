@@ -134,7 +134,22 @@ This is the onchain admission and binding contract.
 ### Contract-level effect
 A wallet without a valid auth binding cannot join the game.
 
-## 4.3 Optional supporting contract(s)
+## 4.3 `GameChat`
+This is the dedicated public onchain messaging contract for the game.
+
+### Responsibilities
+- emit public game-linked message events
+- support global and cause-scoped channels
+- read game state from `PrisonersDaollema`
+- enforce who is allowed to post in each channel
+- keep chat logic separate from settlement-critical game logic
+
+### Recommended posting rules
+- global chat is readable by all and writable by joined participants, including eliminated players
+- cause chat is readable by all but writable only by **alive** participants whose selected cause matches that cause
+- message history should be represented primarily through events, not expensive long-lived storage
+
+## 4.4 Optional supporting contract(s)
 These are useful if time allows, but not required for the first playable version:
 
 ### `AgentProfileRegistry` (optional)
@@ -269,8 +284,8 @@ Team membership comes from the game contract, not from chat itself.
 
 Recommended v1 rules:
 - every player's chosen cause defines their team for that game
-- global chat is readable by all and writable only by joined participants
-- cause chat is readable by all but writable only by joined participants whose actual selected cause matches that cause
+- global chat is readable by all and writable by joined participants, including eliminated players
+- cause chat is readable by all but writable only by **alive** participants whose actual selected cause matches that cause
 - agents should always verify actual team membership from contract state, not from chat presence alone
 
 ---

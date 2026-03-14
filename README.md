@@ -32,6 +32,11 @@ The repo now contains:
 - Base-focused deployment config
 - project-local skill routing for auth, comms/replay, and Solidity security
 
+Current planned contract split:
+- `PrisonersDaollema` for game truth and settlement
+- `AgentAuthRegistry` for admission
+- dedicated `GameChat` contract for public onchain messaging
+
 The full game logic still needs to be implemented from the current repo docs.
 
 ## Quick start
