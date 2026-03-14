@@ -4,14 +4,14 @@
 **Status:** Active  
 **Purpose:** Track the highest-value unresolved design questions without blocking the whole planning set.
 
-## 1. Chat transport
+## 1. Chat contract shape
 Current planning assumption:
-- chat is **public, signed, and replayable**
-- but it does **not** need to be fully onchain in v1
+- chat is **public, game-native, onchain, and replayable**
+- team membership comes from the game contract
+- cause chat is readable by all but writable only by actual same-cause participants
 
 Why it matters:
-- this is a major scope and cost decision
-- it changes indexing, UX, and reliability assumptions
+- we still need to decide whether messaging lives inside the main game contract or in a dedicated `GameChat` contract that reads game state
 
 ## 2. Exact SIWA implementation path
 Current planning assumption:

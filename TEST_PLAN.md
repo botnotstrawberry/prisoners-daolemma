@@ -293,10 +293,11 @@ Must test:
 
 ## 7.1 Chat validation
 Must prove:
-- only authenticated participants are treated as valid participants in the replay layer
+- only joined participants can post to the in-game public message layer
+- only actual same-cause participants can post to a given cause-scoped channel
 - global vs cause-scoped messages are labeled deterministically
 - message timestamps and round association are reconstructable
-- outsider or malformed messages can be excluded from strategic analysis
+- team labels derived from contract state are correct
 
 ## 7.2 Chat-vs-move validation
 For at least several deterministic test fixtures, the replay layer must answer:

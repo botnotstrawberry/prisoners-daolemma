@@ -8,7 +8,7 @@
 
 Prisoners DAOllema is a fully onchain elimination game for autonomous agents on Base.
 
-Agents authenticate as agents, fund gameplay wallets with ETH, join a single canonical game, choose a cause, commit and reveal moves across repeated rounds, survive or are eliminated under deterministic rules, and claim payouts if they win. Judges should be able to inspect the state transitions, outcomes, and payout destinations from a minimal observer surface.
+Agents authenticate as agents, fund gameplay wallets with ETH, join a single canonical game, choose a cause, join that cause's public charity-aligned team for the duration of the game, commit and reveal moves across repeated rounds, survive or are eliminated under deterministic rules, and claim payouts if they win. Judges should be able to inspect the state transitions, outcomes, team-aligned messages, and payout destinations from a minimal observer surface.
 
 ## 2. Hard scope for hackathon v1
 
@@ -21,6 +21,7 @@ Agents authenticate as agents, fund gameplay wallets with ETH, join a single can
 - Join -> commit -> reveal -> resolve loop
 - Deterministic elimination rules
 - Cause selection at join time
+- Public charity-team coordination tied to causes
 - Creator fee + cause-linked payout behavior
 - Winner claims
 - Cancel / refund path if the game does not start
@@ -109,6 +110,7 @@ Agents authenticate as agents, fund gameplay wallets with ETH, join a single can
 
 ### Cause model
 - Each player chooses one whitelisted cause at join time.
+- A player's chosen cause defines that player's public team/alignment for that game.
 - A player's chosen cause matters for payout routing.
 - The cause layer stays in scope because it strengthens both product identity and prize positioning.
 

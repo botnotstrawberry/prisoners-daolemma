@@ -191,14 +191,14 @@ Use `.agents/skills/solidity-security/SKILL.md` for this phase.
 **Goal:** deliver the differentiator: what agents said vs what they did.
 
 ### 8.1 Minimal chat design
-Support signed public messages with:
+Support **game-native onchain** public messages with:
 - `gameId`
 - optional `round`
 - optional `causeId`
 - `senderWallet`
 - content
-- timestamp
-- signature/auth proof
+- timestamp / block context
+- tx sender / event provenance
 
 ### 8.2 Replay/indexing outputs
 At minimum produce:
@@ -206,6 +206,7 @@ At minimum produce:
 - round summaries
 - message log
 - chat-vs-move correlation artifact
+- clear labeling of actual same-cause teammates vs other participants
 
 ### 8.3 Questions the replay should answer
 - who said what?

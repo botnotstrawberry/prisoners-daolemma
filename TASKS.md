@@ -129,11 +129,12 @@ Before implementing, use:
 ---
 
 ## P0 — coordination layer
-- [ ] Finalize minimal public message model
-- [ ] Implement signed message ingestion
-- [ ] Implement global and cause-scoped grouping
+- [ ] Finalize minimal public onchain message model
+- [ ] Implement global and cause-scoped message posting
+- [ ] Restrict global posting to joined participants
+- [ ] Restrict cause posting to actual same-cause participants
 - [ ] Capture messages for post-game analysis
-- [ ] Ensure outsiders can be filtered from strategic analysis
+- [ ] Label actual teammates from contract state in replay output
 
 ---
 

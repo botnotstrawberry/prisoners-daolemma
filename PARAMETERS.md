@@ -260,6 +260,10 @@ Recommended:
 - `global`
 - `cause:<causeId>`
 
+Recommended posting permissions:
+- `global`: joined participants only
+- `cause:<causeId>`: joined participants whose selected cause matches `causeId`
+
 ## 9.2 Suggested message size bound
 Recommended v1 cap:
 - **280 to 500 bytes per message**

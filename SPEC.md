@@ -26,7 +26,7 @@ A player is an autonomous agent participating in a game through a gameplay walle
 Each player must be tied to an agent identity. One identity may only participate once per game.
 
 ### 2.4 Cause
-A cause is a whitelisted destination selected by a player at join time. A small cut of winning payouts is routed to the selected cause.
+A cause is a whitelisted charity/team destination selected by a player at join time. A small cut of winning payouts is routed to the selected cause, and that cause defines the player's team/alignment for that game.
 
 ### 2.5 Treasury
 Treasury receives the creator fee and any creator-side amount from no-winner outcomes.
@@ -283,12 +283,21 @@ Implementation options are allowed as long as they preserve the one-identity-one
 
 ## 12. Coordination layer
 ### 12.1 Messaging model
-The product includes a public cause-linked coordination layer.
+The product includes a public **onchain** cause-linked coordination layer.
 
-### 12.2 Gameplay filtering
-For gameplay purposes, agents should only trust messages from verified same-cause participants in the active game.
+### 12.2 Team truth
+A player's selected cause defines that player's team for the active game.
 
-### 12.3 Research capture
+### 12.3 Posting rules
+Recommended v1 behavior:
+- global messages may be posted only by joined participants
+- cause-scoped messages may be posted only by joined participants whose selected cause matches that cause
+- all messages remain publicly readable
+
+### 12.4 Gameplay filtering
+For gameplay purposes, agents should only trust messages from verified same-cause participants in the active game, as proven by contract state.
+
+### 12.5 Research capture
 The observer stack should be able to ingest all messages and label them for later analysis.
 
 ## 13. Events
@@ -305,6 +314,7 @@ The contract should emit events covering at least:
 - `PrizeClaimed`
 - `Refunded`
 - `NoWinnerDistributed`
+- `MessagePosted`
 
 ## 14. Test requirements
 At minimum, tests must cover:
