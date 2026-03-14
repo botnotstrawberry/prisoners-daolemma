@@ -194,8 +194,9 @@ For `postCause`:
 ### No-winner path
 Recommended v1 safety approach:
 - calculate no-winner distribution once when the game ends
-- make cause/treasury withdrawals pull-based if that simplifies safety and gas
+- use **pull-based** settlement for cause/treasury withdrawals
 - avoid large push loops where possible
+- prefer recording balances owed over attempting one large end-of-game payout transaction
 
 ## 9. Recommended loop safety stance
 

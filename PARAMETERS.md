@@ -174,7 +174,7 @@ Use for the first real-money production game.
 - `minPlayers`: **8**
 - `maxPlayers`: **64**
 - `maxCauses`: **8**
-- `entryFeeWei`: **0.001 ETH** to **0.005 ETH**
+- `entryFeeWei`: **0.001 ETH**
 - `creatorFeeBps`: **100**
 - `causeFeeBps`: **100**
 
@@ -194,6 +194,11 @@ Notes:
 - auth registry address
 - treasury address
 - cause whitelist additions/removals
+
+Recommended default entry fee:
+- **0.001 ETH**
+- keep it admin-configurable for future games
+- snapshot the chosen entry fee into each game so active/ended game settlement cannot change retroactively
 
 ## 6.2 What must not affect an already-started game
 - entry fee

@@ -4,26 +4,26 @@
 **Status:** Active  
 **Purpose:** Track the highest-value unresolved design questions without blocking the whole planning set.
 
-## 1. Winner/cause settlement model
-Current planning assumption:
-- winner claims pull their own reward
-- cause routing is safe and deterministic
-- no-winner routing may be immediate or balance-based depending on safest implementation
+## Settled decisions now assumed everywhere else
+- v1 uses **one active game at a time** in production
+- public chat is **game-native onchain** through a dedicated `GameChat` contract
+- global chat allows joined participants, including eliminated players
+- cause chat allows only **alive** same-cause participants
+- auth flow is **SIWA sign-in -> local verifier CLI -> onchain auth registry -> join gating**
+- settlement should stay **pull-based where practical**
+- default entry fee is **0.001 ETH**, configurable before a new game starts and snapshotted per game
 
-Why it matters:
-- affects safety and gas design
-
-## 2. Initial mainnet entry fee
-Current planning assumption:
-- small pilot stake, likely in the `0.001 ETH` to `0.005 ETH` range
-
-Why it matters:
-- affects willingness to test live
-- affects seriousness of the pilot
-
-## 3. Observer surface depth
+## 1. Observer surface depth
 Current planning assumption:
 - minimal but coherent observer/replay surface is enough for v1
 
 Why it matters:
 - determines how much frontend/indexer work is needed before demo readiness
+
+## 2. Optional API wrapper timing
+Current planning assumption:
+- the verifier starts as CLI-first
+- a temporary/local API wrapper is added only if multi-agent testing ergonomics require it
+
+Why it matters:
+- determines when we spend effort on smoother operator workflows versus core game implementation
