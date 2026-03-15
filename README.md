@@ -41,14 +41,14 @@ The repo now contains:
 
 Current implemented contract slice:
 - `AgentAuthRegistry` stores verifier-signed wallet -> agent bindings with expiry + nonce replay protection
-- `PrisonersDaollema` currently implements config, cause whitelist snapshots, game creation, auth-gated join, and commit/reveal state
+- `PrisonersDaollema` implements config, cause whitelist snapshots, game creation, auth-gated join, commit/reveal, deterministic round resolution, eliminations, winner/no-winner/cancelled terminal outcomes, winner claims, cancelled refunds, and pull-based treasury/cause withdrawals
 - `GameChat` emits global and cause-scoped public message events tied to game truth
+- the query/export tooling exposes settlement-aware evidence directly from current onchain state/events, including terminal outcome metadata, claim/refund previews, prize/refund/withdrawal events, no-winner routing, and explicit notes when a field remains unavailable in the current contracts or selected evidence window
 
-Current not-yet-implemented contract slice:
-- deterministic round resolution
-- eliminations and winner/no-winner end states
-- claims, refunds, and payout routing
-- settlement-oriented replay outputs
+Current still-limited observer/query slice:
+- historical global-message liveness can only be proven when the selected log window includes the elimination timing that disambiguates it; otherwise the export leaves those labels null instead of guessing
+- cancelled games expose `GameCancelled(gameId)` plus settlement state, but the contract does not emit a richer cancelled terminal payload with round/winner/share-streak fields
+- withdrawal events expose recipient + amount + tx hash, but not a dedicated caller field inside the event payload itself
 
 ## CLI auth tooling
 
@@ -100,7 +100,8 @@ Current boundary:
 - exports only what the current contracts actually expose onchain
 - supports game summary, roster, cause/team, auth, round-context, per-game settlement/payout export, and optional `GameChat` message export
 - aligns with `REPLAY_SPEC.md` where possible without inventing missing resolution/payout data
-- surfaces eliminations, terminal outcomes, settlement snapshots, claim/refund previews, and per-game payout routing only when those paths exist onchain for the selected game/block range
+- surfaces eliminations, terminal outcomes, settlement snapshots, claim/refund previews, winner-claim/refund/withdrawal events, and per-game payout routing only when those paths exist onchain for the selected game/block range
+- keeps message-time liveness honest: cause-chat messages are marked alive from the onchain post gate, while global-message liveness is derived from elimination timing when available and otherwise left null
 
 Useful commands:
 - `yarn query -- --help`

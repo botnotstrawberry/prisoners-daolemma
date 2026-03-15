@@ -95,6 +95,7 @@ Artifacts written when available:
   - causes.json
   - rounds.json
   - auth.json
+  - payouts.json
   - messages.jsonl
   - export-manifest.json
 
