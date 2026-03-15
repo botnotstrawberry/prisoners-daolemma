@@ -252,6 +252,32 @@ export function parsePositiveDecimalString(value, label) {
   throw new Error(`${label} must be a positive integer.`);
 }
 
+export function parseNonNegativeDecimalString(value, label) {
+  if (typeof value === "bigint") {
+    if (value < 0n) {
+      throw new Error(`${label} must be a non-negative integer.`);
+    }
+
+    return value.toString();
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(
+        `${label} must be provided as an exact non-negative integer. Use a decimal string for values above ${Number.MAX_SAFE_INTEGER}.`
+      );
+    }
+
+    return String(value);
+  }
+
+  if (typeof value === "string" && /^(?:0|[1-9]\d*)$/.test(value.trim())) {
+    return value.trim().replace(/^0+(?=\d)/, "");
+  }
+
+  throw new Error(`${label} must be a non-negative integer.`);
+}
+
 export function normalizeAgentRegistry(agentRegistry, label = "agentRegistry") {
   if (typeof agentRegistry !== "string" || agentRegistry.length === 0) {
     throw new Error(
@@ -281,7 +307,7 @@ function buildVerifiedSiwaAgentKeyText(input = {}) {
     return null;
   }
 
-  return `${normalizeAgentRegistry(input.agentRegistry, "input.agentRegistry").value}:${parsePositiveDecimalString(
+  return `${normalizeAgentRegistry(input.agentRegistry, "input.agentRegistry").value}:${parseNonNegativeDecimalString(
     input.agentId,
     "input.agentId"
   )}`;

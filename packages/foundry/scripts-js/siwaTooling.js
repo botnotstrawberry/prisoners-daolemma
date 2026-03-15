@@ -8,7 +8,7 @@ import {
   normalizeAddress,
   normalizeAgentRegistry,
   normalizeBytes32,
-  parsePositiveDecimalString,
+  parseNonNegativeDecimalString,
   parsePositiveInteger,
   resolveFromPackageRoot,
   resolveRpcTarget,
@@ -32,7 +32,7 @@ export async function issueSiwaChallenge(options = {}) {
     options.wallet ?? input.wallet ?? input.address,
     "wallet"
   );
-  const agentId = parsePositiveDecimalString(
+  const agentId = parseNonNegativeDecimalString(
     options.agentId ?? input.agentId,
     "agentId"
   );
@@ -396,7 +396,7 @@ function resolveSiwaSignFields(input = {}) {
       : {}),
     uri: requireNonEmptyString(rawFields.uri, "SIWA challenge URI"),
     version: optionalNonEmptyString(rawFields.version) ?? "1",
-    agentId: parsePositiveDecimalString(
+    agentId: parseNonNegativeDecimalString(
       rawFields.agentId,
       "SIWA challenge agentId"
     ),
@@ -516,7 +516,7 @@ function parseSiwaMessageExact(message) {
     statement,
     uri: requireNonEmptyString(fieldMap.URI, "SIWA message URI"),
     version: fieldMap.Version || "1",
-    agentId: parsePositiveDecimalString(fieldMap["Agent ID"], "SIWA message agentId"),
+    agentId: parseNonNegativeDecimalString(fieldMap["Agent ID"], "SIWA message agentId"),
     agentRegistry: requireNonEmptyString(
       fieldMap["Agent Registry"],
       "SIWA message agentRegistry"
@@ -729,7 +729,7 @@ function compareChallengeToMessage(record, fields) {
     );
   }
 
-  const recordAgentId = parsePositiveDecimalString(
+  const recordAgentId = parseNonNegativeDecimalString(
     record.agentId,
     "challenge agentId"
   );
@@ -836,7 +836,7 @@ function formatManifestBinding(result) {
 }
 
 function buildAgentKeyText(agentRegistry, agentId) {
-  return `${normalizeAgentRegistry(agentRegistry).value}:${parsePositiveDecimalString(
+  return `${normalizeAgentRegistry(agentRegistry).value}:${parseNonNegativeDecimalString(
     agentId,
     "agentId"
   )}`;

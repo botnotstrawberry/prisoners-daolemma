@@ -531,6 +531,64 @@ test("permit rejects a verified SIWA artifact when the permit chain does not mat
   );
 });
 
+test("SIWA flow accepts agentId 0 as a valid ERC-721/8004 token id through permit generation", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const agentId = "0";
+  await (await identityRegistry.setOwner(agentId, gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    gameplaySetup,
+    agentId,
+    tempDir,
+    manifestUri: "manifest://agent-zero",
+  });
+
+  const expectedAgentKeyText = `eip155:${CHAIN_ID}:${ethers.utils.getAddress(
+    identityRegistry.address
+  )}:${agentId}`;
+
+  assert.equal(flow.challenge.agentId, agentId);
+  assert.equal(flow.challenge.siwaFields.agentId, agentId);
+  assert.equal(flow.verified.agentId, agentId);
+  assert.equal(flow.verified.agentKeyText, expectedAgentKeyText);
+
+  const permit = JSON.parse(
+    runCli([
+      "permit",
+      "--rpc-url",
+      RPC_URL,
+      "--input",
+      flow.verifiedFile,
+      "--verifier-keystore",
+      verifierSetup.keystorePath,
+      "--verifier-keystore-password-file",
+      verifierSetup.passwordFile,
+      "--json",
+    ])
+  );
+
+  assert.equal(permit.permit.wallet.toLowerCase(), gameplay.address.toLowerCase());
+  assert.equal(
+    permit.permit.agentKey,
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(expectedAgentKeyText))
+  );
+});
+
 test("SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe integer range", async () => {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
