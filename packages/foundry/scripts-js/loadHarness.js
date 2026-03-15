@@ -42,8 +42,7 @@ const gameArtifact = JSON.parse(
   )
 );
 
-export const LOAD_HARNESS_SCHEMA_VERSION =
-  "prisoners-daollema/load-harness-v1";
+export const LOAD_HARNESS_SCHEMA_VERSION = "prisoners-daollema/load-harness-v1";
 export const LOAD_HARNESS_BOUNDARY_NOTE =
   "This is a local Anvil-focused load/chaos harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos knobs, and writes machine-readable reports plus evidence exports. It does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.";
 export const DEFAULT_ANVIL_CHAIN_ID = 31337;
@@ -154,7 +153,11 @@ function toNumber(value, label = "value") {
   throw new Error(`Unsupported numeric value for ${label}.`);
 }
 
-function parseInteger(value, label, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
+function parseInteger(
+  value,
+  label,
+  { min = 0, max = Number.MAX_SAFE_INTEGER } = {}
+) {
   const numeric = Number(value);
   if (!Number.isInteger(numeric) || numeric < min || numeric > max) {
     throw new Error(`${label} must be an integer between ${min} and ${max}.`);
@@ -321,13 +324,16 @@ function buildTxSummary(entries) {
 
     return {
       attempted: groupEntries.length,
-      succeeded: groupEntries.filter((entry) => entry.status === "succeeded").length,
+      succeeded: groupEntries.filter((entry) => entry.status === "succeeded")
+        .length,
       failed: groupEntries.filter((entry) => entry.status === "failed").length,
       failedExpected: groupEntries.filter(
-        (entry) => entry.status === "failed" && entry.failureClass === "expected"
+        (entry) =>
+          entry.status === "failed" && entry.failureClass === "expected"
       ).length,
       failedUnexpected: groupEntries.filter(
-        (entry) => entry.status === "failed" && entry.failureClass === "unexpected"
+        (entry) =>
+          entry.status === "failed" && entry.failureClass === "unexpected"
       ).length,
       unexpectedSuccesses: groupEntries.filter(
         (entry) => entry.failureClass === "unexpected-success"
@@ -373,7 +379,8 @@ function buildTxSummary(entries) {
       (entry) => entry.status === "failed" && entry.failureClass === "expected"
     ).length,
     failedUnexpected: entries.filter(
-      (entry) => entry.status === "failed" && entry.failureClass === "unexpected"
+      (entry) =>
+        entry.status === "failed" && entry.failureClass === "unexpected"
     ).length,
     unexpectedSuccesses: entries.filter(
       (entry) => entry.failureClass === "unexpected-success"
@@ -412,8 +419,14 @@ function normalizeSnapshot(snapshot) {
     maxCauses: toNumber(snapshot.maxCauses, "snapshot.maxCauses"),
     joinedCount: toNumber(snapshot.joinedCount, "snapshot.joinedCount"),
     aliveCount: toNumber(snapshot.aliveCount, "snapshot.aliveCount"),
-    usedCauseCount: toNumber(snapshot.usedCauseCount, "snapshot.usedCauseCount"),
-    committedCount: toNumber(snapshot.committedCount, "snapshot.committedCount"),
+    usedCauseCount: toNumber(
+      snapshot.usedCauseCount,
+      "snapshot.usedCauseCount"
+    ),
+    committedCount: toNumber(
+      snapshot.committedCount,
+      "snapshot.committedCount"
+    ),
     revealedCount: toNumber(snapshot.revealedCount, "snapshot.revealedCount"),
     createdAt: toNumber(snapshot.createdAt, "snapshot.createdAt"),
     joinDeadline: toNumber(snapshot.joinDeadline, "snapshot.joinDeadline"),
@@ -430,7 +443,9 @@ function normalizeSnapshot(snapshot) {
     phaseCode: toNumber(snapshot.phase, "snapshot.phase"),
     phase: PHASE_NAMES[toNumber(snapshot.phase, "snapshot.phase")] ?? "Unknown",
     outcomeCode: toNumber(snapshot.outcome, "snapshot.outcome"),
-    outcome: OUTCOME_NAMES[toNumber(snapshot.outcome, "snapshot.outcome")] ?? "Unknown",
+    outcome:
+      OUTCOME_NAMES[toNumber(snapshot.outcome, "snapshot.outcome")] ??
+      "Unknown",
     treasury: snapshot.treasury,
   };
 }
@@ -480,7 +495,8 @@ function parseScenarioSelection(rawScenario) {
 
 function expandScenarioPlan(selectedScenarioTypes, games) {
   return Array.from({ length: games }, (_, index) => {
-    const scenarioType = selectedScenarioTypes[index % selectedScenarioTypes.length];
+    const scenarioType =
+      selectedScenarioTypes[index % selectedScenarioTypes.length];
     return {
       ...SCENARIO_DEFS[scenarioType],
       ordinal: index + 1,
@@ -613,7 +629,9 @@ async function mapConcurrent(items, limit, mapper) {
 }
 
 function buildResolvedConfig(rawOptions = {}) {
-  const profileName = String(rawOptions.profile ?? "smoke").trim().toLowerCase();
+  const profileName = String(rawOptions.profile ?? "smoke")
+    .trim()
+    .toLowerCase();
   const profile = PROFILE_DEFS[profileName];
   if (!profile) {
     throw new Error(
@@ -633,7 +651,10 @@ function buildResolvedConfig(rawOptions = {}) {
     "causeCount",
     { min: 1, max: 16 }
   );
-  const games = parseInteger(rawOptions.games ?? 1, "games", { min: 1, max: 100 });
+  const games = parseInteger(rawOptions.games ?? 1, "games", {
+    min: 1,
+    max: 100,
+  });
   const concurrency = parseInteger(
     rawOptions.concurrency ?? Math.min(16, playerCount),
     "concurrency",
@@ -665,6 +686,28 @@ function buildResolvedConfig(rawOptions = {}) {
   }
 
   const notes = [];
+  const joinDurationSeconds =
+    rawOptions.joinDurationSeconds !== undefined
+      ? parseInteger(rawOptions.joinDurationSeconds, "joinDurationSeconds", {
+          min: 1,
+          max: Number.MAX_SAFE_INTEGER,
+        })
+      : profile.joinDurationSeconds;
+  const commitDurationBlocks =
+    rawOptions.commitDurationBlocks !== undefined
+      ? parseInteger(rawOptions.commitDurationBlocks, "commitDurationBlocks", {
+          min: 1,
+          max: Number.MAX_SAFE_INTEGER,
+        })
+      : profile.commitDurationBlocks;
+  const revealDurationBlocks =
+    rawOptions.revealDurationBlocks !== undefined
+      ? parseInteger(rawOptions.revealDurationBlocks, "revealDurationBlocks", {
+          min: 1,
+          max: Number.MAX_SAFE_INTEGER,
+        })
+      : profile.revealDurationBlocks;
+
   let minPlayers = profile.minPlayers;
   if (playerCount < minPlayers) {
     minPlayers = playerCount;
@@ -697,13 +740,20 @@ function buildResolvedConfig(rawOptions = {}) {
   }
 
   const requestedScenario =
-    rawOptions.scenario !== undefined ? String(rawOptions.scenario) : "winner-all-share";
+    rawOptions.scenario !== undefined
+      ? String(rawOptions.scenario)
+      : "winner-all-share";
   const selectedScenarioTypes = parseScenarioSelection(requestedScenario);
   const scenarioPlan = expandScenarioPlan(selectedScenarioTypes, games);
 
-  if (selectedScenarioTypes.length < games && selectedScenarioTypes.length > 0) {
+  if (
+    selectedScenarioTypes.length < games &&
+    selectedScenarioTypes.length > 0
+  ) {
     notes.push(
-      `Scenario list ${selectedScenarioTypes.join(", ")} is shorter than games=${games}, so the harness cycles that list across the sequential run.`
+      `Scenario list ${selectedScenarioTypes.join(
+        ", "
+      )} is shorter than games=${games}, so the harness cycles that list across the sequential run.`
     );
   }
 
@@ -713,6 +763,44 @@ function buildResolvedConfig(rawOptions = {}) {
   ) {
     notes.push(
       "skipCommitRate and skipRevealRate only affect winner-all-share games. Cancelled and no-winner scenarios ignore those knobs so their terminal outcomes stay deterministic."
+    );
+  }
+
+  if (joinDurationSeconds !== profile.joinDurationSeconds) {
+    notes.push(
+      `Overrode joinDurationSeconds from profile default ${profile.joinDurationSeconds} to ${joinDurationSeconds} for this run.`
+    );
+  }
+  if (commitDurationBlocks !== profile.commitDurationBlocks) {
+    notes.push(
+      `Overrode commitDurationBlocks from profile default ${profile.commitDurationBlocks} to ${commitDurationBlocks} for this run.`
+    );
+  }
+  if (revealDurationBlocks !== profile.revealDurationBlocks) {
+    notes.push(
+      `Overrode revealDurationBlocks from profile default ${profile.revealDurationBlocks} to ${revealDurationBlocks} for this run.`
+    );
+  }
+
+  const maxFullRoundParticipants = scenarioPlan.some(
+    (scenario) => scenario.type !== "cancelled-underfilled"
+  )
+    ? playerCount
+    : 0;
+  if (
+    maxFullRoundParticipants > 0 &&
+    commitDurationBlocks < maxFullRoundParticipants
+  ) {
+    notes.push(
+      `For auto-mined local Anvil runs, commitDurationBlocks=${commitDurationBlocks} is smaller than the max joined-player count ${maxFullRoundParticipants}. Full-participation commit rounds can time out unless you raise commitDurationBlocks or intentionally rely on skipped commits.`
+    );
+  }
+  if (
+    maxFullRoundParticipants > 0 &&
+    revealDurationBlocks < maxFullRoundParticipants
+  ) {
+    notes.push(
+      `For auto-mined local Anvil runs, revealDurationBlocks=${revealDurationBlocks} is smaller than the max joined-player count ${maxFullRoundParticipants}. Full-participation reveal rounds can time out unless you raise revealDurationBlocks or intentionally rely on skipped reveals.`
     );
   }
 
@@ -742,9 +830,9 @@ function buildResolvedConfig(rawOptions = {}) {
       entryFeeWei: ethers.utils.parseEther(profile.entryFeeEth).toString(),
       creatorFeeBps: profile.creatorFeeBps,
       causeFeeBps: profile.causeFeeBps,
-      joinDurationSeconds: profile.joinDurationSeconds,
-      commitDurationBlocks: profile.commitDurationBlocks,
-      revealDurationBlocks: profile.revealDurationBlocks,
+      joinDurationSeconds,
+      commitDurationBlocks,
+      revealDurationBlocks,
       minPlayers,
       maxPlayers,
       maxCauses,
@@ -836,7 +924,10 @@ async function extractReceipt(provider, outcome) {
     };
   }
 
-  if (outcome?.deployTransaction?.hash && typeof outcome.deployTransaction.wait === "function") {
+  if (
+    outcome?.deployTransaction?.hash &&
+    typeof outcome.deployTransaction.wait === "function"
+  ) {
     const receipt = await outcome.deployTransaction.wait();
     return {
       transactionHash: receipt.transactionHash,
@@ -845,7 +936,9 @@ async function extractReceipt(provider, outcome) {
     };
   }
 
-  throw new Error("Tracked transaction result did not expose a transaction hash.");
+  throw new Error(
+    "Tracked transaction result did not expose a transaction hash."
+  );
 }
 
 async function trackedTx(tracker, provider, meta, operation) {
@@ -902,7 +995,9 @@ async function trackedExpectedFailure(tracker, provider, meta, operation) {
     );
 
     const unexpectedSuccess = new Error(
-      `${meta.failureLabel ?? meta.action} unexpectedly succeeded even though the harness expected it to fail.`
+      `${
+        meta.failureLabel ?? meta.action
+      } unexpectedly succeeded even though the harness expected it to fail.`
     );
     unexpectedSuccess.__loadHarnessUnexpectedSuccess = true;
     throw unexpectedSuccess;
@@ -951,7 +1046,15 @@ async function minePastBlock(provider, blockNumber) {
   return mined;
 }
 
-function shouldSample({ seed, stage, gameIndex, round, playerIndex, wallet, rate }) {
+function shouldSample({
+  seed,
+  stage,
+  gameIndex,
+  round,
+  playerIndex,
+  wallet,
+  rate,
+}) {
   if (rate <= 0) {
     return false;
   }
@@ -1096,6 +1199,42 @@ function aggregateCauseWithdrawals(results) {
   };
 }
 
+function summarizeTreasuryWithdrawal(result) {
+  return result
+    ? {
+        executed: true,
+        amountWei: result.amountWei,
+        recipient: result.recipient,
+      }
+    : {
+        executed: false,
+        amountWei: "0",
+        recipient: null,
+      };
+}
+
+function buildPostRunOutstanding(evidence) {
+  const payouts = evidence.payouts;
+  const totalCauseClaimableWei = sumDecimalStrings(
+    payouts.causes.map((cause) => cause.claimableFromGameWei)
+  ).toString();
+  const unclaimedWinnerCount = payouts.claims.winners.unclaimedWinnerCount;
+  const pendingRefundCount = payouts.claims.refunds.pendingRefundCount;
+  const treasuryClaimableWei = payouts.treasury.claimableWei;
+
+  return {
+    treasuryClaimableWei,
+    totalCauseClaimableWei,
+    unclaimedWinnerCount,
+    pendingRefundCount,
+    fullyDrainedByHarness:
+      treasuryClaimableWei === "0" &&
+      totalCauseClaimableWei === "0" &&
+      unclaimedWinnerCount === 0 &&
+      pendingRefundCount === 0,
+  };
+}
+
 function buildReplayConsistency({
   scenarioType,
   evidence,
@@ -1104,7 +1243,7 @@ function buildReplayConsistency({
   claimSummary,
   claimWinners,
   refundSummary,
-  noWinnerSummary,
+  withdrawalSummary,
 }) {
   const summary = evidence.summary;
   const payouts = evidence.payouts;
@@ -1112,7 +1251,9 @@ function buildReplayConsistency({
   const checks = [];
   const joinedCount = causeAssignments.length;
   const usedCauseCount = uniqueCauseCount(causeAssignments);
-  const totalPotWei = (bigintFrom(config.entryFeeWei) * BigInt(joinedCount)).toString();
+  const totalPotWei = (
+    bigintFrom(config.entryFeeWei) * BigInt(joinedCount)
+  ).toString();
 
   function addCheck(name, expected, actual) {
     checks.push({
@@ -1129,17 +1270,41 @@ function buildReplayConsistency({
   addCheck("totalPotWei", totalPotWei, settlement.totalPotWei);
 
   if (scenarioType === "winner-all-share") {
+    const totalCauseClaimableWei = sumDecimalStrings(
+      payouts.causes.map((cause) => cause.claimableFromGameWei)
+    );
+    const totalCauseWithdrawnWei = sumDecimalStrings(
+      payouts.causes.map((cause) => cause.withdrawnFromGameWei)
+    );
+    const expectedCauseWithdrawnWei = claimWinners
+      ? claimSummary.totalCauseCutWei
+      : "0";
+
     addCheck("phase", "Ended", summary.game.phase);
     addCheck("outcome", "Winners", summary.game.outcome);
-    addCheck("terminalPath", "winner-claims", summary.game.terminalOutcome.terminalPath);
+    addCheck(
+      "terminalPath",
+      "winner-claims",
+      summary.game.terminalOutcome.terminalPath
+    );
     addCheck("shareStreak", 3, summary.game.shareStreak);
     addCheck("aliveCount", joinedCount, summary.game.counts.alive);
     addCheck("winnerCount", joinedCount, settlement.winnerCount);
     addCheck("claimPathAvailable", true, payouts.settlement.claimPathAvailable);
     if (claimWinners) {
       addCheck("claimedCount", joinedCount, summary.game.counts.claimed);
-      addCheck("claimedWinnerCount", joinedCount, payouts.claims.winners.claimedWinnerCount);
-      addCheck("grossClaimsVsWinnerShare", (bigintFrom(settlement.winnerShareWei) * BigInt(joinedCount)).toString(), claimSummary.totalGrossPrizeWei);
+      addCheck(
+        "claimedWinnerCount",
+        joinedCount,
+        payouts.claims.winners.claimedWinnerCount
+      );
+      addCheck(
+        "grossClaimsVsWinnerShare",
+        (
+          bigintFrom(settlement.winnerShareWei) * BigInt(joinedCount)
+        ).toString(),
+        claimSummary.totalGrossPrizeWei
+      );
       addCheck(
         "grossEqualsNetPlusCauseCut",
         bigintFrom(claimSummary.totalGrossPrizeWei).toString(),
@@ -1155,24 +1320,72 @@ function buildReplayConsistency({
       );
     } else {
       addCheck("claimedCount", 0, summary.game.counts.claimed);
-      addCheck("claimedWinnerCount", 0, payouts.claims.winners.claimedWinnerCount);
+      addCheck(
+        "claimedWinnerCount",
+        0,
+        payouts.claims.winners.claimedWinnerCount
+      );
+    }
+    addCheck(
+      "treasuryWithdrawnWei",
+      settlement.creatorFeeWei,
+      payouts.treasury.withdrawnWei
+    );
+    addCheck("treasuryClaimableWei", "0", payouts.treasury.claimableWei);
+    addCheck(
+      "causeClaimableWeiAfterWithdrawals",
+      "0",
+      totalCauseClaimableWei.toString()
+    );
+    addCheck(
+      "causeWithdrawnWei",
+      expectedCauseWithdrawnWei,
+      totalCauseWithdrawnWei.toString()
+    );
+    if (withdrawalSummary) {
+      addCheck(
+        "treasuryWithdrawnAgreeWithHarness",
+        withdrawalSummary.treasury.amountWei,
+        payouts.treasury.withdrawnWei
+      );
+      addCheck(
+        "causeWithdrawalsAgreeWithHarness",
+        withdrawalSummary.causes.totalAmountWei,
+        totalCauseWithdrawnWei.toString()
+      );
     }
   } else if (scenarioType === "cancelled-underfilled") {
     addCheck("phase", "Cancelled", summary.game.phase);
     addCheck("outcome", "Cancelled", summary.game.outcome);
-    addCheck("terminalPath", "cancelled-refunds", summary.game.terminalOutcome.terminalPath);
+    addCheck(
+      "terminalPath",
+      "cancelled-refunds",
+      summary.game.terminalOutcome.terminalPath
+    );
     addCheck("round", 0, summary.game.round);
     addCheck("aliveCount", joinedCount, summary.game.counts.alive);
     addCheck("refundedCount", joinedCount, summary.game.counts.refunded);
-    addCheck("refundPathAvailable", true, payouts.settlement.refundPathAvailable);
-    addCheck("refundPerPlayerWei", config.entryFeeWei, settlement.refundPerPlayerWei);
+    addCheck(
+      "refundPathAvailable",
+      true,
+      payouts.settlement.refundPathAvailable
+    );
+    addCheck(
+      "refundPerPlayerWei",
+      config.entryFeeWei,
+      settlement.refundPerPlayerWei
+    );
     addCheck(
       "totalRefundedWei",
       (bigintFrom(config.entryFeeWei) * BigInt(joinedCount)).toString(),
       payouts.claims.refunds.totalRefundedWei
     );
     if (refundSummary) {
-      addCheck("refundsAgreeWithEvidence", refundSummary.totalRefundWei, payouts.claims.refunds.totalRefundedWei);
+      addCheck(
+        "refundsAgreeWithEvidence",
+        refundSummary.totalRefundWei,
+        payouts.claims.refunds.totalRefundedWei
+      );
     }
   } else if (scenarioType === "no-winner-all-catch") {
     const totalPot = bigintFrom(config.entryFeeWei) * BigInt(joinedCount);
@@ -1181,7 +1394,8 @@ function buildReplayConsistency({
     const noWinnerCausePool = (postCreatorPot * NO_WINNER_CAUSE_BPS) / 10_000n;
     const distributedCauseWei = buildCauseDistribution(causeAssignments).reduce(
       (sum, entry) =>
-        sum + (noWinnerCausePool * BigInt(entry.entrantCount)) / BigInt(joinedCount),
+        sum +
+        (noWinnerCausePool * BigInt(entry.entrantCount)) / BigInt(joinedCount),
       0n
     );
     const treasuryAccruedWei = totalPot - distributedCauseWei;
@@ -1194,36 +1408,66 @@ function buildReplayConsistency({
 
     addCheck("phase", "Ended", summary.game.phase);
     addCheck("outcome", "NoWinners", summary.game.outcome);
-    addCheck("terminalPath", "no-winner-routing", summary.game.terminalOutcome.terminalPath);
+    addCheck(
+      "terminalPath",
+      "no-winner-routing",
+      summary.game.terminalOutcome.terminalPath
+    );
     addCheck("round", 1, summary.game.round);
     addCheck("aliveCount", 0, summary.game.counts.alive);
     addCheck("winnerCount", 0, settlement.winnerCount);
-    addCheck("noWinnerPathAvailable", true, payouts.settlement.noWinnerPathAvailable);
-    addCheck("noWinnerCausePoolWei", noWinnerCausePool.toString(), settlement.noWinnerCausePoolWei);
+    addCheck(
+      "noWinnerPathAvailable",
+      true,
+      payouts.settlement.noWinnerPathAvailable
+    );
+    addCheck(
+      "noWinnerCausePoolWei",
+      noWinnerCausePool.toString(),
+      settlement.noWinnerCausePoolWei
+    );
     addCheck(
       "noWinnerCauseDistributedWei",
       distributedCauseWei.toString(),
       settlement.noWinnerCauseDistributedWei
     );
-    addCheck("treasuryAccruedWei", treasuryAccruedWei.toString(), settlement.treasuryAccruedWei);
-    addCheck("treasuryWithdrawnWei", treasuryAccruedWei.toString(), payouts.treasury.withdrawnWei);
+    addCheck(
+      "treasuryAccruedWei",
+      treasuryAccruedWei.toString(),
+      settlement.treasuryAccruedWei
+    );
+    addCheck(
+      "treasuryWithdrawnWei",
+      treasuryAccruedWei.toString(),
+      payouts.treasury.withdrawnWei
+    );
     addCheck("treasuryClaimableWei", "0", payouts.treasury.claimableWei);
-    addCheck("causeClaimableWeiAfterWithdrawals", "0", totalCauseClaimableWei.toString());
-    addCheck("causeWithdrawnWei", distributedCauseWei.toString(), totalCauseWithdrawnWei.toString());
-    if (noWinnerSummary) {
+    addCheck(
+      "causeClaimableWeiAfterWithdrawals",
+      "0",
+      totalCauseClaimableWei.toString()
+    );
+    addCheck(
+      "causeWithdrawnWei",
+      distributedCauseWei.toString(),
+      totalCauseWithdrawnWei.toString()
+    );
+    if (withdrawalSummary) {
       addCheck(
         "treasuryWithdrawnAgreeWithHarness",
-        noWinnerSummary.treasuryWithdrawal.amountWei,
+        withdrawalSummary.treasury.amountWei,
         payouts.treasury.withdrawnWei
       );
       addCheck(
         "causeWithdrawalsAgreeWithHarness",
-        noWinnerSummary.causeWithdrawals.totalAmountWei,
+        withdrawalSummary.causes.totalAmountWei,
         totalCauseWithdrawnWei.toString()
       );
     }
   } else {
-    throw new Error(`Unsupported scenarioType '${scenarioType}' for replay consistency.`);
+    throw new Error(
+      `Unsupported scenarioType '${scenarioType}' for replay consistency.`
+    );
   }
 
   return {
@@ -1245,11 +1489,19 @@ async function deployContracts({
     authRegistryArtifact.bytecode.object,
     owner
   );
-  const authRegistry = await authRegistryFactory.deploy(owner.address, verifier.address);
-  await trackedTx(tracker, provider, {
-    action: "deployAuthRegistry",
-    phase: "deploy",
-  }, async () => authRegistry.deployTransaction);
+  const authRegistry = await authRegistryFactory.deploy(
+    owner.address,
+    verifier.address
+  );
+  await trackedTx(
+    tracker,
+    provider,
+    {
+      action: "deployAuthRegistry",
+      phase: "deploy",
+    },
+    async () => authRegistry.deployTransaction
+  );
   await authRegistry.deployed();
 
   const gameFactory = new ethers.ContractFactory(
@@ -1273,10 +1525,15 @@ async function deployContracts({
       maxCauses: config.maxCauses,
     }
   );
-  await trackedTx(tracker, provider, {
-    action: "deployGame",
-    phase: "deploy",
-  }, async () => game.deployTransaction);
+  await trackedTx(
+    tracker,
+    provider,
+    {
+      action: "deployGame",
+      phase: "deploy",
+    },
+    async () => game.deployTransaction
+  );
   await game.deployed();
 
   return {
@@ -1296,7 +1553,8 @@ async function whitelistCauses({ provider, game, causeDefinitions, tracker }) {
         phase: "bootstrap",
         causeId: cause.causeId,
       },
-      async () => game.whitelistCause(cause.causeId, cause.recipient, cause.metadataHash)
+      async () =>
+        game.whitelistCause(cause.causeId, cause.recipient, cause.metadataHash)
     );
   }
 }
@@ -1324,31 +1582,34 @@ async function registerPlayers({
     )
   );
 
-  const registrationResults = await mapConcurrent(players, concurrency, async (player, index) =>
-    trackedTx(
-      tracker,
-      provider,
-      {
-        action: "authRegister",
-        phase: "bootstrap",
-        wallet: player.wallet.address,
-      },
-      async () =>
-        registerSignedPermit({
-          provider,
-          bundle: permits[index],
-          walletPrivateKey: player.wallet.privateKey,
-          allowUnsafePrivateKey: true,
-        })
-    )
+  const registrationResults = await mapConcurrent(
+    players,
+    concurrency,
+    async (player, index) =>
+      trackedTx(
+        tracker,
+        provider,
+        {
+          action: "authRegister",
+          phase: "bootstrap",
+          wallet: player.wallet.address,
+        },
+        async () =>
+          registerSignedPermit({
+            provider,
+            bundle: permits[index],
+            walletPrivateKey: player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      )
   );
 
   const failures = registrationResults.filter((result) => !result.ok);
   if (failures.length > 0) {
     throw new Error(
-      `Auth registration failed for ${failures.length} player(s). First failure: ${describeError(
-        failures[0].error
-      )}`
+      `Auth registration failed for ${
+        failures.length
+      } player(s). First failure: ${describeError(failures[0].error)}`
     );
   }
 
@@ -1364,25 +1625,187 @@ async function runGameBatch({
   buildMeta,
   operation,
 }) {
-  const batchResults = await mapConcurrent(items, concurrency, async (item, index) =>
-    trackedTx(tracker, provider, buildMeta(item, index), async () => operation(item, index))
+  const batchResults = await mapConcurrent(
+    items,
+    concurrency,
+    async (item, index) =>
+      trackedTx(tracker, provider, buildMeta(item, index), async () =>
+        operation(item, index)
+      )
   );
 
   const failures = batchResults.filter((result) => !result.ok);
   if (failures.length > 0) {
     throw new Error(
-      `${actionName} batch failed for ${failures.length} item(s). First failure: ${describeError(
-        failures[0].error
-      )}`
+      `${actionName} batch failed for ${
+        failures.length
+      } item(s). First failure: ${describeError(failures[0].error)}`
     );
   }
 
   return batchResults.map((result) => result.value);
 }
 
+async function runAvailableWithdrawals({
+  provider,
+  owner,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  scenarioType,
+  causeIds,
+  concurrency,
+  tracker,
+  expectedFailures,
+  skippedExpectedFailures,
+}) {
+  let treasuryWithdrawal = null;
+  let causeWithdrawalResults = [];
+
+  const treasuryClaimableWei = bigintFrom(
+    await gameReader.treasuryClaimableAmount(gameId),
+    "treasuryClaimableWei"
+  );
+  if (treasuryClaimableWei > 0n) {
+    treasuryWithdrawal = await trackedTx(
+      tracker,
+      provider,
+      {
+        action: "withdrawTreasury",
+        phase: "settlement",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: owner.address,
+      },
+      async () =>
+        withdrawTreasuryAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          wallet: owner.address,
+          walletPrivateKey: owner.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+  }
+
+  const withdrawableCauses = [];
+  for (const causeId of [...new Set(causeIds)].sort((a, b) => a - b)) {
+    const claimableWei = bigintFrom(
+      await gameReader.gameCauseClaimableAmount(gameId, causeId),
+      `cause-${causeId}.claimableWei`
+    );
+    if (claimableWei > 0n) {
+      withdrawableCauses.push({ causeId });
+    }
+  }
+
+  if (withdrawableCauses.length > 0) {
+    causeWithdrawalResults = await runGameBatch({
+      items: withdrawableCauses,
+      concurrency: 1,
+      actionName: "withdraw-cause",
+      provider,
+      tracker,
+      buildMeta: (cause) => ({
+        action: "withdrawCause",
+        phase: "settlement",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: owner.address,
+        causeId: cause.causeId,
+      }),
+      operation: (cause) =>
+        withdrawCauseAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          causeId: cause.causeId,
+          wallet: owner.address,
+          walletPrivateKey: owner.privateKey,
+          allowUnsafePrivateKey: true,
+        }),
+    });
+  }
+
+  if (expectedFailures) {
+    if (treasuryWithdrawal) {
+      await trackedExpectedFailure(
+        tracker,
+        provider,
+        {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType,
+          failureLabel: "duplicate-withdraw-treasury",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+        },
+        async () =>
+          withdrawTreasuryAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    } else {
+      skippedExpectedFailures.push(
+        "duplicate-withdraw-treasury(no treasury withdrawal)"
+      );
+    }
+
+    if (causeWithdrawalResults.length > 0) {
+      const duplicateCause = causeWithdrawalResults[0].causeId;
+      await trackedExpectedFailure(
+        tracker,
+        provider,
+        {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType,
+          failureLabel: "duplicate-withdraw-cause",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          causeId: duplicateCause,
+        },
+        async () =>
+          withdrawCauseAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            causeId: duplicateCause,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    } else {
+      skippedExpectedFailures.push(
+        "duplicate-withdraw-cause(no cause withdrawal)"
+      );
+    }
+  }
+
+  return {
+    treasuryWithdrawal,
+    causeWithdrawalResults,
+  };
+}
+
 function selectScenarioPlayers(players, scenarioType, config) {
   if (scenarioType === "cancelled-underfilled") {
-    const joinedPlayers = Math.min(players.length, Math.max(1, config.minPlayers - 1));
+    const joinedPlayers = Math.min(
+      players.length,
+      Math.max(1, config.minPlayers - 1)
+    );
     return players.slice(0, joinedPlayers);
   }
 
@@ -1407,7 +1830,9 @@ async function runPlannedRound({
   expectedFailures,
   skippedExpectedFailures,
 }) {
-  const snapshotBeforeRound = normalizeSnapshot(await gameReader.getGame(gameId));
+  const snapshotBeforeRound = normalizeSnapshot(
+    await gameReader.getGame(gameId)
+  );
   if (snapshotBeforeRound.phase !== "Commit") {
     throw new Error(
       `Game ${gameId} is in phase ${snapshotBeforeRound.phase}, not Commit.`
@@ -1474,7 +1899,8 @@ async function runPlannedRound({
         provider,
         game: gameAddress,
         gameId,
-        commitment: bundleByWallet.get(player.wallet.address.toLowerCase()).commitment,
+        commitment: bundleByWallet.get(player.wallet.address.toLowerCase())
+          .commitment,
         wallet: player.wallet.address,
         walletPrivateKey: player.wallet.privateKey,
         allowUnsafePrivateKey: true,
@@ -1484,7 +1910,9 @@ async function runPlannedRound({
   if (expectedFailures) {
     if (committedPlayers.length > 0) {
       const duplicateCommitPlayer = committedPlayers[0];
-      const bundle = bundleByWallet.get(duplicateCommitPlayer.wallet.address.toLowerCase());
+      const bundle = bundleByWallet.get(
+        duplicateCommitPlayer.wallet.address.toLowerCase()
+      );
       await trackedExpectedFailure(
         tracker,
         provider,
@@ -1510,7 +1938,9 @@ async function runPlannedRound({
           })
       );
     } else {
-      skippedExpectedFailures.push(`round-${round}:duplicate-commit(no committed player)`);
+      skippedExpectedFailures.push(
+        `round-${round}:duplicate-commit(no committed player)`
+      );
     }
   }
 
@@ -1518,7 +1948,10 @@ async function runPlannedRound({
   let commitDeadlineHit = false;
   if (skippedCommitWallets.length > 0) {
     const snapshot = normalizeSnapshot(await gameReader.getGame(gameId));
-    manualBlocksMined += await minePastBlock(provider, snapshot.commitDeadlineBlock);
+    manualBlocksMined += await minePastBlock(
+      provider,
+      snapshot.commitDeadlineBlock
+    );
     commitDeadlineHit = true;
   }
 
@@ -1562,7 +1995,10 @@ async function runPlannedRound({
     revealCandidates.map((player) => player.wallet.address.toLowerCase())
   );
   const skippedRevealWallets = committedPlayers
-    .filter((player) => !revealCandidateWallets.has(player.wallet.address.toLowerCase()))
+    .filter(
+      (player) =>
+        !revealCandidateWallets.has(player.wallet.address.toLowerCase())
+    )
     .map((player) => player.wallet.address);
 
   const revealStartedMs = Date.now();
@@ -1599,7 +2035,9 @@ async function runPlannedRound({
   if (expectedFailures) {
     if (revealCandidates.length > 0) {
       const duplicateRevealPlayer = revealCandidates[0];
-      const bundle = bundleByWallet.get(duplicateRevealPlayer.wallet.address.toLowerCase());
+      const bundle = bundleByWallet.get(
+        duplicateRevealPlayer.wallet.address.toLowerCase()
+      );
       await trackedExpectedFailure(
         tracker,
         provider,
@@ -1626,14 +2064,19 @@ async function runPlannedRound({
           })
       );
     } else {
-      skippedExpectedFailures.push(`round-${round}:duplicate-reveal(no revealed player)`);
+      skippedExpectedFailures.push(
+        `round-${round}:duplicate-reveal(no revealed player)`
+      );
     }
   }
 
   let revealDeadlineHit = false;
   if (skippedRevealWallets.length > 0) {
     const snapshot = normalizeSnapshot(await gameReader.getGame(gameId));
-    manualBlocksMined += await minePastBlock(provider, snapshot.revealDeadlineBlock);
+    manualBlocksMined += await minePastBlock(
+      provider,
+      snapshot.revealDeadlineBlock
+    );
     revealDeadlineHit = true;
   }
 
@@ -1804,14 +2247,22 @@ async function runSingleGame({
           gameIndex,
           gameId,
           wallet: duplicateJoinPlayer.wallet.address,
-          causeId: assignCauseId(duplicateJoinPlayer.index, gameIndex, causeCount),
+          causeId: assignCauseId(
+            duplicateJoinPlayer.index,
+            gameIndex,
+            causeCount
+          ),
         },
         async () =>
           joinGameAction({
             provider,
             game: gameAddress,
             gameId,
-            causeId: assignCauseId(duplicateJoinPlayer.index, gameIndex, causeCount),
+            causeId: assignCauseId(
+              duplicateJoinPlayer.index,
+              gameIndex,
+              causeCount
+            ),
             wallet: duplicateJoinPlayer.wallet.address,
             walletPrivateKey: duplicateJoinPlayer.wallet.privateKey,
             allowUnsafePrivateKey: true,
@@ -1882,7 +2333,9 @@ async function runSingleGame({
 
     if (scenarioType === "winner-all-share") {
       while (true) {
-        const snapshotBeforeRound = normalizeSnapshot(await gameReader.getGame(gameId));
+        const snapshotBeforeRound = normalizeSnapshot(
+          await gameReader.getGame(gameId)
+        );
         if (snapshotBeforeRound.phase !== "Commit") {
           break;
         }
@@ -2021,8 +2474,26 @@ async function runSingleGame({
         }
       }
     } else if (expectedFailures) {
-      skippedExpectedFailures.push("duplicate-claim(skipped because winner claims disabled)");
+      skippedExpectedFailures.push(
+        "duplicate-claim(skipped because winner claims disabled)"
+      );
     }
+
+    ({ treasuryWithdrawal, causeWithdrawalResults } =
+      await runAvailableWithdrawals({
+        provider,
+        owner,
+        gameReader,
+        gameAddress,
+        gameIndex,
+        gameId,
+        scenarioType,
+        causeIds: causeAssignments.map((entry) => entry.causeId),
+        concurrency,
+        tracker,
+        expectedFailures,
+        skippedExpectedFailures,
+      }));
   } else if (scenarioType === "cancelled-underfilled") {
     refundResults = await runGameBatch({
       items: joinedPlayers,
@@ -2079,128 +2550,21 @@ async function runSingleGame({
       }
     }
   } else if (scenarioType === "no-winner-all-catch") {
-    const treasuryClaimableWei = bigintFrom(
-      await gameReader.treasuryClaimableAmount(gameId),
-      "treasuryClaimableWei"
-    );
-    if (treasuryClaimableWei > 0n) {
-      treasuryWithdrawal = await trackedTx(
-        tracker,
+    ({ treasuryWithdrawal, causeWithdrawalResults } =
+      await runAvailableWithdrawals({
         provider,
-        {
-          action: "withdrawTreasury",
-          phase: "settlement",
-          scenarioType,
-          gameIndex,
-          gameId,
-          wallet: owner.address,
-        },
-        async () =>
-          withdrawTreasuryAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            wallet: owner.address,
-            walletPrivateKey: owner.privateKey,
-            allowUnsafePrivateKey: true,
-          })
-      );
-    }
-
-    const usedCauseDistribution = buildCauseDistribution(causeAssignments);
-    for (const causeEntry of usedCauseDistribution) {
-      const claimableWei = bigintFrom(
-        await gameReader.gameCauseClaimableAmount(gameId, causeEntry.causeId),
-        `cause-${causeEntry.causeId}.claimableWei`
-      );
-      if (claimableWei === 0n) {
-        continue;
-      }
-      causeWithdrawalResults.push(
-        await trackedTx(
-          tracker,
-          provider,
-          {
-            action: "withdrawCause",
-            phase: "settlement",
-            scenarioType,
-            gameIndex,
-            gameId,
-            wallet: owner.address,
-            causeId: causeEntry.causeId,
-          },
-          async () =>
-            withdrawCauseAction({
-              provider,
-              game: gameAddress,
-              gameId,
-              causeId: causeEntry.causeId,
-              wallet: owner.address,
-              walletPrivateKey: owner.privateKey,
-              allowUnsafePrivateKey: true,
-            })
-        )
-      );
-    }
-
-    if (expectedFailures) {
-      if (treasuryWithdrawal) {
-        await trackedExpectedFailure(
-          tracker,
-          provider,
-          {
-            action: "withdrawTreasury",
-            phase: "settlement",
-            scenarioType,
-            failureLabel: "duplicate-withdraw-treasury",
-            gameIndex,
-            gameId,
-            wallet: owner.address,
-          },
-          async () =>
-            withdrawTreasuryAction({
-              provider,
-              game: gameAddress,
-              gameId,
-              wallet: owner.address,
-              walletPrivateKey: owner.privateKey,
-              allowUnsafePrivateKey: true,
-            })
-        );
-      } else {
-        skippedExpectedFailures.push("duplicate-withdraw-treasury(no treasury withdrawal)");
-      }
-
-      if (causeWithdrawalResults.length > 0) {
-        const duplicateCause = causeWithdrawalResults[0].causeId;
-        await trackedExpectedFailure(
-          tracker,
-          provider,
-          {
-            action: "withdrawCause",
-            phase: "settlement",
-            scenarioType,
-            failureLabel: "duplicate-withdraw-cause",
-            gameIndex,
-            gameId,
-            wallet: owner.address,
-            causeId: duplicateCause,
-          },
-          async () =>
-            withdrawCauseAction({
-              provider,
-              game: gameAddress,
-              gameId,
-              causeId: duplicateCause,
-              wallet: owner.address,
-              walletPrivateKey: owner.privateKey,
-              allowUnsafePrivateKey: true,
-            })
-        );
-      } else {
-        skippedExpectedFailures.push("duplicate-withdraw-cause(no cause withdrawal)");
-      }
-    }
+        owner,
+        gameReader,
+        gameAddress,
+        gameIndex,
+        gameId,
+        scenarioType,
+        causeIds: causeAssignments.map((entry) => entry.causeId),
+        concurrency,
+        tracker,
+        expectedFailures,
+        skippedExpectedFailures,
+      }));
   }
   const settlementDurationMs = Date.now() - settlementStartedMs;
 
@@ -2218,21 +2582,14 @@ async function runSingleGame({
 
   const claimSummary = aggregateClaims(claimResults);
   const refundSummary = aggregateRefunds(refundResults);
-  const causeWithdrawalSummary = aggregateCauseWithdrawals(causeWithdrawalResults);
-  const noWinnerSummary = {
-    treasuryWithdrawal: treasuryWithdrawal
-      ? {
-          executed: true,
-          amountWei: treasuryWithdrawal.amountWei,
-          recipient: treasuryWithdrawal.recipient,
-        }
-      : {
-          executed: false,
-          amountWei: "0",
-          recipient: null,
-        },
-    causeWithdrawals: causeWithdrawalSummary,
+  const causeWithdrawalSummary = aggregateCauseWithdrawals(
+    causeWithdrawalResults
+  );
+  const withdrawalSummary = {
+    treasury: summarizeTreasuryWithdrawal(treasuryWithdrawal),
+    causes: causeWithdrawalSummary,
   };
+  const postRunOutstanding = buildPostRunOutstanding(exported.evidence);
 
   const replayConsistency = buildReplayConsistency({
     scenarioType,
@@ -2242,15 +2599,20 @@ async function runSingleGame({
     claimSummary,
     claimWinners,
     refundSummary,
-    noWinnerSummary,
+    withdrawalSummary,
   });
 
   const endBlock = await provider.getBlockNumber();
-  const gameEntries = tracker.entries.filter((entry) => entry.gameId === gameId);
+  const gameEntries = tracker.entries.filter(
+    (entry) => entry.gameId === gameId
+  );
   const gameTxSummary = buildTxSummary(gameEntries);
 
   const notes = [scenario.description];
-  if (scenarioType !== "winner-all-share" && (skipCommitRate > 0 || skipRevealRate > 0)) {
+  if (
+    scenarioType !== "winner-all-share" &&
+    (skipCommitRate > 0 || skipRevealRate > 0)
+  ) {
     notes.push(
       "skipCommitRate/skipRevealRate were ignored for this game so the requested scenario terminal outcome stayed deterministic."
     );
@@ -2259,15 +2621,20 @@ async function runSingleGame({
     notes.push(
       "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads."
     );
+    notes.push(
+      "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable."
+    );
     if (!claimWinners) {
       notes.push(
-        "Winner claims were skipped for this run, so claimed-count and payout reconciliation checks are intentionally incomplete."
+        "Winner claims were skipped for this run, so claimed-count and payout reconciliation checks are intentionally incomplete even though the creator-fee treasury withdrawal may still execute."
       );
     }
   }
   if (expectedFailures && skippedExpectedFailures.length > 0) {
     notes.push(
-      `Expected-failure mode skipped some duplicate checks because the prerequisite successful action never happened: ${skippedExpectedFailures.join(", ")}.`
+      `Expected-failure mode skipped some duplicate checks because the prerequisite successful action never happened: ${skippedExpectedFailures.join(
+        ", "
+      )}.`
     );
   }
 
@@ -2309,20 +2676,19 @@ async function runSingleGame({
     rounds: roundReports,
     claims: claimSummary,
     refunds: refundSummary,
-    withdrawals: {
-      treasury: noWinnerSummary.treasuryWithdrawal,
-      causes: causeWithdrawalSummary,
-    },
+    withdrawals: withdrawalSummary,
     terminalActions: {
       path: scenario.terminalPath,
       winnerClaimsExecuted: claimSummary.succeeded,
       refundsExecuted: refundSummary.succeeded,
-      treasuryWithdrawalExecuted: noWinnerSummary.treasuryWithdrawal.executed,
+      treasuryWithdrawalExecuted: withdrawalSummary.treasury.executed,
       causeWithdrawalsExecuted: causeWithdrawalSummary.succeeded,
     },
     expectedFailures: {
       enabled: expectedFailures,
-      attempted: gameEntries.filter((entry) => entry.expectation === "expected-failure").length,
+      attempted: gameEntries.filter(
+        (entry) => entry.expectation === "expected-failure"
+      ).length,
       failedAsExpected: gameTxSummary.failedExpected,
       unexpectedSuccesses: gameTxSummary.unexpectedSuccesses,
     },
@@ -2336,6 +2702,7 @@ async function runSingleGame({
       counts: exported.evidence.summary.game.counts,
       settlement: exported.evidence.summary.game.settlement,
     },
+    postRunOutstanding,
     replayConsistency,
     evidence: {
       outputDir: exported.manifest.outputDir,
@@ -2346,6 +2713,146 @@ async function runSingleGame({
       skipped: exported.manifest.skipped,
     },
     notes,
+  };
+}
+
+function buildGasAndLatencyHotspots(entries) {
+  const byAction = {};
+  let highestGasEntry = null;
+  let highestLatencyEntry = null;
+
+  function normalizeEntry(entry) {
+    return {
+      action: entry.action,
+      phase: entry.phase,
+      scenarioType: entry.scenarioType,
+      gameIndex: entry.gameIndex,
+      gameId: entry.gameId,
+      round: entry.round,
+      wallet: entry.wallet,
+      causeId: entry.causeId,
+      txHash: entry.txHash,
+      blockNumber: entry.blockNumber,
+      gasUsed: entry.gasUsed,
+      durationMs: entry.durationMs,
+    };
+  }
+
+  for (const entry of entries) {
+    if (
+      !highestLatencyEntry ||
+      entry.durationMs > highestLatencyEntry.durationMs
+    ) {
+      highestLatencyEntry = entry;
+    }
+
+    if (entry.status !== "succeeded" || entry.gasUsed === null) {
+      continue;
+    }
+
+    const currentGasUsed = bigintFrom(entry.gasUsed, "entry.gasUsed");
+    if (
+      !highestGasEntry ||
+      currentGasUsed >
+        bigintFrom(highestGasEntry.gasUsed, "highestGasEntry.gasUsed")
+    ) {
+      highestGasEntry = entry;
+    }
+
+    const existing = byAction[entry.action];
+    if (
+      !existing ||
+      currentGasUsed >
+        bigintFrom(existing.gasUsed, `byAction.${entry.action}.gasUsed`)
+    ) {
+      byAction[entry.action] = normalizeEntry(entry);
+    }
+  }
+
+  return {
+    highestGasTx: highestGasEntry ? normalizeEntry(highestGasEntry) : null,
+    highestLatencyTx: highestLatencyEntry
+      ? normalizeEntry(highestLatencyEntry)
+      : null,
+    byAction,
+  };
+}
+
+function buildLocalScaleReadiness({
+  games,
+  txEntries,
+  txSummary,
+  wallClockMs,
+  options,
+}) {
+  const totalGames = games.length;
+  const maxJoinedPlayersInSingleGame = games.length
+    ? Math.max(...games.map((game) => game.joinedPlayerCount))
+    : 0;
+  const maxUsedCausesInSingleGame = games.length
+    ? Math.max(...games.map((game) => game.resultState.counts.usedCauses))
+    : 0;
+  const totalJoinedPlayersAcrossRun = games.reduce(
+    (sum, game) => sum + game.joinedPlayerCount,
+    0
+  );
+  const gamesHittingRequestedPlayerTarget = games.filter(
+    (game) => game.joinedPlayerCount === options.playerCount
+  ).length;
+  const gamesHittingProfileMaxPlayers = games.filter(
+    (game) => game.joinedPlayerCount === options.profileConfig.maxPlayers
+  ).length;
+  const fullyDrainedGames = games.filter(
+    (game) => game.postRunOutstanding.fullyDrainedByHarness
+  ).length;
+  const replayConsistentGames = games.filter(
+    (game) => game.replayConsistency.ok
+  ).length;
+  const gamesWithoutUnexpectedFailures = games.filter(
+    (game) =>
+      game.txSummary.failedUnexpected === 0 &&
+      game.txSummary.unexpectedSuccesses === 0
+  ).length;
+  const txsPerSecond = (count) =>
+    wallClockMs > 0 ? Number(((count * 1000) / wallClockMs).toFixed(3)) : null;
+
+  return {
+    requestedPlayerTarget: options.playerCount,
+    profileMaxPlayers: options.profileConfig.maxPlayers,
+    sequentialGamesCompleted: totalGames,
+    maxJoinedPlayersInSingleGame,
+    maxUsedCausesInSingleGame,
+    totalJoinedPlayersAcrossRun,
+    gamesHittingRequestedPlayerTarget,
+    gamesHittingProfileMaxPlayers,
+    fullyDrainedGames,
+    replayConsistentGames,
+    gamesWithoutUnexpectedFailures,
+    totalTerminalActions: {
+      winnerClaimsExecuted: games.reduce(
+        (sum, game) => sum + game.terminalActions.winnerClaimsExecuted,
+        0
+      ),
+      refundsExecuted: games.reduce(
+        (sum, game) => sum + game.terminalActions.refundsExecuted,
+        0
+      ),
+      treasuryWithdrawalsExecuted: games.reduce(
+        (sum, game) =>
+          sum + (game.terminalActions.treasuryWithdrawalExecuted ? 1 : 0),
+        0
+      ),
+      causeWithdrawalsExecuted: games.reduce(
+        (sum, game) => sum + game.terminalActions.causeWithdrawalsExecuted,
+        0
+      ),
+    },
+    throughput: {
+      attemptedTxPerSecond: txsPerSecond(txSummary.attempted),
+      successfulTxPerSecond: txsPerSecond(txSummary.succeeded),
+      failedTxPerSecond: txsPerSecond(txSummary.failed),
+    },
+    hotspots: buildGasAndLatencyHotspots(txEntries),
   };
 }
 
@@ -2510,13 +3017,15 @@ export async function runLoadHarness(rawOptions = {}) {
     const finalBlock = await provider.getBlockNumber();
     const finalBlockData = await readLatestBlock(provider);
     const finishedAt = new Date().toISOString();
+    const wallClockMs = Date.parse(finishedAt) - Date.parse(startedAt);
+    const txSummary = buildTxSummary(tracker.entries);
 
     const report = {
       ...baseReport,
       status: "ok",
       startedAt,
       finishedAt,
-      wallClockMs: Date.parse(finishedAt) - Date.parse(startedAt),
+      wallClockMs,
       environment: {
         chainId: toNumber((await provider.getNetwork()).chainId, "chainId"),
         rpcUrl: chain.rpcUrl,
@@ -2541,7 +3050,9 @@ export async function runLoadHarness(rawOptions = {}) {
         playersRegistered: players.length,
         initialBlock,
         finalBlockAfterBootstrap: tracker.entries
-          .filter((entry) => entry.phase === "bootstrap" || entry.phase === "deploy")
+          .filter(
+            (entry) => entry.phase === "bootstrap" || entry.phase === "deploy"
+          )
           .map((entry) => entry.blockNumber)
           .filter((value) => value !== null)
           .reduce((max, value) => Math.max(max, value), initialBlock),
@@ -2577,10 +3088,23 @@ export async function runLoadHarness(rawOptions = {}) {
       },
       scenarioSummary: {
         byType: groupCount(games, (game) => game.scenario.type),
-        byTerminalOutcome: groupCount(games, (game) => game.resultState.outcome),
-        byTerminalPath: groupCount(games, (game) => game.resultState.terminalPath),
+        byTerminalOutcome: groupCount(
+          games,
+          (game) => game.resultState.outcome
+        ),
+        byTerminalPath: groupCount(
+          games,
+          (game) => game.resultState.terminalPath
+        ),
       },
-      txSummary: buildTxSummary(tracker.entries),
+      txSummary,
+      localScaleReadiness: buildLocalScaleReadiness({
+        games,
+        txEntries: tracker.entries,
+        txSummary,
+        wallClockMs,
+        options,
+      }),
       games,
     };
 
@@ -2611,17 +3135,34 @@ export function printLoadHarnessSummary(report) {
   console.log("\n🏋️ Prisoners DAOllema load harness summary");
   console.log(`Status:         ${report.status}`);
   console.log(`Mode:           ${report.mode}`);
-  console.log(`Profile:        ${report.profile.name} (${report.profile.source})`);
+  console.log(
+    `Profile:        ${report.profile.name} (${report.profile.source})`
+  );
   console.log(`Run dir:        ${report.paths.runDir}`);
   console.log(`Players:        ${report.options.playerCount}`);
   console.log(`Causes:         ${report.options.causeCount}`);
   console.log(`Games:          ${report.options.games}`);
   console.log(`Concurrency:    ${report.options.concurrency}`);
-  console.log(`Scenario req:   ${report.scenarios?.requested ?? report.options.requestedScenario ?? "winner-all-share"}`);
-  console.log(`Scenario plan:  ${(report.scenarios?.plan ?? report.options.selectedScenarioTypes ?? ["winner-all-share"]).join(", ")}`);
+  console.log(
+    `Scenario req:   ${
+      report.scenarios?.requested ??
+      report.options.requestedScenario ??
+      "winner-all-share"
+    }`
+  );
+  console.log(
+    `Scenario plan:  ${(
+      report.scenarios?.plan ??
+      report.options.selectedScenarioTypes ?? ["winner-all-share"]
+    ).join(", ")}`
+  );
   console.log(`Skip commit:    ${report.options.skipCommitRate}`);
   console.log(`Skip reveal:    ${report.options.skipRevealRate}`);
-  console.log(`Exp failures:   ${report.options.expectedFailures ? "enabled" : "disabled"}`);
+  console.log(
+    `Exp failures:   ${
+      report.options.expectedFailures ? "enabled" : "disabled"
+    }`
+  );
   if (report.environment) {
     console.log(`RPC URL:        ${report.environment.rpcUrl}`);
     console.log(`Chain ID:       ${report.environment.chainId}`);
@@ -2635,11 +3176,36 @@ export function printLoadHarnessSummary(report) {
   console.log(`  unexp succ:   ${report.txSummary.unexpectedSuccesses ?? 0}`);
   console.log(`Gas total:      ${report.txSummary.gasUsed.total}`);
   console.log(`Wall clock ms:  ${report.wallClockMs}`);
+  if (Array.isArray(report.profile?.notes) && report.profile.notes.length > 0) {
+    console.log("Notes:");
+    for (const note of report.profile.notes) {
+      console.log(`  - ${note}`);
+    }
+  }
+  if (report.localScaleReadiness) {
+    console.log(
+      `Max joined:     ${report.localScaleReadiness.maxJoinedPlayersInSingleGame}/${report.localScaleReadiness.profileMaxPlayers}`
+    );
+    console.log(
+      `Target-hit:     ${report.localScaleReadiness.gamesHittingRequestedPlayerTarget}/${report.localScaleReadiness.sequentialGamesCompleted}`
+    );
+    console.log(
+      `Fully drained:  ${report.localScaleReadiness.fullyDrainedGames}/${report.localScaleReadiness.sequentialGamesCompleted}`
+    );
+    console.log(
+      `Replay-ok:      ${report.localScaleReadiness.replayConsistentGames}/${report.localScaleReadiness.sequentialGamesCompleted}`
+    );
+    console.log(
+      `Succ tx/s:      ${report.localScaleReadiness.throughput.successfulTxPerSecond}`
+    );
+  }
 
   if (Array.isArray(report.games)) {
     for (const game of report.games) {
       console.log(`\nGame ${game.gameId} (run #${game.index})`);
-      console.log(`  Scenario:     ${game.scenario?.type ?? "winner-all-share"}`);
+      console.log(
+        `  Scenario:     ${game.scenario?.type ?? "winner-all-share"}`
+      );
       console.log(`  Outcome:      ${game.resultState.outcome}`);
       console.log(`  Path:         ${game.resultState.terminalPath}`);
       console.log(`  Phase:        ${game.resultState.phase}`);
@@ -2648,10 +3214,19 @@ export function printLoadHarnessSummary(report) {
       console.log(`  Joined:       ${game.resultState.counts.joined}`);
       console.log(`  Claimed:      ${game.resultState.counts.claimed}`);
       console.log(`  Refunded:     ${game.resultState.counts.refunded}`);
-      console.log(`  Exp fails:    ${game.expectedFailures?.failedAsExpected ?? 0}/${game.expectedFailures?.attempted ?? 0}`);
+      console.log(
+        `  Exp fails:    ${game.expectedFailures?.failedAsExpected ?? 0}/${
+          game.expectedFailures?.attempted ?? 0
+        }`
+      );
       console.log(`  Unexp fails:  ${game.txSummary.failedUnexpected ?? 0}`);
       console.log(`  Manual blocks:${game.blocks.manualMined}`);
       console.log(`  Replay ok:    ${game.replayConsistency.ok}`);
+      console.log(
+        `  Drained:      ${
+          game.postRunOutstanding?.fullyDrainedByHarness ?? false
+        }`
+      );
       console.log(`  Evidence dir: ${game.evidence.outputDir}`);
     }
   }

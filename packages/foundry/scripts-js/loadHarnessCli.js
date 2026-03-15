@@ -22,6 +22,9 @@ Core options:
   --scenario <name[,name...]>    Scenario type or rotating list. Supports winner-all-share, cancelled-underfilled,
                                  no-winner-all-catch, plus aliases like winner, cancelled, no-winner, or mixed.
   --concurrency <n>              Max concurrent player txs per batch.
+  --join-duration-seconds <n>    Override the deployed join duration for this local run.
+  --commit-duration-blocks <n>   Override the deployed commit duration for this local run.
+  --reveal-duration-blocks <n>   Override the deployed reveal duration for this local run.
   --skip-commit-rate <0..1>      Fraction of players that intentionally miss commit each round in winner-all-share games.
   --skip-reveal-rate <0..1>      Fraction of committed players that intentionally miss reveal each round in winner-all-share games.
   --expected-failures            Intentionally submit some duplicate/invalid follow-up operations and count them as expected failures.
@@ -42,7 +45,7 @@ Output:
 
 Examples:
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --scenario winner-all-share
-  node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --scenario mixed --concurrency 16
+  node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --scenario mixed --concurrency 16 --commit-duration-blocks 96 --reveal-duration-blocks 96
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --scenario no-winner-all-catch --expected-failures --json
 `);
 }

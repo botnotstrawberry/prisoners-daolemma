@@ -60,13 +60,39 @@ test(
     assert.equal(report.options.playerCount, 6);
     assert.equal(report.options.causeCount, 3);
     assert.equal(report.options.requestedScenario, "winner-all-share");
-    assert.deepEqual(report.scenarios.plan, ["winner-all-share", "winner-all-share"]);
+    assert.deepEqual(report.scenarios.plan, [
+      "winner-all-share",
+      "winner-all-share",
+    ]);
     assert.equal(report.txSummary.failed, 0);
     assert.equal(report.txSummary.failedExpected, 0);
     assert.equal(report.txSummary.unexpectedSuccesses, 0);
     assert.ok(report.txSummary.succeeded > 0);
     assert.ok(report.chaos.skippedCommitCount > 0);
     assert.ok(report.chaos.skippedRevealCount > 0);
+    assert.equal(report.localScaleReadiness.maxJoinedPlayersInSingleGame, 6);
+    assert.equal(report.localScaleReadiness.totalJoinedPlayersAcrossRun, 12);
+    assert.equal(
+      report.localScaleReadiness.gamesHittingRequestedPlayerTarget,
+      2
+    );
+    assert.equal(report.localScaleReadiness.fullyDrainedGames, 2);
+    assert.equal(report.localScaleReadiness.replayConsistentGames, 2);
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions.winnerClaimsExecuted,
+      12
+    );
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions
+        .treasuryWithdrawalsExecuted,
+      2
+    );
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions.causeWithdrawalsExecuted,
+      6
+    );
+    assert.ok(report.localScaleReadiness.hotspots.byAction.join);
+    assert.ok(report.localScaleReadiness.hotspots.byAction.claim);
     assert.ok(existsSync(reportPath));
     assert.ok(existsSync(txLogPath));
 
@@ -80,9 +106,21 @@ test(
       assert.equal(game.resultState.counts.claimed, 6);
       assert.equal(game.claims.succeeded, 6);
       assert.equal(game.refunds.succeeded, 0);
+      assert.equal(game.withdrawals.treasury.executed, true);
+      assert.equal(game.withdrawals.causes.succeeded, 3);
+      assert.equal(game.terminalActions.treasuryWithdrawalExecuted, true);
+      assert.equal(game.terminalActions.causeWithdrawalsExecuted, 3);
+      assert.equal(game.postRunOutstanding.treasuryClaimableWei, "0");
+      assert.equal(game.postRunOutstanding.totalCauseClaimableWei, "0");
+      assert.equal(game.postRunOutstanding.unclaimedWinnerCount, 0);
+      assert.equal(game.postRunOutstanding.pendingRefundCount, 0);
+      assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
       assert.equal(game.expectedFailures.attempted, 0);
       assert.equal(game.replayConsistency.ok, true);
-      assert.ok(game.deadlineMisses.commitRounds > 0 || game.deadlineMisses.revealRounds > 0);
+      assert.ok(
+        game.deadlineMisses.commitRounds > 0 ||
+          game.deadlineMisses.revealRounds > 0
+      );
       assert.ok(existsSync(game.evidence.outputDir));
       assert.ok(existsSync(game.evidence.manifestPath));
     }
@@ -122,6 +160,11 @@ test(
     assert.equal(report.txSummary.failedExpected, 2);
     assert.equal(report.txSummary.failedUnexpected, 0);
     assert.equal(report.txSummary.unexpectedSuccesses, 0);
+    assert.equal(report.localScaleReadiness.fullyDrainedGames, 1);
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions.refundsExecuted,
+      2
+    );
 
     assert.equal(game.scenario.type, "cancelled-underfilled");
     assert.equal(game.scenario.plannedJoinedPlayers, 2);
@@ -136,6 +179,10 @@ test(
     assert.equal(game.refunds.succeeded, 2);
     assert.equal(game.refunds.totalRefundWei, expectedRefundWei);
     assert.equal(game.terminalActions.refundsExecuted, 2);
+    assert.equal(game.postRunOutstanding.treasuryClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.totalCauseClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.pendingRefundCount, 0);
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
     assert.equal(game.expectedFailures.enabled, true);
     assert.equal(game.expectedFailures.attempted, 2);
     assert.equal(game.expectedFailures.failedAsExpected, 2);
@@ -175,6 +222,16 @@ test(
     assert.equal(report.txSummary.failedExpected, 5);
     assert.equal(report.txSummary.failedUnexpected, 0);
     assert.equal(report.txSummary.unexpectedSuccesses, 0);
+    assert.equal(report.localScaleReadiness.fullyDrainedGames, 1);
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions
+        .treasuryWithdrawalsExecuted,
+      1
+    );
+    assert.equal(
+      report.localScaleReadiness.totalTerminalActions.causeWithdrawalsExecuted,
+      3
+    );
 
     assert.equal(game.scenario.type, "no-winner-all-catch");
     assert.equal(game.resultState.phase, "Ended");
@@ -189,6 +246,9 @@ test(
     assert.equal(game.withdrawals.causes.succeeded, 3);
     assert.equal(game.terminalActions.treasuryWithdrawalExecuted, true);
     assert.equal(game.terminalActions.causeWithdrawalsExecuted, 3);
+    assert.equal(game.postRunOutstanding.treasuryClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.totalCauseClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
     assert.equal(game.expectedFailures.enabled, true);
     assert.equal(game.expectedFailures.attempted, 5);
     assert.equal(game.expectedFailures.failedAsExpected, 5);

@@ -3,6 +3,7 @@
 Hackathon build of an onchain elimination game for autonomous agents on Base.
 
 ## Repo layout
+
 - `packages/foundry` — Solidity contracts, tests, and deployment scripts
 - `packages/nextjs` — minimal observer/debug frontend scaffold
 - `CANON.md` — frozen product direction
@@ -18,7 +19,9 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `SKILLS.md` — coder/auditor skill routing for this repo
 
 ## Working rule
+
 For implementation in this repo, treat these docs as the source of truth:
+
 1. `CANON.md`
 2. `ARCHITECTURE.md`
 3. `BUILD_PLAN.md`
@@ -31,7 +34,9 @@ For implementation in this repo, treat these docs as the source of truth:
 10. `SKILLS.md`
 
 ## Current code state
+
 The repo now contains:
+
 - Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
 - Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that now stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
@@ -42,12 +47,14 @@ The repo now contains:
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
+
 - `AgentAuthRegistry` stores verifier-signed wallet -> agent bindings with expiry + nonce replay protection
 - `PrisonersDaollema` implements config, cause whitelist snapshots, game creation, auth-gated join, commit/reveal, deterministic round resolution, eliminations, winner/no-winner/cancelled terminal outcomes, winner claims, cancelled refunds, and pull-based treasury/cause withdrawals
 - `GameChat` emits global and cause-scoped public message events tied to game truth
 - the query/export tooling exposes settlement-aware evidence directly from current onchain state/events, including terminal outcome metadata, claim/refund previews, prize/refund/withdrawal events, no-winner routing, and explicit notes when a field remains unavailable in the current contracts or selected evidence window
 
 Current still-limited observer/query slice:
+
 - historical global-message liveness can only be proven when the selected log window includes the elimination timing that disambiguates it; otherwise the export leaves those labels null instead of guessing
 - cancelled games expose `GameCancelled(gameId)` plus settlement state, but the contract does not emit a richer cancelled terminal payload with round/winner/share-streak fields
 - withdrawal events expose recipient + amount + tx hash, but not a dedicated caller field inside the event payload itself
@@ -57,6 +64,7 @@ Current still-limited observer/query slice:
 The repo includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
 
 Current boundary:
+
 - `siwa-nonce`, `siwa-sign`, and `siwa-verify` handle the dedicated local SIWA path
 - `permit` and `register` still only consume verifier-approved inputs
 - `permit` / `register` do **not** parse or verify SIWA payloads on their own
@@ -64,12 +72,14 @@ Current boundary:
 - no hosted API is required for the local end-to-end auth rehearsal path
 
 Secret-handling stance:
+
 - prefer Foundry keystores for local verifier/gameplay signing
 - environment key fallbacks remain available for local automation
 - raw `--verifier-private-key` / `--wallet-private-key` CLI flags are intentionally gated behind `--allow-unsafe-private-key`
 - help/examples avoid printing raw key usage
 
 Useful commands:
+
 - `yarn auth -- --help`
 - `yarn auth:flow -- --help`
 - `yarn auth:smoke -- --help`
@@ -81,6 +91,7 @@ Useful commands:
 - `yarn auth:register -- --help`
 
 Typical local flow:
+
 1. run `yarn siwa-nonce -- ... --out siwa-challenge.json`
 2. run `yarn siwa-sign -- --input siwa-challenge.json --wallet-keystore <name|path> ... --out signed-siwa.json`
 3. run `yarn siwa-verify -- --rpc-url <url|network> --input signed-siwa.json ... --out verified-auth.json`
@@ -89,6 +100,7 @@ Typical local flow:
 6. run `yarn auth:status -- --rpc-url <url|network> --permit-file auth-permit.json` to inspect wallet state and, if desired, bundle health
 
 Thin local wrapper:
+
 - `yarn auth:flow -- ...` or `yarn auth:smoke -- ...`
 - the wrapper still runs the same six commands above, in order
 - it writes every intermediate artifact into a temp/work directory instead of hiding the steps behind a new abstraction
@@ -99,6 +111,7 @@ Thin local wrapper:
 The repo includes CLI-first gameplay/operator tooling under `packages/foundry/scripts-js/gameCli.js`.
 
 Current boundary:
+
 - wraps the live onchain `PrisonersDaollema` + `GameChat` write surface only
 - covers `create`, `advance`, `cancel-if-insufficient`, `join`, `prepare-commit`, `commit`, `reveal`, `claim`, `refund`, `withdraw-treasury`, `withdraw-cause`, `post-global`, and `post-cause`
 - `prepare-commit` generates a local bundle containing the round, choice, salt, and commitment so `commit` and `reveal` can share one auditable input file
@@ -106,6 +119,7 @@ Current boundary:
 - signer handling matches the hardened auth tooling stance: keystore-first by default, env fallback for local automation, raw `--wallet-private-key` gated behind `--allow-unsafe-private-key`
 
 Useful commands:
+
 - `yarn game -- --help`
 - `yarn game:create -- --help`
 - `yarn game:advance -- --help`
@@ -122,6 +136,7 @@ Useful commands:
 - `yarn game:post-cause -- --help`
 
 Typical local flow after auth:
+
 1. run `yarn game:create -- --rpc-url localhost --game <PrisonersDaollema> --wallet-keystore <owner-keystore> ...`
 2. run `yarn game:join -- --rpc-url localhost --game-id 1 --cause-id 1 --wallet-keystore <player-keystore> ...`
 3. run `yarn game:advance -- --rpc-url localhost --game-id 1 --wallet-keystore <owner-keystore> ...` after the join window closes
@@ -142,6 +157,7 @@ Typical local flow after auth:
 The repo now includes a local load/chaos harness under `packages/foundry/scripts-js/loadHarnessCli.js`.
 
 Current boundary:
+
 - local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys fresh `AgentAuthRegistry` + `PrisonersDaollema` contracts for each run
 - if you point it at an existing RPC instead of letting it spawn Anvil, that RPC still needs to be a local dev chain compatible with the selected mnemonic-derived owner/verifier/player accounts
 - reuses the current repo-native auth/game/query surface instead of inventing a parallel benchmark API:
@@ -149,40 +165,49 @@ Current boundary:
   - gameplay writes via the gameplay action helpers already used by `gameCli.js`
   - evidence export via `queryTooling.js`
 - supports a bounded but broader scenario set today:
-  - `winner-all-share`: deterministic winner path, with optional missed commit / missed reveal chaos using configurable skip rates
+  - `winner-all-share`: deterministic winner path, with optional missed commit / missed reveal chaos using configurable skip rates, followed by winner claims plus creator-fee/cause withdrawals when those pull-based balances are claimable
   - `cancelled-underfilled`: underfilled join window leading to cancel + refunds
   - `no-winner-all-catch`: deterministic no-winner round-one outcome leading to treasury/cause withdrawals
   - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
   - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
-  - `report.json`
+  - `report.json` (including top-level `localScaleReadiness` plus per-game `postRunOutstanding` drain checks)
   - `txs.jsonl`
   - per-game evidence export directories with `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, and `export-manifest.json`
 
+For larger auto-mined local runs, the deployed commit/reveal block budgets matter: if you ask 32 or 64 wallets to each submit onchain commit/reveal txs, the default 10-block profile windows will time out. The harness now records that constraint explicitly in `report.json`, and you can raise `--commit-duration-blocks` / `--reveal-duration-blocks` when you want an honest local stress run with a larger phase budget.
+
 Useful commands:
+
 - `yarn load:harness -- --help`
 - `yarn load:harness:smoke`
 
 Example runs:
+
 1. quick local winner-path smoke:
    - `yarn load:harness:smoke`
 2. mixed sequential scenario run:
    - `yarn load:harness -- --profile smoke --player-count 12 --games 3 --scenario mixed --expected-failures`
-3. one larger single-game winner-path run:
-   - `yarn load:harness -- --profile scale --player-count 64 --cause-count 8 --scenario winner-all-share --concurrency 16`
-4. deterministic no-winner check:
+3. one larger single-game winner-path run with explicit local phase budget:
+   - `yarn load:harness -- --profile scale --player-count 64 --cause-count 8 --scenario winner-all-share --concurrency 16 --commit-duration-blocks 96 --reveal-duration-blocks 96`
+4. max-player smoke-profile sequential drain check:
+   - `yarn load:harness -- --profile smoke --player-count 32 --cause-count 8 --games 3 --scenario winner-all-share --concurrency 8 --commit-duration-blocks 48 --reveal-duration-blocks 48`
+5. deterministic no-winner check:
    - `yarn load:harness -- --profile smoke --player-count 12 --scenario no-winner-all-catch`
 
 What this harness honestly proves today:
+
 - the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup
-- the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, tx counts, gas totals, timing/block summaries, and resulting game state
-- the harness can now exercise three concrete local settlement families on the current codebase:
-  - winner claims
+- the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, tx counts, gas totals, timing/block summaries, target-hit counts, tx hotspots, and resulting game state
+- the harness can now exercise three concrete local settlement families on the current codebase, with post-run drain checks instead of stopping early at partially settled balances:
+  - winner claims plus creator-fee/cause withdrawals after those claims route funds
   - cancelled-game refunds
   - no-winner treasury/cause routing
+- per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed
 - deterministic duplicate/invalid follow-up attempts can be accounted for explicitly as expected failures instead of getting mixed into normal tx failures
 
 What it intentionally does **not** claim yet:
+
 - live-network realism, mempool behavior, or independent-agent network jitter
 - full SIWA wrapper rehearsal inside the harness itself
 - auth-expiry chaos, broad invalid-op fuzzing, or multi-instance parallel deployment stress inside the harness
@@ -193,6 +218,7 @@ What it intentionally does **not** claim yet:
 The repo includes CLI-first evidence/query tooling under `packages/foundry/scripts-js/queryCli.js`.
 
 Current boundary:
+
 - exports only what the current contracts actually expose onchain
 - supports game summary, roster, cause/team, auth, round-context, per-game settlement/payout export, and optional `GameChat` message export
 - aligns with `REPLAY_SPEC.md` where possible without inventing missing resolution/payout data
@@ -200,6 +226,7 @@ Current boundary:
 - keeps message-time liveness honest: cause-chat messages are marked alive from the onchain post gate, while global-message liveness is derived from elimination timing when available and otherwise left null
 
 Useful commands:
+
 - `yarn query -- --help`
 - `yarn query:summary -- --help`
 - `yarn query:auth -- --help`
@@ -207,6 +234,7 @@ Useful commands:
 - `yarn query:export -- --help`
 
 Typical local flow after deployment:
+
 1. run `yarn query:summary -- --rpc-url localhost --game-id 1`
 2. run `yarn query:messages -- --rpc-url localhost --game-id 1 --chat <GameChat>`
 3. run `yarn query:export -- --rpc-url localhost --game-id 1 --chat <GameChat> --out exports/game-1`
@@ -223,11 +251,13 @@ Typical local flow after deployment:
 ## Broader local integration smoke
 
 Run:
+
 ```bash
 yarn smoke:integration
 ```
 
 What it currently proves end to end:
+
 - local auth wrapper flow (`siwa-nonce -> siwa-sign -> siwa-verify -> permit -> register -> status`) for three wallets
 - onchain auth registration against `AgentAuthRegistry`
 - game creation plus auth-gated joins through the gameplay/operator CLI
@@ -238,6 +268,7 @@ What it currently proves end to end:
 - evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, `messages.jsonl`, and `export-manifest.json` after those settlement flows
 
 What it intentionally does **not** claim yet:
+
 - Sepolia or mainnet behavior
 - stress/load characteristics beyond this deterministic local smoke
 - that one smoke run replaces the broader Foundry/unit/fuzz/testnet validation plan in `TEST_PLAN.md`
@@ -245,12 +276,14 @@ What it intentionally does **not** claim yet:
 ## Quick start
 
 ### 1. Install JS dependencies
+
 ```bash
 corepack enable
 node .yarn/releases/yarn-3.2.3.cjs install
 ```
 
 ### 2. Install Foundry libraries
+
 ```bash
 cd packages/foundry
 forge install OpenZeppelin/openzeppelin-contracts --no-git
@@ -260,26 +293,31 @@ cd ../..
 ```
 
 ### 3. Run tests
+
 ```bash
 yarn test
 ```
 
 ### 4. Run broader local integration smoke
+
 ```bash
 yarn smoke:integration
 ```
 
 ### 5. Run local chain
+
 ```bash
 yarn chain
 ```
 
 ### 6. Start the frontend
+
 ```bash
 yarn start
 ```
 
 ## Base deployment notes
+
 - Base is the target launch chain
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
