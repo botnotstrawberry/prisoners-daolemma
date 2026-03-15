@@ -57,7 +57,8 @@ contract PrisonersDaollemaHandler is Test {
         internal _choices;
     mapping(uint256 gameId => ExpectedGameSnapshot snapshot) internal _expectedGameSnapshots;
     mapping(uint256 gameId => mapping(uint16 causeId => address recipient)) internal _expectedGameCauseRecipients;
-    mapping(uint256 gameId => mapping(uint16 causeId => bytes32 metadataHash)) internal _expectedGameCauseMetadataHashes;
+    mapping(uint256 gameId => mapping(uint16 causeId => bytes32 metadataHash)) internal
+        _expectedGameCauseMetadataHashes;
 
     constructor() {
         owner = vm.addr(ownerPk);
@@ -386,7 +387,8 @@ contract PrisonersDaollemaHandler is Test {
         }
 
         address recipient = _recipientOptions[recipientSeed % _recipientOptions.length];
-        bytes32 metadataHash = keccak256(abi.encodePacked("handler-cause-reactivate", causeId, recipient, recipientSeed));
+        bytes32 metadataHash =
+            keccak256(abi.encodePacked("handler-cause-reactivate", causeId, recipient, recipientSeed));
 
         vm.prank(owner);
         game.whitelistCause(causeId, recipient, metadataHash);
@@ -748,6 +750,109 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
                 assertEq(claimedCount, 0);
                 assertEq(totalCauseRoutedWei, settlement.noWinnerCauseDistributedWei);
                 assertEq(totalCauseRoutedWei + settlement.treasuryAccruedWei, settlement.totalPotWei);
+            }
+        }
+    }
+
+    function invariant_terminal_previews_and_claimables_remain_conservative_per_game() public view {
+        uint256 totalGames = game.currentGameId();
+
+        for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
+            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+
+            _assertConservativeCauseClaimables(gameId, snapshot, settlement);
+            _assertConservativePlayerPreviews(gameId, snapshot, settlement);
+        }
+    }
+
+    function _assertConservativeCauseClaimables(
+        uint256 gameId,
+        PrisonersDaollema.GameSnapshot memory snapshot,
+        PrisonersDaollema.SettlementState memory settlement
+    ) internal view {
+        uint256 usedCauseLength = game.gameCauseCount(gameId);
+
+        assertEq(game.treasuryClaimableAmount(gameId), settlement.treasuryAccruedWei - settlement.treasuryWithdrawnWei);
+
+        for (uint256 causeIndex = 0; causeIndex < usedCauseLength; ++causeIndex) {
+            uint16 causeId = game.gameCauseAt(gameId, causeIndex);
+            uint256 routedWei = game.gameCauseRoutedAmount(gameId, causeId);
+            uint256 withdrawnWei = game.gameCauseWithdrawnAmount(gameId, causeId);
+
+            assertEq(routedWei, _expectedCauseRoutedWei(gameId, snapshot, settlement, causeId));
+            assertEq(game.gameCauseClaimableAmount(gameId, causeId), routedWei - withdrawnWei);
+        }
+    }
+
+    function _expectedCauseRoutedWei(
+        uint256 gameId,
+        PrisonersDaollema.GameSnapshot memory snapshot,
+        PrisonersDaollema.SettlementState memory settlement,
+        uint16 causeId
+    ) internal view returns (uint256 expectedRoutedWei) {
+        if (!settlement.finalized) {
+            return 0;
+        }
+
+        if (snapshot.outcome == PrisonersDaollema.Outcome.NoWinners) {
+            PrisonersDaollema.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
+            return settlement.noWinnerCausePoolWei * uint256(causeState.entrantCount) / uint256(snapshot.joinedCount);
+        }
+
+        if (snapshot.outcome != PrisonersDaollema.Outcome.Winners) {
+            return 0;
+        }
+
+        uint256 rosterLength = game.playerCount(gameId);
+        uint256 causeCutPerWinner = settlement.winnerShareWei * uint256(snapshot.causeFeeBps) / 10_000;
+
+        for (uint256 playerIndex = 0; playerIndex < rosterLength; ++playerIndex) {
+            address wallet = game.playerAt(gameId, playerIndex);
+            PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+
+            if (player.joined && player.alive && player.claimed && player.causeId == causeId) {
+                expectedRoutedWei += causeCutPerWinner;
+            }
+        }
+    }
+
+    function _assertConservativePlayerPreviews(
+        uint256 gameId,
+        PrisonersDaollema.GameSnapshot memory snapshot,
+        PrisonersDaollema.SettlementState memory settlement
+    ) internal view {
+        uint256 rosterLength = game.playerCount(gameId);
+        uint256 causeCutPerWinner = settlement.winnerShareWei * uint256(snapshot.causeFeeBps) / 10_000;
+
+        for (uint256 playerIndex = 0; playerIndex < rosterLength; ++playerIndex) {
+            address wallet = game.playerAt(gameId, playerIndex);
+            PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+            (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool claimAvailable) =
+                game.previewWinnerClaim(gameId, wallet);
+            (uint256 refundWei, bool refundAvailable) = game.previewRefund(gameId, wallet);
+
+            if (snapshot.outcome == PrisonersDaollema.Outcome.Winners && settlement.finalized && player.alive) {
+                assertEq(grossPrizeWei, settlement.winnerShareWei);
+                assertEq(causeCutWei, causeCutPerWinner);
+                assertEq(netPrizeWei, settlement.winnerShareWei - causeCutPerWinner);
+                assertEq(claimAvailable, !player.claimed && !player.refunded);
+                assertEq(refundWei, 0);
+                assertFalse(refundAvailable);
+            } else if (snapshot.outcome == PrisonersDaollema.Outcome.Cancelled && settlement.finalized) {
+                assertEq(grossPrizeWei, 0);
+                assertEq(causeCutWei, 0);
+                assertEq(netPrizeWei, 0);
+                assertFalse(claimAvailable);
+                assertEq(refundWei, settlement.refundPerPlayerWei);
+                assertEq(refundAvailable, !player.refunded && !player.claimed);
+            } else {
+                assertEq(grossPrizeWei, 0);
+                assertEq(causeCutWei, 0);
+                assertEq(netPrizeWei, 0);
+                assertFalse(claimAvailable);
+                assertEq(refundWei, 0);
+                assertFalse(refundAvailable);
             }
         }
     }
