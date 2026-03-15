@@ -84,6 +84,7 @@ const PROFILE_DEFS = {
 };
 
 const NO_WINNER_CAUSE_BPS = 9_000n;
+const PHASE_EDGE_BURST_ATTEMPTS = 2;
 const MIXED_SCENARIO_TYPES = [
   "winner-all-share",
   "cancelled-underfilled",
@@ -115,7 +116,7 @@ const SCENARIO_DEFS = {
     type: "adversarial-random",
     family: "adversarial",
     description:
-      "Seeded local adversarial stress that randomizes underfilled vs started games, move choices, commit/reveal omissions, wrong-preimage and late-action probes, duplicate follow-ups, and settlement ordering to hunt weird contract or harness state breakage.",
+      "Seeded local adversarial stress that randomizes underfilled vs started games, move choices, commit/reveal omissions, and settlement ordering, then mixes wrong-preimage probes plus short phase-edge burst probes around late commit/reveal, advancePhase, claim/refund, and treasury/cause withdrawals to hunt weird contract or harness state breakage.",
     terminalPath: "variable-by-outcome",
   },
 };
@@ -2174,13 +2175,11 @@ async function runAvailableWithdrawals({
           wallet: owner.address,
         },
         async () =>
-          withdrawTreasuryAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            wallet: owner.address,
-            walletPrivateKey: owner.privateKey,
-            allowUnsafePrivateKey: true,
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawTreasury",
+            args: [gameId],
           })
       );
     } else {
@@ -2205,14 +2204,11 @@ async function runAvailableWithdrawals({
           causeId: duplicateCause,
         },
         async () =>
-          withdrawCauseAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            causeId: duplicateCause,
-            wallet: owner.address,
-            walletPrivateKey: owner.privateKey,
-            allowUnsafePrivateKey: true,
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawCause",
+            args: [gameId, duplicateCause],
           })
       );
     } else {
@@ -2273,6 +2269,174 @@ async function maybeTrackProbe({
     },
     operation
   );
+}
+
+function buildBurstFailureLabel(baseLabel, attemptIndex, totalAttempts) {
+  return `${baseLabel}-burst-${attemptIndex + 1}-of-${totalAttempts}`;
+}
+
+function dedupeWallets(wallets) {
+  const seen = new Set();
+  const unique = [];
+
+  for (const wallet of wallets) {
+    if (!wallet?.address) {
+      continue;
+    }
+
+    const key = wallet.address.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(wallet);
+  }
+
+  return unique;
+}
+
+function buildPhaseEdgeBurstWallets({ owner, players = [], maxCallers = 3 }) {
+  return dedupeWallets([
+    owner,
+    ...players.map((player) => player?.wallet ?? player),
+  ]).slice(0, maxCallers);
+}
+
+async function runExpectedFailureBurst({
+  enabled,
+  tracker,
+  provider,
+  meta,
+  attempts,
+  skippedProbes,
+  skipReason,
+}) {
+  const normalizedAttempts = (attempts ?? []).filter(
+    (attempt) => typeof attempt?.operation === "function"
+  );
+
+  if (!enabled || normalizedAttempts.length === 0) {
+    if (skippedProbes && skipReason) {
+      skippedProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      results: [],
+    };
+  }
+
+  const settled = await Promise.allSettled(
+    normalizedAttempts.map((attempt, attemptIndex) =>
+      trackedExpectedFailure(
+        tracker,
+        provider,
+        {
+          ...meta,
+          ...(attempt.meta ?? {}),
+          failureLabel:
+            attempt.meta?.failureLabel ??
+            buildBurstFailureLabel(
+              meta.failureLabel ?? meta.action ?? "probe",
+              attemptIndex,
+              normalizedAttempts.length
+            ),
+          burstAttempt: attemptIndex + 1,
+          burstTotal: normalizedAttempts.length,
+        },
+        attempt.operation
+      )
+    )
+  );
+
+  const rejected = settled.find((entry) => entry.status === "rejected");
+  if (rejected) {
+    throw rejected.reason;
+  }
+
+  return {
+    skipped: false,
+    results: settled.map((entry) => entry.value),
+  };
+}
+
+async function runSameWalletExpectedFailureBurst({
+  enabled,
+  tracker,
+  provider,
+  meta,
+  wallet,
+  count = PHASE_EDGE_BURST_ATTEMPTS,
+  buildOperation,
+  skippedProbes,
+  skipReason,
+}) {
+  const burstCount = Math.max(0, count);
+  if (!enabled || !wallet?.address || burstCount === 0) {
+    if (skippedProbes && skipReason) {
+      skippedProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      results: [],
+    };
+  }
+
+  const baseNonce = await provider.getTransactionCount(wallet.address, "pending");
+  return runExpectedFailureBurst({
+    enabled: true,
+    tracker,
+    provider,
+    meta,
+    skippedProbes,
+    skipReason,
+    attempts: Array.from({ length: burstCount }, (_, attemptIndex) => ({
+      meta: {
+        wallet: wallet.address,
+      },
+      operation: () => buildOperation({
+        nonce: baseNonce + attemptIndex,
+        attemptIndex,
+      }),
+    })),
+  });
+}
+
+async function runWalletBurstExpectedFailureProbe({
+  enabled,
+  tracker,
+  provider,
+  meta,
+  wallets,
+  buildOperation,
+  skippedProbes,
+  skipReason,
+}) {
+  const burstWallets = dedupeWallets(wallets ?? []);
+  if (!enabled || burstWallets.length === 0) {
+    if (skippedProbes && skipReason) {
+      skippedProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      results: [],
+    };
+  }
+
+  return runExpectedFailureBurst({
+    enabled: true,
+    tracker,
+    provider,
+    meta,
+    skippedProbes,
+    skipReason,
+    attempts: burstWallets.map((wallet) => ({
+      meta: {
+        wallet: wallet.address,
+      },
+      operation: () => buildOperation({ wallet }),
+    })),
+  });
 }
 
 function buildGameExecutionPlan({
@@ -2553,7 +2717,7 @@ async function runPlannedRound({
             gameAddress,
             wallet: duplicateCommitPlan.player.wallet,
             method: "commit",
-            args: [bundle.commitment],
+            args: [gameId, bundle.commitment],
           })
       );
     } else {
@@ -2619,7 +2783,7 @@ async function runPlannedRound({
       choice: lateCommitPlan.choice,
       saltText: `late-game-${gameIndex}-round-${round}-player-${lateCommitPlan.player.index}`,
     });
-    await maybeTrackProbe({
+    await runSameWalletExpectedFailureBurst({
       enabled:
         enableAdversarialProbes &&
         shouldSample({
@@ -2637,19 +2801,25 @@ async function runPlannedRound({
         action: "commit",
         phase: "commit",
         scenarioType,
+        expectation: "probe",
         gameIndex,
         gameId,
         round,
         wallet: lateCommitPlan.player.wallet.address,
         failureLabel: "late-commit-after-deadline",
-        probeKind: "late-action",
+        probeKind: "phase-edge-burst",
       },
-      operation: async () =>
+      wallet: lateCommitPlan.player.wallet,
+      count: PHASE_EDGE_BURST_ATTEMPTS,
+      buildOperation: ({ nonce }) =>
         sendRawGameTx({
           gameAddress,
           wallet: lateCommitPlan.player.wallet,
           method: "commit",
-          args: [lateBundle.commitment],
+          args: [gameId, lateBundle.commitment],
+          overrides: {
+            nonce,
+          },
         }),
       skippedProbes,
       skipReason: `round-${round}:late-commit probe skipped`,
@@ -2678,6 +2848,49 @@ async function runPlannedRound({
         allowUnsafePrivateKey: true,
       })
   );
+
+  await runWalletBurstExpectedFailureProbe({
+    enabled:
+      enableAdversarialProbes &&
+      committedPlans.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-burst-advance-from-commit",
+        gameIndex,
+        round,
+        playerIndex: committedPlans[0].player.index,
+        wallet: committedPlans[0].player.wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "advanceFromCommit",
+      phase: "commit",
+      scenarioType,
+      expectation: "probe",
+      gameIndex,
+      gameId,
+      round,
+      wallet: owner.address,
+      failureLabel: "advance-after-commit-transition",
+      probeKind: "phase-edge-burst",
+    },
+    wallets: buildPhaseEdgeBurstWallets({
+      owner,
+      players: committedPlans.map((plan) => plan.player),
+    }),
+    buildOperation: ({ wallet }) =>
+      sendRawGameTx({
+        gameAddress,
+        wallet,
+        method: "advancePhase",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: `round-${round}:advance-from-commit burst skipped`,
+  });
+
   const commitDurationMs = Date.now() - commitStartedMs;
 
   const revealPlans = committedPlans.filter((plan) => !plan.skipReveal);
@@ -2711,6 +2924,7 @@ async function runPlannedRound({
           wallet: invalidPlan.player.wallet,
           method: "reveal",
           args: [
+            gameId,
             bundle.choiceCode,
             mutateSalt(bundle.salt, `wrong-reveal-${gameIndex}-${round}`),
           ],
@@ -2775,7 +2989,7 @@ async function runPlannedRound({
             gameAddress,
             wallet: duplicateRevealPlan.player.wallet,
             method: "reveal",
-            args: [bundle.choiceCode, bundle.salt],
+            args: [gameId, bundle.choiceCode, bundle.salt],
           })
       );
     } else {
@@ -2798,7 +3012,7 @@ async function runPlannedRound({
     const bundle = bundleByWallet.get(
       lateRevealPlan.player.wallet.address.toLowerCase()
     );
-    await maybeTrackProbe({
+    await runSameWalletExpectedFailureBurst({
       enabled:
         enableAdversarialProbes &&
         shouldSample({
@@ -2816,19 +3030,25 @@ async function runPlannedRound({
         action: "reveal",
         phase: "reveal",
         scenarioType,
+        expectation: "probe",
         gameIndex,
         gameId,
         round,
         wallet: lateRevealPlan.player.wallet.address,
         failureLabel: "late-reveal-after-deadline",
-        probeKind: "late-action",
+        probeKind: "phase-edge-burst",
       },
-      operation: async () =>
+      wallet: lateRevealPlan.player.wallet,
+      count: PHASE_EDGE_BURST_ATTEMPTS,
+      buildOperation: ({ nonce }) =>
         sendRawGameTx({
           gameAddress,
           wallet: lateRevealPlan.player.wallet,
           method: "reveal",
-          args: [bundle.choiceCode, bundle.salt],
+          args: [gameId, bundle.choiceCode, bundle.salt],
+          overrides: {
+            nonce,
+          },
         }),
       skippedProbes,
       skipReason: `round-${round}:late-reveal probe skipped`,
@@ -2857,6 +3077,49 @@ async function runPlannedRound({
         allowUnsafePrivateKey: true,
       })
   );
+
+  await runWalletBurstExpectedFailureProbe({
+    enabled:
+      enableAdversarialProbes &&
+      committedPlans.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-burst-advance-from-reveal",
+        gameIndex,
+        round,
+        playerIndex: committedPlans[0].player.index,
+        wallet: committedPlans[0].player.wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "advanceFromReveal",
+      phase: "reveal",
+      scenarioType,
+      expectation: "probe",
+      gameIndex,
+      gameId,
+      round,
+      wallet: owner.address,
+      failureLabel: "advance-after-reveal-transition",
+      probeKind: "phase-edge-burst",
+    },
+    wallets: buildPhaseEdgeBurstWallets({
+      owner,
+      players: committedPlans.map((plan) => plan.player),
+    }),
+    buildOperation: ({ wallet }) =>
+      sendRawGameTx({
+        gameAddress,
+        wallet,
+        method: "advancePhase",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: `round-${round}:advance-from-reveal burst skipped`,
+  });
+
   const revealDurationMs = Date.now() - revealStartedMs;
 
   return {
@@ -3105,7 +3368,7 @@ async function runWinnerSettlement({
       );
       claimResults.push(result);
 
-      await maybeTrackProbe({
+      await runSameWalletExpectedFailureBurst({
         enabled:
           enableAdversarialProbes &&
           shouldSample({
@@ -3123,18 +3386,24 @@ async function runWinnerSettlement({
           action: "claim",
           phase: "settlement",
           scenarioType: "adversarial-random",
+          expectation: "probe",
           gameIndex,
           gameId,
           wallet: selected.player.wallet.address,
           failureLabel: "duplicate-claim-after-success",
-          probeKind: "duplicate-follow-up",
+          probeKind: "phase-edge-burst",
         },
-        operation: async () =>
+        wallet: selected.player.wallet,
+        count: PHASE_EDGE_BURST_ATTEMPTS,
+        buildOperation: ({ nonce }) =>
           sendRawGameTx({
             gameAddress,
             wallet: selected.player.wallet,
             method: "claim",
             args: [gameId],
+            overrides: {
+              nonce,
+            },
           }),
         skippedProbes,
         skipReason: "winner-settlement:duplicate claim probe skipped",
@@ -3162,7 +3431,7 @@ async function runWinnerSettlement({
           })
       );
 
-      await maybeTrackProbe({
+      await runSameWalletExpectedFailureBurst({
         enabled:
           enableAdversarialProbes &&
           shouldSample({
@@ -3180,18 +3449,24 @@ async function runWinnerSettlement({
           action: "withdrawTreasury",
           phase: "settlement",
           scenarioType: "adversarial-random",
+          expectation: "probe",
           gameIndex,
           gameId,
           wallet: owner.address,
           failureLabel: "duplicate-withdraw-treasury-after-success",
-          probeKind: "duplicate-follow-up",
+          probeKind: "phase-edge-burst",
         },
-        operation: async () =>
+        wallet: owner,
+        count: PHASE_EDGE_BURST_ATTEMPTS,
+        buildOperation: ({ nonce }) =>
           sendRawGameTx({
             gameAddress,
             wallet: owner,
             method: "withdrawTreasury",
             args: [gameId],
+            overrides: {
+              nonce,
+            },
           }),
         skippedProbes,
         skipReason: "winner-settlement:duplicate treasury withdraw probe skipped",
@@ -3222,7 +3497,7 @@ async function runWinnerSettlement({
       );
       causeWithdrawalResults.push(result);
 
-      await maybeTrackProbe({
+      await runSameWalletExpectedFailureBurst({
         enabled:
           enableAdversarialProbes &&
           shouldSample({
@@ -3241,19 +3516,25 @@ async function runWinnerSettlement({
           action: "withdrawCause",
           phase: "settlement",
           scenarioType: "adversarial-random",
+          expectation: "probe",
           gameIndex,
           gameId,
           wallet: owner.address,
           causeId: selected.causeId,
           failureLabel: "duplicate-withdraw-cause-after-success",
-          probeKind: "duplicate-follow-up",
+          probeKind: "phase-edge-burst",
         },
-        operation: async () =>
+        wallet: owner,
+        count: PHASE_EDGE_BURST_ATTEMPTS,
+        buildOperation: ({ nonce }) =>
           sendRawGameTx({
             gameAddress,
             wallet: owner,
             method: "withdrawCause",
             args: [gameId, selected.causeId],
+            overrides: {
+              nonce,
+            },
           }),
         skippedProbes,
         skipReason: "winner-settlement:duplicate cause withdraw probe skipped",
@@ -3407,6 +3688,48 @@ async function runCancelledSettlement({
       }),
   });
 
+  await runSameWalletExpectedFailureBurst({
+    enabled:
+      enableAdversarialProbes &&
+      orderedRefundPlayers.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-duplicate-refund",
+        gameIndex,
+        round: 0,
+        playerIndex: orderedRefundPlayers[0].index,
+        wallet: orderedRefundPlayers[0].wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "refund",
+      phase: "settlement",
+      scenarioType: "adversarial-random",
+      expectation: "probe",
+      gameIndex,
+      gameId,
+      wallet: orderedRefundPlayers[0]?.wallet.address ?? null,
+      failureLabel: "duplicate-refund-after-success",
+      probeKind: "phase-edge-burst",
+    },
+    wallet: orderedRefundPlayers[0]?.wallet,
+    count: PHASE_EDGE_BURST_ATTEMPTS,
+    buildOperation: ({ nonce }) =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: orderedRefundPlayers[0].wallet,
+        method: "claimRefund",
+        args: [gameId],
+        overrides: {
+          nonce,
+        },
+      }),
+    skippedProbes,
+    skipReason: "cancelled-settlement:duplicate refund probe skipped",
+  });
+
   if (expectedFailures) {
     if (orderedRefundPlayers.length > 0) {
       const duplicateRefundPlayer = orderedRefundPlayers[0];
@@ -3552,6 +3875,47 @@ async function runNoWinnerSettlement({
             allowUnsafePrivateKey: true,
           })
       );
+
+      await runSameWalletExpectedFailureBurst({
+        enabled:
+          enableAdversarialProbes &&
+          shouldSample({
+            seed,
+            stage: "probe-duplicate-withdraw-treasury",
+            gameIndex,
+            round: step,
+            playerIndex: 0,
+            wallet: owner.address,
+            rate: probeRate,
+          }),
+        tracker,
+        provider,
+        meta: {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          expectation: "probe",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          failureLabel: "duplicate-withdraw-treasury-after-success",
+          probeKind: "phase-edge-burst",
+        },
+        wallet: owner,
+        count: PHASE_EDGE_BURST_ATTEMPTS,
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawTreasury",
+            args: [gameId],
+            overrides: {
+              nonce,
+            },
+          }),
+        skippedProbes,
+        skipReason: "no-winner-settlement:duplicate treasury withdraw probe skipped",
+      });
     } else {
       causeWithdrawalResults.push(
         await trackedTx(
@@ -3578,6 +3942,49 @@ async function runNoWinnerSettlement({
             })
         )
       );
+
+      await runSameWalletExpectedFailureBurst({
+        enabled:
+          enableAdversarialProbes &&
+          shouldSample({
+            seed,
+            stage: "probe-duplicate-withdraw-cause",
+            gameIndex,
+            round: step,
+            playerIndex: 0,
+            wallet: owner.address,
+            rate: probeRate,
+            extra: `cause-${selected.causeId}`,
+          }),
+        tracker,
+        provider,
+        meta: {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          expectation: "probe",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          causeId: selected.causeId,
+          failureLabel: "duplicate-withdraw-cause-after-success",
+          probeKind: "phase-edge-burst",
+        },
+        wallet: owner,
+        count: PHASE_EDGE_BURST_ATTEMPTS,
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawCause",
+            args: [gameId, selected.causeId],
+            overrides: {
+              nonce,
+            },
+          }),
+        skippedProbes,
+        skipReason: "no-winner-settlement:duplicate cause withdraw probe skipped",
+      });
     }
 
     step += 1;
@@ -4044,6 +4451,48 @@ async function runSingleGame({
           allowUnsafePrivateKey: true,
         })
     );
+
+    await runWalletBurstExpectedFailureProbe({
+      enabled:
+        enableAdversarialProbes &&
+        joinedPlayers.length > 0 &&
+        shouldSample({
+          seed,
+          stage: "probe-burst-advance-from-joining",
+          gameIndex,
+          round: 0,
+          playerIndex: joinedPlayers[0].index,
+          wallet: joinedPlayers[0].wallet.address,
+          rate: probeRate,
+        }),
+      tracker,
+      provider,
+      meta: {
+        action: "advanceFromJoining",
+        phase: "joining",
+        scenarioType,
+        expectation: "probe",
+        gameIndex,
+        gameId,
+        wallet: owner.address,
+        failureLabel: "advance-after-joining-transition",
+        probeKind: "phase-edge-burst",
+      },
+      wallets: buildPhaseEdgeBurstWallets({
+        owner,
+        players: joinedPlayers,
+      }),
+      buildOperation: ({ wallet }) =>
+        sendRawGameTx({
+          gameAddress,
+          wallet,
+          method: "advancePhase",
+          args: [gameId],
+        }),
+      skippedProbes,
+      skipReason: "joining:advance burst skipped",
+    });
+
     joinDurationMs = Date.now() - joinStartedMs;
 
     if (scenarioType === "winner-all-share") {

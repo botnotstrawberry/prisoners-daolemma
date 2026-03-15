@@ -175,7 +175,7 @@ Current boundary:
   - `winner-all-share`: deterministic winner path, with optional missed commit / missed reveal chaos using configurable skip rates, followed by winner claims plus creator-fee/cause withdrawals when those pull-based balances are claimable
   - `cancelled-underfilled`: underfilled join window leading to cancel + refunds
   - `no-winner-all-catch`: deterministic no-winner round-one outcome leading to treasury/cause withdrawals
-  - `adversarial-random`: seeded synthetic local breakage hunting across sequential games with randomized started-vs-underfilled game selection, random move choices, commit/reveal omissions, wrong-preimage / late-action / duplicate probes, and randomized settlement ordering
+  - `adversarial-random`: seeded synthetic local breakage hunting across sequential games with randomized started-vs-underfilled game selection, random move choices, commit/reveal omissions, wrong-preimage probes, short phase-edge burst probes around late commit/reveal, `advancePhase`, claim/refund, and treasury/cause withdrawals, plus randomized settlement ordering
   - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
   - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
@@ -213,7 +213,7 @@ What this harness honestly proves today:
   - winner claims plus creator-fee/cause withdrawals after those claims route funds
   - cancelled-game refunds
   - no-winner treasury/cause routing
-  - randomized local invalid-path / late-action / duplicate follow-up probes with explicit accounting of whether they failed as expected or succeeded unexpectedly
+  - randomized local invalid-path / wrong-preimage / phase-edge burst probes with explicit accounting of whether they became mined onchain reverts, stayed local rejections, or succeeded unexpectedly
 - per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed and whether preview/claimable/export views stayed consistent
 - deterministic duplicate/invalid follow-up attempts and adversarial probes are accounted for separately instead of getting mixed into normal tx failures
 

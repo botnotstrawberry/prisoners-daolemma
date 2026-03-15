@@ -34,6 +34,10 @@ function createOutDir(prefix) {
   return mkdtempSync(join(tmpdir(), prefix));
 }
 
+function countForKey(entries, key) {
+  return (entries ?? []).find((entry) => entry.key === key)?.count ?? 0;
+}
+
 test(
   "load harness runs a small sequential local smoke and emits structured winner artifacts",
   { timeout: 120_000, concurrency: false },
@@ -159,6 +163,8 @@ test(
     assert.equal(report.txSummary.failed, 2);
     assert.equal(report.txSummary.failedExpected, 2);
     assert.equal(report.txSummary.failedUnexpected, 0);
+    assert.equal(report.txSummary.failedOnchain, 2);
+    assert.equal(report.txSummary.failedLocal, 0);
     assert.equal(report.txSummary.unexpectedSuccesses, 0);
     assert.equal(report.localScaleReadiness.fullyDrainedGames, 1);
     assert.equal(
@@ -221,6 +227,8 @@ test(
     assert.equal(report.txSummary.failed, 5);
     assert.equal(report.txSummary.failedExpected, 5);
     assert.equal(report.txSummary.failedUnexpected, 0);
+    assert.equal(report.txSummary.failedOnchain, 5);
+    assert.equal(report.txSummary.failedLocal, 0);
     assert.equal(report.txSummary.unexpectedSuccesses, 0);
     assert.equal(report.localScaleReadiness.fullyDrainedGames, 1);
     assert.equal(
@@ -278,7 +286,7 @@ test(
       skipRevealRate: 0.25,
       underfilledRate: 0.5,
       invalidRevealRate: 0.2,
-      probeRate: 0.6,
+      probeRate: 1,
       seed: "load-harness-adversarial-seed",
       anvilPort,
       out: outDir,
@@ -295,6 +303,14 @@ test(
     assert.ok(report.chaos.probeAttempts > 0);
     assert.ok(report.breakageSummary.probeSummary.attempted > 0);
     assert.ok(report.breakageSummary.probeSummary.failedAsExpected > 0);
+    assert.ok(report.breakageSummary.probeSummary.onchainReverts > 0);
+    assert.equal(report.breakageSummary.probeSummary.localRejections, 0);
+    assert.ok(
+      report.games.reduce(
+        (sum, game) => sum + countForKey(game.probes.byKind, "phase-edge-burst"),
+        0
+      ) > 0
+    );
     assert.equal(report.breakageSummary.probeSummary.unexpectedSuccesses, 0);
     assert.equal(report.breakageSummary.gamesWithWedgedActiveSlot, 0);
     assert.equal(report.breakageSummary.gamesWithTerminalStateMismatch, 0);
