@@ -335,6 +335,14 @@ test(
     assert.equal(rounds.rounds.length, 1);
     assert.equal(rounds.rounds[0].commits.length, 0);
     assert.equal(rounds.rounds[0].reveals.length, 0);
+    assert.equal(rounds.rounds[0].phaseWindows.commitStartBlock, null);
+    assert.equal(rounds.rounds[0].phaseWindows.revealStartBlock, null);
+    assert.ok(
+      rounds.rounds[0].notes.some((note) => note.includes("commitStartBlock is null"))
+    );
+    assert.ok(
+      rounds.rounds[0].notes.some((note) => note.includes("revealStartBlock is null"))
+    );
     assert.equal(payouts.settlement.finalized, false);
     assert.equal(payouts.events.prizeClaims.length, 0);
     assert.equal(messages.length, 1);
@@ -385,6 +393,84 @@ test(
     );
     assert.ok(
       evidence.summary.notes.some((note) => note.includes("intentionally hybrid"))
+    );
+  }
+);
+
+test(
+  "bounded multi-round exports attribute phase starts by round identity",
+  { concurrency: false },
+  async () => {
+    const {
+      provider,
+      registry,
+      game,
+      round2CommitReceipt,
+      round2RevealReceipt,
+      round3CommitReceipt,
+      round3RevealReceipt,
+    } = await setupBoundedMultiRoundEvidenceFixture();
+
+    const evidence = await collectGameEvidence({
+      provider,
+      game: game.address,
+      registry: registry.address,
+      gameId: 1,
+      fromBlock: round2CommitReceipt.blockNumber,
+    });
+
+    assert.deepEqual(
+      evidence.rounds.rounds.map((roundExport) => roundExport.round),
+      [1, 2, 3]
+    );
+
+    const round1 = evidence.rounds.rounds.find(
+      (roundExport) => roundExport.round === 1
+    );
+    const round2 = evidence.rounds.rounds.find(
+      (roundExport) => roundExport.round === 2
+    );
+    const round3 = evidence.rounds.rounds.find(
+      (roundExport) => roundExport.round === 3
+    );
+
+    assert.ok(round1);
+    assert.ok(round2);
+    assert.ok(round3);
+    assert.equal(round1.phaseWindows.commitStartBlock, null);
+    assert.equal(round1.phaseWindows.revealStartBlock, null);
+    assert.ok(
+      round1.notes.some((note) => note.includes("commitStartBlock is null"))
+    );
+    assert.ok(
+      round1.notes.some((note) => note.includes("revealStartBlock is null"))
+    );
+
+    assert.equal(
+      round2.phaseWindows.commitStartBlock,
+      round2CommitReceipt.blockNumber
+    );
+    assert.equal(
+      round2.phaseWindows.revealStartBlock,
+      round2RevealReceipt.blockNumber
+    );
+    assert.equal(
+      round3.phaseWindows.commitStartBlock,
+      round3CommitReceipt.blockNumber
+    );
+    assert.equal(
+      round3.phaseWindows.revealStartBlock,
+      round3RevealReceipt.blockNumber
+    );
+    assert.equal(round2.resolution.shareStreak, 2);
+    assert.equal(round3.resolution.shareStreak, 3);
+    assert.equal(
+      round2.notes.some((note) => note.includes("can be safely attributed")),
+      false
+    );
+    assert.equal(
+      round3.notes.some((note) => note.includes("can be safely attributed")),
+      false
     );
   }
 );
@@ -1115,6 +1201,120 @@ async function setupHistoricalMessageLivenessFixture() {
     causeBeforeEliminationReceipt,
     beforeEliminationGlobalReceipt,
     afterEliminationGlobalReceipt,
+  };
+}
+
+function salt(label) {
+  return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(label));
+}
+
+async function commitRoundEntries(game, gameId, entries) {
+  const round = Number((await game.getGame(gameId)).round);
+
+  for (const entry of entries) {
+    const commitment = await game.computeCommitment(
+      gameId,
+      round,
+      entry.wallet.address,
+      entry.choice,
+      entry.salt
+    );
+    await (await game.connect(entry.wallet).commit(gameId, commitment)).wait();
+  }
+}
+
+async function revealRoundEntries(game, gameId, entries) {
+  for (const entry of entries) {
+    await (
+      await game.connect(entry.wallet).reveal(gameId, entry.choice, entry.salt)
+    ).wait();
+  }
+}
+
+async function playEvidenceRound(game, gameId, entries) {
+  await commitRoundEntries(game, gameId, entries);
+  const revealReceipt = await (await game.advancePhase(gameId)).wait();
+  await revealRoundEntries(game, gameId, entries);
+  const resolutionReceipt = await (await game.advancePhase(gameId)).wait();
+
+  return {
+    revealReceipt,
+    resolutionReceipt,
+  };
+}
+
+async function setupBoundedMultiRoundEvidenceFixture() {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const verifier = ethers.Wallet.createRandom();
+  const player1 = ethers.Wallet.createRandom().connect(provider);
+  const player2 = ethers.Wallet.createRandom().connect(provider);
+
+  await fundWallet(owner, player1.address, "2");
+  await fundWallet(owner, player2.address, "2");
+
+  const registry = await deployRegistry(owner, verifier.address);
+  const game = await deployGame(owner, registry.address);
+
+  await (
+    await game.whitelistCause(1, owner.address, ethers.utils.id("cause-a"))
+  ).wait();
+  await (
+    await game.whitelistCause(2, owner.address, ethers.utils.id("cause-b"))
+  ).wait();
+  await (await game.createGame()).wait();
+
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player1,
+    agentKeyText: "agent-alpha-bounded-rounds",
+    nonceText: "nonce-alpha-bounded-rounds",
+  });
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player2,
+    agentKeyText: "agent-beta-bounded-rounds",
+    nonceText: "nonce-beta-bounded-rounds",
+  });
+
+  const entryFee = ethers.utils.parseEther("0.001");
+  await (await game.connect(player1).join(1, 1, { value: entryFee })).wait();
+  await (await game.connect(player2).join(1, 2, { value: entryFee })).wait();
+
+  await provider.send("evm_increaseTime", [2]);
+  await provider.send("evm_mine", []);
+  await (await game.advancePhase(1)).wait();
+
+  const shareChoice = 1;
+  const round1 = await playEvidenceRound(game, 1, [
+    { wallet: player1, choice: shareChoice, salt: salt("bounded-rounds-r1-p1") },
+    { wallet: player2, choice: shareChoice, salt: salt("bounded-rounds-r1-p2") },
+  ]);
+  const round2CommitReceipt = round1.resolutionReceipt;
+
+  const round2 = await playEvidenceRound(game, 1, [
+    { wallet: player1, choice: shareChoice, salt: salt("bounded-rounds-r2-p1") },
+    { wallet: player2, choice: shareChoice, salt: salt("bounded-rounds-r2-p2") },
+  ]);
+  const round3CommitReceipt = round2.resolutionReceipt;
+
+  const round3 = await playEvidenceRound(game, 1, [
+    { wallet: player1, choice: shareChoice, salt: salt("bounded-rounds-r3-p1") },
+    { wallet: player2, choice: shareChoice, salt: salt("bounded-rounds-r3-p2") },
+  ]);
+
+  return {
+    provider,
+    registry,
+    game,
+    round2CommitReceipt,
+    round2RevealReceipt: round2.revealReceipt,
+    round3CommitReceipt,
+    round3RevealReceipt: round3.revealReceipt,
   };
 }
 

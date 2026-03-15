@@ -1171,10 +1171,71 @@ async function buildPhaseHistory(phaseEvents, getBlockTimestamp) {
   return history;
 }
 
+function earliestEvent(events = []) {
+  return events[0] ?? null;
+}
+
+function earliestRoundEvent(round, eventMaps) {
+  let match = null;
+
+  for (const eventMap of eventMaps) {
+    const candidate = earliestEvent(eventMap.get(round));
+    if (!candidate) {
+      continue;
+    }
+    if (!match || compareEventPosition(candidate, match) < 0) {
+      match = candidate;
+    }
+  }
+
+  return match;
+}
+
+function findLastEventAtOrBefore(events, anchor) {
+  if (!anchor) {
+    return null;
+  }
+
+  let match = null;
+  for (const event of events) {
+    if (compareEventPosition(event, anchor) > 0) {
+      break;
+    }
+    match = event;
+  }
+
+  return match;
+}
+
+function buildSnapshotAnchor(blockNumber) {
+  return {
+    blockNumber,
+    transactionIndex: Number.POSITIVE_INFINITY,
+    logIndex: Number.POSITIVE_INFINITY,
+  };
+}
+
+function currentRoundHasCommitStarted(snapshot, round) {
+  return (
+    round === snapshot.round &&
+    round > 0 &&
+    snapshot.phase !== "Idle" &&
+    snapshot.phase !== "Joining"
+  );
+}
+
+function currentRoundHasRevealStarted(snapshot, round) {
+  return (
+    round === snapshot.round &&
+    (snapshot.phase === "Reveal" || snapshot.phase === "Ended")
+  );
+}
+
 function buildRoundExports({
   snapshot,
   settlement,
-  phaseHistory,
+  phaseEvents,
+  stateSnapshotBlock,
   commitEvents,
   revealEvents,
   effectiveChoiceEvents,
@@ -1183,19 +1244,30 @@ function buildRoundExports({
   gameEndedEvents,
   participants,
 }) {
-  const commitPhaseTransitions = phaseHistory.filter(
-    (item) => item.phase === "Commit"
+  const sortedPhaseEvents = sortEvents(phaseEvents);
+  const commitPhaseTransitions = sortedPhaseEvents.filter(
+    (event) =>
+      enumName(PHASE_NAMES, event.args.newPhase, "phaseTransition.newPhase") ===
+      "Commit"
   );
-  const revealPhaseTransitions = phaseHistory.filter(
-    (item) => item.phase === "Reveal"
+  const revealPhaseTransitions = sortedPhaseEvents.filter(
+    (event) =>
+      enumName(PHASE_NAMES, event.args.newPhase, "phaseTransition.newPhase") ===
+      "Reveal"
   );
-  const commitEventsByRound = groupByRound(commitEvents, (event) => ({
+  const sortedCommitEvents = sortEvents(commitEvents);
+  const sortedRevealEvents = sortEvents(revealEvents);
+  const sortedEffectiveChoiceEvents = sortEvents(effectiveChoiceEvents);
+  const sortedEliminatedEvents = sortEvents(eliminatedEvents);
+  const sortedRoundResolvedEvents = sortEvents(roundResolvedEvents);
+  const sortedGameEndedEvents = sortEvents(gameEndedEvents);
+  const commitEventsByRound = groupByRound(sortedCommitEvents, (event) => ({
     wallet: event.args.wallet,
     commitment: event.args.commitment,
     txHash: event.transactionHash,
     blockNumber: event.blockNumber,
   }));
-  const revealEventsByRound = groupByRound(revealEvents, (event) => ({
+  const revealEventsByRound = groupByRound(sortedRevealEvents, (event) => ({
     wallet: event.args.wallet,
     choice: enumName(CHOICE_NAMES, event.args.choice, "reveal.choice"),
     choiceCode: toNumber(event.args.choice, "reveal.choice"),
@@ -1203,7 +1275,7 @@ function buildRoundExports({
     blockNumber: event.blockNumber,
   }));
   const effectiveChoicesByRound = groupByRound(
-    effectiveChoiceEvents,
+    sortedEffectiveChoiceEvents,
     (event) => ({
       wallet: event.args.wallet,
       choice: enumName(CHOICE_NAMES, event.args.choice, "effective.choice"),
@@ -1214,27 +1286,33 @@ function buildRoundExports({
       blockNumber: event.blockNumber,
     })
   );
-  const eliminatedByRound = groupByRound(eliminatedEvents, (event) => ({
-    wallet: event.args.wallet,
-    choice: enumName(CHOICE_NAMES, event.args.choice, "eliminated.choice"),
-    choiceCode: toNumber(event.args.choice, "eliminated.choice"),
-    txHash: event.transactionHash,
-    blockNumber: event.blockNumber,
-  }));
-  const resolvedByRound = groupByRound(roundResolvedEvents, (event) => ({
-    sharers: toNumber(event.args.sharers, "roundResolved.sharers"),
-    catchers: toNumber(event.args.catchers, "roundResolved.catchers"),
-    stealers: toNumber(event.args.stealers, "roundResolved.stealers"),
-    eliminatedCount: toNumber(
-      event.args.eliminatedCount,
-      "roundResolved.eliminatedCount"
-    ),
-    aliveCount: toNumber(event.args.aliveCount, "roundResolved.aliveCount"),
-    shareStreak: toNumber(event.args.shareStreak, "roundResolved.shareStreak"),
-    txHash: event.transactionHash,
-    blockNumber: event.blockNumber,
-  }));
-  const endedByRound = groupByRound(gameEndedEvents, (event) => ({
+  const eliminatedByRound = groupByRound(
+    sortedEliminatedEvents,
+    (event) => ({
+      wallet: event.args.wallet,
+      choice: enumName(CHOICE_NAMES, event.args.choice, "eliminated.choice"),
+      choiceCode: toNumber(event.args.choice, "eliminated.choice"),
+      txHash: event.transactionHash,
+      blockNumber: event.blockNumber,
+    })
+  );
+  const resolvedByRound = groupByRound(
+    sortedRoundResolvedEvents,
+    (event) => ({
+      sharers: toNumber(event.args.sharers, "roundResolved.sharers"),
+      catchers: toNumber(event.args.catchers, "roundResolved.catchers"),
+      stealers: toNumber(event.args.stealers, "roundResolved.stealers"),
+      eliminatedCount: toNumber(
+        event.args.eliminatedCount,
+        "roundResolved.eliminatedCount"
+      ),
+      aliveCount: toNumber(event.args.aliveCount, "roundResolved.aliveCount"),
+      shareStreak: toNumber(event.args.shareStreak, "roundResolved.shareStreak"),
+      txHash: event.transactionHash,
+      blockNumber: event.blockNumber,
+    })
+  );
+  const endedByRound = groupByRound(sortedGameEndedEvents, (event) => ({
     outcome: enumName(OUTCOME_NAMES, event.args.outcome, "gameEnded.outcome"),
     outcomeCode: toNumber(event.args.outcome, "gameEnded.outcome"),
     winnerCount: toNumber(event.args.winnerCount, "gameEnded.winnerCount"),
@@ -1242,12 +1320,30 @@ function buildRoundExports({
     txHash: event.transactionHash,
     blockNumber: event.blockNumber,
   }));
+  const commitEventAnchorsByRound = groupByRound(
+    sortedCommitEvents,
+    (event) => event
+  );
+  const revealEventAnchorsByRound = groupByRound(
+    sortedRevealEvents,
+    (event) => event
+  );
+  const effectiveChoiceAnchorsByRound = groupByRound(
+    sortedEffectiveChoiceEvents,
+    (event) => event
+  );
+  const eliminatedAnchorsByRound = groupByRound(
+    sortedEliminatedEvents,
+    (event) => event
+  );
+  const resolvedAnchorsByRound = groupByRound(
+    sortedRoundResolvedEvents,
+    (event) => event
+  );
+  const endedAnchorsByRound = groupByRound(sortedGameEndedEvents, (event) => event);
 
   const roundNumbers = new Set();
 
-  for (let index = 0; index < commitPhaseTransitions.length; index += 1) {
-    roundNumbers.add(index + 1);
-  }
   for (const round of commitEventsByRound.keys()) {
     roundNumbers.add(round);
   }
@@ -1270,6 +1366,8 @@ function buildRoundExports({
     roundNumbers.add(snapshot.round);
   }
 
+  const snapshotAnchor = buildSnapshotAnchor(stateSnapshotBlock);
+
   return [...roundNumbers]
     .sort((a, b) => a - b)
     .map((round) => {
@@ -1283,12 +1381,55 @@ function buildRoundExports({
               .map((player) => player.wallet);
       const resolution = (resolvedByRound.get(round) ?? [])[0] ?? null;
       const terminalState = (endedByRound.get(round) ?? [])[0] ?? null;
+      const commitAnchor =
+        earliestRoundEvent(round, [
+          commitEventAnchorsByRound,
+          revealEventAnchorsByRound,
+          effectiveChoiceAnchorsByRound,
+          eliminatedAnchorsByRound,
+          resolvedAnchorsByRound,
+          endedAnchorsByRound,
+        ]) ??
+        (currentRoundHasCommitStarted(snapshot, round) ? snapshotAnchor : null);
+      const revealAnchor =
+        earliestRoundEvent(round, [
+          revealEventAnchorsByRound,
+          effectiveChoiceAnchorsByRound,
+          eliminatedAnchorsByRound,
+          resolvedAnchorsByRound,
+          endedAnchorsByRound,
+        ]) ??
+        (currentRoundHasRevealStarted(snapshot, round) ? snapshotAnchor : null);
+      const commitStartBlock =
+        findLastEventAtOrBefore(commitPhaseTransitions, commitAnchor)
+          ?.blockNumber ?? null;
+      const revealStartBlock =
+        findLastEventAtOrBefore(revealPhaseTransitions, revealAnchor)
+          ?.blockNumber ?? null;
       const notes = [];
 
       if (!resolution) {
         notes.push(
           "No round-resolution events were observed inside the selected evidence window for this round."
         );
+      }
+
+      if (commitStartBlock === null) {
+        notes.push(
+          "commitStartBlock is null because the selected evidence window does not contain a Commit transition that can be safely attributed to this round."
+        );
+      }
+
+      if (revealStartBlock === null) {
+        if (isCurrentRound && !currentRoundHasRevealStarted(snapshot, round)) {
+          notes.push(
+            "revealStartBlock is null because this round had not entered Reveal at the export snapshot."
+          );
+        } else {
+          notes.push(
+            "revealStartBlock is null because the selected evidence window does not contain a Reveal transition that can be safely attributed to this round."
+          );
+        }
       }
 
       if (!isCurrentRound) {
@@ -1301,13 +1442,11 @@ function buildRoundExports({
         gameId: null,
         round,
         phaseWindows: {
-          commitStartBlock:
-            commitPhaseTransitions[round - 1]?.blockNumber ?? null,
+          commitStartBlock,
           commitDeadlineBlock: isCurrentRound
             ? snapshot.commitDeadlineBlock
             : null,
-          revealStartBlock:
-            revealPhaseTransitions[round - 1]?.blockNumber ?? null,
+          revealStartBlock,
           revealDeadlineBlock: isCurrentRound
             ? snapshot.revealDeadlineBlock
             : null,
@@ -2034,7 +2173,8 @@ export async function collectGameEvidence(options = {}) {
   const rounds = buildRoundExports({
     snapshot,
     settlement,
-    phaseHistory,
+    phaseEvents,
+    stateSnapshotBlock,
     commitEvents,
     revealEvents,
     effectiveChoiceEvents,
