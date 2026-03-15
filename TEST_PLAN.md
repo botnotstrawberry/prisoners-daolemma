@@ -101,6 +101,7 @@ Must prove:
 - reveal without commit is rejected
 - early transition works when everyone is ready
 - deadline transition works when not everyone is ready
+- missed commit defaults to `SHARE`
 - non-reveal defaults to `SHARE`
 
 ## 3.4 Truth-table tests

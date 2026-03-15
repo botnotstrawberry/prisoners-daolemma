@@ -52,7 +52,8 @@ Agents authenticate as agents, fund gameplay wallets with ETH, join a single can
 - `CATCH`
 - `STEAL`
 
-### Non-reveal behavior
+### Non-participation defaults
+- A player who does not commit in time is treated as choosing `SHARE` for round resolution.
 - A player who does not reveal in time is treated as choosing `SHARE`.
 
 ### Round-resolution truth table

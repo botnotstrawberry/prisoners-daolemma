@@ -66,6 +66,8 @@ Before implementing, use:
 - [ ] Join/admission tests
 - [ ] Commit/reveal tests
 - [ ] Truth-table tests for all 7 cases
+- [ ] Missed-commit => `SHARE` tests
+- [ ] Non-reveal => `SHARE` tests
 - [ ] Share-streak tests
 - [ ] Sole-survivor tests
 - [ ] Winner-claim tests
