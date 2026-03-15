@@ -1244,6 +1244,111 @@ contract PrisonersDaollemaTest is Test {
         assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), 0);
     }
 
+    function testNoWinnerWithdrawalsUseSnapshottedRecipientsAfterWhitelistRemovalAndRewhitelist() public {
+        uint256 gameId1 = _advanceThreePlayerGameToCommit();
+        _resolveCurrentRoundThreePlayers(
+            gameId1,
+            player1,
+            PrisonersDaollema.Choice.Catch,
+            SALT_1,
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            SALT_2,
+            player3,
+            PrisonersDaollema.Choice.Catch,
+            SALT_3
+        );
+
+        address updatedTreasury = makeAddr("no-winner-updated-treasury");
+        address updatedCauseARecipient = makeAddr("no-winner-updated-cause-a");
+        address updatedCauseBRecipient = makeAddr("no-winner-updated-cause-b");
+
+        vm.startPrank(owner);
+        game.setTreasury(updatedTreasury);
+        game.removeCause(CAUSE_A);
+        game.removeCause(CAUSE_B);
+        game.whitelistCause(CAUSE_A, updatedCauseARecipient, keccak256("cause-a-rewhitelisted"));
+        game.whitelistCause(CAUSE_B, updatedCauseBRecipient, keccak256("cause-b-rewhitelisted"));
+        uint256 gameId2 = game.createGame();
+        vm.stopPrank();
+
+        _joinPlayer(gameId2, player1, PLAYER1_AGENT, keccak256("nonce-no-winner-rejoin-1"), CAUSE_A);
+        _joinPlayer(gameId2, player2, PLAYER2_AGENT, keccak256("nonce-no-winner-rejoin-2"), CAUSE_B);
+
+        _assertDefaultThreePlayerNoWinnerSnapshotIsolation(
+            gameId1, gameId2, updatedTreasury, updatedCauseARecipient, updatedCauseBRecipient
+        );
+        _withdrawDefaultThreePlayerNoWinnerFunds(gameId1, updatedTreasury, updatedCauseARecipient, updatedCauseBRecipient);
+    }
+
+    function _assertDefaultThreePlayerNoWinnerSnapshotIsolation(
+        uint256 gameId1,
+        uint256 gameId2,
+        address updatedTreasury,
+        address updatedCauseARecipient,
+        address updatedCauseBRecipient
+    ) internal view {
+        PrisonersDaollema.CauseDefinition memory globalCauseA = game.getCause(CAUSE_A);
+        PrisonersDaollema.CauseDefinition memory globalCauseB = game.getCause(CAUSE_B);
+
+        uint256 totalPotWei = 3 * _defaultConfig().entryFeeWei;
+        uint256 creatorFeeWei = totalPotWei / 100;
+        uint256 noWinnerCausePoolWei = (totalPotWei - creatorFeeWei) * 9_000 / 10_000;
+        uint256 causeAAmountWei = noWinnerCausePoolWei * 2 / 3;
+        uint256 causeBAmountWei = noWinnerCausePoolWei / 3;
+        uint256 treasuryAccruedWei = totalPotWei - (causeAAmountWei + causeBAmountWei);
+
+        assertTrue(globalCauseA.active);
+        assertTrue(globalCauseB.active);
+        assertEq(globalCauseA.recipient, updatedCauseARecipient);
+        assertEq(globalCauseB.recipient, updatedCauseBRecipient);
+        assertEq(globalCauseA.metadataHash, keccak256("cause-a-rewhitelisted"));
+        assertEq(globalCauseB.metadataHash, keccak256("cause-b-rewhitelisted"));
+
+        assertEq(game.getGame(gameId1).treasury, treasury);
+        assertEq(game.getGame(gameId2).treasury, updatedTreasury);
+        assertEq(game.gameCauseRecipient(gameId1, CAUSE_A), causeARecipient);
+        assertEq(game.gameCauseRecipient(gameId1, CAUSE_B), causeBRecipient);
+        assertEq(game.getGameCause(gameId1, CAUSE_A).metadataHash, keccak256("cause-a"));
+        assertEq(game.getGameCause(gameId1, CAUSE_B).metadataHash, keccak256("cause-b"));
+        assertEq(game.gameCauseRecipient(gameId2, CAUSE_A), updatedCauseARecipient);
+        assertEq(game.gameCauseRecipient(gameId2, CAUSE_B), updatedCauseBRecipient);
+
+        assertEq(game.getSettlement(gameId1).creatorFeeWei, creatorFeeWei);
+        assertEq(game.treasuryClaimableAmount(gameId1), treasuryAccruedWei);
+        assertEq(game.gameCauseClaimableAmount(gameId1, CAUSE_A), causeAAmountWei);
+        assertEq(game.gameCauseClaimableAmount(gameId1, CAUSE_B), causeBAmountWei);
+    }
+
+    function _withdrawDefaultThreePlayerNoWinnerFunds(
+        uint256 gameId,
+        address updatedTreasury,
+        address updatedCauseARecipient,
+        address updatedCauseBRecipient
+    ) internal {
+        uint256 treasuryClaimableWei = game.treasuryClaimableAmount(gameId);
+        uint256 causeAClaimableWei = game.gameCauseClaimableAmount(gameId, CAUSE_A);
+        uint256 causeBClaimableWei = game.gameCauseClaimableAmount(gameId, CAUSE_B);
+
+        uint256 treasuryBalanceBefore = treasury.balance;
+        vm.prank(treasury);
+        game.withdrawTreasury(gameId);
+        assertEq(treasury.balance, treasuryBalanceBefore + treasuryClaimableWei);
+        assertEq(updatedTreasury.balance, 0);
+
+        uint256 causeABalanceBefore = causeARecipient.balance;
+        vm.prank(causeARecipient);
+        game.withdrawCause(gameId, CAUSE_A);
+        assertEq(causeARecipient.balance, causeABalanceBefore + causeAClaimableWei);
+        assertEq(updatedCauseARecipient.balance, 0);
+
+        uint256 causeBBalanceBefore = causeBRecipient.balance;
+        vm.prank(causeBRecipient);
+        game.withdrawCause(gameId, CAUSE_B);
+        assertEq(causeBRecipient.balance, causeBBalanceBefore + causeBClaimableWei);
+        assertEq(updatedCauseBRecipient.balance, 0);
+    }
+
     function _assertWinnerClaimPreview(
         uint256 gameId,
         address wallet,

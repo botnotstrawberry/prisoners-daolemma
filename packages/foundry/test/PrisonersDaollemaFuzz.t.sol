@@ -165,6 +165,181 @@ contract PrisonersDaollemaFuzzTest is Test {
         _assertNoPayoutPreviews(gameId, playerCount);
     }
 
+    function testFuzz_SequentialWinnerGamesKeepSnapshottedFeesAndRecipients(
+        uint256 game1Seed,
+        uint256 game2Seed,
+        uint96 game1EntryFeeSeed,
+        uint96 game2EntryFeeSeed
+    ) public {
+        uint256 gameId1 = _createAndAssertWinnerGame(game1Seed, game1EntryFeeSeed, treasury, 11);
+
+        address updatedTreasury = makeAddr("fuzz-snapshot-updated-treasury");
+        address updatedCauseARecipient = makeAddr("fuzz-snapshot-updated-cause-a");
+        address updatedCauseBRecipient = makeAddr("fuzz-snapshot-updated-cause-b");
+
+        vm.startPrank(owner);
+        game.setTreasury(updatedTreasury);
+        game.whitelistCause(CAUSE_A, updatedCauseARecipient, keccak256("fuzz-updated-cause-a"));
+        game.whitelistCause(CAUSE_B, updatedCauseBRecipient, keccak256("fuzz-updated-cause-b"));
+        vm.stopPrank();
+
+        uint256 gameId2 = _createAndAssertWinnerGame(game2Seed, game2EntryFeeSeed, updatedTreasury, 21);
+
+        _assertUsedCauseRecipients(gameId1, causeARecipient, causeBRecipient);
+        _assertUsedCauseRecipients(gameId2, updatedCauseARecipient, updatedCauseBRecipient);
+
+        (uint256 game1CauseARoutedWei, uint256 game1CauseBRoutedWei) = _claimAllWinnersAndAssertClaims(gameId1);
+        (uint256 game2CauseARoutedWei, uint256 game2CauseBRoutedWei) = _claimAllWinnersAndAssertClaims(gameId2);
+
+        _withdrawAndAssertWinnerSettlementRecipients(
+            gameId1, treasury, causeARecipient, causeBRecipient, game1CauseARoutedWei, game1CauseBRoutedWei
+        );
+        _withdrawAndAssertWinnerSettlementRecipients(
+            gameId2,
+            updatedTreasury,
+            updatedCauseARecipient,
+            updatedCauseBRecipient,
+            game2CauseARoutedWei,
+            game2CauseBRoutedWei
+        );
+    }
+
+    function _createAndAssertWinnerGame(uint256 gameSeed, uint96 entryFeeSeed, address expectedTreasury, uint256 saltBase)
+        internal
+        returns (uint256 gameId)
+    {
+        uint256 playerCount = bound(gameSeed & 0xff, 2, 4);
+        uint256 causeMask = gameSeed >> 8;
+        uint256 entryFeeWei = bound(uint256(entryFeeSeed), 1, 1 ether);
+        uint16 creatorFeeBps = uint16(bound((gameSeed >> 40) & 0xffff, 0, 500));
+        uint16 causeFeeBps = uint16(bound((gameSeed >> 56) & 0xffff, 0, 500));
+
+        vm.prank(owner);
+        game.configureDefaults(_configWithFees(entryFeeWei, creatorFeeBps, causeFeeBps));
+
+        gameId = _createAndFillGame(playerCount, causeMask);
+        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase);
+        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase + 1);
+        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase + 2);
+
+        _assertWinnerGameSnapshotAndSettlement(
+            gameId, entryFeeWei, creatorFeeBps, causeFeeBps, expectedTreasury, playerCount
+        );
+    }
+
+    function _assertUsedCauseRecipients(uint256 gameId, address expectedCauseARecipient, address expectedCauseBRecipient)
+        internal
+        view
+    {
+        if (game.getGameCause(gameId, CAUSE_A).used) {
+            assertEq(game.gameCauseRecipient(gameId, CAUSE_A), expectedCauseARecipient);
+        }
+        if (game.getGameCause(gameId, CAUSE_B).used) {
+            assertEq(game.gameCauseRecipient(gameId, CAUSE_B), expectedCauseBRecipient);
+        }
+    }
+
+    function _claimAllWinnersAndAssertClaims(uint256 gameId)
+        internal
+        returns (uint256 causeARoutedWei, uint256 causeBRoutedWei)
+    {
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+
+        for (uint256 index = 0; index < snapshot.joinedCount; ++index) {
+            address wallet = game.playerAt(gameId, index);
+            uint16 causeId = game.getPlayer(gameId, wallet).causeId;
+            (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool availableNow) =
+                game.previewWinnerClaim(gameId, wallet);
+
+            assertEq(grossPrizeWei, settlement.winnerShareWei);
+            assertEq(causeCutWei, settlement.winnerShareWei * uint256(snapshot.causeFeeBps) / 10_000);
+            assertEq(netPrizeWei + causeCutWei, grossPrizeWei);
+            assertTrue(availableNow);
+
+            vm.prank(wallet);
+            game.claim(gameId);
+
+            (,,, bool stillAvailable) = game.previewWinnerClaim(gameId, wallet);
+            assertFalse(stillAvailable);
+
+            if (causeId == CAUSE_A) {
+                causeARoutedWei += causeCutWei;
+            } else {
+                causeBRoutedWei += causeCutWei;
+            }
+        }
+
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), causeARoutedWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), causeBRoutedWei);
+    }
+
+    function _withdrawAndAssertWinnerSettlementRecipients(
+        uint256 gameId,
+        address expectedTreasury,
+        address expectedCauseARecipient,
+        address expectedCauseBRecipient,
+        uint256 causeARoutedWei,
+        uint256 causeBRoutedWei
+    ) internal {
+        uint256 treasuryAccruedWei = game.getSettlement(gameId).treasuryAccruedWei;
+        uint256 treasuryBalanceBefore = expectedTreasury.balance;
+        if (treasuryAccruedWei != 0) {
+            vm.prank(expectedTreasury);
+            game.withdrawTreasury(gameId);
+        }
+        assertEq(expectedTreasury.balance, treasuryBalanceBefore + treasuryAccruedWei);
+        assertEq(game.treasuryClaimableAmount(gameId), 0);
+
+        uint256 causeABalanceBefore = expectedCauseARecipient.balance;
+        if (causeARoutedWei != 0) {
+            vm.prank(expectedCauseARecipient);
+            game.withdrawCause(gameId, CAUSE_A);
+        }
+        assertEq(expectedCauseARecipient.balance, causeABalanceBefore + causeARoutedWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), 0);
+
+        uint256 causeBBalanceBefore = expectedCauseBRecipient.balance;
+        if (causeBRoutedWei != 0) {
+            vm.prank(expectedCauseBRecipient);
+            game.withdrawCause(gameId, CAUSE_B);
+        }
+        assertEq(expectedCauseBRecipient.balance, causeBBalanceBefore + causeBRoutedWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), 0);
+    }
+
+    function _assertWinnerGameSnapshotAndSettlement(
+        uint256 gameId,
+        uint256 expectedEntryFeeWei,
+        uint16 expectedCreatorFeeBps,
+        uint16 expectedCauseFeeBps,
+        address expectedTreasury,
+        uint256 expectedPlayerCount
+    ) internal view {
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+
+        uint256 totalPotWei = expectedEntryFeeWei * expectedPlayerCount;
+        uint256 creatorFeeWei = totalPotWei * uint256(expectedCreatorFeeBps) / 10_000;
+        uint256 postCreatorPotWei = totalPotWei - creatorFeeWei;
+        uint256 winnerShareWei = postCreatorPotWei / expectedPlayerCount;
+        uint256 treasuryAccruedWei = creatorFeeWei + (postCreatorPotWei - (winnerShareWei * expectedPlayerCount));
+
+        assertEq(snapshot.entryFeeWei, expectedEntryFeeWei);
+        assertEq(snapshot.creatorFeeBps, expectedCreatorFeeBps);
+        assertEq(snapshot.causeFeeBps, expectedCauseFeeBps);
+        assertEq(snapshot.treasury, expectedTreasury);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(uint256(snapshot.joinedCount), expectedPlayerCount);
+        assertEq(uint256(snapshot.aliveCount), expectedPlayerCount);
+        assertEq(settlement.totalPotWei, totalPotWei);
+        assertEq(settlement.creatorFeeWei, creatorFeeWei);
+        assertEq(uint256(settlement.winnerCount), expectedPlayerCount);
+        assertEq(settlement.winnerShareWei, winnerShareWei);
+        assertEq(settlement.treasuryAccruedWei, treasuryAccruedWei);
+    }
+
     function _assertNoPayoutPreviews(uint256 gameId, uint256 playerCount) internal view {
         for (uint256 index = 0; index < playerCount; ++index) {
             (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool claimAvailable) =
@@ -223,6 +398,18 @@ contract PrisonersDaollemaFuzzTest is Test {
 
     function _causeForIndex(uint256 causeMask, uint256 index) internal pure returns (uint16) {
         return ((causeMask >> index) & 1) == 0 ? CAUSE_A : CAUSE_B;
+    }
+
+    function _configWithFees(uint256 entryFeeWei, uint16 creatorFeeBps, uint16 causeFeeBps)
+        internal
+        pure
+        returns (PrisonersDaollema.GameConfig memory)
+    {
+        PrisonersDaollema.GameConfig memory config = _defaultConfig();
+        config.entryFeeWei = entryFeeWei;
+        config.creatorFeeBps = creatorFeeBps;
+        config.causeFeeBps = causeFeeBps;
+        return config;
     }
 
     function _defaultConfig() internal pure returns (PrisonersDaollema.GameConfig memory) {

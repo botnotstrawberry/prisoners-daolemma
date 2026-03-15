@@ -26,7 +26,23 @@ contract PrisonersDaollemaHandler is Test {
     address public causeBRecipient;
     address public causeCRecipient;
 
+    struct ExpectedGameSnapshot {
+        bool recorded;
+        uint256 entryFeeWei;
+        uint16 creatorFeeBps;
+        uint16 causeFeeBps;
+        uint32 joinDurationSeconds;
+        uint32 commitDurationBlocks;
+        uint32 revealDurationBlocks;
+        uint16 minPlayers;
+        uint16 maxPlayers;
+        uint16 maxCauses;
+        address treasury;
+    }
+
     address[] internal _wallets;
+    address[] internal _treasuryOptions;
+    address[] internal _recipientOptions;
     bytes32[] internal _agentKeys;
     uint16[] internal _causeIds;
 
@@ -39,6 +55,9 @@ contract PrisonersDaollemaHandler is Test {
     mapping(uint256 gameId => mapping(uint32 round => mapping(address wallet => bytes32 salt))) internal _salts;
     mapping(uint256 gameId => mapping(uint32 round => mapping(address wallet => PrisonersDaollema.Choice choice)))
         internal _choices;
+    mapping(uint256 gameId => ExpectedGameSnapshot snapshot) internal _expectedGameSnapshots;
+    mapping(uint256 gameId => mapping(uint16 causeId => address recipient)) internal _expectedGameCauseRecipients;
+    mapping(uint256 gameId => mapping(uint16 causeId => bytes32 metadataHash)) internal _expectedGameCauseMetadataHashes;
 
     constructor() {
         owner = vm.addr(ownerPk);
@@ -61,6 +80,17 @@ contract PrisonersDaollemaHandler is Test {
         _causeIds.push(CAUSE_B);
         _causeIds.push(CAUSE_C);
 
+        _treasuryOptions.push(treasury);
+        _treasuryOptions.push(makeAddr("invariant-treasury-alt-1"));
+        _treasuryOptions.push(makeAddr("invariant-treasury-alt-2"));
+
+        _recipientOptions.push(causeARecipient);
+        _recipientOptions.push(causeBRecipient);
+        _recipientOptions.push(causeCRecipient);
+        _recipientOptions.push(makeAddr("invariant-recipient-alt-1"));
+        _recipientOptions.push(makeAddr("invariant-recipient-alt-2"));
+        _recipientOptions.push(makeAddr("invariant-recipient-alt-3"));
+
         for (uint256 index = 0; index < 6; ++index) {
             address wallet = makeAddr(string.concat("handler-player-", vm.toString(index)));
             bytes32 agentKey = keccak256(abi.encodePacked("handler-agent-", index));
@@ -76,9 +106,27 @@ contract PrisonersDaollemaHandler is Test {
     function createGame() external {
         if (game.activeGameId() != 0) return;
         if (game.currentGameId() >= MAX_TRACKED_GAMES) return;
+        if (game.activeCauseCount() == 0) return;
+
+        PrisonersDaollema.GameConfig memory config = game.getDefaultConfig();
+        address snapshottedTreasury = game.treasury();
 
         vm.prank(owner);
         uint256 gameId = game.createGame();
+
+        _expectedGameSnapshots[gameId] = ExpectedGameSnapshot({
+            recorded: true,
+            entryFeeWei: config.entryFeeWei,
+            creatorFeeBps: config.creatorFeeBps,
+            causeFeeBps: config.causeFeeBps,
+            joinDurationSeconds: config.joinDurationSeconds,
+            commitDurationBlocks: config.commitDurationBlocks,
+            revealDurationBlocks: config.revealDurationBlocks,
+            minPlayers: config.minPlayers,
+            maxPlayers: config.maxPlayers,
+            maxCauses: config.maxCauses,
+            treasury: snapshottedTreasury
+        });
 
         _observeGame(gameId);
     }
@@ -97,8 +145,16 @@ contract PrisonersDaollemaHandler is Test {
         if (player.joined) return;
 
         uint16 causeId = _causeIds[causeSeed % _causeIds.length];
+        PrisonersDaollema.CauseDefinition memory cause = game.getCause(causeId);
+        if (!cause.active) return;
+
         PrisonersDaollema.GameCauseState memory gameCause = game.getGameCause(gameId, causeId);
         if (!gameCause.used && snapshot.usedCauseCount >= snapshot.maxCauses) return;
+
+        if (!gameCause.used) {
+            _expectedGameCauseRecipients[gameId][causeId] = cause.recipient;
+            _expectedGameCauseMetadataHashes[gameId][causeId] = cause.metadataHash;
+        }
 
         vm.prank(wallet);
         game.join{ value: snapshot.entryFeeWei }(gameId, causeId);
@@ -267,6 +323,75 @@ contract PrisonersDaollemaHandler is Test {
         }
     }
 
+    function configureDefaults(uint256 configSeed) external {
+        if (game.activeGameId() != 0) return;
+
+        uint16 activeCauseCount = game.activeCauseCount();
+        if (activeCauseCount == 0) return;
+
+        uint16 maxPlayers = uint16(bound(configSeed & 0xff, 2, _wallets.length));
+        uint16 minPlayers = uint16(bound((configSeed >> 8) & 0xff, 2, maxPlayers));
+        uint16 maxCausesUpper = activeCauseCount < maxPlayers ? activeCauseCount : maxPlayers;
+        uint16 maxCauses = uint16(bound((configSeed >> 16) & 0xff, 1, maxCausesUpper));
+
+        PrisonersDaollema.GameConfig memory config = PrisonersDaollema.GameConfig({
+            entryFeeWei: bound((configSeed >> 24) & type(uint96).max, 1, 1 ether),
+            creatorFeeBps: uint16(bound((configSeed >> 120) & 0xffff, 0, 500)),
+            causeFeeBps: uint16(bound((configSeed >> 136) & 0xffff, 0, 500)),
+            joinDurationSeconds: uint32(bound((configSeed >> 152) & 0xffff, 1, 2 days)),
+            commitDurationBlocks: uint32(bound((configSeed >> 168) & 0xffff, 1, 200)),
+            revealDurationBlocks: uint32(bound((configSeed >> 184) & 0xffff, 1, 200)),
+            minPlayers: minPlayers,
+            maxPlayers: maxPlayers,
+            maxCauses: maxCauses
+        });
+
+        vm.prank(owner);
+        game.configureDefaults(config);
+    }
+
+    function setTreasury(uint256 treasurySeed) external {
+        if (game.activeGameId() != 0) return;
+
+        address newTreasury = _treasuryOptions[treasurySeed % _treasuryOptions.length];
+        if (newTreasury == game.treasury()) return;
+
+        vm.prank(owner);
+        game.setTreasury(newTreasury);
+    }
+
+    function reconfigureCause(uint256 causeSeed, uint256 recipientSeed) external {
+        if (game.activeGameId() != 0) return;
+
+        uint16 causeId = _causeIds[causeSeed % _causeIds.length];
+        address recipient = _recipientOptions[recipientSeed % _recipientOptions.length];
+        bytes32 metadataHash = keccak256(abi.encodePacked("handler-cause-meta", causeId, recipient, recipientSeed));
+
+        vm.prank(owner);
+        game.whitelistCause(causeId, recipient, metadataHash);
+    }
+
+    function toggleCause(uint256 causeSeed, uint256 recipientSeed) external {
+        if (game.activeGameId() != 0) return;
+
+        uint16 causeId = _causeIds[causeSeed % _causeIds.length];
+        PrisonersDaollema.CauseDefinition memory cause = game.getCause(causeId);
+
+        if (cause.active) {
+            if (game.activeCauseCount() <= 1) return;
+
+            vm.prank(owner);
+            game.removeCause(causeId);
+            return;
+        }
+
+        address recipient = _recipientOptions[recipientSeed % _recipientOptions.length];
+        bytes32 metadataHash = keccak256(abi.encodePacked("handler-cause-reactivate", causeId, recipient, recipientSeed));
+
+        vm.prank(owner);
+        game.whitelistCause(causeId, recipient, metadataHash);
+    }
+
     function walletCount() external view returns (uint256) {
         return _wallets.length;
     }
@@ -281,6 +406,18 @@ contract PrisonersDaollemaHandler is Test {
 
     function causeAt(uint256 index) external view returns (uint16) {
         return _causeIds[index];
+    }
+
+    function expectedGameSnapshot(uint256 gameId) external view returns (ExpectedGameSnapshot memory) {
+        return _expectedGameSnapshots[gameId];
+    }
+
+    function expectedGameCauseRecipient(uint256 gameId, uint16 causeId) external view returns (address) {
+        return _expectedGameCauseRecipients[gameId][causeId];
+    }
+
+    function expectedGameCauseMetadataHash(uint256 gameId, uint16 causeId) external view returns (bytes32) {
+        return _expectedGameCauseMetadataHashes[gameId][causeId];
     }
 
     function _selectGameId(uint256 seed) internal view returns (uint256) {
@@ -413,17 +550,21 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         handler = new PrisonersDaollemaHandler();
         game = PrisonersDaollema(address(handler.game()));
 
-        bytes4[] memory selectors = new bytes4[](10);
+        bytes4[] memory selectors = new bytes4[](14);
         selectors[0] = PrisonersDaollemaHandler.createGame.selector;
-        selectors[1] = PrisonersDaollemaHandler.join.selector;
-        selectors[2] = PrisonersDaollemaHandler.advanceActiveGame.selector;
-        selectors[3] = PrisonersDaollemaHandler.commit.selector;
-        selectors[4] = PrisonersDaollemaHandler.reveal.selector;
-        selectors[5] = PrisonersDaollemaHandler.claim.selector;
-        selectors[6] = PrisonersDaollemaHandler.claimRefund.selector;
-        selectors[7] = PrisonersDaollemaHandler.withdrawTreasury.selector;
-        selectors[8] = PrisonersDaollemaHandler.withdrawCause.selector;
-        selectors[9] = PrisonersDaollemaHandler.probeDuplicatePayouts.selector;
+        selectors[1] = PrisonersDaollemaHandler.configureDefaults.selector;
+        selectors[2] = PrisonersDaollemaHandler.setTreasury.selector;
+        selectors[3] = PrisonersDaollemaHandler.reconfigureCause.selector;
+        selectors[4] = PrisonersDaollemaHandler.toggleCause.selector;
+        selectors[5] = PrisonersDaollemaHandler.join.selector;
+        selectors[6] = PrisonersDaollemaHandler.advanceActiveGame.selector;
+        selectors[7] = PrisonersDaollemaHandler.commit.selector;
+        selectors[8] = PrisonersDaollemaHandler.reveal.selector;
+        selectors[9] = PrisonersDaollemaHandler.claim.selector;
+        selectors[10] = PrisonersDaollemaHandler.claimRefund.selector;
+        selectors[11] = PrisonersDaollemaHandler.withdrawTreasury.selector;
+        selectors[12] = PrisonersDaollemaHandler.withdrawCause.selector;
+        selectors[13] = PrisonersDaollemaHandler.probeDuplicatePayouts.selector;
 
         targetContract(address(handler));
         targetSelector(FuzzSelector({ addr: address(handler), selectors: selectors }));
@@ -607,6 +748,37 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
                 assertEq(claimedCount, 0);
                 assertEq(totalCauseRoutedWei, settlement.noWinnerCauseDistributedWei);
                 assertEq(totalCauseRoutedWei + settlement.treasuryAccruedWei, settlement.totalPotWei);
+            }
+        }
+    }
+
+    function invariant_game_snapshots_and_used_cause_snapshots_remain_immutable() public view {
+        uint256 totalGames = game.currentGameId();
+
+        for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
+            PrisonersDaollemaHandler.ExpectedGameSnapshot memory expected = handler.expectedGameSnapshot(gameId);
+            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+            uint256 usedCauseLength = game.gameCauseCount(gameId);
+
+            assertTrue(expected.recorded);
+            assertEq(snapshot.entryFeeWei, expected.entryFeeWei);
+            assertEq(snapshot.creatorFeeBps, expected.creatorFeeBps);
+            assertEq(snapshot.causeFeeBps, expected.causeFeeBps);
+            assertEq(snapshot.joinDurationSeconds, expected.joinDurationSeconds);
+            assertEq(snapshot.commitDurationBlocks, expected.commitDurationBlocks);
+            assertEq(snapshot.revealDurationBlocks, expected.revealDurationBlocks);
+            assertEq(snapshot.minPlayers, expected.minPlayers);
+            assertEq(snapshot.maxPlayers, expected.maxPlayers);
+            assertEq(snapshot.maxCauses, expected.maxCauses);
+            assertEq(snapshot.treasury, expected.treasury);
+
+            for (uint256 index = 0; index < usedCauseLength; ++index) {
+                uint16 causeId = game.gameCauseAt(gameId, index);
+                PrisonersDaollema.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
+
+                assertTrue(causeState.used);
+                assertEq(causeState.recipient, handler.expectedGameCauseRecipient(gameId, causeId));
+                assertEq(causeState.metadataHash, handler.expectedGameCauseMetadataHash(gameId, causeId));
             }
         }
     }
