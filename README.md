@@ -33,7 +33,7 @@ For implementation in this repo, treat these docs as the source of truth:
 ## Current code state
 The repo now contains:
 - Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
-- Foundry tests for auth registration, join gating, join/commit/reveal timing, and chat posting rules
+- Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that stitches auth -> gameplay -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config
@@ -122,6 +122,28 @@ Typical local flow after deployment:
    - `messages.jsonl` when chat is configured
    - `export-manifest.json` for any intentionally skipped artifacts
 
+## Broader local integration smoke
+
+Run:
+```bash
+yarn smoke:integration
+```
+
+What it currently proves end to end:
+- local auth wrapper flow (`siwa-nonce -> siwa-sign -> siwa-verify -> permit -> register -> status`) for two wallets
+- onchain auth registration against `AgentAuthRegistry`
+- game creation plus auth-gated joins
+- one real commit/reveal round boundary with two players
+- `GameChat` global and cause-scoped posting
+- evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `messages.jsonl`, and `export-manifest.json`
+
+What it intentionally does **not** claim yet:
+- round resolution or eliminations
+- winner / no-winner terminal outcomes
+- refunds, claims, or payout routing
+
+The smoke stops at the current honest boundary: the round is ready for resolution, and the export manifest explicitly marks settlement-oriented artifacts as skipped.
+
 ## Quick start
 
 ### 1. Install JS dependencies
@@ -144,12 +166,17 @@ cd ../..
 yarn test
 ```
 
-### 4. Run local chain
+### 4. Run broader local integration smoke
+```bash
+yarn smoke:integration
+```
+
+### 5. Run local chain
 ```bash
 yarn chain
 ```
 
-### 5. Start the frontend
+### 6. Start the frontend
 ```bash
 yarn start
 ```

@@ -18,6 +18,7 @@
     "query:export": "node scripts-js/queryCli.js export",
     "query:messages": "node scripts-js/queryCli.js messages",
     "query:summary": "node scripts-js/queryCli.js summary",
+    "smoke:integration": "forge build && node --test scripts-js/integrationSmoke.test.js",
     "siwa-nonce": "node scripts-js/authCli.js siwa-nonce",
     "siwa-sign": "node scripts-js/authCli.js siwa-sign",
     "siwa-verify": "node scripts-js/authCli.js siwa-verify",
