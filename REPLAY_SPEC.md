@@ -84,9 +84,10 @@ This is how we keep public spam or noise interpretable.
 The system should be able to emit:
 - `game-summary.json`
 - `rounds.json`
-- `messages.jsonl`
+- `messages.jsonl` when chat exists and is exported
 - `payouts.json`
-- `replay.md` or a simple replay webpage
+- `export-manifest.json`
+- a compact judge-facing guide/index such as `JUDGE_README.md` + `judge-evidence-index.json`, or `replay.md`, or a simple replay webpage
 
 ## 6. Minimum observer surface
 
@@ -175,6 +176,7 @@ For v1, keep the evidence/query layer simple:
 - index from events
 - build JSON artifacts
 - expose query scripts and/or a minimal inspection page
+- generate a compact judge-facing index/readme from the saved bundle when helpful
 - prefer correctness and clarity over a fancy UI
 
 ## 11. Bottom line

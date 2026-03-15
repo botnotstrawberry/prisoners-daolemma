@@ -104,6 +104,7 @@ For any path:
 
 - [ ] Run `yarn query:summary -- --rpc-url baseSepolia --game-id <game-id> --json > <artifact>/query/game-summary-live.json`
 - [ ] Run `yarn query:export -- --rpc-url baseSepolia --game-id <game-id> --chat <game-chat-address> --out <artifact>/query/export`
+- [ ] Run `yarn judge:evidence -- --bundle <artifact>`
 - [ ] Confirm `export-manifest.json` exists
 - [ ] Confirm `game-summary.json` exists
 - [ ] Confirm `roster.json` exists
@@ -112,6 +113,9 @@ For any path:
 - [ ] Confirm `auth.json` exists
 - [ ] Confirm `payouts.json` exists
 - [ ] Confirm `messages.jsonl` exists if chat was configured and used
+- [ ] Confirm `JUDGE_README.md` exists
+- [ ] Confirm `judge-evidence-index.json` exists
+- [ ] Save any UI / explorer screenshots under `screenshots/`
 - [ ] Note any intentionally skipped artifact in `operator-notes.md`
 
 ## 8. Required artifact checklist
@@ -142,6 +146,9 @@ Minimum files to keep for the run:
 - [ ] exported `auth.json`
 - [ ] exported `payouts.json`
 - [ ] exported `messages.jsonl` when used
+- [ ] `JUDGE_README.md`
+- [ ] `judge-evidence-index.json`
+- [ ] `screenshots/` when captured
 
 ## 9. Unknowns to close after the run
 

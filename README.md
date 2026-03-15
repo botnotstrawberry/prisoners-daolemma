@@ -17,6 +17,7 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `LAUNCH_PLAN.md` — staged rollout and go/no-go gates
 - `SEPOLIA_CANARY_RUNBOOK.md` — repo-native Base Sepolia canary operator runbook
 - `SEPOLIA_CANARY_CHECKLIST.md` — Base Sepolia canary execution + artifact checklist
+- `JUDGE_EVIDENCE.md` — judge-facing evidence map, open order, and bundle conventions
 - `OPEN_QUESTIONS.md` — highest-value unresolved decisions
 - `SKILLS.md` — coder/auditor skill routing for this repo
 
@@ -46,6 +47,7 @@ The repo now contains:
 - repo-native local load/chaos harness tooling for multi-player single-game and sequential-game local runs with machine-readable reports + evidence export
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
+- judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -253,6 +255,27 @@ Typical local flow after deployment:
    - `messages.jsonl` when chat is configured
    - `export-manifest.json` for any intentionally skipped artifacts
 
+## Judge evidence packaging
+
+The repo also includes a small judge-facing packaging helper under `packages/foundry/scripts-js/judgeEvidenceCli.js`.
+
+Current boundary:
+
+- it does **not** create new proof; it only indexes an artifact bundle that already exists
+- it supports both local load-harness bundles and future Base Sepolia canary bundles
+- it writes a compact human guide plus a machine-readable index:
+  - `JUDGE_README.md`
+  - `judge-evidence-index.json`
+- it highlights missing artifacts instead of pretending the bundle is complete
+
+Useful commands:
+
+- `yarn judge:evidence -- --help`
+- `yarn judge:evidence -- --bundle load-harness/manual-scale-proof-2026-03-15-64x3`
+- `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>`
+
+See `JUDGE_EVIDENCE.md` for the judge open-order, current local proof pointers, and the live canary packaging contract.
+
 ## Broader local integration smoke
 
 Run:
@@ -335,8 +358,10 @@ Repo-native canary references:
 
 - `SEPOLIA_CANARY_RUNBOOK.md`
 - `SEPOLIA_CANARY_CHECKLIST.md`
+- `JUDGE_EVIDENCE.md`
 - `yarn canary:preflight -- --help`
 - `yarn canary:deployment -- --help`
+- `yarn judge:evidence -- --help`
 - `yarn game:whitelist-cause -- --help`
 - `yarn verify -- --help`
 
@@ -349,3 +374,4 @@ Suggested operator flow:
 5. verify contracts with `yarn verify -- --network baseSepolia`
 6. whitelist the live canary causes before calling `createGame()`
 7. run auth/game/query flows and capture artifacts exactly as described in the runbook/checklist
+8. run `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>` once the live artifact directory is populated

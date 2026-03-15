@@ -46,7 +46,8 @@ mkdir -p \
   "${ARTIFACT_DIR}/causes" \
   "${ARTIFACT_DIR}/auth" \
   "${ARTIFACT_DIR}/game/commit-bundles" \
-  "${ARTIFACT_DIR}/query"
+  "${ARTIFACT_DIR}/query" \
+  "${ARTIFACT_DIR}/screenshots"
 ```
 
 Use `ARTIFACT_DIR_REL` for repo CLIs that resolve `--out` paths from `packages/foundry`, and use `ARTIFACT_DIR` for shell redirection / `cp` / `tee` commands run from the repo root.
@@ -64,6 +65,7 @@ packages/foundry/canary/base-sepolia/<run-id>/
   auth/
   game/
   query/
+  screenshots/
   operator-notes.md
 ```
 
@@ -377,7 +379,29 @@ Expected export artifacts:
 - `messages.jsonl` when chat is configured and used
 - `export-manifest.json`
 
-## 13. Operator notes to write down immediately
+## 13. Generate the judge-facing pack
+
+Once the live bundle has at least the deployment/auth/query artifacts in place, generate the compact judge-facing pack in the same run directory:
+
+```bash
+yarn judge:evidence -- \
+  --bundle "${ARTIFACT_DIR_REL}"
+```
+
+This writes:
+
+- `JUDGE_README.md`
+- `judge-evidence-index.json`
+
+Important boundary:
+
+- this helper does **not** create new proof
+- it only indexes the artifacts already present in the run directory
+- missing files stay missing in the generated guide, on purpose
+
+If you want screenshots included in the generated guide, save them under `screenshots/` before rerunning the helper.
+
+## 14. Operator notes to write down immediately
 
 Do not rely on memory. Add a short `operator-notes.md` for the run with:
 
@@ -387,11 +411,12 @@ Do not rely on memory. Add a short `operator-notes.md` for the run with:
 - whether auth proof was minimal permit/register or full SIWA-backed
 - whether explorer verification succeeded
 - whether the first live path was winner / cancelled / no-winner
+- tx hashes and explorer links for deploy / whitelist / gameplay / settlement actions
 - any timing surprises on Base Sepolia
 - any commands that needed a second attempt
 - any unexplained failure or mismatch
 
-## 14. Suggested go / no-go interpretation
+## 15. Suggested go / no-go interpretation
 
 A base canary is **good enough to continue** if all of these are true:
 

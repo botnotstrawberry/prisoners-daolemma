@@ -18,6 +18,7 @@
     "query:export": "node scripts-js/queryCli.js export",
     "query:messages": "node scripts-js/queryCli.js messages",
     "query:summary": "node scripts-js/queryCli.js summary",
+    "judge:evidence": "node scripts-js/judgeEvidenceCli.js",
     "canary": "node scripts-js/canaryCli.js",
     "canary:preflight": "node scripts-js/canaryCli.js preflight",
     "canary:deployment": "node scripts-js/canaryCli.js deployment",
