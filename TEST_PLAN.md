@@ -247,6 +247,20 @@ Deliberately inject:
 - many players on same cause
 - many unique causes up to the cap
 
+### Current repo-native foundation (implemented now)
+The current bounded local foundation lives in `packages/foundry/scripts-js/loadHarnessCli.js`.
+
+What it covers today:
+- Mode A foundation: single deployment, single game, configurable multi-player winner-path runs
+- Mode B scaffold: repeated sequential games on one deployment
+- machine-readable `report.json` + `txs.jsonl` + per-game evidence export directories
+- bounded chaos today: missed commit / missed reveal deadline pressure via configurable skip rates
+
+What it does **not** cover yet:
+- the full 250-player proof target as an automated test
+- Mode C multi-instance parallel stress
+- invalid-attempt / auth-expiry / underfilled / refund / no-winner chaos inside the harness itself
+
 Purpose:
 - prove safety under ugly, non-demo behavior
 

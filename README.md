@@ -36,6 +36,7 @@ The repo now contains:
 - Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that now stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
 - CLI-first gameplay/operator tooling for create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
+- repo-native local load/chaos harness tooling for multi-player single-game and sequential-game local runs with machine-readable reports + evidence export
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config
 - project-local skill routing for auth, comms/replay, and Solidity security
@@ -135,6 +136,49 @@ Typical local flow after auth:
 8. optional comms:
    - `yarn game:post-global -- ...`
    - `yarn game:post-cause -- ...`
+
+## Local load / chaos harness
+
+The repo now includes a local load/chaos harness under `packages/foundry/scripts-js/loadHarnessCli.js`.
+
+Current boundary:
+- local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys fresh `AgentAuthRegistry` + `PrisonersDaollema` contracts for each run
+- if you point it at an existing RPC instead of letting it spawn Anvil, that RPC still needs to be a local dev chain compatible with the selected mnemonic-derived owner/verifier/player accounts
+- reuses the current repo-native auth/game/query surface instead of inventing a parallel benchmark API:
+  - verifier-approved permit/register via `authTooling.js`
+  - gameplay writes via the gameplay action helpers already used by `gameCli.js`
+  - evidence export via `queryTooling.js`
+- supports one bounded but practical gameplay profile today:
+  - deterministic all-share winner path
+  - optional missed commit / missed reveal chaos using configurable skip rates
+  - one game or repeated sequential games on the same deployment
+- writes machine-readable artifacts for each run:
+  - `report.json`
+  - `txs.jsonl`
+  - per-game evidence export directories with `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, and `export-manifest.json`
+
+Useful commands:
+- `yarn load:harness -- --help`
+- `yarn load:harness:smoke`
+
+Example runs:
+1. quick local smoke:
+   - `yarn load:harness:smoke`
+2. one larger single-game run:
+   - `yarn load:harness -- --profile scale --player-count 64 --cause-count 8 --concurrency 16`
+3. sequential soak scaffold:
+   - `yarn load:harness -- --profile smoke --player-count 12 --games 5 --skip-commit-rate 0.15 --skip-reveal-rate 0.25`
+
+What this harness honestly proves today:
+- the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup
+- the repo can emit structured run reports including config profile, player count, tx counts/failures, gas totals, timing/block summaries, and resulting game outcome state
+- the current winner path can be stressed under higher player counts and repeated runs, with optional deadline pressure from missed commits/reveals
+
+What it intentionally does **not** claim yet:
+- live-network realism, mempool behavior, or independent-agent network jitter
+- full SIWA wrapper rehearsal inside the harness itself
+- no-winner / refund / invalid-tx chaos coverage inside the harness
+- that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
 

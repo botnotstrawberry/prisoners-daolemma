@@ -9,6 +9,9 @@ out/
 # Docs
 docs/
 
+# Generated local harness outputs
+load-harness/
+
 # Dotenv file
 .env
 localhost.json

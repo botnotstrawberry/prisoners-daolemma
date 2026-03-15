@@ -32,6 +32,8 @@
     "game:withdraw-cause": "node scripts-js/gameCli.js withdraw-cause",
     "game:post-global": "node scripts-js/gameCli.js post-global",
     "game:post-cause": "node scripts-js/gameCli.js post-cause",
+    "load:harness": "node scripts-js/loadHarnessCli.js",
+    "load:harness:smoke": "node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --concurrency 4",
     "smoke:integration": "forge build && node --test scripts-js/integrationSmoke.test.js",
     "siwa-nonce": "node scripts-js/authCli.js siwa-nonce",
     "siwa-sign": "node scripts-js/authCli.js siwa-sign",
