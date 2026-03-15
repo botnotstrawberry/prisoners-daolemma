@@ -19,10 +19,13 @@ Core options:
   --player-count <n>             Synthetic player count. Defaults to a profile-specific practical local value.
   --cause-count <n>              Cause count to whitelist and distribute across players.
   --games <n>                    Number of games to run sequentially. Defaults to 1.
+  --scenario <name[,name...]>    Scenario type or rotating list. Supports winner-all-share, cancelled-underfilled,
+                                 no-winner-all-catch, plus aliases like winner, cancelled, no-winner, or mixed.
   --concurrency <n>              Max concurrent player txs per batch.
-  --skip-commit-rate <0..1>      Fraction of players that intentionally miss commit each round.
-  --skip-reveal-rate <0..1>      Fraction of committed players that intentionally miss reveal each round.
-  --skip-claims                  Stop after the game resolves; do not submit winner claims.
+  --skip-commit-rate <0..1>      Fraction of players that intentionally miss commit each round in winner-all-share games.
+  --skip-reveal-rate <0..1>      Fraction of committed players that intentionally miss reveal each round in winner-all-share games.
+  --expected-failures            Intentionally submit some duplicate/invalid follow-up operations and count them as expected failures.
+  --skip-claims                  Stop after winner-path games resolve; do not submit winner claims.
   --seed <text>                  Deterministic sampling seed for chaos decisions.
 
 Chain options:
@@ -38,9 +41,9 @@ Output:
   --help                         Show this help text.
 
 Examples:
-  node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4
-  node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --concurrency 16
-  node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --skip-commit-rate 0.2 --skip-reveal-rate 0.3 --json
+  node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --scenario winner-all-share
+  node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --scenario mixed --concurrency 16
+  node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --scenario no-winner-all-catch --expected-failures --json
 `);
 }
 

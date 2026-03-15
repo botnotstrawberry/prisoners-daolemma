@@ -148,10 +148,12 @@ Current boundary:
   - verifier-approved permit/register via `authTooling.js`
   - gameplay writes via the gameplay action helpers already used by `gameCli.js`
   - evidence export via `queryTooling.js`
-- supports one bounded but practical gameplay profile today:
-  - deterministic all-share winner path
-  - optional missed commit / missed reveal chaos using configurable skip rates
-  - one game or repeated sequential games on the same deployment
+- supports a bounded but broader scenario set today:
+  - `winner-all-share`: deterministic winner path, with optional missed commit / missed reveal chaos using configurable skip rates
+  - `cancelled-underfilled`: underfilled join window leading to cancel + refunds
+  - `no-winner-all-catch`: deterministic no-winner round-one outcome leading to treasury/cause withdrawals
+  - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
+  - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
   - `report.json`
   - `txs.jsonl`
@@ -162,22 +164,28 @@ Useful commands:
 - `yarn load:harness:smoke`
 
 Example runs:
-1. quick local smoke:
+1. quick local winner-path smoke:
    - `yarn load:harness:smoke`
-2. one larger single-game run:
-   - `yarn load:harness -- --profile scale --player-count 64 --cause-count 8 --concurrency 16`
-3. sequential soak scaffold:
-   - `yarn load:harness -- --profile smoke --player-count 12 --games 5 --skip-commit-rate 0.15 --skip-reveal-rate 0.25`
+2. mixed sequential scenario run:
+   - `yarn load:harness -- --profile smoke --player-count 12 --games 3 --scenario mixed --expected-failures`
+3. one larger single-game winner-path run:
+   - `yarn load:harness -- --profile scale --player-count 64 --cause-count 8 --scenario winner-all-share --concurrency 16`
+4. deterministic no-winner check:
+   - `yarn load:harness -- --profile smoke --player-count 12 --scenario no-winner-all-catch`
 
 What this harness honestly proves today:
 - the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup
-- the repo can emit structured run reports including config profile, player count, tx counts/failures, gas totals, timing/block summaries, and resulting game outcome state
-- the current winner path can be stressed under higher player counts and repeated runs, with optional deadline pressure from missed commits/reveals
+- the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, tx counts, gas totals, timing/block summaries, and resulting game state
+- the harness can now exercise three concrete local settlement families on the current codebase:
+  - winner claims
+  - cancelled-game refunds
+  - no-winner treasury/cause routing
+- deterministic duplicate/invalid follow-up attempts can be accounted for explicitly as expected failures instead of getting mixed into normal tx failures
 
 What it intentionally does **not** claim yet:
 - live-network realism, mempool behavior, or independent-agent network jitter
 - full SIWA wrapper rehearsal inside the harness itself
-- no-winner / refund / invalid-tx chaos coverage inside the harness
+- auth-expiry chaos, broad invalid-op fuzzing, or multi-instance parallel deployment stress inside the harness
 - that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
