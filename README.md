@@ -98,9 +98,9 @@ The repo includes CLI-first evidence/query tooling under `packages/foundry/scrip
 
 Current boundary:
 - exports only what the current contracts actually expose onchain
-- supports game summary, roster, cause/team, auth, round-context, and optional `GameChat` message export
+- supports game summary, roster, cause/team, auth, round-context, per-game settlement/payout export, and optional `GameChat` message export
 - aligns with `REPLAY_SPEC.md` where possible without inventing missing resolution/payout data
-- intentionally does **not** fabricate eliminations, winners, refunds, or payouts before those paths exist onchain
+- surfaces eliminations, terminal outcomes, settlement snapshots, claim/refund previews, and per-game payout routing only when those paths exist onchain for the selected game/block range
 
 Useful commands:
 - `yarn query -- --help`
@@ -119,6 +119,7 @@ Typical local flow after deployment:
    - `causes.json`
    - `rounds.json`
    - `auth.json`
+   - `payouts.json`
    - `messages.jsonl` when chat is configured
    - `export-manifest.json` for any intentionally skipped artifacts
 
@@ -135,14 +136,14 @@ What it currently proves end to end:
 - game creation plus auth-gated joins
 - one real commit/reveal round boundary with two players
 - `GameChat` global and cause-scoped posting
-- evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `messages.jsonl`, and `export-manifest.json`
+- evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, `messages.jsonl`, and `export-manifest.json`
 
 What it intentionally does **not** claim yet:
-- round resolution or eliminations
-- winner / no-winner terminal outcomes
-- refunds, claims, or payout routing
+- round resolution or eliminations inside the smoke path itself
+- winner / no-winner terminal outcomes inside the smoke path itself
+- that the smoke scenario has actually finalized settlement, even though the contract/query surface now supports those later slices
 
-The smoke stops at the current honest boundary: the round is ready for resolution, and the export manifest explicitly marks settlement-oriented artifacts as skipped.
+The smoke still stops at the pre-resolution boundary for this specific scenario, but the export now includes honest settlement/payout scaffolding (unfinalized when the selected game has not yet ended).
 
 ## Quick start
 

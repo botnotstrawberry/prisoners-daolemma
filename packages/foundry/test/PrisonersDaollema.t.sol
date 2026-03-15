@@ -18,6 +18,7 @@ contract PrisonersDaollemaTest is Test {
     bytes32 internal constant SALT_1 = keccak256("salt-1");
     bytes32 internal constant SALT_2 = keccak256("salt-2");
     bytes32 internal constant SALT_3 = keccak256("salt-3");
+    bytes32 internal constant SALT_4 = keccak256("salt-4");
 
     uint256 internal ownerPk = 0xA11CE;
     uint256 internal verifierPk = 0xB0B;
@@ -165,6 +166,10 @@ contract PrisonersDaollemaTest is Test {
 
         invalidConfig = _defaultConfig();
         invalidConfig.minPlayers = 0;
+        _assertInvalidConfig(invalidConfig);
+
+        invalidConfig = _defaultConfig();
+        invalidConfig.minPlayers = 1;
         _assertInvalidConfig(invalidConfig);
 
         invalidConfig = _defaultConfig();
@@ -356,6 +361,8 @@ contract PrisonersDaollemaTest is Test {
         assertEq(player.causeId, CAUSE_A);
         assertEq(player.commitment, bytes32(0));
         assertEq(uint256(player.revealedChoice), uint256(PrisonersDaollema.Choice.Unset));
+        assertEq(uint256(player.effectiveChoice), uint256(PrisonersDaollema.Choice.Unset));
+        assertEq(player.lastChoiceRound, 0);
 
         assertEq(snapshot.joinedCount, 2);
         assertEq(snapshot.aliveCount, 2);
@@ -686,6 +693,582 @@ contract PrisonersDaollemaTest is Test {
         assertEq(game2Cause.metadataHash, keccak256("cause-a-updated"));
     }
 
+    function testAdvancePhaseResolvesCatchersOnlyToNoWinnersAndReleasesActiveSlot() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1, player2, PrisonersDaollema.Choice.Catch, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+        assertEq(snapshot.round, 1);
+        assertEq(snapshot.aliveCount, 0);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), 0);
+        assertFalse(player1State.alive);
+        assertFalse(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+        assertEq(player1State.lastChoiceRound, 1);
+        assertEq(player2State.lastChoiceRound, 1);
+
+        vm.prank(owner);
+        uint256 nextGameId = game.createGame();
+        assertEq(nextGameId, 2);
+    }
+
+    function testAdvancePhaseResolvesSharersOnlyAndIncrementsShareStreak() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Commit));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Unset));
+        assertEq(snapshot.round, 2);
+        assertEq(snapshot.aliveCount, 2);
+        assertEq(snapshot.shareStreak, 1);
+        assertEq(game.activeGameId(), gameId);
+
+        _assertAlivePlayerRoundReset(gameId, player1, 1, PrisonersDaollema.Choice.Share);
+        _assertAlivePlayerRoundReset(gameId, player2, 1, PrisonersDaollema.Choice.Share);
+    }
+
+    function testAdvancePhaseResolvesStealersOnlyToNoWinners() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Steal, SALT_1, player2, PrisonersDaollema.Choice.Steal, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+        assertEq(snapshot.aliveCount, 0);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), 0);
+        assertFalse(player1State.alive);
+        assertFalse(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Steal));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Steal));
+    }
+
+    function testAdvancePhaseResolvesSharersAndCatchersToSoleSurvivorWin() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Catch, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), 0);
+        assertTrue(player1State.alive);
+        assertFalse(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Share));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+    }
+
+    function testAdvancePhaseResolvesStealersAndCatchersToSoleSurvivorWin() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1, player2, PrisonersDaollema.Choice.Steal, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), 0);
+        assertTrue(player1State.alive);
+        assertFalse(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Steal));
+    }
+
+    function testAdvancePhaseResolvesStealersAndSharersToStealerWinAndReleasesActiveSlot() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Steal, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), 0);
+        assertTrue(player1State.alive);
+        assertFalse(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Steal));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Share));
+
+        vm.prank(owner);
+        uint256 nextGameId = game.createGame();
+        assertEq(nextGameId, 2);
+    }
+
+    function testAdvancePhaseResolvesAllThreeChoicesByEliminatingStealersAndContinuing() public {
+        uint256 gameId = _advanceThreePlayerGameToCommit();
+        _resolveCurrentRoundThreePlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            SALT_1,
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            SALT_2,
+            player3,
+            PrisonersDaollema.Choice.Steal,
+            SALT_3
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+        PrisonersDaollema.PlayerState memory player3State = game.getPlayer(gameId, player3);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Commit));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Unset));
+        assertEq(snapshot.round, 2);
+        assertEq(snapshot.aliveCount, 2);
+        assertEq(snapshot.shareStreak, 0);
+        assertEq(game.activeGameId(), gameId);
+
+        _assertAlivePlayerRoundReset(gameId, player1, 1, PrisonersDaollema.Choice.Share);
+        _assertAlivePlayerRoundReset(gameId, player2, 1, PrisonersDaollema.Choice.Catch);
+        assertFalse(player3State.alive);
+        assertEq(uint256(player3State.effectiveChoice), uint256(PrisonersDaollema.Choice.Steal));
+        assertEq(player3State.lastChoiceRound, 1);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Share));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+    }
+
+    function testMissedCommitDefaultsToShareAtResolution() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+
+        _commitForPlayer(gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1);
+
+        PrisonersDaollema.GameSnapshot memory commitSnapshot = game.getGame(gameId);
+        vm.roll(commitSnapshot.commitDeadlineBlock + 1);
+        game.advancePhase(gameId);
+
+        _revealForPlayer(gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1);
+        assertTrue(game.canAdvancePhase(gameId));
+        game.advancePhase(gameId);
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(game.activeGameId(), 0);
+        assertFalse(player1State.alive);
+        assertTrue(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Share));
+        assertEq(player2State.lastChoiceRound, 1);
+        assertFalse(player2State.committedThisRound);
+        assertFalse(player2State.revealedThisRound);
+    }
+
+    function testNonRevealDefaultsToShareAtResolution() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+
+        _commitForPlayer(gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1);
+        _commitForPlayer(gameId, player2, PrisonersDaollema.Choice.Steal, SALT_2);
+        game.advancePhase(gameId);
+
+        _revealForPlayer(gameId, player1, PrisonersDaollema.Choice.Catch, SALT_1);
+
+        PrisonersDaollema.GameSnapshot memory revealSnapshot = game.getGame(gameId);
+        vm.roll(revealSnapshot.revealDeadlineBlock + 1);
+        game.advancePhase(gameId);
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDaollema.PlayerState memory player1State = game.getPlayer(gameId, player1);
+        PrisonersDaollema.PlayerState memory player2State = game.getPlayer(gameId, player2);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(game.activeGameId(), 0);
+        assertFalse(player1State.alive);
+        assertTrue(player2State.alive);
+        assertEq(uint256(player1State.effectiveChoice), uint256(PrisonersDaollema.Choice.Catch));
+        assertEq(uint256(player2State.effectiveChoice), uint256(PrisonersDaollema.Choice.Share));
+        assertEq(player2State.lastChoiceRound, 1);
+        assertTrue(player2State.committedThisRound);
+        assertFalse(player2State.revealedThisRound);
+    }
+
+    function testMultiRoundSurvivorFlowResetsRoundStateAndEndsOnThreeAllShareRounds() public {
+        uint256 gameId = _advanceThreePlayerGameToCommit();
+
+        _resolveCurrentRoundThreePlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            SALT_1,
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            SALT_2,
+            player3,
+            PrisonersDaollema.Choice.Steal,
+            SALT_3
+        );
+
+        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Commit));
+        assertEq(snapshot.round, 2);
+        assertEq(snapshot.aliveCount, 2);
+        assertEq(snapshot.shareStreak, 0);
+        _assertAlivePlayerRoundReset(gameId, player1, 1, PrisonersDaollema.Choice.Share);
+        _assertAlivePlayerRoundReset(gameId, player2, 1, PrisonersDaollema.Choice.Catch);
+        assertFalse(game.getPlayer(gameId, player3).alive);
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+
+        snapshot = game.getGame(gameId);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Commit));
+        assertEq(snapshot.round, 3);
+        assertEq(snapshot.shareStreak, 1);
+        _assertAlivePlayerRoundReset(gameId, player1, 2, PrisonersDaollema.Choice.Share);
+        _assertAlivePlayerRoundReset(gameId, player2, 2, PrisonersDaollema.Choice.Share);
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_3, player2, PrisonersDaollema.Choice.Share, SALT_4
+        );
+
+        snapshot = game.getGame(gameId);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Commit));
+        assertEq(snapshot.round, 4);
+        assertEq(snapshot.shareStreak, 2);
+        _assertAlivePlayerRoundReset(gameId, player1, 3, PrisonersDaollema.Choice.Share);
+        _assertAlivePlayerRoundReset(gameId, player2, 3, PrisonersDaollema.Choice.Share);
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(101)),
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(202))
+        );
+
+        snapshot = game.getGame(gameId);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(snapshot.round, 4);
+        assertEq(snapshot.aliveCount, 2);
+        assertEq(snapshot.shareStreak, 3);
+        assertEq(game.activeGameId(), 0);
+        assertTrue(game.getPlayer(gameId, player1).alive);
+        assertTrue(game.getPlayer(gameId, player2).alive);
+        assertFalse(game.getPlayer(gameId, player3).alive);
+    }
+
+    function testWinnerClaimsSplitPostCreatorPotAndPreventDoubleClaim() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_3, player2, PrisonersDaollema.Choice.Share, SALT_4
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(301)),
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(302))
+        );
+
+        uint256 totalPotWei = 2 * _defaultConfig().entryFeeWei;
+        uint256 creatorFeeWei = totalPotWei / 100;
+        uint256 winnerShareWei = (totalPotWei - creatorFeeWei) / 2;
+        uint256 causeCutWei = winnerShareWei / 100;
+        uint256 netPrizeWei = winnerShareWei - causeCutWei;
+
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        assertTrue(settlement.finalized);
+        assertEq(settlement.totalPotWei, totalPotWei);
+        assertEq(settlement.creatorFeeWei, creatorFeeWei);
+        assertEq(settlement.treasuryAccruedWei, creatorFeeWei);
+        assertEq(settlement.treasuryWithdrawnWei, 0);
+        assertEq(settlement.winnerShareWei, winnerShareWei);
+        assertEq(settlement.winnerCount, 2);
+        assertEq(game.treasuryClaimableAmount(gameId), creatorFeeWei);
+
+        _assertWinnerClaimPreview(gameId, player1, winnerShareWei, causeCutWei, netPrizeWei, true);
+
+        uint256 player1BalanceBeforeClaim = player1.balance;
+        vm.prank(player1);
+        game.claim(gameId);
+        assertEq(player1.balance, player1BalanceBeforeClaim + netPrizeWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), causeCutWei);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_A), causeCutWei);
+        assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_A), 0);
+        assertTrue(game.getPlayer(gameId, player1).claimed);
+
+        _assertWinnerClaimPreview(gameId, player1, winnerShareWei, causeCutWei, netPrizeWei, false);
+
+        uint256 player2BalanceBeforeClaim = player2.balance;
+        vm.prank(player2);
+        game.claim(gameId);
+        assertEq(player2.balance, player2BalanceBeforeClaim + netPrizeWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), causeCutWei);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_B), causeCutWei);
+        assertTrue(game.getPlayer(gameId, player2).claimed);
+        assertEq(game.treasuryClaimableAmount(gameId), creatorFeeWei);
+
+        vm.expectRevert(PrisonersDaollema.AlreadyClaimed.selector);
+        vm.prank(player1);
+        game.claim(gameId);
+    }
+
+    function testCancelledGameRefundsEntryFeeAndPreventsDoubleRefund() public {
+        uint256 gameId = _createGame();
+        _joinPlayer(gameId, player1, PLAYER1_AGENT, keccak256("nonce-refund-1"), CAUSE_A);
+
+        vm.warp(game.getGame(gameId).joinDeadline + 1);
+        game.cancelIfInsufficientPlayers(gameId);
+
+        address updatedTreasury = makeAddr("refund-updated-treasury");
+        PrisonersDaollema.GameConfig memory updatedConfig = _defaultConfig();
+        updatedConfig.entryFeeWei = 2 * _defaultConfig().entryFeeWei;
+
+        vm.startPrank(owner);
+        game.setTreasury(updatedTreasury);
+        game.configureDefaults(updatedConfig);
+        vm.stopPrank();
+
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        assertTrue(settlement.finalized);
+        assertEq(settlement.totalPotWei, _defaultConfig().entryFeeWei);
+        assertEq(settlement.refundPerPlayerWei, _defaultConfig().entryFeeWei);
+        assertEq(settlement.creatorFeeWei, 0);
+        assertEq(settlement.treasuryAccruedWei, 0);
+
+        _assertRefundPreview(gameId, player1, _defaultConfig().entryFeeWei, true);
+
+        uint256 player1BalanceBeforeRefund = player1.balance;
+        vm.prank(player1);
+        game.claimRefund(gameId);
+        assertEq(player1.balance, player1BalanceBeforeRefund + _defaultConfig().entryFeeWei);
+        assertTrue(game.getPlayer(gameId, player1).refunded);
+
+        _assertRefundPreview(gameId, player1, _defaultConfig().entryFeeWei, false);
+
+        vm.expectRevert(PrisonersDaollema.AlreadyRefunded.selector);
+        vm.prank(player1);
+        game.claimRefund(gameId);
+
+        vm.expectRevert(PrisonersDaollema.ClaimUnavailable.selector);
+        vm.prank(player1);
+        game.claim(gameId);
+    }
+
+    function testNoWinnerSettlementRoutesCausePoolAndTreasuryPerGame() public {
+        uint256 gameId = _advanceThreePlayerGameToCommit();
+        _resolveCurrentRoundThreePlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Catch,
+            SALT_1,
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            SALT_2,
+            player3,
+            PrisonersDaollema.Choice.Catch,
+            SALT_3
+        );
+
+        uint256 totalPotWei = 3 * _defaultConfig().entryFeeWei;
+        uint256 creatorFeeWei = totalPotWei / 100;
+        uint256 noWinnerCausePoolWei = (totalPotWei - creatorFeeWei) * 9_000 / 10_000;
+        uint256 causeAAmountWei = noWinnerCausePoolWei * 2 / 3;
+        uint256 causeBAmountWei = noWinnerCausePoolWei / 3;
+        uint256 distributedCauseWei = causeAAmountWei + causeBAmountWei;
+        uint256 treasuryAccruedWei = totalPotWei - distributedCauseWei;
+
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        assertTrue(settlement.finalized);
+        assertEq(settlement.totalPotWei, totalPotWei);
+        assertEq(settlement.creatorFeeWei, creatorFeeWei);
+        assertEq(settlement.noWinnerCausePoolWei, noWinnerCausePoolWei);
+        assertEq(settlement.noWinnerCauseDistributedWei, distributedCauseWei);
+        assertEq(settlement.treasuryAccruedWei, treasuryAccruedWei);
+        assertEq(settlement.treasuryWithdrawnWei, 0);
+        assertEq(settlement.winnerCount, 0);
+        assertEq(game.treasuryClaimableAmount(gameId), treasuryAccruedWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), causeAAmountWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), causeBAmountWei);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_A), causeAAmountWei);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_B), causeBAmountWei);
+        assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_A), 0);
+        assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_B), 0);
+
+        vm.expectRevert(PrisonersDaollema.ClaimUnavailable.selector);
+        vm.prank(player1);
+        game.claim(gameId);
+
+        uint256 treasuryBalanceBefore = treasury.balance;
+        vm.prank(treasury);
+        game.withdrawTreasury(gameId);
+        assertEq(treasury.balance, treasuryBalanceBefore + treasuryAccruedWei);
+        assertEq(game.treasuryClaimableAmount(gameId), 0);
+        assertEq(game.getSettlement(gameId).treasuryWithdrawnWei, treasuryAccruedWei);
+
+        uint256 causeABalanceBefore = causeARecipient.balance;
+        vm.prank(causeARecipient);
+        game.withdrawCause(gameId, CAUSE_A);
+        assertEq(causeARecipient.balance, causeABalanceBefore + causeAAmountWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), 0);
+        assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_A), causeAAmountWei);
+
+        uint256 causeBBalanceBefore = causeBRecipient.balance;
+        vm.prank(causeBRecipient);
+        game.withdrawCause(gameId, CAUSE_B);
+        assertEq(causeBRecipient.balance, causeBBalanceBefore + causeBAmountWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), 0);
+        assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_B), causeBAmountWei);
+    }
+
+    function testNoWinnerSettlementRoutesRoundingDustToTreasury() public {
+        PrisonersDaollema.GameConfig memory tinyConfig = _defaultConfig();
+        tinyConfig.entryFeeWei = 1;
+
+        vm.prank(owner);
+        game.configureDefaults(tinyConfig);
+
+        uint256 gameId = _createGame();
+        _joinPlayer(gameId, player1, PLAYER1_AGENT, keccak256("nonce-dust-1"), CAUSE_A);
+        _joinPlayer(gameId, player2, PLAYER2_AGENT, keccak256("nonce-dust-2"), CAUSE_A);
+        _joinPlayer(gameId, player3, PLAYER3_AGENT, keccak256("nonce-dust-3"), CAUSE_B);
+
+        vm.warp(game.getGame(gameId).joinDeadline + 1);
+        game.advancePhase(gameId);
+
+        _resolveCurrentRoundThreePlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(401)),
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(402)),
+            player3,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(403))
+        );
+
+        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        assertEq(settlement.totalPotWei, 3);
+        assertEq(settlement.creatorFeeWei, 0);
+        assertEq(settlement.noWinnerCausePoolWei, 2);
+        assertEq(settlement.noWinnerCauseDistributedWei, 1);
+        assertEq(settlement.treasuryAccruedWei, 2);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_A), 1);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_B), 0);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), 1);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), 0);
+        assertEq(game.treasuryClaimableAmount(gameId), 2);
+    }
+
+    function testWinnerClaimUsesSnapshottedCauseRecipientAndTreasuryAfterAdminChanges() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Catch, SALT_2
+        );
+
+        uint256 totalPotWei = 2 * _defaultConfig().entryFeeWei;
+        uint256 creatorFeeWei = totalPotWei / 100;
+        uint256 winnerShareWei = totalPotWei - creatorFeeWei;
+        uint256 causeCutWei = winnerShareWei / 100;
+
+        address updatedTreasury = makeAddr("updated-treasury");
+        address updatedCauseARecipient = makeAddr("updated-cause-a-recipient");
+
+        vm.startPrank(owner);
+        game.setTreasury(updatedTreasury);
+        game.whitelistCause(CAUSE_A, updatedCauseARecipient, keccak256("cause-a-updated"));
+        vm.stopPrank();
+
+        vm.prank(player1);
+        game.claim(gameId);
+
+        assertEq(game.treasuryClaimableAmount(gameId), creatorFeeWei);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), causeCutWei);
+        assertEq(game.gameCauseRecipient(gameId, CAUSE_A), causeARecipient);
+
+        uint256 treasuryBalanceBefore = treasury.balance;
+        vm.prank(treasury);
+        game.withdrawTreasury(gameId);
+        assertEq(treasury.balance, treasuryBalanceBefore + creatorFeeWei);
+        assertEq(updatedTreasury.balance, 0);
+
+        uint256 causeABalanceBefore = causeARecipient.balance;
+        vm.prank(causeARecipient);
+        game.withdrawCause(gameId, CAUSE_A);
+        assertEq(causeARecipient.balance, causeABalanceBefore + causeCutWei);
+        assertEq(updatedCauseARecipient.balance, 0);
+        assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_A), 0);
+    }
+
+    function _assertWinnerClaimPreview(
+        uint256 gameId,
+        address wallet,
+        uint256 expectedGrossPrizeWei,
+        uint256 expectedCauseCutWei,
+        uint256 expectedNetPrizeWei,
+        bool expectedAvailable
+    ) internal view {
+        (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool available) =
+            game.previewWinnerClaim(gameId, wallet);
+        assertEq(grossPrizeWei, expectedGrossPrizeWei);
+        assertEq(causeCutWei, expectedCauseCutWei);
+        assertEq(netPrizeWei, expectedNetPrizeWei);
+        assertEq(available, expectedAvailable);
+    }
+
+    function _assertRefundPreview(uint256 gameId, address wallet, uint256 expectedRefundWei, bool expectedAvailable)
+        internal
+        view
+    {
+        (uint256 refundWei, bool available) = game.previewRefund(gameId, wallet);
+        assertEq(refundWei, expectedRefundWei);
+        assertEq(available, expectedAvailable);
+    }
+
     function _assertInvalidConfig(PrisonersDaollema.GameConfig memory invalidConfig) internal {
         vm.expectRevert(PrisonersDaollema.InvalidGameConfig.selector);
         new PrisonersDaollema(owner, treasury, address(registry), invalidConfig);
@@ -709,11 +1292,80 @@ contract PrisonersDaollemaTest is Test {
         game.advancePhase(gameId);
     }
 
+    function _advanceThreePlayerGameToCommit() internal returns (uint256 gameId) {
+        gameId = _createGame();
+        _joinPlayer(gameId, player1, PLAYER1_AGENT, keccak256("nonce-three-player-1"), CAUSE_A);
+        _joinPlayer(gameId, player2, PLAYER2_AGENT, keccak256("nonce-three-player-2"), CAUSE_B);
+        _joinPlayer(gameId, player3, PLAYER3_AGENT, keccak256("nonce-three-player-3"), CAUSE_A);
+
+        vm.warp(game.getGame(gameId).joinDeadline + 1);
+        game.advancePhase(gameId);
+    }
+
+    function _resolveCurrentRoundTwoPlayers(
+        uint256 gameId,
+        address wallet1,
+        PrisonersDaollema.Choice choice1,
+        bytes32 salt1,
+        address wallet2,
+        PrisonersDaollema.Choice choice2,
+        bytes32 salt2
+    ) internal {
+        _commitForPlayer(gameId, wallet1, choice1, salt1);
+        _commitForPlayer(gameId, wallet2, choice2, salt2);
+        game.advancePhase(gameId);
+
+        _revealForPlayer(gameId, wallet1, choice1, salt1);
+        _revealForPlayer(gameId, wallet2, choice2, salt2);
+        game.advancePhase(gameId);
+    }
+
+    function _resolveCurrentRoundThreePlayers(
+        uint256 gameId,
+        address wallet1,
+        PrisonersDaollema.Choice choice1,
+        bytes32 salt1,
+        address wallet2,
+        PrisonersDaollema.Choice choice2,
+        bytes32 salt2,
+        address wallet3,
+        PrisonersDaollema.Choice choice3,
+        bytes32 salt3
+    ) internal {
+        _commitForPlayer(gameId, wallet1, choice1, salt1);
+        _commitForPlayer(gameId, wallet2, choice2, salt2);
+        _commitForPlayer(gameId, wallet3, choice3, salt3);
+        game.advancePhase(gameId);
+
+        _revealForPlayer(gameId, wallet1, choice1, salt1);
+        _revealForPlayer(gameId, wallet2, choice2, salt2);
+        _revealForPlayer(gameId, wallet3, choice3, salt3);
+        game.advancePhase(gameId);
+    }
+
+    function _assertAlivePlayerRoundReset(
+        uint256 gameId,
+        address wallet_,
+        uint32 expectedLastChoiceRound,
+        PrisonersDaollema.Choice expectedEffectiveChoice
+    ) internal {
+        PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet_);
+
+        assertTrue(player.alive);
+        assertFalse(player.committedThisRound);
+        assertFalse(player.revealedThisRound);
+        assertEq(player.commitment, bytes32(0));
+        assertEq(uint256(player.revealedChoice), uint256(PrisonersDaollema.Choice.Unset));
+        assertEq(uint256(player.effectiveChoice), uint256(expectedEffectiveChoice));
+        assertEq(player.lastChoiceRound, expectedLastChoiceRound);
+    }
+
     function _joinPlayer(uint256 gameId, address wallet_, bytes32 agentKey_, bytes32 nonce_, uint16 causeId) internal {
         _registerWallet(wallet_, agentKey_, uint64(block.timestamp + 1 hours), nonce_);
 
+        uint256 entryFeeWei = game.getGame(gameId).entryFeeWei;
         vm.prank(wallet_);
-        game.join{ value: _defaultConfig().entryFeeWei }(gameId, causeId);
+        game.join{ value: entryFeeWei }(gameId, causeId);
     }
 
     function _commitmentFor(uint256 gameId, address wallet_, PrisonersDaollema.Choice choice_, bytes32 salt_)

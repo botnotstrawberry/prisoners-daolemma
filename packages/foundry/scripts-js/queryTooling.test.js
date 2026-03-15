@@ -85,7 +85,7 @@ test(
   "query export writes honest evidence artifacts for current auth/game/chat state",
   { concurrency: false },
   async () => {
-    const { registry, game, chat } = await setupEvidenceFixture();
+    const { owner, registry, game, chat } = await setupEvidenceFixture();
 
     const outputDir = mkdtempSync(join(tmpdir(), "pd-query-export-"));
     const manifest = JSON.parse(
@@ -120,6 +120,9 @@ test(
       readFileSync(join(outputDir, "rounds.json"), "utf8")
     );
     const auth = JSON.parse(readFileSync(join(outputDir, "auth.json"), "utf8"));
+    const payouts = JSON.parse(
+      readFileSync(join(outputDir, "payouts.json"), "utf8")
+    );
     const messages = parseMessagesJsonl(
       readFileSync(join(outputDir, "messages.jsonl"), "utf8")
     );
@@ -131,7 +134,7 @@ test(
       )
     );
     assert.ok(
-      manifest.skipped.some((artifact) => artifact.artifact === "payouts.json")
+      manifest.produced.some((artifact) => artifact.artifact === "payouts.json")
     );
     assert.equal(
       manifest.evidenceWindow.logRange.coversFullHistoryToStateSnapshot,
@@ -155,14 +158,22 @@ test(
       false
     );
     assert.ok(
-      summary.capabilities.unavailable.includes("round-resolution-outcomes")
+      summary.capabilities.available.includes("round-resolution-outcomes")
     );
+    assert.ok(
+      summary.capabilities.available.includes("claim-refund-settlement-data")
+    );
+    assert.ok(
+      summary.capabilities.available.includes("payout-destination-audit")
+    );
+    assert.deepEqual(summary.capabilities.unavailable, []);
 
     assert.deepEqual(manifest.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(roster.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(causes.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(rounds.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(auth.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(payouts.evidenceWindow, summary.evidenceWindow);
 
     assert.equal(roster.participants.length, 2);
     assert.deepEqual(
@@ -183,8 +194,30 @@ test(
     assert.equal(rounds.rounds.length, 1);
     assert.equal(rounds.rounds[0].round, 1);
     assert.equal(rounds.rounds[0].resolutionAvailable, false);
+    assert.equal(rounds.rounds[0].settlementAvailable, false);
     assert.equal(rounds.rounds[0].commits.length, 1);
     assert.equal(rounds.rounds[0].reveals.length, 1);
+
+    assert.equal(payouts.settlement.finalized, false);
+    assert.equal(payouts.settlement.totalPotWei, "0");
+    assert.equal(
+      payouts.settlement.treasuryRecipient.toLowerCase(),
+      owner.address.toLowerCase()
+    );
+    assert.equal(payouts.participants.length, 2);
+    assert.ok(
+      payouts.participants.every((participant) => participant.claim.availableNow === false)
+    );
+    assert.ok(
+      payouts.participants.every((participant) => participant.refund.availableNow === false)
+    );
+    assert.equal(payouts.causes.length, 2);
+    assert.ok(
+      payouts.causes.every((cause) => cause.routedFromGameWei === "0")
+    );
+    assert.ok(
+      payouts.causes.every((cause) => cause.claimableFromGameWei === "0")
+    );
 
     assert.equal(auth.participants.length, 2);
     assert.ok(
@@ -249,6 +282,9 @@ test(
       readFileSync(join(outputDir, "rounds.json"), "utf8")
     );
     const auth = JSON.parse(readFileSync(join(outputDir, "auth.json"), "utf8"));
+    const payouts = JSON.parse(
+      readFileSync(join(outputDir, "payouts.json"), "utf8")
+    );
     const messages = parseMessagesJsonl(
       readFileSync(join(outputDir, "messages.jsonl"), "utf8")
     );
@@ -290,14 +326,17 @@ test(
     assert.deepEqual(causes.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(rounds.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(auth.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(payouts.evidenceWindow, summary.evidenceWindow);
 
     assert.equal(summary.game.counts.messages, 1);
     assert.equal(summary.game.counts.committed, 1);
-    assert.equal(summary.game.counts.revealed, 0);
-    assert.equal(roster.participants[0].revealedThisRound, false);
+    assert.equal(summary.game.counts.revealed, 1);
+    assert.equal(roster.participants[0].revealedThisRound, true);
     assert.equal(rounds.rounds.length, 1);
     assert.equal(rounds.rounds[0].commits.length, 0);
     assert.equal(rounds.rounds[0].reveals.length, 0);
+    assert.equal(payouts.settlement.finalized, false);
+    assert.equal(payouts.events.prizeClaims.length, 0);
     assert.equal(messages.length, 1);
     assert.equal(messages[0].scope, "cause");
     assert.equal(messages[0].causeId, 2);
@@ -325,19 +364,19 @@ test(
       registry: registry.address,
       chat: chat.address,
       gameId: 1,
-      fromBlock: causeMessageReceipt.blockNumber,
-      toBlock: causeMessageReceipt.blockNumber,
+      fromBlock: revealReceipt.blockNumber,
+      toBlock: revealReceipt.blockNumber,
     });
 
     assert.equal(
       evidence.summary.evidenceWindow.stateSnapshot.blockNumber,
-      revealReceipt.blockNumber
+      causeMessageReceipt.blockNumber
     );
     assert.equal(
       evidence.summary.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
       true
     );
-    assert.equal(evidence.summary.game.counts.messages, 1);
+    assert.equal(evidence.summary.game.counts.messages, 0);
     assert.equal(evidence.summary.game.counts.revealed, 1);
     assert.ok(
       evidence.summary.notes.some((note) =>
@@ -347,6 +386,41 @@ test(
     assert.ok(
       evidence.summary.notes.some((note) => note.includes("intentionally hybrid"))
     );
+  }
+);
+
+test(
+  "query tooling exports settled no-winner payout data honestly",
+  { concurrency: false },
+  async () => {
+    const { owner, provider, registry, game } =
+      await setupSettledNoWinnerEvidenceFixture();
+
+    const evidence = await collectGameEvidence({
+      provider,
+      game: game.address,
+      registry: registry.address,
+      gameId: 1,
+    });
+
+    assert.equal(evidence.summary.game.phase, "Ended");
+    assert.equal(evidence.summary.game.outcome, "NoWinners");
+    assert.equal(evidence.summary.game.settlement.finalized, true);
+    assert.equal(evidence.payouts.settlement.finalized, true);
+    assert.equal(evidence.payouts.settlement.treasuryAccruedWei, "218000000000000");
+    assert.equal(
+      evidence.payouts.settlement.treasuryRecipient.toLowerCase(),
+      owner.address.toLowerCase()
+    );
+    assert.equal(evidence.payouts.causes.length, 2);
+    assert.ok(
+      evidence.payouts.causes.every(
+        (cause) => cause.routedFromGameWei === "891000000000000"
+      )
+    );
+    assert.equal(evidence.payouts.events.settlementFinalized.length, 1);
+    assert.equal(evidence.payouts.events.noWinnerDistributions.length, 2);
+    assert.equal(evidence.payouts.events.treasuryAccruals.length, 1);
   }
 );
 
@@ -472,11 +546,11 @@ async function setupEvidenceFixture() {
   await provider.send("evm_mine", []);
   await (await game.advancePhase(1)).wait();
 
-  const causeMessageReceipt = await (
-    await chat.connect(player2).postCause(1, 2, "cause two reporting in")
-  ).wait();
   const revealReceipt = await (
     await game.connect(player1).reveal(1, shareChoice, salt)
+  ).wait();
+  const causeMessageReceipt = await (
+    await chat.connect(player2).postCause(1, 2, "cause two reporting in")
   ).wait();
 
   return {
@@ -492,6 +566,86 @@ async function setupEvidenceFixture() {
     commitReceipt,
     causeMessageReceipt,
     revealReceipt,
+  };
+}
+
+async function setupSettledNoWinnerEvidenceFixture() {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const verifier = ethers.Wallet.createRandom();
+  const player1 = ethers.Wallet.createRandom().connect(provider);
+  const player2 = ethers.Wallet.createRandom().connect(provider);
+
+  await fundWallet(owner, player1.address, "2");
+  await fundWallet(owner, player2.address, "2");
+
+  const registry = await deployRegistry(owner, verifier.address);
+  const game = await deployGame(owner, registry.address);
+
+  await (
+    await game.whitelistCause(1, owner.address, ethers.utils.id("cause-a"))
+  ).wait();
+  await (
+    await game.whitelistCause(2, owner.address, ethers.utils.id("cause-b"))
+  ).wait();
+  await (await game.createGame()).wait();
+
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player1,
+    agentKeyText: "agent-alpha-terminal",
+    nonceText: "nonce-alpha-terminal",
+  });
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player2,
+    agentKeyText: "agent-beta-terminal",
+    nonceText: "nonce-beta-terminal",
+  });
+
+  const entryFee = ethers.utils.parseEther("0.001");
+  await (await game.connect(player1).join(1, 1, { value: entryFee })).wait();
+  await (await game.connect(player2).join(1, 2, { value: entryFee })).wait();
+
+  await provider.send("evm_increaseTime", [2]);
+  await provider.send("evm_mine", []);
+  await (await game.advancePhase(1)).wait();
+
+  const round = Number((await game.getGame(1)).round);
+  const catchChoice = 2;
+  const salt1 = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("salt-catch-1"));
+  const salt2 = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("salt-catch-2"));
+  const commitment1 = await game.computeCommitment(
+    1,
+    round,
+    player1.address,
+    catchChoice,
+    salt1
+  );
+  const commitment2 = await game.computeCommitment(
+    1,
+    round,
+    player2.address,
+    catchChoice,
+    salt2
+  );
+
+  await (await game.connect(player1).commit(1, commitment1)).wait();
+  await (await game.connect(player2).commit(1, commitment2)).wait();
+  await (await game.advancePhase(1)).wait();
+  await (await game.connect(player1).reveal(1, catchChoice, salt1)).wait();
+  await (await game.connect(player2).reveal(1, catchChoice, salt2)).wait();
+  await (await game.advancePhase(1)).wait();
+
+  return {
+    provider,
+    owner,
+    registry,
+    game,
   };
 }
 

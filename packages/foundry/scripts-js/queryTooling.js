@@ -10,7 +10,7 @@ import {
 } from "./authTooling.js";
 
 export const QUERY_BOUNDARY_NOTE =
-  "This evidence/query tooling only exports what the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, and optional GameChat messages. It does not invent missing round-resolution, elimination, winner, refund, or payout data.";
+  "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages.";
 
 export const PHASE_NAMES = [
   "Idle",
@@ -30,7 +30,14 @@ export const GAME_QUERY_ABI = [
   "function activeGameId() view returns (uint256)",
   "function gameExists(uint256 gameId) view returns (bool)",
   "function getGame(uint256 gameId) view returns ((uint256 entryFeeWei,uint16 creatorFeeBps,uint16 causeFeeBps,uint32 joinDurationSeconds,uint32 commitDurationBlocks,uint32 revealDurationBlocks,uint16 minPlayers,uint16 maxPlayers,uint16 maxCauses,uint16 joinedCount,uint16 aliveCount,uint16 usedCauseCount,uint16 committedCount,uint16 revealedCount,uint64 createdAt,uint64 joinDeadline,uint64 commitDeadlineBlock,uint64 revealDeadlineBlock,uint32 round,uint32 shareStreak,uint8 phase,uint8 outcome,address treasury))",
-  "function getPlayer(uint256 gameId, address wallet) view returns ((bool joined,bool alive,bool claimed,bool refunded,bool committedThisRound,bool revealedThisRound,address wallet,bytes32 agentKey,uint16 causeId,bytes32 commitment,uint8 revealedChoice))",
+  "function getSettlement(uint256 gameId) view returns ((uint256 totalPotWei,uint256 creatorFeeWei,uint256 treasuryAccruedWei,uint256 treasuryWithdrawnWei,uint256 winnerShareWei,uint256 refundPerPlayerWei,uint256 noWinnerCausePoolWei,uint256 noWinnerCauseDistributedWei,uint16 winnerCount,bool finalized))",
+  "function previewWinnerClaim(uint256 gameId, address wallet) view returns (uint256 grossPrizeWei,uint256 causeCutWei,uint256 netPrizeWei,bool availableNow)",
+  "function previewRefund(uint256 gameId, address wallet) view returns (uint256 refundWei,bool availableNow)",
+  "function treasuryClaimableAmount(uint256 gameId) view returns (uint256)",
+  "function gameCauseClaimableAmount(uint256 gameId, uint16 causeId) view returns (uint256)",
+  "function gameCauseRoutedAmount(uint256 gameId, uint16 causeId) view returns (uint256)",
+  "function gameCauseWithdrawnAmount(uint256 gameId, uint16 causeId) view returns (uint256)",
+  "function getPlayer(uint256 gameId, address wallet) view returns ((bool joined,bool alive,bool claimed,bool refunded,bool committedThisRound,bool revealedThisRound,address wallet,bytes32 agentKey,uint16 causeId,bytes32 commitment,uint8 revealedChoice,uint8 effectiveChoice,uint32 lastChoiceRound))",
   "function getCause(uint16 causeId) view returns ((bool active,address recipient,bytes32 metadataHash))",
   "function getGameCause(uint256 gameId, uint16 causeId) view returns ((bool used,uint16 entrantCount,address recipient,bytes32 metadataHash))",
   "function causeCount() view returns (uint256)",
@@ -45,6 +52,17 @@ export const GAME_QUERY_ABI = [
   "event PlayerJoined(uint256 indexed gameId, address indexed wallet, bytes32 indexed agentKey, uint16 causeId, uint16 joinedCount)",
   "event Committed(uint256 indexed gameId, uint32 indexed round, address indexed wallet, bytes32 commitment)",
   "event Revealed(uint256 indexed gameId, uint32 indexed round, address indexed wallet, uint8 choice)",
+  "event EffectiveChoiceMaterialized(uint256 indexed gameId, uint32 indexed round, address indexed wallet, uint8 choice, bool defaultedCommit, bool defaultedReveal)",
+  "event PlayerEliminated(uint256 indexed gameId, uint32 indexed round, address indexed wallet, uint8 choice)",
+  "event RoundResolved(uint256 indexed gameId, uint32 indexed round, uint16 sharers, uint16 catchers, uint16 stealers, uint16 eliminatedCount, uint16 aliveCount, uint32 shareStreak)",
+  "event GameEnded(uint256 indexed gameId, uint8 outcome, uint32 round, uint16 winnerCount, uint32 shareStreak)",
+  "event SettlementFinalized(uint256 indexed gameId, uint8 outcome, uint256 totalPotWei, uint256 creatorFeeWei, uint16 winnerCount, uint256 winnerShareWei, uint256 refundPerPlayerWei, uint256 noWinnerCausePoolWei, uint256 treasuryAccruedWei)",
+  "event PrizeClaimed(uint256 indexed gameId, address indexed wallet, uint16 indexed causeId, uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, address causeRecipient)",
+  "event RefundClaimed(uint256 indexed gameId, address indexed wallet, uint256 refundWei)",
+  "event NoWinnerDistributed(uint256 indexed gameId, uint16 indexed causeId, address indexed recipient, uint256 amountWei)",
+  "event TreasuryAccrued(uint256 indexed gameId, address indexed treasury, uint256 amountWei)",
+  "event TreasuryWithdrawal(uint256 indexed gameId, address indexed recipient, uint256 amountWei)",
+  "event CauseWithdrawal(uint256 indexed gameId, uint16 indexed causeId, address indexed recipient, uint256 amountWei)",
 ];
 
 export const REGISTRY_QUERY_ABI = [
@@ -321,6 +339,23 @@ function normalizeGameSnapshot(snapshot) {
   };
 }
 
+function normalizeSettlementState(rawSettlement) {
+  return {
+    totalPotWei: toDecimalString(rawSettlement.totalPotWei),
+    creatorFeeWei: toDecimalString(rawSettlement.creatorFeeWei),
+    treasuryAccruedWei: toDecimalString(rawSettlement.treasuryAccruedWei),
+    treasuryWithdrawnWei: toDecimalString(rawSettlement.treasuryWithdrawnWei),
+    winnerShareWei: toDecimalString(rawSettlement.winnerShareWei),
+    refundPerPlayerWei: toDecimalString(rawSettlement.refundPerPlayerWei),
+    noWinnerCausePoolWei: toDecimalString(rawSettlement.noWinnerCausePoolWei),
+    noWinnerCauseDistributedWei: toDecimalString(
+      rawSettlement.noWinnerCauseDistributedWei
+    ),
+    winnerCount: toNumber(rawSettlement.winnerCount, "settlement.winnerCount"),
+    finalized: rawSettlement.finalized,
+  };
+}
+
 function normalizePlayerState(rawPlayer, auth, latestTimestamp) {
   const authRecord = normalizeAuthRecord(auth.record);
   const isAuthorizedNow = auth.isAuthorizedNow;
@@ -350,6 +385,16 @@ function normalizePlayerState(rawPlayer, auth, latestTimestamp) {
       rawPlayer.revealedChoice,
       "player.revealedChoice"
     ),
+    effectiveChoice: enumName(
+      CHOICE_NAMES,
+      rawPlayer.effectiveChoice,
+      "player.effectiveChoice"
+    ),
+    effectiveChoiceCode: toNumber(
+      rawPlayer.effectiveChoice,
+      "player.effectiveChoice"
+    ),
+    lastChoiceRound: toNumber(rawPlayer.lastChoiceRound, "player.lastChoiceRound"),
     auth: {
       status: authStatus,
       isAuthorizedNow,
@@ -367,7 +412,14 @@ function normalizeCauseDefinition(causeId, rawCause) {
   };
 }
 
-function normalizeGameCause(causeId, rawCause, members) {
+function normalizeGameCause(
+  causeId,
+  rawCause,
+  members,
+  routedFromGameWei,
+  claimableFromGameWei,
+  withdrawnFromGameWei
+) {
   return {
     causeId,
     used: rawCause.used,
@@ -375,6 +427,9 @@ function normalizeGameCause(causeId, rawCause, members) {
     recipient: rawCause.recipient,
     metadataHash: rawCause.metadataHash,
     members,
+    routedFromGameWei: toDecimalString(routedFromGameWei),
+    claimableFromGameWei: toDecimalString(claimableFromGameWei),
+    withdrawnFromGameWei: toDecimalString(withdrawnFromGameWei),
   };
 }
 
@@ -405,8 +460,8 @@ function buildEvidenceNotes({
   }
 
   notes.push(
-    "Round resolution, eliminations, winner determination, refunds, and payout settlement are not implemented in the current onchain game slice.",
-    "Any elimination, payout, or claim-oriented replay fields remain intentionally absent until the contracts emit real resolution and settlement truth."
+    "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+    "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances."
   );
 
   if (!chatConfigured) {
@@ -426,6 +481,11 @@ function buildCapabilities({ chatConfigured }) {
     "used-cause-team-state",
     "auth-records-for-participants",
     "commit-and-reveal-event-inspection",
+    "round-resolution-outcomes",
+    "elimination-history",
+    "winner-no-winner-terminal-state",
+    "claim-refund-settlement-data",
+    "payout-destination-audit",
   ];
 
   if (chatConfigured) {
@@ -434,13 +494,206 @@ function buildCapabilities({ chatConfigured }) {
 
   return {
     available,
-    unavailable: [
-      "round-resolution-outcomes",
-      "elimination-history",
-      "winner-no-winner-terminal-state",
-      "claim-refund-settlement-data",
-      "payout-destination-audit",
-    ],
+    unavailable: [],
+  };
+}
+
+function normalizeWinnerClaimPreview(rawPreview) {
+  return {
+    grossPrizeWei: toDecimalString(rawPreview.grossPrizeWei),
+    causeCutWei: toDecimalString(rawPreview.causeCutWei),
+    netPrizeWei: toDecimalString(rawPreview.netPrizeWei),
+    availableNow: rawPreview.availableNow,
+  };
+}
+
+function normalizeRefundPreview(rawPreview) {
+  return {
+    refundWei: toDecimalString(rawPreview.refundWei),
+    availableNow: rawPreview.availableNow,
+  };
+}
+
+async function buildPayoutExports({
+  gameId,
+  snapshot,
+  settlement,
+  participants,
+  usedCauses,
+  treasuryClaimableWei,
+  settlementEvents,
+  prizeClaimEvents,
+  refundClaimEvents,
+  noWinnerDistributionEvents,
+  treasuryAccrualEvents,
+  treasuryWithdrawalEvents,
+  causeWithdrawalEvents,
+  getBlockTimestamp,
+}) {
+  const [
+    normalizedSettlementEvents,
+    normalizedPrizeClaims,
+    normalizedRefundClaims,
+    normalizedNoWinnerDistributions,
+    normalizedTreasuryAccruals,
+    normalizedTreasuryWithdrawals,
+    normalizedCauseWithdrawals,
+  ] = await Promise.all([
+    Promise.all(
+      sortEvents(settlementEvents).map(async (event) => ({
+        outcome: enumName(
+          OUTCOME_NAMES,
+          event.args.outcome,
+          "settlementFinalized.outcome"
+        ),
+        outcomeCode: toNumber(
+          event.args.outcome,
+          "settlementFinalized.outcome"
+        ),
+        totalPotWei: toDecimalString(event.args.totalPotWei),
+        creatorFeeWei: toDecimalString(event.args.creatorFeeWei),
+        winnerCount: toNumber(
+          event.args.winnerCount,
+          "settlementFinalized.winnerCount"
+        ),
+        winnerShareWei: toDecimalString(event.args.winnerShareWei),
+        refundPerPlayerWei: toDecimalString(event.args.refundPerPlayerWei),
+        noWinnerCausePoolWei: toDecimalString(event.args.noWinnerCausePoolWei),
+        treasuryAccruedWei: toDecimalString(event.args.treasuryAccruedWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(prizeClaimEvents).map(async (event) => ({
+        wallet: event.args.wallet,
+        causeId: toNumber(event.args.causeId, "prizeClaim.causeId"),
+        grossPrizeWei: toDecimalString(event.args.grossPrizeWei),
+        causeCutWei: toDecimalString(event.args.causeCutWei),
+        netPrizeWei: toDecimalString(event.args.netPrizeWei),
+        causeRecipient: event.args.causeRecipient,
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(refundClaimEvents).map(async (event) => ({
+        wallet: event.args.wallet,
+        refundWei: toDecimalString(event.args.refundWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(noWinnerDistributionEvents).map(async (event) => ({
+        causeId: toNumber(
+          event.args.causeId,
+          "noWinnerDistribution.causeId"
+        ),
+        recipient: event.args.recipient,
+        amountWei: toDecimalString(event.args.amountWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(treasuryAccrualEvents).map(async (event) => ({
+        treasury: event.args.treasury,
+        amountWei: toDecimalString(event.args.amountWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(treasuryWithdrawalEvents).map(async (event) => ({
+        recipient: event.args.recipient,
+        amountWei: toDecimalString(event.args.amountWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+    Promise.all(
+      sortEvents(causeWithdrawalEvents).map(async (event) => ({
+        causeId: toNumber(event.args.causeId, "causeWithdrawal.causeId"),
+        recipient: event.args.recipient,
+        amountWei: toDecimalString(event.args.amountWei),
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        timestamp: await getBlockTimestamp(event.blockNumber),
+      }))
+    ),
+  ]);
+
+  const notes = [
+    "routedFromGameWei fields are game-specific lifetime routing totals exposed by the current contract state.",
+    "claimableFromGameWei and treasuryClaimableWei fields are the selected game's current outstanding pull-based amounts at the chosen state snapshot block.",
+    "withdrawnFromGameWei and withdrawal events are per-game counters/events, so they remain attributable even after recipients pull funds later.",
+  ];
+
+  if (!settlement.finalized) {
+    notes.push(
+      "This game is not yet terminal at the selected state snapshot, so settlement values remain zero/unfinalized and claim/refund paths are not yet live."
+    );
+  }
+
+  return {
+    gameId,
+    settlement: {
+      finalized: settlement.finalized,
+      totalPotWei: settlement.totalPotWei,
+      creatorFeeWei: settlement.creatorFeeWei,
+      treasuryRecipient: snapshot.treasury,
+      treasuryAccruedWei: settlement.treasuryAccruedWei,
+      treasuryWithdrawnWei: settlement.treasuryWithdrawnWei,
+      treasuryClaimableWei,
+      winnerCount: settlement.winnerCount,
+      winnerShareWei: settlement.winnerShareWei,
+      refundPerPlayerWei: settlement.refundPerPlayerWei,
+      noWinnerCausePoolWei: settlement.noWinnerCausePoolWei,
+      noWinnerCauseDistributedWei: settlement.noWinnerCauseDistributedWei,
+      claimPathAvailable:
+        settlement.finalized &&
+        snapshot.phase === "Ended" &&
+        snapshot.outcome === "Winners",
+      refundPathAvailable:
+        settlement.finalized &&
+        snapshot.phase === "Cancelled" &&
+        snapshot.outcome === "Cancelled",
+    },
+    participants: participants.map((player) => ({
+      wallet: player.wallet,
+      causeId: player.causeId,
+      joined: player.joined,
+      alive: player.alive,
+      claimed: player.claimed,
+      refunded: player.refunded,
+      claim: player.claimPreview,
+      refund: player.refundPreview,
+    })),
+    causes: usedCauses.map((cause) => ({
+      causeId: cause.causeId,
+      entrantCount: cause.entrantCount,
+      recipient: cause.recipient,
+      routedFromGameWei: cause.routedFromGameWei,
+      claimableFromGameWei: cause.claimableFromGameWei,
+      withdrawnFromGameWei: cause.withdrawnFromGameWei,
+    })),
+    events: {
+      settlementFinalized: normalizedSettlementEvents,
+      prizeClaims: normalizedPrizeClaims,
+      refundClaims: normalizedRefundClaims,
+      noWinnerDistributions: normalizedNoWinnerDistributions,
+      treasuryAccruals: normalizedTreasuryAccruals,
+      treasuryWithdrawals: normalizedTreasuryWithdrawals,
+      causeWithdrawals: normalizedCauseWithdrawals,
+    },
+    notes,
   };
 }
 
@@ -481,9 +734,14 @@ async function buildPhaseHistory(phaseEvents, getBlockTimestamp) {
 
 function buildRoundExports({
   snapshot,
+  settlement,
   phaseHistory,
   commitEvents,
   revealEvents,
+  effectiveChoiceEvents,
+  eliminatedEvents,
+  roundResolvedEvents,
+  gameEndedEvents,
   participants,
 }) {
   const commitPhaseTransitions = phaseHistory.filter(
@@ -505,6 +763,46 @@ function buildRoundExports({
     txHash: event.transactionHash,
     blockNumber: event.blockNumber,
   }));
+  const effectiveChoicesByRound = groupByRound(
+    effectiveChoiceEvents,
+    (event) => ({
+      wallet: event.args.wallet,
+      choice: enumName(CHOICE_NAMES, event.args.choice, "effective.choice"),
+      choiceCode: toNumber(event.args.choice, "effective.choice"),
+      defaultedCommit: event.args.defaultedCommit,
+      defaultedReveal: event.args.defaultedReveal,
+      txHash: event.transactionHash,
+      blockNumber: event.blockNumber,
+    })
+  );
+  const eliminatedByRound = groupByRound(eliminatedEvents, (event) => ({
+    wallet: event.args.wallet,
+    choice: enumName(CHOICE_NAMES, event.args.choice, "eliminated.choice"),
+    choiceCode: toNumber(event.args.choice, "eliminated.choice"),
+    txHash: event.transactionHash,
+    blockNumber: event.blockNumber,
+  }));
+  const resolvedByRound = groupByRound(roundResolvedEvents, (event) => ({
+    sharers: toNumber(event.args.sharers, "roundResolved.sharers"),
+    catchers: toNumber(event.args.catchers, "roundResolved.catchers"),
+    stealers: toNumber(event.args.stealers, "roundResolved.stealers"),
+    eliminatedCount: toNumber(
+      event.args.eliminatedCount,
+      "roundResolved.eliminatedCount"
+    ),
+    aliveCount: toNumber(event.args.aliveCount, "roundResolved.aliveCount"),
+    shareStreak: toNumber(event.args.shareStreak, "roundResolved.shareStreak"),
+    txHash: event.transactionHash,
+    blockNumber: event.blockNumber,
+  }));
+  const endedByRound = groupByRound(gameEndedEvents, (event) => ({
+    outcome: enumName(OUTCOME_NAMES, event.args.outcome, "gameEnded.outcome"),
+    outcomeCode: toNumber(event.args.outcome, "gameEnded.outcome"),
+    winnerCount: toNumber(event.args.winnerCount, "gameEnded.winnerCount"),
+    shareStreak: toNumber(event.args.shareStreak, "gameEnded.shareStreak"),
+    txHash: event.transactionHash,
+    blockNumber: event.blockNumber,
+  }));
 
   const roundNumbers = new Set();
 
@@ -517,6 +815,18 @@ function buildRoundExports({
   for (const round of revealEventsByRound.keys()) {
     roundNumbers.add(round);
   }
+  for (const round of effectiveChoicesByRound.keys()) {
+    roundNumbers.add(round);
+  }
+  for (const round of eliminatedByRound.keys()) {
+    roundNumbers.add(round);
+  }
+  for (const round of resolvedByRound.keys()) {
+    roundNumbers.add(round);
+  }
+  for (const round of endedByRound.keys()) {
+    roundNumbers.add(round);
+  }
   if (snapshot.round > 0) {
     roundNumbers.add(snapshot.round);
   }
@@ -525,12 +835,22 @@ function buildRoundExports({
     .sort((a, b) => a - b)
     .map((round) => {
       const isCurrentRound = round === snapshot.round;
-      const activePlayers = participants
-        .filter((player) => player.alive)
-        .map((player) => player.wallet);
-      const notes = [
-        "Current contract slice does not emit round-resolution or elimination events yet.",
-      ];
+      const effectiveChoices = effectiveChoicesByRound.get(round) ?? [];
+      const activePlayers =
+        effectiveChoices.length > 0
+          ? effectiveChoices.map((entry) => entry.wallet)
+          : participants
+              .filter((player) => player.alive)
+              .map((player) => player.wallet);
+      const resolution = (resolvedByRound.get(round) ?? [])[0] ?? null;
+      const terminalState = (endedByRound.get(round) ?? [])[0] ?? null;
+      const notes = [];
+
+      if (!resolution) {
+        notes.push(
+          "No round-resolution events were observed inside the selected evidence window for this round."
+        );
+      }
 
       if (!isCurrentRound) {
         notes.push(
@@ -557,10 +877,14 @@ function buildRoundExports({
         activePlayers,
         commits: commitEventsByRound.get(round) ?? [],
         reveals: revealEventsByRound.get(round) ?? [],
-        eliminated: [],
-        shareStreak: snapshot.shareStreak,
-        resolutionAvailable: false,
-        settlementAvailable: false,
+        effectiveChoices,
+        eliminated: eliminatedByRound.get(round) ?? [],
+        resolution,
+        terminalState,
+        shareStreak:
+          resolution?.shareStreak ?? (isCurrentRound ? snapshot.shareStreak : null),
+        resolutionAvailable: Boolean(resolution),
+        settlementAvailable: Boolean(terminalState) && settlement.finalized,
         notes,
       };
     });
@@ -795,12 +1119,14 @@ async function collectStateAtBlock({
   const stateReadOptions = { blockTag: stateSnapshotBlock };
   const [
     rawSnapshot,
+    rawSettlement,
     rawPlayerCount,
     rawKnownCauseCount,
     rawUsedCauseCount,
     verifier,
   ] = await Promise.all([
     context.game.getGame(context.gameId, stateReadOptions),
+    context.game.getSettlement(context.gameId, stateReadOptions),
     context.game.playerCount(context.gameId, stateReadOptions),
     context.game.causeCount(stateReadOptions),
     context.game.gameCauseCount(context.gameId, stateReadOptions),
@@ -808,6 +1134,7 @@ async function collectStateAtBlock({
   ]);
 
   const snapshot = normalizeGameSnapshot(rawSnapshot);
+  const settlement = normalizeSettlementState(rawSettlement);
   const playerCount = toNumber(rawPlayerCount, "playerCount");
   const knownCauseCount = toNumber(rawKnownCauseCount, "knownCauseCount");
   const usedCauseCount = toNumber(rawUsedCauseCount, "usedCauseCount");
@@ -830,45 +1157,95 @@ async function collectStateAtBlock({
     ),
   ]);
 
-  const [rawPlayers, authResults, rawKnownCauses, rawUsedCauses] =
-    await Promise.all([
-      Promise.all(
-        wallets.map((wallet) =>
-          context.game.getPlayer(context.gameId, wallet, stateReadOptions)
+  const [
+    rawPlayers,
+    authResults,
+    rawKnownCauses,
+    rawUsedCauses,
+    rawUsedCauseRoutedAmounts,
+    rawUsedCauseClaimableAmounts,
+    rawUsedCauseWithdrawnAmounts,
+    rawWinnerClaimPreviews,
+    rawRefundPreviews,
+    rawTreasuryClaimableAmount,
+  ] = await Promise.all([
+    Promise.all(
+      wallets.map((wallet) =>
+        context.game.getPlayer(context.gameId, wallet, stateReadOptions)
+      )
+    ),
+    Promise.all(
+      wallets.map(async (wallet) => ({
+        isAuthorizedNow: await context.registry.isAuthorized(
+          wallet,
+          stateReadOptions
+        ),
+        record: await context.registry.authRecordOf(wallet, stateReadOptions),
+      }))
+    ),
+    Promise.all(
+      knownCauseIds.map((causeId) =>
+        context.game.getCause(normalizeCauseId(causeId), stateReadOptions)
+      )
+    ),
+    Promise.all(
+      usedCauseIds.map((causeId) =>
+        context.game.getGameCause(
+          context.gameId,
+          normalizeCauseId(causeId),
+          stateReadOptions
         )
-      ),
-      Promise.all(
-        wallets.map(async (wallet) => ({
-          isAuthorizedNow: await context.registry.isAuthorized(
-            wallet,
-            stateReadOptions
-          ),
-          record: await context.registry.authRecordOf(wallet, stateReadOptions),
-        }))
-      ),
-      Promise.all(
-        knownCauseIds.map((causeId) =>
-          context.game.getCause(normalizeCauseId(causeId), stateReadOptions)
+      )
+    ),
+    Promise.all(
+      usedCauseIds.map((causeId) =>
+        context.game.gameCauseRoutedAmount(
+          context.gameId,
+          normalizeCauseId(causeId),
+          stateReadOptions
         )
-      ),
-      Promise.all(
-        usedCauseIds.map((causeId) =>
-          context.game.getGameCause(
-            context.gameId,
-            normalizeCauseId(causeId),
-            stateReadOptions
-          )
+      )
+    ),
+    Promise.all(
+      usedCauseIds.map((causeId) =>
+        context.game.gameCauseClaimableAmount(
+          context.gameId,
+          normalizeCauseId(causeId),
+          stateReadOptions
         )
-      ),
-    ]);
+      )
+    ),
+    Promise.all(
+      usedCauseIds.map((causeId) =>
+        context.game.gameCauseWithdrawnAmount(
+          context.gameId,
+          normalizeCauseId(causeId),
+          stateReadOptions
+        )
+      )
+    ),
+    Promise.all(
+      wallets.map((wallet) =>
+        context.game.previewWinnerClaim(
+          context.gameId,
+          wallet,
+          stateReadOptions
+        )
+      )
+    ),
+    Promise.all(
+      wallets.map((wallet) =>
+        context.game.previewRefund(context.gameId, wallet, stateReadOptions)
+      )
+    ),
+    context.game.treasuryClaimableAmount(context.gameId, stateReadOptions),
+  ]);
 
-  const participants = rawPlayers.map((rawPlayer, index) =>
-    normalizePlayerState(
-      rawPlayer,
-      authResults[index],
-      stateSnapshotTimestamp
-    )
-  );
+  const participants = rawPlayers.map((rawPlayer, index) => ({
+    ...normalizePlayerState(rawPlayer, authResults[index], stateSnapshotTimestamp),
+    claimPreview: normalizeWinnerClaimPreview(rawWinnerClaimPreviews[index]),
+    refundPreview: normalizeRefundPreview(rawRefundPreviews[index]),
+  }));
   const participantMap = new Map(
     participants.map((player) => [player.wallet.toLowerCase(), player])
   );
@@ -876,12 +1253,20 @@ async function collectStateAtBlock({
   const knownCauses = rawKnownCauses.map((rawCause, index) =>
     normalizeCauseDefinition(normalizeCauseId(knownCauseIds[index]), rawCause)
   );
+
   const usedCauses = rawUsedCauses.map((rawCause, index) => {
     const causeId = normalizeCauseId(usedCauseIds[index]);
     const members = participants
       .filter((player) => player.causeId === causeId)
       .map((player) => player.wallet);
-    return normalizeGameCause(causeId, rawCause, members);
+    return normalizeGameCause(
+      causeId,
+      rawCause,
+      members,
+      rawUsedCauseRoutedAmounts[index],
+      rawUsedCauseClaimableAmounts[index],
+      rawUsedCauseWithdrawnAmounts[index]
+    );
   });
 
   const authParticipants = [];
@@ -905,6 +1290,7 @@ async function collectStateAtBlock({
 
   return {
     snapshot,
+    settlement,
     participants,
     participantMap,
     knownCauses,
@@ -912,6 +1298,7 @@ async function collectStateAtBlock({
     authParticipants,
     phaseHistory,
     verifier,
+    treasuryClaimableWei: toDecimalString(rawTreasuryClaimableAmount),
   };
 }
 
@@ -978,36 +1365,111 @@ export async function collectGameEvidence(options = {}) {
     return blockTimestampCache.get(blockNumber);
   }
 
-  const [createdEvents, phaseEvents, commitEvents, revealEvents, messageEvents] =
-    await Promise.all([
-      context.game.queryFilter(
-        context.game.filters.GameCreated(context.gameId),
-        fromBlock,
-        toBlock
+  const [
+    createdEvents,
+    phaseEvents,
+    commitEvents,
+    revealEvents,
+    effectiveChoiceEvents,
+    eliminatedEvents,
+    roundResolvedEvents,
+    gameEndedEvents,
+    settlementEvents,
+    prizeClaimEvents,
+    refundClaimEvents,
+    noWinnerDistributionEvents,
+    treasuryAccrualEvents,
+    treasuryWithdrawalEvents,
+    causeWithdrawalEvents,
+    messageEvents,
+  ] = await Promise.all([
+    context.game.queryFilter(
+      context.game.filters.GameCreated(context.gameId),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.PhaseAdvanced(context.gameId),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.Committed(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.Revealed(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.EffectiveChoiceMaterialized(
+        context.gameId,
+        null,
+        null
       ),
-      context.game.queryFilter(
-        context.game.filters.PhaseAdvanced(context.gameId),
-        fromBlock,
-        toBlock
-      ),
-      context.game.queryFilter(
-        context.game.filters.Committed(context.gameId, null, null),
-        fromBlock,
-        toBlock
-      ),
-      context.game.queryFilter(
-        context.game.filters.Revealed(context.gameId, null, null),
-        fromBlock,
-        toBlock
-      ),
-      context.chat
-        ? context.chat.queryFilter(
-            context.chat.filters.MessagePosted(context.gameId, null, null),
-            fromBlock,
-            toBlock
-          )
-        : Promise.resolve([]),
-    ]);
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.PlayerEliminated(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.RoundResolved(context.gameId, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.GameEnded(context.gameId),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.SettlementFinalized(context.gameId),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.PrizeClaimed(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.RefundClaimed(context.gameId, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.NoWinnerDistributed(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.TreasuryAccrued(context.gameId, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.TreasuryWithdrawal(context.gameId, null),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.CauseWithdrawal(context.gameId, null, null),
+      fromBlock,
+      toBlock
+    ),
+    context.chat
+      ? context.chat.queryFilter(
+          context.chat.filters.MessagePosted(context.gameId, null, null),
+          fromBlock,
+          toBlock
+        )
+      : Promise.resolve([]),
+  ]);
 
   const phaseHistory = await buildPhaseHistory(phaseEvents, getBlockTimestamp);
 
@@ -1059,12 +1521,14 @@ export async function collectGameEvidence(options = {}) {
 
   const {
     snapshot,
+    settlement,
     participants,
     participantMap,
     knownCauses,
     usedCauses,
     authParticipants,
     verifier,
+    treasuryClaimableWei,
   } = stateData;
 
   let messages = [];
@@ -1115,14 +1579,36 @@ export async function collectGameEvidence(options = {}) {
 
   const rounds = buildRoundExports({
     snapshot,
+    settlement,
     phaseHistory,
     commitEvents,
     revealEvents,
+    effectiveChoiceEvents,
+    eliminatedEvents,
+    roundResolvedEvents,
+    gameEndedEvents,
     participants,
   }).map((roundExport) => ({
     ...roundExport,
     gameId: context.gameId,
   }));
+
+  const payouts = await buildPayoutExports({
+    gameId: context.gameId,
+    snapshot,
+    settlement,
+    participants,
+    usedCauses,
+    treasuryClaimableWei,
+    settlementEvents,
+    prizeClaimEvents,
+    refundClaimEvents,
+    noWinnerDistributionEvents,
+    treasuryAccrualEvents,
+    treasuryWithdrawalEvents,
+    causeWithdrawalEvents,
+    getBlockTimestamp,
+  });
 
   const createdEvent = sortEvents(createdEvents)[0] ?? null;
   const notes = buildEvidenceNotes({
@@ -1167,6 +1653,19 @@ export async function collectGameEvidence(options = {}) {
       phaseCode: snapshot.phaseCode,
       outcome: snapshot.outcome,
       outcomeCode: snapshot.outcomeCode,
+      settlement: {
+        finalized: settlement.finalized,
+        totalPotWei: settlement.totalPotWei,
+        creatorFeeWei: settlement.creatorFeeWei,
+        treasuryAccruedWei: settlement.treasuryAccruedWei,
+        treasuryWithdrawnWei: settlement.treasuryWithdrawnWei,
+        treasuryClaimableWei,
+        winnerCount: settlement.winnerCount,
+        winnerShareWei: settlement.winnerShareWei,
+        refundPerPlayerWei: settlement.refundPerPlayerWei,
+        noWinnerCausePoolWei: settlement.noWinnerCausePoolWei,
+        noWinnerCauseDistributedWei: settlement.noWinnerCauseDistributedWei,
+      },
       round: snapshot.round,
       shareStreak: snapshot.shareStreak,
       counts: {
@@ -1208,6 +1707,11 @@ export async function collectGameEvidence(options = {}) {
       registry: context.registryAddress,
       verifier,
       participants: authParticipants,
+    },
+    payouts: {
+      gameId: context.gameId,
+      evidenceWindow,
+      ...payouts,
     },
     messages,
   };
@@ -1262,6 +1766,10 @@ export async function exportGameEvidence(options = {}) {
     artifact: "auth.json",
     path: writeJsonArtifact(outputDir, "auth.json", evidence.auth),
   });
+  produced.push({
+    artifact: "payouts.json",
+    path: writeJsonArtifact(outputDir, "payouts.json", evidence.payouts),
+  });
 
   if (evidence.summary.addresses.chat) {
     produced.push({
@@ -1276,12 +1784,6 @@ export async function exportGameEvidence(options = {}) {
         "No GameChat address was provided or discovered for this chain, so message export was skipped.",
     });
   }
-
-  skipped.push({
-    artifact: "payouts.json",
-    reason:
-      "Current contracts do not implement winner/no-winner settlement, refund claims, or payout routing outputs yet.",
-  });
 
   const manifest = {
     schemaVersion: "prisoners-daollema/evidence-v0",
@@ -1337,6 +1839,7 @@ export function printEvidenceSummary(summary) {
   );
   console.log(`Phase:          ${summary.game.phase}`);
   console.log(`Outcome:        ${summary.game.outcome}`);
+  console.log(`Settlement:     ${summary.game.settlement.finalized ? "finalized" : "pending"}`);
   console.log(`Round:          ${summary.game.round}`);
   console.log(`Joined:         ${summary.game.counts.joined}`);
   console.log(`Alive:          ${summary.game.counts.alive}`);

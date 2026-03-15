@@ -2,6 +2,7 @@
 pragma solidity ^0.8.23;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IAgentAuthRegistry {
     function isAuthorized(address wallet) external view returns (bool);
@@ -9,17 +10,17 @@ interface IAgentAuthRegistry {
 }
 
 /// @title Prisoners DAOllema
-/// @notice Real v1 game/join foundation for the Prisoners DAOllema hackathon build.
-/// @dev This slice intentionally implements only:
+/// @notice Real v1 game foundation for the Prisoners DAOllema hackathon build.
+/// @dev This slice implements:
 ///      - global config / cause whitelist management
 ///      - one-active-game-at-a-time game creation into JOINING
-///      - per-game config snapshots, including treasury snapshot scaffolding for later settlement
+///      - per-game config snapshots, including settlement-critical treasury/cause snapshots
 ///      - auth-gated join flow with wallet/agent uniqueness checks
-///      - join -> commit -> reveal timing transitions
-///      - current-round commit/reveal storage and validation
-///      - cheap read helpers for later chat/replay/indexing work
-///      Settlement, refunds, and round resolution remain for later slices.
-contract PrisonersDaollema is Ownable {
+///      - join -> commit -> reveal -> resolve timing transitions
+///      - canonical round resolution with defaulted SHARE handling
+///      - elimination, share-streak, terminal outcomes, and settlement finalization
+///      - winner claims, cancelled-game refunds, and pull-based cause/treasury withdrawals
+contract PrisonersDaollema is Ownable, ReentrancyGuard {
     error InvalidTreasury();
     error InvalidAuthRegistry();
     error InvalidRecipient();
@@ -35,8 +36,10 @@ contract PrisonersDaollema is Ownable {
     error CommitWindowClosed();
     error RevealWindowClosed();
     error CommitPhaseStillOpen();
+    error RevealPhaseStillOpen();
     error MinimumPlayersMet();
     error InvalidPhaseAdvance();
+    error InvalidResolutionState();
     error UnauthorizedWallet();
     error DuplicateWallet();
     error DuplicateAgentKey();
@@ -52,11 +55,19 @@ contract PrisonersDaollema is Ownable {
     error InvalidChoice();
     error DuplicateReveal();
     error InvalidRevealPreimage();
+    error ClaimUnavailable();
+    error RefundUnavailable();
+    error AlreadyClaimed();
+    error AlreadyRefunded();
+    error NothingToWithdraw();
+    error TransferFailed();
+    error SettlementAlreadyFinalized();
 
     uint16 public constant MAX_PLAYER_CAP = 256;
     uint16 public constant MAX_CAUSE_CAP = 16;
     uint16 public constant MAX_FEE_BPS = 500;
     uint16 public constant BPS_DENOMINATOR = 10_000;
+    uint16 public constant NO_WINNER_CAUSE_BPS = 9_000;
 
     enum Choice {
         Unset,
@@ -131,6 +142,8 @@ contract PrisonersDaollema is Ownable {
         uint16 causeId;
         bytes32 commitment;
         Choice revealedChoice;
+        Choice effectiveChoice;
+        uint32 lastChoiceRound;
     }
 
     struct CauseDefinition {
@@ -144,6 +157,26 @@ contract PrisonersDaollema is Ownable {
         uint16 entrantCount;
         address recipient;
         bytes32 metadataHash;
+    }
+
+    struct SettlementState {
+        uint256 totalPotWei;
+        uint256 creatorFeeWei;
+        uint256 treasuryAccruedWei;
+        uint256 treasuryWithdrawnWei;
+        uint256 winnerShareWei;
+        uint256 refundPerPlayerWei;
+        uint256 noWinnerCausePoolWei;
+        uint256 noWinnerCauseDistributedWei;
+        uint16 winnerCount;
+        bool finalized;
+    }
+
+    struct ResolutionTally {
+        uint16 sharers;
+        uint16 catchers;
+        uint16 stealers;
+        uint16 eliminatedCount;
     }
 
     address public treasury;
@@ -165,6 +198,9 @@ contract PrisonersDaollema is Ownable {
     mapping(uint256 gameId => address[] roster) private _playerList;
     mapping(uint256 gameId => mapping(uint16 causeId => GameCauseState causeState)) private _gameCauses;
     mapping(uint256 gameId => uint16[] causeIds) private _gameCauseIds;
+    mapping(uint256 gameId => SettlementState settlement) private _settlements;
+    mapping(uint256 gameId => mapping(uint16 causeId => uint256 routedWei)) private _gameCauseRoutedWei;
+    mapping(uint256 gameId => mapping(uint16 causeId => uint256 withdrawnWei)) private _gameCauseWithdrawnWei;
 
     event TreasuryUpdated(address indexed previousTreasury, address indexed newTreasury);
     event AuthRegistryUpdated(address indexed previousAuthRegistry, address indexed newAuthRegistry);
@@ -191,11 +227,58 @@ contract PrisonersDaollema is Ownable {
     );
     event PhaseAdvanced(uint256 indexed gameId, Phase newPhase);
     event GameCancelled(uint256 indexed gameId);
+    event GameEnded(uint256 indexed gameId, Outcome outcome, uint32 round, uint16 winnerCount, uint32 shareStreak);
     event PlayerJoined(
         uint256 indexed gameId, address indexed wallet, bytes32 indexed agentKey, uint16 causeId, uint16 joinedCount
     );
     event Committed(uint256 indexed gameId, uint32 indexed round, address indexed wallet, bytes32 commitment);
     event Revealed(uint256 indexed gameId, uint32 indexed round, address indexed wallet, Choice choice);
+    event EffectiveChoiceMaterialized(
+        uint256 indexed gameId,
+        uint32 indexed round,
+        address indexed wallet,
+        Choice choice,
+        bool defaultedCommit,
+        bool defaultedReveal
+    );
+    event PlayerEliminated(uint256 indexed gameId, uint32 indexed round, address indexed wallet, Choice choice);
+    event RoundResolved(
+        uint256 indexed gameId,
+        uint32 indexed round,
+        uint16 sharers,
+        uint16 catchers,
+        uint16 stealers,
+        uint16 eliminatedCount,
+        uint16 aliveCount,
+        uint32 shareStreak
+    );
+    event SettlementFinalized(
+        uint256 indexed gameId,
+        Outcome outcome,
+        uint256 totalPotWei,
+        uint256 creatorFeeWei,
+        uint16 winnerCount,
+        uint256 winnerShareWei,
+        uint256 refundPerPlayerWei,
+        uint256 noWinnerCausePoolWei,
+        uint256 treasuryAccruedWei
+    );
+    event PrizeClaimed(
+        uint256 indexed gameId,
+        address indexed wallet,
+        uint16 indexed causeId,
+        uint256 grossPrizeWei,
+        uint256 causeCutWei,
+        uint256 netPrizeWei,
+        address causeRecipient
+    );
+    event RefundClaimed(uint256 indexed gameId, address indexed wallet, uint256 refundWei);
+    event NoWinnerDistributed(
+        uint256 indexed gameId, uint16 indexed causeId, address indexed recipient, uint256 amountWei
+    );
+    event TreasuryAccrued(uint256 indexed gameId, address indexed treasury, uint256 amountWei);
+    event TreasuryWithdrawal(uint256 indexed gameId, address indexed recipient, uint256 amountWei);
+    event CauseWithdrawal(uint256 indexed gameId, uint16 indexed causeId, address indexed recipient, uint256 amountWei);
 
     constructor(address owner_, address treasury_, address authRegistry_, GameConfig memory defaultConfig_)
         Ownable(owner_)
@@ -317,6 +400,12 @@ contract PrisonersDaollema is Ownable {
             return;
         }
 
+        if (game.phase == Phase.Reveal) {
+            if (!_revealPhaseReadyForResolution(game)) revert RevealPhaseStillOpen();
+            _resolveRound(gameId, game);
+            return;
+        }
+
         revert InvalidPhaseAdvance();
     }
 
@@ -373,7 +462,9 @@ contract PrisonersDaollema is Ownable {
             agentKey: agentKey,
             causeId: causeId,
             commitment: bytes32(0),
-            revealedChoice: Choice.Unset
+            revealedChoice: Choice.Unset,
+            effectiveChoice: Choice.Unset,
+            lastChoiceRound: 0
         });
 
         game.joinedCount += 1;
@@ -430,6 +521,145 @@ contract PrisonersDaollema is Ownable {
         emit Revealed(gameId, game.round, msg.sender, choice);
     }
 
+    function claim(uint256 gameId) external nonReentrant {
+        GameSnapshot storage game = _games[gameId];
+        if (!_gameExists(gameId)) revert MissingGame();
+        if (game.phase != Phase.Ended || game.outcome != Outcome.Winners) revert ClaimUnavailable();
+
+        PlayerState storage player = _players[gameId][msg.sender];
+        if (!player.joined) revert PlayerNotJoined();
+        if (!player.alive) revert ClaimUnavailable();
+        if (player.claimed) revert AlreadyClaimed();
+        if (player.refunded) revert AlreadyRefunded();
+
+        SettlementState memory settlement = _settlements[gameId];
+        if (!settlement.finalized || settlement.winnerCount == 0) revert ClaimUnavailable();
+
+        player.claimed = true;
+
+        uint256 grossPrizeWei = settlement.winnerShareWei;
+        GameCauseState storage causeState = _gameCauses[gameId][player.causeId];
+        uint256 causeCutWei = grossPrizeWei * uint256(game.causeFeeBps) / BPS_DENOMINATOR;
+        uint256 netPrizeWei = grossPrizeWei - causeCutWei;
+
+        if (causeCutWei != 0) {
+            _gameCauseRoutedWei[gameId][player.causeId] += causeCutWei;
+        }
+
+        _payout(msg.sender, netPrizeWei);
+
+        emit PrizeClaimed(
+            gameId, msg.sender, player.causeId, grossPrizeWei, causeCutWei, netPrizeWei, causeState.recipient
+        );
+    }
+
+    function claimRefund(uint256 gameId) external nonReentrant {
+        GameSnapshot storage game = _games[gameId];
+        if (!_gameExists(gameId)) revert MissingGame();
+        if (game.phase != Phase.Cancelled || game.outcome != Outcome.Cancelled) revert RefundUnavailable();
+
+        PlayerState storage player = _players[gameId][msg.sender];
+        if (!player.joined) revert PlayerNotJoined();
+        if (player.refunded) revert AlreadyRefunded();
+        if (player.claimed) revert AlreadyClaimed();
+
+        SettlementState memory settlement = _settlements[gameId];
+        if (!settlement.finalized) revert RefundUnavailable();
+
+        player.refunded = true;
+
+        uint256 refundWei = settlement.refundPerPlayerWei;
+        _payout(msg.sender, refundWei);
+
+        emit RefundClaimed(gameId, msg.sender, refundWei);
+    }
+
+    function withdrawTreasury(uint256 gameId) external nonReentrant {
+        GameSnapshot storage game = _games[gameId];
+        if (!_gameExists(gameId)) revert MissingGame();
+
+        SettlementState storage settlement = _settlements[gameId];
+        uint256 amountWei = treasuryClaimableAmount(gameId);
+        if (amountWei == 0) revert NothingToWithdraw();
+
+        settlement.treasuryWithdrawnWei += amountWei;
+        _payout(game.treasury, amountWei);
+
+        emit TreasuryWithdrawal(gameId, game.treasury, amountWei);
+    }
+
+    function withdrawCause(uint256 gameId, uint16 causeId) external nonReentrant {
+        if (!_gameExists(gameId)) revert MissingGame();
+
+        GameCauseState storage causeState = _gameCauses[gameId][causeId];
+        if (!causeState.used) revert InvalidCause();
+
+        uint256 amountWei = gameCauseClaimableAmount(gameId, causeId);
+        if (amountWei == 0) revert NothingToWithdraw();
+
+        _gameCauseWithdrawnWei[gameId][causeId] += amountWei;
+        _payout(causeState.recipient, amountWei);
+
+        emit CauseWithdrawal(gameId, causeId, causeState.recipient, amountWei);
+    }
+
+    function previewWinnerClaim(uint256 gameId, address wallet)
+        external
+        view
+        returns (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool availableNow)
+    {
+        if (!_gameExists(gameId)) return (0, 0, 0, false);
+
+        GameSnapshot storage game = _games[gameId];
+        PlayerState storage player = _players[gameId][wallet];
+        SettlementState storage settlement = _settlements[gameId];
+
+        bool eligibleWinner = game.phase == Phase.Ended && game.outcome == Outcome.Winners && player.joined
+            && player.alive && settlement.finalized;
+        if (!eligibleWinner) return (0, 0, 0, false);
+
+        grossPrizeWei = settlement.winnerShareWei;
+        causeCutWei = grossPrizeWei * uint256(game.causeFeeBps) / BPS_DENOMINATOR;
+        netPrizeWei = grossPrizeWei - causeCutWei;
+        availableNow = !player.claimed && !player.refunded;
+    }
+
+    function previewRefund(uint256 gameId, address wallet)
+        external
+        view
+        returns (uint256 refundWei, bool availableNow)
+    {
+        if (!_gameExists(gameId)) return (0, false);
+
+        GameSnapshot storage game = _games[gameId];
+        PlayerState storage player = _players[gameId][wallet];
+        SettlementState storage settlement = _settlements[gameId];
+
+        bool eligibleRefund =
+            game.phase == Phase.Cancelled && game.outcome == Outcome.Cancelled && player.joined && settlement.finalized;
+        if (!eligibleRefund) return (0, false);
+
+        refundWei = settlement.refundPerPlayerWei;
+        availableNow = !player.refunded && !player.claimed;
+    }
+
+    function treasuryClaimableAmount(uint256 gameId) public view returns (uint256) {
+        SettlementState storage settlement = _settlements[gameId];
+        return settlement.treasuryAccruedWei - settlement.treasuryWithdrawnWei;
+    }
+
+    function gameCauseClaimableAmount(uint256 gameId, uint16 causeId) public view returns (uint256) {
+        return _gameCauseRoutedWei[gameId][causeId] - _gameCauseWithdrawnWei[gameId][causeId];
+    }
+
+    function gameCauseRoutedAmount(uint256 gameId, uint16 causeId) external view returns (uint256) {
+        return _gameCauseRoutedWei[gameId][causeId];
+    }
+
+    function gameCauseWithdrawnAmount(uint256 gameId, uint16 causeId) external view returns (uint256) {
+        return _gameCauseWithdrawnWei[gameId][causeId];
+    }
+
     function isAdmissionReady(address wallet) external view returns (bool) {
         if (wallet == address(0) || authRegistry == address(0)) return false;
         return _isAuthorized(wallet);
@@ -450,6 +680,10 @@ contract PrisonersDaollema is Ownable {
 
     function getGame(uint256 gameId) external view returns (GameSnapshot memory) {
         return _games[gameId];
+    }
+
+    function getSettlement(uint256 gameId) external view returns (SettlementState memory) {
+        return _settlements[gameId];
     }
 
     function chatContext(uint256 gameId) external view returns (uint32 round, uint8 phase) {
@@ -531,6 +765,9 @@ contract PrisonersDaollema is Ownable {
         if (game.phase == Phase.Commit) {
             return _commitPhaseAdvanceReady(game);
         }
+        if (game.phase == Phase.Reveal) {
+            return _revealPhaseReadyForResolution(game);
+        }
 
         return false;
     }
@@ -594,7 +831,7 @@ contract PrisonersDaollema is Ownable {
     function _validateGameConfig(GameConfig memory config) internal pure {
         if (
             config.entryFeeWei == 0 || config.joinDurationSeconds == 0 || config.commitDurationBlocks == 0
-                || config.revealDurationBlocks == 0 || config.minPlayers == 0 || config.maxPlayers == 0
+                || config.revealDurationBlocks == 0 || config.minPlayers < 2 || config.maxPlayers == 0
                 || config.maxCauses == 0 || config.minPlayers > config.maxPlayers || config.maxPlayers > MAX_PLAYER_CAP
                 || config.maxCauses > MAX_CAUSE_CAP || config.maxCauses > config.maxPlayers
                 || config.creatorFeeBps > MAX_FEE_BPS || config.causeFeeBps > MAX_FEE_BPS
@@ -604,6 +841,8 @@ contract PrisonersDaollema is Ownable {
     }
 
     function _startCommitPhase(uint256 gameId, GameSnapshot storage game) internal {
+        _resetRoundStateForAlivePlayers(gameId);
+
         game.phase = Phase.Commit;
         game.round += 1;
         game.committedCount = 0;
@@ -622,9 +861,266 @@ contract PrisonersDaollema is Ownable {
         emit PhaseAdvanced(gameId, Phase.Reveal);
     }
 
+    function _resolveRound(uint256 gameId, GameSnapshot storage game) internal {
+        uint32 resolvedRound = game.round;
+        ResolutionTally memory tally = _materializeEffectiveChoices(gameId, resolvedRound);
+
+        bool hasShare = tally.sharers != 0;
+        bool hasCatch = tally.catchers != 0;
+        bool hasSteal = tally.stealers != 0;
+
+        if (hasShare && !hasCatch && !hasSteal) {
+            game.shareStreak += 1;
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                0,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            if (game.aliveCount == 1 || game.shareStreak >= 3) {
+                _endResolvedGame(gameId, game, Outcome.Winners);
+                return;
+            }
+
+            _startCommitPhase(gameId, game);
+            return;
+        }
+
+        game.shareStreak = 0;
+
+        if (!hasShare && hasCatch && !hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Catch);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            _endResolvedGame(gameId, game, Outcome.NoWinners);
+            return;
+        }
+
+        if (!hasShare && !hasCatch && hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Steal);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            _endResolvedGame(gameId, game, Outcome.NoWinners);
+            return;
+        }
+
+        if (hasShare && hasCatch && !hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Catch);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            if (game.aliveCount == 1) {
+                _endResolvedGame(gameId, game, Outcome.Winners);
+                return;
+            }
+
+            _startCommitPhase(gameId, game);
+            return;
+        }
+
+        if (!hasShare && hasCatch && hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Steal);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            if (game.aliveCount == 1) {
+                _endResolvedGame(gameId, game, Outcome.Winners);
+                return;
+            }
+
+            _startCommitPhase(gameId, game);
+            return;
+        }
+
+        if (hasShare && !hasCatch && hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Share);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            _endResolvedGame(gameId, game, Outcome.Winners);
+            return;
+        }
+
+        if (hasShare && hasCatch && hasSteal) {
+            tally.eliminatedCount = _eliminateMatchingChoice(gameId, game, resolvedRound, Choice.Steal);
+
+            emit RoundResolved(
+                gameId,
+                resolvedRound,
+                tally.sharers,
+                tally.catchers,
+                tally.stealers,
+                tally.eliminatedCount,
+                game.aliveCount,
+                game.shareStreak
+            );
+
+            if (game.aliveCount == 1) {
+                _endResolvedGame(gameId, game, Outcome.Winners);
+                return;
+            }
+
+            _startCommitPhase(gameId, game);
+            return;
+        }
+
+        revert InvalidResolutionState();
+    }
+
+    function _materializeEffectiveChoices(uint256 gameId, uint32 round)
+        internal
+        returns (ResolutionTally memory tally)
+    {
+        address[] storage roster = _playerList[gameId];
+        uint256 rosterLength = roster.length;
+
+        for (uint256 index = 0; index < rosterLength; ++index) {
+            PlayerState storage player = _players[gameId][roster[index]];
+            if (!player.alive) continue;
+
+            (Choice choice, bool defaultedCommit, bool defaultedReveal) = _effectiveChoiceFor(player);
+
+            player.effectiveChoice = choice;
+            player.lastChoiceRound = round;
+
+            if (choice == Choice.Share) {
+                tally.sharers += 1;
+            } else if (choice == Choice.Catch) {
+                tally.catchers += 1;
+            } else if (choice == Choice.Steal) {
+                tally.stealers += 1;
+            } else {
+                revert InvalidChoice();
+            }
+
+            emit EffectiveChoiceMaterialized(gameId, round, player.wallet, choice, defaultedCommit, defaultedReveal);
+        }
+    }
+
+    function _eliminateMatchingChoice(uint256 gameId, GameSnapshot storage game, uint32 round, Choice choice)
+        internal
+        returns (uint16 eliminatedCount)
+    {
+        address[] storage roster = _playerList[gameId];
+        uint256 rosterLength = roster.length;
+
+        for (uint256 index = 0; index < rosterLength; ++index) {
+            PlayerState storage player = _players[gameId][roster[index]];
+            if (!player.alive || player.lastChoiceRound != round || player.effectiveChoice != choice) continue;
+
+            player.alive = false;
+            eliminatedCount += 1;
+            game.aliveCount -= 1;
+
+            emit PlayerEliminated(gameId, round, player.wallet, choice);
+        }
+    }
+
+    function _effectiveChoiceFor(PlayerState storage player)
+        internal
+        view
+        returns (Choice choice, bool defaultedCommit, bool defaultedReveal)
+    {
+        if (!player.committedThisRound) {
+            return (Choice.Share, true, false);
+        }
+
+        if (!player.revealedThisRound) {
+            return (Choice.Share, false, true);
+        }
+
+        return (player.revealedChoice, false, false);
+    }
+
+    function _resetRoundStateForAlivePlayers(uint256 gameId) internal {
+        address[] storage roster = _playerList[gameId];
+        uint256 rosterLength = roster.length;
+
+        for (uint256 index = 0; index < rosterLength; ++index) {
+            PlayerState storage player = _players[gameId][roster[index]];
+            if (!player.alive) continue;
+
+            player.committedThisRound = false;
+            player.revealedThisRound = false;
+            player.commitment = bytes32(0);
+            player.revealedChoice = Choice.Unset;
+        }
+    }
+
+    function _endResolvedGame(uint256 gameId, GameSnapshot storage game, Outcome outcome) internal {
+        game.phase = Phase.Ended;
+        game.outcome = outcome;
+
+        _finalizeEndedSettlement(gameId, game, outcome);
+
+        if (activeGameId == gameId) {
+            activeGameId = 0;
+        }
+
+        uint16 winnerCount = outcome == Outcome.Winners ? game.aliveCount : 0;
+
+        emit GameEnded(gameId, outcome, game.round, winnerCount, game.shareStreak);
+        emit PhaseAdvanced(gameId, Phase.Ended);
+    }
+
     function _cancelGame(uint256 gameId, GameSnapshot storage game) internal {
         game.phase = Phase.Cancelled;
         game.outcome = Outcome.Cancelled;
+
+        _finalizeCancelledSettlement(gameId, game);
 
         if (activeGameId == gameId) {
             activeGameId = 0;
@@ -632,6 +1128,105 @@ contract PrisonersDaollema is Ownable {
 
         emit GameCancelled(gameId);
         emit PhaseAdvanced(gameId, Phase.Cancelled);
+    }
+
+    function _finalizeEndedSettlement(uint256 gameId, GameSnapshot storage game, Outcome outcome) internal {
+        SettlementState storage settlement = _settlements[gameId];
+        if (settlement.finalized) revert SettlementAlreadyFinalized();
+
+        uint256 totalPotWei = game.entryFeeWei * uint256(game.joinedCount);
+        uint256 creatorFeeWei = totalPotWei * uint256(game.creatorFeeBps) / BPS_DENOMINATOR;
+        uint256 postCreatorPotWei = totalPotWei - creatorFeeWei;
+
+        settlement.totalPotWei = totalPotWei;
+        settlement.creatorFeeWei = creatorFeeWei;
+        settlement.finalized = true;
+
+        if (outcome == Outcome.Winners) {
+            uint16 winnerCount = game.aliveCount;
+            if (winnerCount == 0) revert InvalidResolutionState();
+
+            uint256 winnerShareWei = postCreatorPotWei / uint256(winnerCount);
+            uint256 treasuryAccruedWei = creatorFeeWei + (postCreatorPotWei - (winnerShareWei * uint256(winnerCount)));
+
+            settlement.treasuryAccruedWei = treasuryAccruedWei;
+            settlement.winnerShareWei = winnerShareWei;
+            settlement.winnerCount = winnerCount;
+
+            if (treasuryAccruedWei != 0) {
+                emit TreasuryAccrued(gameId, game.treasury, treasuryAccruedWei);
+            }
+
+            emit SettlementFinalized(
+                gameId, outcome, totalPotWei, creatorFeeWei, winnerCount, winnerShareWei, 0, 0, treasuryAccruedWei
+            );
+            return;
+        }
+
+        if (outcome == Outcome.NoWinners) {
+            uint256 noWinnerCausePoolWei = postCreatorPotWei * NO_WINNER_CAUSE_BPS / BPS_DENOMINATOR;
+            uint256 distributedCauseWei = _distributeNoWinnerCausePool(gameId, game.joinedCount, noWinnerCausePoolWei);
+            uint256 treasuryAccruedWei = totalPotWei - distributedCauseWei;
+
+            settlement.treasuryAccruedWei = treasuryAccruedWei;
+            settlement.noWinnerCausePoolWei = noWinnerCausePoolWei;
+            settlement.noWinnerCauseDistributedWei = distributedCauseWei;
+
+            if (treasuryAccruedWei != 0) {
+                emit TreasuryAccrued(gameId, game.treasury, treasuryAccruedWei);
+            }
+
+            emit SettlementFinalized(
+                gameId, outcome, totalPotWei, creatorFeeWei, 0, 0, 0, noWinnerCausePoolWei, treasuryAccruedWei
+            );
+            return;
+        }
+
+        revert InvalidResolutionState();
+    }
+
+    function _distributeNoWinnerCausePool(uint256 gameId, uint16 joinedCount, uint256 noWinnerCausePoolWei)
+        internal
+        returns (uint256 distributedCauseWei)
+    {
+        if (joinedCount == 0 || noWinnerCausePoolWei == 0) return 0;
+
+        uint16[] storage causeIds = _gameCauseIds[gameId];
+        uint256 causeIdsLength = causeIds.length;
+
+        for (uint256 index = 0; index < causeIdsLength; ++index) {
+            uint16 causeId = causeIds[index];
+            GameCauseState storage causeState = _gameCauses[gameId][causeId];
+            uint256 causeAmountWei = noWinnerCausePoolWei * uint256(causeState.entrantCount) / uint256(joinedCount);
+
+            distributedCauseWei += causeAmountWei;
+            _gameCauseRoutedWei[gameId][causeId] += causeAmountWei;
+
+            if (causeAmountWei != 0) {
+                emit NoWinnerDistributed(gameId, causeId, causeState.recipient, causeAmountWei);
+            }
+        }
+    }
+
+    function _finalizeCancelledSettlement(uint256 gameId, GameSnapshot storage game) internal {
+        SettlementState storage settlement = _settlements[gameId];
+        if (settlement.finalized) revert SettlementAlreadyFinalized();
+
+        settlement.totalPotWei = game.entryFeeWei * uint256(game.joinedCount);
+        settlement.refundPerPlayerWei = game.entryFeeWei;
+        settlement.finalized = true;
+
+        emit SettlementFinalized(
+            gameId, Outcome.Cancelled, settlement.totalPotWei, 0, 0, 0, settlement.refundPerPlayerWei, 0, 0
+        );
+    }
+
+    function _payout(address recipient, uint256 amountWei) internal {
+        if (amountWei == 0) return;
+        if (recipient == address(0)) revert InvalidRecipient();
+
+        (bool success,) = recipient.call{ value: amountWei }("");
+        if (!success) revert TransferFailed();
     }
 
     function _commitPhaseAdvanceReady(GameSnapshot memory game) internal view returns (bool) {

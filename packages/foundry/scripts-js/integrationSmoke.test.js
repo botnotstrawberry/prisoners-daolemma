@@ -204,9 +204,9 @@ test(
     await (await game.connect(player2).commit(1, commitment2)).wait();
     await (await game.advancePhase(1)).wait();
 
-    await (await chat.connect(player2).postCause(1, 2, "cause two reporting in")).wait();
     await (await game.connect(player1).reveal(1, shareChoice, salt1)).wait();
     await (await game.connect(player2).reveal(1, catchChoice, salt2)).wait();
+    await (await chat.connect(player2).postCause(1, 2, "cause two reporting in")).wait();
 
     assert.equal(await game.isRoundReadyForResolution(1), true);
 
@@ -237,6 +237,9 @@ test(
     const causes = JSON.parse(readFileSync(join(exportDir, "causes.json"), "utf8"));
     const rounds = JSON.parse(readFileSync(join(exportDir, "rounds.json"), "utf8"));
     const auth = JSON.parse(readFileSync(join(exportDir, "auth.json"), "utf8"));
+    const payouts = JSON.parse(
+      readFileSync(join(exportDir, "payouts.json"), "utf8")
+    );
     const messages = parseMessagesJsonl(
       readFileSync(join(exportDir, "messages.jsonl"), "utf8")
     );
@@ -251,7 +254,7 @@ test(
       )
     );
     assert.ok(
-      manifest.skipped.some((artifact) => artifact.artifact === "payouts.json")
+      manifest.produced.some((artifact) => artifact.artifact === "payouts.json")
     );
 
     assert.equal(summary.game.phase, "Reveal");
@@ -264,11 +267,15 @@ test(
       summary.capabilities.available.includes("game-chat-message-export")
     );
     assert.ok(
-      summary.capabilities.unavailable.includes("round-resolution-outcomes")
+      summary.capabilities.available.includes("round-resolution-outcomes")
     );
     assert.ok(
-      summary.capabilities.unavailable.includes("claim-refund-settlement-data")
+      summary.capabilities.available.includes("claim-refund-settlement-data")
     );
+    assert.ok(
+      summary.capabilities.available.includes("payout-destination-audit")
+    );
+    assert.deepEqual(summary.capabilities.unavailable, []);
 
     assert.equal(roster.participants.length, 2);
     assert.deepEqual(
@@ -292,6 +299,10 @@ test(
     assert.equal(rounds.rounds[0].reveals.length, 2);
     assert.equal(rounds.rounds[0].resolutionAvailable, false);
     assert.equal(rounds.rounds[0].settlementAvailable, false);
+
+    assert.equal(payouts.settlement.finalized, false);
+    assert.equal(payouts.events.prizeClaims.length, 0);
+    assert.equal(payouts.causes.length, 2);
 
     assert.equal(auth.participants.length, 2);
     assert.ok(
