@@ -6,7 +6,7 @@ import { tmpdir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ethers } from "ethers";
-import { parseMessagesJsonl } from "./queryTooling.js";
+import { collectGameEvidence, parseMessagesJsonl } from "./queryTooling.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageDir = join(__dirname, "..");
@@ -53,7 +53,14 @@ let anvilProcess;
 before(async () => {
   anvilProcess = spawn(
     "anvil",
-    ["--port", ANVIL_PORT, "--chain-id", "31337", "--code-size-limit", "131072"],
+    [
+      "--port",
+      ANVIL_PORT,
+      "--chain-id",
+      "31337",
+      "--code-size-limit",
+      "131072",
+    ],
     {
       cwd: packageDir,
       stdio: "ignore",
@@ -74,7 +81,249 @@ after(async () => {
   });
 });
 
-test("query export writes honest evidence artifacts for current auth/game/chat state", async () => {
+test(
+  "query export writes honest evidence artifacts for current auth/game/chat state",
+  { concurrency: false },
+  async () => {
+    const { registry, game, chat } = await setupEvidenceFixture();
+
+    const outputDir = mkdtempSync(join(tmpdir(), "pd-query-export-"));
+    const manifest = JSON.parse(
+      runCli([
+        "export",
+        "--rpc-url",
+        RPC_URL,
+        "--game",
+        game.address,
+        "--registry",
+        registry.address,
+        "--chat",
+        chat.address,
+        "--game-id",
+        "1",
+        "--out",
+        outputDir,
+        "--json",
+      ])
+    );
+
+    const summary = JSON.parse(
+      readFileSync(join(outputDir, "game-summary.json"), "utf8")
+    );
+    const roster = JSON.parse(
+      readFileSync(join(outputDir, "roster.json"), "utf8")
+    );
+    const causes = JSON.parse(
+      readFileSync(join(outputDir, "causes.json"), "utf8")
+    );
+    const rounds = JSON.parse(
+      readFileSync(join(outputDir, "rounds.json"), "utf8")
+    );
+    const auth = JSON.parse(readFileSync(join(outputDir, "auth.json"), "utf8"));
+    const messages = parseMessagesJsonl(
+      readFileSync(join(outputDir, "messages.jsonl"), "utf8")
+    );
+
+    assert.equal(manifest.gameId, 1);
+    assert.ok(
+      manifest.produced.some(
+        (artifact) => artifact.artifact === "messages.jsonl"
+      )
+    );
+    assert.ok(
+      manifest.skipped.some((artifact) => artifact.artifact === "payouts.json")
+    );
+    assert.equal(
+      manifest.evidenceWindow.logRange.coversFullHistoryToStateSnapshot,
+      true
+    );
+    assert.equal(
+      manifest.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
+      false
+    );
+
+    assert.equal(summary.game.phase, "Reveal");
+    assert.equal(summary.game.round, 1);
+    assert.equal(summary.game.counts.joined, 2);
+    assert.equal(summary.game.counts.messages, 2);
+    assert.equal(
+      summary.evidenceWindow.logRange.coversFullHistoryToStateSnapshot,
+      true
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
+      false
+    );
+    assert.ok(
+      summary.capabilities.unavailable.includes("round-resolution-outcomes")
+    );
+
+    assert.deepEqual(manifest.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(roster.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(causes.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(rounds.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(auth.evidenceWindow, summary.evidenceWindow);
+
+    assert.equal(roster.participants.length, 2);
+    assert.deepEqual(
+      roster.participants.map((participant) => participant.auth.status),
+      ["active", "active"]
+    );
+    assert.deepEqual(
+      roster.participants.map((participant) => participant.causeId),
+      [1, 2]
+    );
+
+    assert.equal(causes.usedCauses.length, 2);
+    assert.deepEqual(
+      causes.usedCauses.map((cause) => cause.causeId),
+      [1, 2]
+    );
+
+    assert.equal(rounds.rounds.length, 1);
+    assert.equal(rounds.rounds[0].round, 1);
+    assert.equal(rounds.rounds[0].resolutionAvailable, false);
+    assert.equal(rounds.rounds[0].commits.length, 1);
+    assert.equal(rounds.rounds[0].reveals.length, 1);
+
+    assert.equal(auth.participants.length, 2);
+    assert.ok(
+      auth.participants.every((participant) =>
+        participant.events.some((event) => event.type === "AuthRegistered")
+      )
+    );
+
+    assert.equal(messages.length, 2);
+    assert.equal(messages[0].scope, "global");
+    assert.equal(messages[0].isParticipant, true);
+    assert.equal(messages[1].scope, "cause");
+    assert.equal(messages[1].causeId, 2);
+    assert.equal(messages[1].isActualCauseSpeaker, true);
+    assert.equal(messages[1].senderCause, 2);
+  }
+);
+
+test(
+  "bounded query export labels partial hybrid evidence windows",
+  { concurrency: false },
+  async () => {
+    const { registry, game, chat, causeMessageReceipt } =
+      await setupEvidenceFixture();
+    const outputDir = mkdtempSync(join(tmpdir(), "pd-query-bounded-export-"));
+    const boundedBlock = String(causeMessageReceipt.blockNumber);
+
+    const manifest = JSON.parse(
+      runCli([
+        "export",
+        "--rpc-url",
+        RPC_URL,
+        "--game",
+        game.address,
+        "--registry",
+        registry.address,
+        "--chat",
+        chat.address,
+        "--game-id",
+        "1",
+        "--from-block",
+        boundedBlock,
+        "--to-block",
+        boundedBlock,
+        "--out",
+        outputDir,
+        "--json",
+      ])
+    );
+
+    const summary = JSON.parse(
+      readFileSync(join(outputDir, "game-summary.json"), "utf8")
+    );
+    const roster = JSON.parse(
+      readFileSync(join(outputDir, "roster.json"), "utf8")
+    );
+    const causes = JSON.parse(
+      readFileSync(join(outputDir, "causes.json"), "utf8")
+    );
+    const rounds = JSON.parse(
+      readFileSync(join(outputDir, "rounds.json"), "utf8")
+    );
+    const auth = JSON.parse(readFileSync(join(outputDir, "auth.json"), "utf8"));
+    const messages = parseMessagesJsonl(
+      readFileSync(join(outputDir, "messages.jsonl"), "utf8")
+    );
+
+    assert.equal(
+      summary.evidenceWindow.logRange.requestedFromBlock,
+      causeMessageReceipt.blockNumber
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.requestedToBlock,
+      causeMessageReceipt.blockNumber
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.resolvedFromBlock,
+      causeMessageReceipt.blockNumber
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.resolvedToBlock,
+      causeMessageReceipt.blockNumber
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.coversFullHistoryToStateSnapshot,
+      false
+    );
+    assert.equal(
+      summary.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
+      true
+    );
+    assert.deepEqual(manifest.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(roster.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(causes.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(rounds.evidenceWindow, summary.evidenceWindow);
+    assert.deepEqual(auth.evidenceWindow, summary.evidenceWindow);
+
+    assert.equal(summary.game.counts.messages, 1);
+    assert.equal(summary.game.counts.revealed, 1);
+    assert.equal(rounds.rounds.length, 1);
+    assert.equal(rounds.rounds[0].commits.length, 0);
+    assert.equal(rounds.rounds[0].reveals.length, 0);
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].scope, "cause");
+    assert.equal(messages[0].causeId, 2);
+    assert.ok(
+      summary.notes.some((note) => note.includes("bounded evidence slice"))
+    );
+    assert.ok(
+      summary.notes.some((note) => note.includes("intentionally hybrid"))
+    );
+  }
+);
+
+test(
+  "query tooling rejects a GameChat contract linked to a different game",
+  { concurrency: false },
+  async () => {
+    const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+    const verifier = ethers.Wallet.createRandom();
+    const registry = await deployRegistry(owner, verifier.address);
+    const selectedGame = await deployGame(owner, registry.address);
+    const otherGame = await deployGame(owner, registry.address);
+    const wrongChat = await deployChat(owner, otherGame.address);
+
+    await assert.rejects(
+      collectGameEvidence({
+        provider,
+        game: selectedGame.address,
+        chat: wrongChat.address,
+        gameId: 1,
+      }),
+      /Refusing to mix evidence across contracts/
+    );
+  }
+);
+
+async function setupEvidenceFixture() {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
   const verifier = ethers.Wallet.createRandom();
@@ -88,12 +337,30 @@ test("query export writes honest evidence artifacts for current auth/game/chat s
   const game = await deployGame(owner, registry.address);
   const chat = await deployChat(owner, game.address);
 
-  await (await game.whitelistCause(1, owner.address, ethers.utils.id("cause-a"))).wait();
-  await (await game.whitelistCause(2, owner.address, ethers.utils.id("cause-b"))).wait();
+  await (
+    await game.whitelistCause(1, owner.address, ethers.utils.id("cause-a"))
+  ).wait();
+  await (
+    await game.whitelistCause(2, owner.address, ethers.utils.id("cause-b"))
+  ).wait();
   await (await game.createGame()).wait();
 
-  await registerWallet({ provider, registry, verifier, wallet: player1, agentKeyText: "agent-alpha", nonceText: "nonce-alpha" });
-  await registerWallet({ provider, registry, verifier, wallet: player2, agentKeyText: "agent-beta", nonceText: "nonce-beta" });
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player1,
+    agentKeyText: "agent-alpha",
+    nonceText: "nonce-alpha",
+  });
+  await registerWallet({
+    provider,
+    registry,
+    verifier,
+    wallet: player2,
+    agentKeyText: "agent-beta",
+    nonceText: "nonce-beta",
+  });
 
   const entryFee = ethers.utils.parseEther("0.001");
   await (await game.connect(player1).join(1, 1, { value: entryFee })).wait();
@@ -103,7 +370,9 @@ test("query export writes honest evidence artifacts for current auth/game/chat s
   await provider.send("evm_mine", []);
   await (await game.advancePhase(1)).wait();
 
-  await (await chat.connect(player1).postGlobal(1, "hello judges")).wait();
+  const globalMessageReceipt = await (
+    await chat.connect(player1).postGlobal(1, "hello judges")
+  ).wait();
 
   const snapshotAfterCommitStart = await game.getGame(1);
   const round = Number(snapshotAfterCommitStart.round);
@@ -116,96 +385,37 @@ test("query export writes honest evidence artifacts for current auth/game/chat s
     shareChoice,
     salt
   );
-  await (await game.connect(player1).commit(1, commitment)).wait();
+  const commitReceipt = await (
+    await game.connect(player1).commit(1, commitment)
+  ).wait();
 
   await provider.send("evm_mine", []);
   await provider.send("evm_mine", []);
   await provider.send("evm_mine", []);
   await (await game.advancePhase(1)).wait();
 
-  await (await chat.connect(player2).postCause(1, 2, "cause two reporting in")).wait();
-  await (await game.connect(player1).reveal(1, shareChoice, salt)).wait();
+  const causeMessageReceipt = await (
+    await chat.connect(player2).postCause(1, 2, "cause two reporting in")
+  ).wait();
+  const revealReceipt = await (
+    await game.connect(player1).reveal(1, shareChoice, salt)
+  ).wait();
 
-  const outputDir = mkdtempSync(join(tmpdir(), "pd-query-export-"));
-  const manifest = JSON.parse(
-    runCli([
-      "export",
-      "--rpc-url",
-      RPC_URL,
-      "--game",
-      game.address,
-      "--registry",
-      registry.address,
-      "--chat",
-      chat.address,
-      "--game-id",
-      "1",
-      "--out",
-      outputDir,
-      "--json",
-    ])
-  );
-
-  const summary = JSON.parse(readFileSync(join(outputDir, "game-summary.json"), "utf8"));
-  const roster = JSON.parse(readFileSync(join(outputDir, "roster.json"), "utf8"));
-  const causes = JSON.parse(readFileSync(join(outputDir, "causes.json"), "utf8"));
-  const rounds = JSON.parse(readFileSync(join(outputDir, "rounds.json"), "utf8"));
-  const auth = JSON.parse(readFileSync(join(outputDir, "auth.json"), "utf8"));
-  const messages = parseMessagesJsonl(
-    readFileSync(join(outputDir, "messages.jsonl"), "utf8")
-  );
-
-  assert.equal(manifest.gameId, 1);
-  assert.ok(
-    manifest.produced.some((artifact) => artifact.artifact === "messages.jsonl")
-  );
-  assert.ok(
-    manifest.skipped.some((artifact) => artifact.artifact === "payouts.json")
-  );
-
-  assert.equal(summary.game.phase, "Reveal");
-  assert.equal(summary.game.round, 1);
-  assert.equal(summary.game.counts.joined, 2);
-  assert.equal(summary.game.counts.messages, 2);
-  assert.ok(
-    summary.capabilities.unavailable.includes("round-resolution-outcomes")
-  );
-
-  assert.equal(roster.participants.length, 2);
-  assert.deepEqual(
-    roster.participants.map((participant) => participant.auth.status),
-    ["active", "active"]
-  );
-  assert.deepEqual(
-    roster.participants.map((participant) => participant.causeId),
-    [1, 2]
-  );
-
-  assert.equal(causes.usedCauses.length, 2);
-  assert.deepEqual(
-    causes.usedCauses.map((cause) => cause.causeId),
-    [1, 2]
-  );
-
-  assert.equal(rounds.rounds.length, 1);
-  assert.equal(rounds.rounds[0].round, 1);
-  assert.equal(rounds.rounds[0].resolutionAvailable, false);
-  assert.equal(rounds.rounds[0].commits.length, 1);
-  assert.equal(rounds.rounds[0].reveals.length, 1);
-
-  assert.equal(auth.participants.length, 2);
-  assert.ok(
-    auth.participants.every((participant) => participant.events.some((event) => event.type === "AuthRegistered"))
-  );
-
-  assert.equal(messages.length, 2);
-  assert.equal(messages[0].scope, "global");
-  assert.equal(messages[0].isParticipant, true);
-  assert.equal(messages[1].scope, "cause");
-  assert.equal(messages[1].causeId, 2);
-  assert.equal(messages[1].isActualCauseSpeaker, true);
-  assert.equal(messages[1].senderCause, 2);
-});
+  return {
+    provider,
+    owner,
+    verifier,
+    player1,
+    player2,
+    registry,
+    game,
+    chat,
+    globalMessageReceipt,
+    commitReceipt,
+    causeMessageReceipt,
+    revealReceipt,
+  };
+}
 
 async function deployRegistry(owner, verifierAddress) {
   const factory = new ethers.ContractFactory(
@@ -224,17 +434,22 @@ async function deployGame(owner, registryAddress) {
     gameArtifact.bytecode.object,
     owner
   );
-  const contract = await factory.deploy(owner.address, owner.address, registryAddress, {
-    entryFeeWei: ethers.utils.parseEther("0.001"),
-    creatorFeeBps: 100,
-    causeFeeBps: 100,
-    joinDurationSeconds: 1,
-    commitDurationBlocks: 2,
-    revealDurationBlocks: 2,
-    minPlayers: 2,
-    maxPlayers: 4,
-    maxCauses: 2,
-  });
+  const contract = await factory.deploy(
+    owner.address,
+    owner.address,
+    registryAddress,
+    {
+      entryFeeWei: ethers.utils.parseEther("0.001"),
+      creatorFeeBps: 100,
+      causeFeeBps: 100,
+      joinDurationSeconds: 1,
+      commitDurationBlocks: 2,
+      revealDurationBlocks: 2,
+      minPlayers: 2,
+      maxPlayers: 4,
+      maxCauses: 2,
+    }
+  );
   await contract.deployed();
   return contract;
 }
@@ -250,7 +465,14 @@ async function deployChat(owner, gameAddress) {
   return contract;
 }
 
-async function registerWallet({ provider, registry, verifier, wallet, agentKeyText, nonceText }) {
+async function registerWallet({
+  provider,
+  registry,
+  verifier,
+  wallet,
+  agentKeyText,
+  nonceText,
+}) {
   const latestBlock = await provider.getBlock("latest");
   const network = await provider.getNetwork();
   const permit = {

@@ -11,6 +11,7 @@ contract GameChatTest is Test {
     uint16 internal constant CAUSE_A = 1;
     uint16 internal constant CAUSE_B = 2;
     uint256 internal constant MOCK_GAME_ID = 77;
+    uint256 internal constant MISSING_GAME_ID = type(uint256).max;
 
     bytes32 internal constant PLAYER1_AGENT = keccak256("agent-alpha");
 
@@ -94,6 +95,52 @@ contract GameChatTest is Test {
         vm.expectRevert(GameChat.NotJoined.selector);
         vm.prank(outsider);
         chat.postGlobal(realGameId, "let me in");
+
+        assertEq(chat.messageCount(), 0);
+    }
+
+    function testCannotPostGlobalToMissingGame() public {
+        _joinRealPlayer(player1, PLAYER1_AGENT, keccak256("nonce-global-missing-game"), CAUSE_A);
+
+        vm.expectRevert(GameChat.MissingGame.selector);
+        vm.prank(player1);
+        chat.postGlobal(MISSING_GAME_ID, "ghost game");
+
+        assertEq(chat.messageCount(), 0);
+    }
+
+    function testCannotPostEmptyGlobalMessage() public {
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+
+        vm.expectRevert(GameChat.EmptyMessage.selector);
+        vm.prank(player1);
+        mockChat.postGlobal(MOCK_GAME_ID, "");
+
+        assertEq(mockChat.messageCount(), 0);
+    }
+
+    function testCannotPostOversizedGlobalMessage() public {
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+
+        string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()) + 1);
+
+        vm.expectRevert(GameChat.MessageTooLong.selector);
+        vm.prank(player1);
+        mockChat.postGlobal(MOCK_GAME_ID, text);
+
+        assertEq(mockChat.messageCount(), 0);
+    }
+
+    function testMaxLengthGlobalMessageIsAllowed() public {
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+
+        string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()));
+
+        vm.prank(player1);
+        uint256 messageId = mockChat.postGlobal(MOCK_GAME_ID, text);
+
+        assertEq(messageId, 1);
+        assertEq(mockChat.messageCount(), 1);
     }
 
     function testAliveSameCauseParticipantCanPostCauseChat() public {
@@ -120,6 +167,48 @@ contract GameChatTest is Test {
         vm.expectRevert(GameChat.NotAlive.selector);
         vm.prank(player1);
         mockChat.postCause(MOCK_GAME_ID, CAUSE_A, "I should not be able to send this");
+
+        assertEq(mockChat.messageCount(), 0);
+    }
+
+    function testNonParticipantCannotPostCauseChat() public {
+        vm.expectRevert(GameChat.NotJoined.selector);
+        vm.prank(outsider);
+        chat.postCause(realGameId, CAUSE_A, "let me in");
+
+        assertEq(chat.messageCount(), 0);
+    }
+
+    function testCannotPostCauseChatToMissingGame() public {
+        _joinRealPlayer(player1, PLAYER1_AGENT, keccak256("nonce-cause-missing-game"), CAUSE_A);
+
+        vm.expectRevert(GameChat.MissingGame.selector);
+        vm.prank(player1);
+        chat.postCause(MISSING_GAME_ID, CAUSE_A, "ghost cause");
+
+        assertEq(chat.messageCount(), 0);
+    }
+
+    function testCannotPostEmptyCauseMessage() public {
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+
+        vm.expectRevert(GameChat.EmptyMessage.selector);
+        vm.prank(player1);
+        mockChat.postCause(MOCK_GAME_ID, CAUSE_A, "");
+
+        assertEq(mockChat.messageCount(), 0);
+    }
+
+    function testCannotPostOversizedCauseMessage() public {
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+
+        string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()) + 1);
+
+        vm.expectRevert(GameChat.MessageTooLong.selector);
+        vm.prank(player1);
+        mockChat.postCause(MOCK_GAME_ID, CAUSE_A, text);
+
+        assertEq(mockChat.messageCount(), 0);
     }
 
     function testMessageEventCarriesDeterministicScopeAndGameContext() public {
@@ -199,6 +288,14 @@ contract GameChatTest is Test {
 
         vm.prank(wallet);
         registry.registerAuth(permit, abi.encodePacked(r, s, v));
+    }
+
+    function _messageOfLength(uint256 length) internal pure returns (string memory) {
+        bytes memory buffer = new bytes(length);
+        for (uint256 i = 0; i < length; ++i) {
+            buffer[i] = bytes1("a");
+        }
+        return string(buffer);
     }
 
     function _defaultConfig() internal pure returns (PrisonersDaollema.GameConfig memory) {

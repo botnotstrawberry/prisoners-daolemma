@@ -56,6 +56,7 @@ export const REGISTRY_QUERY_ABI = [
 ];
 
 export const CHAT_QUERY_ABI = [
+  "function game() view returns (address)",
   "function messageCount() view returns (uint256)",
   "event MessagePosted(uint256 indexed gameId, uint256 indexed messageId, address indexed sender, uint32 round, uint8 phase, uint8 scope, uint16 causeId, uint64 createdAt, string text)",
 ];
@@ -104,7 +105,9 @@ function enumName(names, value, label) {
 }
 
 function normalizeCauseId(value) {
-  return value === null || value === undefined ? null : toNumber(value, "causeId");
+  return value === null || value === undefined
+    ? null
+    : toNumber(value, "causeId");
 }
 
 function parseNonNegativeInteger(value, label) {
@@ -123,6 +126,48 @@ function normalizeBlockTag(value, fallback, label) {
     return value;
   }
   return parseNonNegativeInteger(value, label);
+}
+
+function resolveBlockTag(value, stateSnapshotBlock) {
+  if (typeof value === "number") {
+    return value;
+  }
+  if (value === "earliest") {
+    return 0;
+  }
+  if (value === "latest" || value === "pending") {
+    return stateSnapshotBlock;
+  }
+  throw new Error(`Unsupported block tag '${value}'.`);
+}
+
+function formatBlockTag(value) {
+  return typeof value === "number" ? value.toString() : value;
+}
+
+function buildEvidenceWindow({
+  requestedFromBlock,
+  requestedToBlock,
+  resolvedFromBlock,
+  resolvedToBlock,
+  stateSnapshotBlock,
+  stateSnapshotTimestamp,
+}) {
+  return {
+    stateSnapshot: {
+      blockNumber: stateSnapshotBlock,
+      timestamp: stateSnapshotTimestamp,
+    },
+    logRange: {
+      requestedFromBlock,
+      requestedToBlock,
+      resolvedFromBlock,
+      resolvedToBlock,
+      coversFullHistoryToStateSnapshot:
+        resolvedFromBlock === 0 && resolvedToBlock === stateSnapshotBlock,
+      isHybridAgainstStateSnapshot: resolvedToBlock !== stateSnapshotBlock,
+    },
+  };
 }
 
 function sortEvents(events = []) {
@@ -188,8 +233,14 @@ function normalizeGameSnapshot(snapshot) {
     maxCauses: toNumber(snapshot.maxCauses, "snapshot.maxCauses"),
     joinedCount: toNumber(snapshot.joinedCount, "snapshot.joinedCount"),
     aliveCount: toNumber(snapshot.aliveCount, "snapshot.aliveCount"),
-    usedCauseCount: toNumber(snapshot.usedCauseCount, "snapshot.usedCauseCount"),
-    committedCount: toNumber(snapshot.committedCount, "snapshot.committedCount"),
+    usedCauseCount: toNumber(
+      snapshot.usedCauseCount,
+      "snapshot.usedCauseCount"
+    ),
+    committedCount: toNumber(
+      snapshot.committedCount,
+      "snapshot.committedCount"
+    ),
     revealedCount: toNumber(snapshot.revealedCount, "snapshot.revealedCount"),
     createdAt: toNumber(snapshot.createdAt, "snapshot.createdAt"),
     joinDeadline: toNumber(snapshot.joinDeadline, "snapshot.joinDeadline"),
@@ -214,7 +265,11 @@ function normalizeGameSnapshot(snapshot) {
 function normalizePlayerState(rawPlayer, auth, latestTimestamp) {
   const authRecord = normalizeAuthRecord(auth.record);
   const isAuthorizedNow = auth.isAuthorizedNow;
-  const authStatus = deriveAuthStatus(authRecord, isAuthorizedNow, latestTimestamp);
+  const authStatus = deriveAuthStatus(
+    authRecord,
+    isAuthorizedNow,
+    latestTimestamp
+  );
 
   return {
     wallet: rawPlayer.wallet,
@@ -227,8 +282,15 @@ function normalizePlayerState(rawPlayer, auth, latestTimestamp) {
     committedThisRound: rawPlayer.committedThisRound,
     revealedThisRound: rawPlayer.revealedThisRound,
     commitment: rawPlayer.commitment,
-    revealedChoice: enumName(CHOICE_NAMES, rawPlayer.revealedChoice, "player.revealedChoice"),
-    revealedChoiceCode: toNumber(rawPlayer.revealedChoice, "player.revealedChoice"),
+    revealedChoice: enumName(
+      CHOICE_NAMES,
+      rawPlayer.revealedChoice,
+      "player.revealedChoice"
+    ),
+    revealedChoiceCode: toNumber(
+      rawPlayer.revealedChoice,
+      "player.revealedChoice"
+    ),
     auth: {
       status: authStatus,
       isAuthorizedNow,
@@ -257,11 +319,25 @@ function normalizeGameCause(causeId, rawCause, members) {
   };
 }
 
-function buildEvidenceNotes({ chatConfigured }) {
-  const notes = [
+function buildEvidenceNotes({ chatConfigured, evidenceWindow }) {
+  const notes = [];
+
+  if (!evidenceWindow.logRange.coversFullHistoryToStateSnapshot) {
+    notes.push(
+      `Event-derived sections only cover logs from block ${evidenceWindow.logRange.resolvedFromBlock} through ${evidenceWindow.logRange.resolvedToBlock}. Treat this as a bounded evidence slice, not a complete replay export for the whole game.`
+    );
+  }
+
+  if (evidenceWindow.logRange.isHybridAgainstStateSnapshot) {
+    notes.push(
+      `State snapshots were read at block ${evidenceWindow.stateSnapshot.blockNumber}, but logs stop at block ${evidenceWindow.logRange.resolvedToBlock}. This export is intentionally hybrid and should only be used with that boundary in mind.`
+    );
+  }
+
+  notes.push(
     "Round resolution, eliminations, winner determination, refunds, and payout settlement are not implemented in the current onchain game slice.",
-    "Any elimination, payout, or claim-oriented replay fields remain intentionally absent until the contracts emit real resolution and settlement truth.",
-  ];
+    "Any elimination, payout, or claim-oriented replay fields remain intentionally absent until the contracts emit real resolution and settlement truth."
+  );
 
   if (!chatConfigured) {
     notes.push(
@@ -318,7 +394,11 @@ async function buildPhaseHistory(phaseEvents, getBlockTimestamp) {
 
   for (const event of ordered) {
     history.push({
-      phase: enumName(PHASE_NAMES, event.args.newPhase, "phaseHistory.newPhase"),
+      phase: enumName(
+        PHASE_NAMES,
+        event.args.newPhase,
+        "phaseHistory.newPhase"
+      ),
       phaseCode: toNumber(event.args.newPhase, "phaseHistory.newPhase"),
       blockNumber: event.blockNumber,
       txHash: event.transactionHash,
@@ -329,9 +409,19 @@ async function buildPhaseHistory(phaseEvents, getBlockTimestamp) {
   return history;
 }
 
-function buildRoundExports({ snapshot, phaseHistory, commitEvents, revealEvents, participants }) {
-  const commitPhaseTransitions = phaseHistory.filter((item) => item.phase === "Commit");
-  const revealPhaseTransitions = phaseHistory.filter((item) => item.phase === "Reveal");
+function buildRoundExports({
+  snapshot,
+  phaseHistory,
+  commitEvents,
+  revealEvents,
+  participants,
+}) {
+  const commitPhaseTransitions = phaseHistory.filter(
+    (item) => item.phase === "Commit"
+  );
+  const revealPhaseTransitions = phaseHistory.filter(
+    (item) => item.phase === "Reveal"
+  );
   const commitEventsByRound = groupByRound(commitEvents, (event) => ({
     wallet: event.args.wallet,
     commitment: event.args.commitment,
@@ -365,7 +455,9 @@ function buildRoundExports({ snapshot, phaseHistory, commitEvents, revealEvents,
     .sort((a, b) => a - b)
     .map((round) => {
       const isCurrentRound = round === snapshot.round;
-      const activePlayers = participants.filter((player) => player.alive).map((player) => player.wallet);
+      const activePlayers = participants
+        .filter((player) => player.alive)
+        .map((player) => player.wallet);
       const notes = [
         "Current contract slice does not emit round-resolution or elimination events yet.",
       ];
@@ -380,10 +472,16 @@ function buildRoundExports({ snapshot, phaseHistory, commitEvents, revealEvents,
         gameId: null,
         round,
         phaseWindows: {
-          commitStartBlock: commitPhaseTransitions[round - 1]?.blockNumber ?? null,
-          commitDeadlineBlock: isCurrentRound ? snapshot.commitDeadlineBlock : null,
-          revealStartBlock: revealPhaseTransitions[round - 1]?.blockNumber ?? null,
-          revealDeadlineBlock: isCurrentRound ? snapshot.revealDeadlineBlock : null,
+          commitStartBlock:
+            commitPhaseTransitions[round - 1]?.blockNumber ?? null,
+          commitDeadlineBlock: isCurrentRound
+            ? snapshot.commitDeadlineBlock
+            : null,
+          revealStartBlock:
+            revealPhaseTransitions[round - 1]?.blockNumber ?? null,
+          revealDeadlineBlock: isCurrentRound
+            ? snapshot.revealDeadlineBlock
+            : null,
         },
         phaseAtExport: snapshot.phase,
         activePlayers,
@@ -398,14 +496,24 @@ function buildRoundExports({ snapshot, phaseHistory, commitEvents, revealEvents,
     });
 }
 
-async function loadWalletAuthEvents({ registry, wallet, fromBlock, toBlock, getBlockTimestamp }) {
+async function loadWalletAuthEvents({
+  registry,
+  wallet,
+  fromBlock,
+  toBlock,
+  getBlockTimestamp,
+}) {
   const [registeredEvents, revokedEvents] = await Promise.all([
     registry.queryFilter(
       registry.filters.AuthRegistered(wallet, null, null),
       fromBlock,
       toBlock
     ),
-    registry.queryFilter(registry.filters.AuthRevoked(wallet, null), fromBlock, toBlock),
+    registry.queryFilter(
+      registry.filters.AuthRevoked(wallet, null),
+      fromBlock,
+      toBlock
+    ),
   ]);
 
   const combined = sortEvents([...registeredEvents, ...revokedEvents]);
@@ -499,11 +607,34 @@ function resolveContractRef(ref, { chainId, defaultName, required, label }) {
 
   if (required) {
     throw new Error(
-      `Missing ${label}. Provide an address or a deployment name${defaultName ? ` (for example ${defaultName})` : ""}.`
+      `Missing ${label}. Provide an address or a deployment name${
+        defaultName ? ` (for example ${defaultName})` : ""
+      }.`
     );
   }
 
   return null;
+}
+
+async function validateChatLink(chat, chatAddress, gameAddress) {
+  if (!chat) {
+    return;
+  }
+
+  let linkedGameAddress;
+  try {
+    linkedGameAddress = normalizeAddress(await chat.game(), "chat.game()");
+  } catch {
+    throw new Error(
+      `Chat ${chatAddress} does not expose the expected GameChat.game() linkage needed for honest evidence export.`
+    );
+  }
+
+  if (linkedGameAddress.toLowerCase() !== gameAddress.toLowerCase()) {
+    throw new Error(
+      `Chat ${chatAddress} is linked to game ${linkedGameAddress}, not selected game ${gameAddress}. Refusing to mix evidence across contracts.`
+    );
+  }
 }
 
 async function resolveGameContext(options = {}) {
@@ -526,6 +657,7 @@ async function resolveGameContext(options = {}) {
   const chat = chatAddress
     ? new ethers.Contract(chatAddress, CHAT_QUERY_ABI, provider)
     : null;
+  await validateChatLink(chat, chatAddress, gameAddress);
   const registryAddress = options.registry
     ? resolveContractRef(options.registry, {
         chainId,
@@ -534,10 +666,16 @@ async function resolveGameContext(options = {}) {
         label: "registry",
       })
     : normalizeAddress(await game.authRegistry(), "registry");
-  const registry = new ethers.Contract(registryAddress, REGISTRY_QUERY_ABI, provider);
+  const registry = new ethers.Contract(
+    registryAddress,
+    REGISTRY_QUERY_ABI,
+    provider
+  );
 
   const requestedGameId =
-    options.gameId !== undefined && options.gameId !== null && options.gameId !== ""
+    options.gameId !== undefined &&
+    options.gameId !== null &&
+    options.gameId !== ""
       ? parsePositiveInteger(options.gameId, "gameId")
       : null;
   const [activeGameIdRaw, currentGameIdRaw] = await Promise.all([
@@ -577,9 +715,38 @@ async function resolveGameContext(options = {}) {
 
 export async function collectGameEvidence(options = {}) {
   const context = await resolveGameContext(options);
-  const fromBlock = normalizeBlockTag(options.fromBlock, 0, "fromBlock");
-  const toBlock = normalizeBlockTag(options.toBlock, "latest", "toBlock");
+  const requestedFromBlock = normalizeBlockTag(
+    options.fromBlock,
+    0,
+    "fromBlock"
+  );
+  const requestedToBlock = normalizeBlockTag(
+    options.toBlock,
+    "latest",
+    "toBlock"
+  );
   const latestBlock = await context.provider.getBlock("latest");
+  const stateSnapshotBlock = latestBlock.number;
+  const stateReadOptions = { blockTag: stateSnapshotBlock };
+  const fromBlock = resolveBlockTag(requestedFromBlock, stateSnapshotBlock);
+  const toBlock = resolveBlockTag(requestedToBlock, stateSnapshotBlock);
+
+  if (fromBlock > toBlock) {
+    throw new Error(
+      `fromBlock ${formatBlockTag(
+        requestedFromBlock
+      )} resolves above toBlock ${formatBlockTag(requestedToBlock)}.`
+    );
+  }
+
+  const evidenceWindow = buildEvidenceWindow({
+    requestedFromBlock,
+    requestedToBlock,
+    resolvedFromBlock: fromBlock,
+    resolvedToBlock: toBlock,
+    stateSnapshotBlock,
+    stateSnapshotTimestamp: latestBlock.timestamp,
+  });
   const blockTimestampCache = new Map();
 
   async function getBlockTimestamp(blockNumber) {
@@ -600,12 +767,20 @@ export async function collectGameEvidence(options = {}) {
     commitEvents,
     revealEvents,
   ] = await Promise.all([
-    context.game.getGame(context.gameId),
-    context.game.playerCount(context.gameId),
-    context.game.causeCount(),
-    context.game.gameCauseCount(context.gameId),
-    context.game.queryFilter(context.game.filters.GameCreated(context.gameId), fromBlock, toBlock),
-    context.game.queryFilter(context.game.filters.PhaseAdvanced(context.gameId), fromBlock, toBlock),
+    context.game.getGame(context.gameId, stateReadOptions),
+    context.game.playerCount(context.gameId, stateReadOptions),
+    context.game.causeCount(stateReadOptions),
+    context.game.gameCauseCount(context.gameId, stateReadOptions),
+    context.game.queryFilter(
+      context.game.filters.GameCreated(context.gameId),
+      fromBlock,
+      toBlock
+    ),
+    context.game.queryFilter(
+      context.game.filters.PhaseAdvanced(context.gameId),
+      fromBlock,
+      toBlock
+    ),
     context.game.queryFilter(
       context.game.filters.Committed(context.gameId, null, null),
       fromBlock,
@@ -626,34 +801,49 @@ export async function collectGameEvidence(options = {}) {
   const [wallets, knownCauseIds, usedCauseIds] = await Promise.all([
     Promise.all(
       Array.from({ length: playerCount }, (_, index) =>
-        context.game.playerAt(context.gameId, index)
+        context.game.playerAt(context.gameId, index, stateReadOptions)
       )
     ),
     Promise.all(
-      Array.from({ length: knownCauseCount }, (_, index) => context.game.causeAt(index))
+      Array.from({ length: knownCauseCount }, (_, index) =>
+        context.game.causeAt(index, stateReadOptions)
+      )
     ),
     Promise.all(
       Array.from({ length: usedCauseCount }, (_, index) =>
-        context.game.gameCauseAt(context.gameId, index)
+        context.game.gameCauseAt(context.gameId, index, stateReadOptions)
       )
     ),
   ]);
 
   const [rawPlayers, authResults, rawKnownCauses, rawUsedCauses, phaseHistory] =
     await Promise.all([
-      Promise.all(wallets.map((wallet) => context.game.getPlayer(context.gameId, wallet))),
+      Promise.all(
+        wallets.map((wallet) =>
+          context.game.getPlayer(context.gameId, wallet, stateReadOptions)
+        )
+      ),
       Promise.all(
         wallets.map(async (wallet) => ({
-          isAuthorizedNow: await context.registry.isAuthorized(wallet),
-          record: await context.registry.authRecordOf(wallet),
+          isAuthorizedNow: await context.registry.isAuthorized(
+            wallet,
+            stateReadOptions
+          ),
+          record: await context.registry.authRecordOf(wallet, stateReadOptions),
         }))
       ),
       Promise.all(
-        knownCauseIds.map((causeId) => context.game.getCause(normalizeCauseId(causeId)))
+        knownCauseIds.map((causeId) =>
+          context.game.getCause(normalizeCauseId(causeId), stateReadOptions)
+        )
       ),
       Promise.all(
         usedCauseIds.map((causeId) =>
-          context.game.getGameCause(context.gameId, normalizeCauseId(causeId))
+          context.game.getGameCause(
+            context.gameId,
+            normalizeCauseId(causeId),
+            stateReadOptions
+          )
         )
       ),
       buildPhaseHistory(phaseEvents, getBlockTimestamp),
@@ -705,10 +895,15 @@ export async function collectGameEvidence(options = {}) {
     );
 
     messages = sortEvents(messageEvents).map((event) => {
-      const senderWallet = normalizeAddress(event.args.sender, "message.sender");
-      const participant = participantMap.get(senderWallet.toLowerCase()) ?? null;
+      const senderWallet = normalizeAddress(
+        event.args.sender,
+        "message.sender"
+      );
+      const participant =
+        participantMap.get(senderWallet.toLowerCase()) ?? null;
       const scope = enumName(SCOPE_NAMES, event.args.scope, "message.scope");
-      const causeId = scope === "cause" ? normalizeCauseId(event.args.causeId) : null;
+      const causeId =
+        scope === "cause" ? normalizeCauseId(event.args.causeId) : null;
       const isParticipant = Boolean(participant?.joined);
       const isAliveAtMessageTime = participant ? participant.alive : null;
 
@@ -728,7 +923,11 @@ export async function collectGameEvidence(options = {}) {
         isAliveAtMessageTime,
         isActualCauseSpeaker:
           scope === "cause"
-            ? Boolean(participant && participant.alive && participant.causeId === causeId)
+            ? Boolean(
+                participant &&
+                  participant.alive &&
+                  participant.causeId === causeId
+              )
             : null,
         isEliminatedSpeaker:
           isAliveAtMessageTime === null ? null : !isAliveAtMessageTime,
@@ -751,14 +950,20 @@ export async function collectGameEvidence(options = {}) {
   }));
 
   const createdEvent = sortEvents(createdEvents)[0] ?? null;
-  const notes = buildEvidenceNotes({ chatConfigured: Boolean(context.chat) });
-  const capabilities = buildCapabilities({ chatConfigured: Boolean(context.chat) });
+  const notes = buildEvidenceNotes({
+    chatConfigured: Boolean(context.chat),
+    evidenceWindow,
+  });
+  const capabilities = buildCapabilities({
+    chatConfigured: Boolean(context.chat),
+  });
 
   const summary = {
     schemaVersion: "prisoners-daollema/evidence-v0",
     boundaryNote: QUERY_BOUNDARY_NOTE,
     gameId: context.gameId,
     chainId: context.chainId,
+    evidenceWindow,
     addresses: {
       game: context.gameAddress,
       registry: context.registryAddress,
@@ -802,24 +1007,29 @@ export async function collectGameEvidence(options = {}) {
   };
 
   return {
+    evidenceWindow,
     summary,
     roster: {
       gameId: context.gameId,
+      evidenceWindow,
       participants,
     },
     causes: {
       gameId: context.gameId,
+      evidenceWindow,
       usedCauses,
       whitelist: knownCauses,
     },
     rounds: {
       gameId: context.gameId,
+      evidenceWindow,
       rounds,
     },
     auth: {
       gameId: context.gameId,
+      evidenceWindow,
       registry: context.registryAddress,
-      verifier: await context.registry.verifier(),
+      verifier: await context.registry.verifier(stateReadOptions),
       participants: authParticipants,
     },
     messages,
@@ -899,6 +1109,7 @@ export async function exportGameEvidence(options = {}) {
   const manifest = {
     schemaVersion: "prisoners-daollema/evidence-v0",
     boundaryNote: QUERY_BOUNDARY_NOTE,
+    evidenceWindow: evidence.evidenceWindow,
     outputDir,
     gameId: evidence.summary.gameId,
     chainId: evidence.summary.chainId,
@@ -906,7 +1117,11 @@ export async function exportGameEvidence(options = {}) {
     skipped,
   };
 
-  const manifestPath = writeJsonArtifact(outputDir, "export-manifest.json", manifest);
+  const manifestPath = writeJsonArtifact(
+    outputDir,
+    "export-manifest.json",
+    manifest
+  );
   manifest.produced = [
     ...manifest.produced,
     {
@@ -928,7 +1143,21 @@ export function printEvidenceSummary(summary) {
   console.log(`Chain ID:       ${summary.chainId}`);
   console.log(`Game:           ${summary.addresses.game}`);
   console.log(`Registry:       ${summary.addresses.registry}`);
-  console.log(`Chat:           ${summary.addresses.chat ?? "(not configured)"}`);
+  console.log(
+    `Chat:           ${summary.addresses.chat ?? "(not configured)"}`
+  );
+  console.log(
+    `State block:    ${summary.evidenceWindow.stateSnapshot.blockNumber}`
+  );
+  console.log(
+    `Log range:      ${formatBlockTag(
+      summary.evidenceWindow.logRange.requestedFromBlock
+    )} -> ${formatBlockTag(
+      summary.evidenceWindow.logRange.requestedToBlock
+    )} (resolved ${summary.evidenceWindow.logRange.resolvedFromBlock} -> ${
+      summary.evidenceWindow.logRange.resolvedToBlock
+    })`
+  );
   console.log(`Phase:          ${summary.game.phase}`);
   console.log(`Outcome:        ${summary.game.outcome}`);
   console.log(`Round:          ${summary.game.round}`);
@@ -952,6 +1181,18 @@ export function printExportSummary(result) {
   console.log(`Output dir:     ${result.manifest.outputDir}`);
   console.log(`Game ID:        ${result.manifest.gameId}`);
   console.log(`Chain ID:       ${result.manifest.chainId}`);
+  console.log(
+    `State block:    ${result.manifest.evidenceWindow.stateSnapshot.blockNumber}`
+  );
+  console.log(
+    `Log range:      ${formatBlockTag(
+      result.manifest.evidenceWindow.logRange.requestedFromBlock
+    )} -> ${formatBlockTag(
+      result.manifest.evidenceWindow.logRange.requestedToBlock
+    )} (resolved ${
+      result.manifest.evidenceWindow.logRange.resolvedFromBlock
+    } -> ${result.manifest.evidenceWindow.logRange.resolvedToBlock})`
+  );
   console.log("Produced:");
   for (const artifact of result.manifest.produced) {
     console.log(`  - ${artifact.artifact}: ${artifact.path}`);
