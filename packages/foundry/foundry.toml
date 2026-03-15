@@ -23,3 +23,8 @@ tab_width = 4
 quote_style = "double"
 bracket_spacing = true
 int_types = "long"
+
+[invariant]
+runs = 32
+depth = 64
+fail_on_revert = true
