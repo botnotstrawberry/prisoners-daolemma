@@ -225,6 +225,105 @@ test("SIWA CLI issues, signs, verifies, and feeds the permit/register flow", asy
   );
 });
 
+test("permit rejects wallet overrides when input comes from verified SIWA output", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const overrideWallet = ethers.Wallet.createRandom();
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    gameplaySetup,
+    agentId: "42",
+    tempDir,
+    manifestUri: "manifest://agent-alpha",
+  });
+
+  const error = runCliFailure([
+    "permit",
+    "--rpc-url",
+    RPC_URL,
+    "--input",
+    flow.verifiedFile,
+    "--wallet",
+    overrideWallet.address,
+    "--verifier-keystore",
+    verifierSetup.keystorePath,
+    "--verifier-keystore-password-file",
+    verifierSetup.passwordFile,
+    "--json",
+  ]);
+
+  assert.match(error, /Verified SIWA wallet is immutable at permit time/);
+  assert.match(error, new RegExp(gameplay.address, "i"));
+  assert.match(error, new RegExp(overrideWallet.address, "i"));
+});
+
+test("permit rejects agentKey overrides when input comes from verified SIWA output", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    gameplaySetup,
+    agentId: "42",
+    tempDir,
+    manifestUri: "manifest://agent-alpha",
+  });
+  const expectedAgentKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(flow.verified.agentKeyText)
+  );
+  const overrideAgentKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("agent-spoofed")
+  );
+
+  const error = runCliFailure([
+    "permit",
+    "--rpc-url",
+    RPC_URL,
+    "--input",
+    flow.verifiedFile,
+    "--agent-key",
+    overrideAgentKey,
+    "--verifier-keystore",
+    verifierSetup.keystorePath,
+    "--verifier-keystore-password-file",
+    verifierSetup.passwordFile,
+    "--json",
+  ]);
+
+  assert.match(error, /Verified SIWA agentKey is immutable at permit time/);
+  assert.match(error, new RegExp(expectedAgentKey.slice(2), "i"));
+  assert.match(error, new RegExp(overrideAgentKey.slice(2), "i"));
+});
+
 test("siwa-sign rejects raw wallet private keys on the command line by default", async () => {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);

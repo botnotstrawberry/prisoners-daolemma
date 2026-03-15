@@ -184,6 +184,70 @@ test("auth CLI signs, registers, and inspects AgentAuthRegistry auth state with 
   );
 });
 
+test("permit still honors manual wallet and agentKey overrides for non-SIWA input files", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const verifier = ethers.Wallet.createRandom();
+  const inputWallet = ethers.Wallet.createRandom();
+  const overrideWallet = ethers.Wallet.createRandom();
+
+  const registry = await deployRegistry(owner, verifier.address);
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-auth-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const inputFile = join(tempDir, "manual-input.json");
+  writeFileSync(
+    inputFile,
+    `${JSON.stringify(
+      {
+        wallet: inputWallet.address,
+        agentKeyText: "input-agent",
+        manifestUri: "manifest://input-agent",
+      },
+      null,
+      2
+    )}\n`,
+    "utf8"
+  );
+
+  const bundle = JSON.parse(
+    runCli([
+      "permit",
+      "--rpc-url",
+      RPC_URL,
+      "--registry",
+      registry.address,
+      "--input",
+      inputFile,
+      "--wallet",
+      overrideWallet.address,
+      "--agent-key-text",
+      "override-agent",
+      "--manifest-uri",
+      "manifest://override-agent",
+      "--ttl-seconds",
+      "3600",
+      "--verifier-keystore",
+      verifierSetup.keystorePath,
+      "--verifier-keystore-password-file",
+      verifierSetup.passwordFile,
+      "--json",
+    ])
+  );
+
+  assert.equal(
+    bundle.permit.wallet.toLowerCase(),
+    overrideWallet.address.toLowerCase()
+  );
+  assert.equal(
+    bundle.permit.agentKey,
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes("override-agent"))
+  );
+  assert.equal(
+    bundle.permit.manifestHash,
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes("manifest://override-agent"))
+  );
+});
+
 test("permit rejects raw verifier private keys on the command line by default", async () => {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);

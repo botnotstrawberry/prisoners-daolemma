@@ -276,11 +276,125 @@ export function normalizeAgentRegistry(agentRegistry, label = "agentRegistry") {
   };
 }
 
-export function resolvePermitFieldInput(args = {}, input = {}) {
+function buildVerifiedSiwaAgentKeyText(input = {}) {
+  if (input.agentRegistry === undefined || input.agentId === undefined) {
+    return null;
+  }
+
+  return `${normalizeAgentRegistry(input.agentRegistry, "input.agentRegistry").value}:${parsePositiveDecimalString(
+    input.agentId,
+    "input.agentId"
+  )}`;
+}
+
+function extractVerifiedSiwaIdentityBoundary(input = {}) {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const siwa = input.siwa;
+  if (!siwa || typeof siwa !== "object" || siwa.valid !== true) {
+    return null;
+  }
+
+  const wallet =
+    input.wallet !== undefined
+      ? normalizeAddress(input.wallet, "input.wallet")
+      : null;
+  const derivedAgentKeyText = buildVerifiedSiwaAgentKeyText(input);
+  const inputAgentKeyText =
+    typeof input.agentKeyText === "string" && input.agentKeyText.length > 0
+      ? input.agentKeyText
+      : null;
+  const agentKeyText = derivedAgentKeyText ?? inputAgentKeyText;
+  const agentKey =
+    input.agentKey !== undefined
+      ? normalizeBytes32(input.agentKey, "input.agentKey")
+      : null;
+
+  if (!wallet) {
+    throw new Error(
+      "Verified SIWA input is missing wallet. Re-run siwa-verify or fix the input file before signing a permit."
+    );
+  }
+
+  if (!agentKey && !agentKeyText) {
+    throw new Error(
+      "Verified SIWA input is missing agent identity context. Provide input.agentKey, input.agentKeyText, or input.agentRegistry + input.agentId."
+    );
+  }
+
+  if (
+    derivedAgentKeyText &&
+    inputAgentKeyText &&
+    inputAgentKeyText !== derivedAgentKeyText
+  ) {
+    throw new Error(
+      `Verified SIWA input agent identity mismatch. input.agentRegistry + input.agentId derive ${derivedAgentKeyText}, but input.agentKeyText is ${inputAgentKeyText}.`
+    );
+  }
+
+  if (agentKey && agentKeyText) {
+    const derivedAgentKey = bytes32FromUtf8(agentKeyText);
+
+    if (derivedAgentKey !== agentKey) {
+      throw new Error(
+        `Verified SIWA input agent identity mismatch. input.agentKey is ${agentKey}, but input.agentKeyText resolves to ${derivedAgentKey}.`
+      );
+    }
+  }
+
   return {
-    wallet: args.wallet ?? input.wallet,
-    agentKey: args.agentKey ?? input.agentKey,
-    agentKeyText: args.agentKeyText ?? input.agentKeyText ?? input.agentId,
+    wallet,
+    agentKey,
+    agentKeyText,
+    resolvedAgentKey: agentKey ?? bytes32FromUtf8(agentKeyText),
+  };
+}
+
+export function resolvePermitFieldInput(args = {}, input = {}) {
+  const verifiedIdentity = extractVerifiedSiwaIdentityBoundary(input);
+
+  if (verifiedIdentity && args.wallet !== undefined) {
+    const overrideWallet = normalizeAddress(args.wallet, "wallet");
+    if (overrideWallet.toLowerCase() !== verifiedIdentity.wallet.toLowerCase()) {
+      throw new Error(
+        `Verified SIWA wallet is immutable at permit time. Input wallet ${verifiedIdentity.wallet} cannot be replaced with --wallet ${overrideWallet}.`
+      );
+    }
+  }
+
+  if (
+    verifiedIdentity &&
+    (args.agentKey !== undefined || args.agentKeyText !== undefined)
+  ) {
+    const overrideAgentKey = resolveBytes32Value({
+      rawValue: args.agentKey,
+      textValue: args.agentKeyText,
+      label: "agentKey",
+      textLabel: "agentKeyText",
+    });
+
+    if (overrideAgentKey !== verifiedIdentity.resolvedAgentKey) {
+      throw new Error(
+        `Verified SIWA agentKey is immutable at permit time. Input agent identity resolves to ${verifiedIdentity.resolvedAgentKey}, but the CLI override resolves to ${overrideAgentKey}.`
+      );
+    }
+  }
+
+  return {
+    wallet: verifiedIdentity?.wallet ?? args.wallet ?? input.wallet,
+    agentKey:
+      verifiedIdentity?.agentKey ??
+      args.agentKey ??
+      input.agentKey,
+    agentKeyText:
+      verifiedIdentity?.agentKey
+        ? undefined
+        : verifiedIdentity?.agentKeyText ??
+          args.agentKeyText ??
+          input.agentKeyText ??
+          input.agentId,
     manifestHash: args.manifestHash ?? input.manifestHash,
     manifestText:
       args.manifestText ??
