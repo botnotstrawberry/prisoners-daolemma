@@ -33,6 +33,13 @@ const ANVIL_PORT = "8548";
 const ANVIL_PRIVATE_KEYS = [
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 ];
+const KEYSTORE_OPTIONS = {
+  scrypt: {
+    N: 1 << 12,
+    r: 8,
+    p: 1,
+  },
+};
 
 let anvilProcess;
 
@@ -99,6 +106,8 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   const signedFile = join(tempDir, "signed-siwa.json");
   const verifiedFile = join(tempDir, "verified-auth.json");
   const permitFile = join(tempDir, "auth-permit.json");
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
   const domain = "prisoners.local";
   const uri = "https://prisoners.local/siwa";
   const manifestUri = "manifest://agent-alpha";
@@ -210,8 +219,10 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
       RPC_URL,
       "--input",
       verifiedFile,
-      "--verifier-private-key",
-      verifier.privateKey,
+      "--verifier-keystore",
+      verifierSetup.keystorePath,
+      "--verifier-keystore-password-file",
+      verifierSetup.passwordFile,
       "--out",
       permitFile,
       "--json",
@@ -230,6 +241,19 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   );
   assert.equal(existsSync(permitFile), true);
 
+  const preRegisterStatus = JSON.parse(
+    runCli([
+      "status",
+      "--rpc-url",
+      RPC_URL,
+      "--permit-file",
+      permitFile,
+      "--json",
+    ])
+  );
+  assert.equal(preRegisterStatus.bundleInspection.registerable, true);
+  assert.deepEqual(preRegisterStatus.bundleInspection.problems, []);
+
   const registration = JSON.parse(
     runCli([
       "register",
@@ -237,8 +261,10 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
       RPC_URL,
       "--permit-file",
       permitFile,
-      "--wallet-private-key",
-      gameplay.privateKey,
+      "--wallet-keystore",
+      gameplaySetup.keystorePath,
+      "--wallet-keystore-password-file",
+      gameplaySetup.passwordFile,
       "--json",
     ])
   );
@@ -262,6 +288,20 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
     verifier.address.toLowerCase()
   );
 });
+
+async function writeKeystoreFixture(tempDir, label, wallet) {
+  const password = `${label}-password`;
+  const keystorePath = join(tempDir, `${label}.keystore.json`);
+  const passwordFile = join(tempDir, `${label}.pass`);
+  writeFileSync(passwordFile, `${password}\n`, "utf8");
+  writeFileSync(
+    keystorePath,
+    `${await wallet.encrypt(password, KEYSTORE_OPTIONS)}\n`,
+    "utf8"
+  );
+
+  return { keystorePath, passwordFile, password };
+}
 
 async function waitForAnvil() {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);

@@ -52,25 +52,35 @@ Current planned auth flow:
 
 The full game logic still needs to be implemented from the current repo docs.
 
-## CLI auth tooling (foundation)
+## CLI auth tooling
 
-The repo now includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
+The repo includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
 
-Important boundary:
-- the tooling signs and submits **already-verified** auth inputs
-- it does **not** implement SIWA payload verification yet
-- this keeps the verifier/signing layer honest while the exact SIWA packaging is still being finalized
+Current boundary:
+- `siwa-nonce` and `siwa-verify` handle the dedicated local SIWA path
+- `permit` and `register` still only consume verifier-approved inputs
+- `permit` / `register` do **not** parse or verify SIWA payloads on their own
+- this keeps the verifier/signing layer honest and auditable
+
+Secret-handling stance:
+- prefer Foundry keystores for local verifier/gameplay signing
+- environment key fallbacks remain available for local automation
+- raw `--verifier-private-key` / `--wallet-private-key` CLI flags are intentionally gated behind `--allow-unsafe-private-key`
+- help/examples avoid printing raw key usage
 
 Useful commands:
+- `yarn auth -- --help`
 - `yarn auth:permit -- --help`
 - `yarn auth:status -- --help`
 - `yarn auth:register -- --help`
 
 Typical local flow:
-1. verify SIWA or other agent-auth inputs offchain
-2. run `auth:permit` to sign an `AuthPermit` with the verifier key
-3. run `auth:register` from the gameplay wallet to store the auth record onchain
-4. run `auth:status` to inspect the resulting registry state
+1. run `siwa-nonce`
+2. sign the SIWA challenge with the gameplay wallet
+3. run `siwa-verify`
+4. run `auth:permit` to sign an `AuthPermit` with the verifier signer
+5. run `auth:register` from the gameplay wallet to store the auth record onchain
+6. run `auth:status` to inspect wallet state and, if desired, bundle health
 
 ## Quick start
 

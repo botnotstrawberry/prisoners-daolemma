@@ -1,6 +1,7 @@
 import { config as loadEnv } from "dotenv";
 import { ethers } from "ethers";
 import { existsSync, readFileSync, writeFileSync } from "fs";
+import { homedir } from "os";
 import { dirname, isAbsolute, join, resolve } from "path";
 import { parse as parseToml } from "toml";
 import { fileURLToPath } from "url";
@@ -169,9 +170,7 @@ export function normalizePrivateKey(privateKey, envKey) {
   const resolved = privateKey ?? (envKey ? process.env[envKey] : undefined);
   if (!resolved) {
     if (envKey) {
-      throw new Error(
-        `Missing private key. Provide the flag directly or set ${envKey}.`
-      );
+      throw new Error(`Missing private key. Set ${envKey}.`);
     }
     throw new Error("Missing private key.");
   }
@@ -233,7 +232,7 @@ export function resolvePermitFieldInput(args = {}, input = {}) {
       args.manifestUri ??
       input.manifestText ??
       input.manifestUri,
-    issuedAt: args.issuedAt ?? input.issuedAt,
+    issuedAt: args.issuedAt,
     expiresAt: args.expiresAt ?? input.expiresAt,
     ttlSeconds: args.ttlSeconds,
     nonce: args.nonce ?? input.nonce,
@@ -286,6 +285,415 @@ export function normalizeBundlePermit(permit = {}) {
     issuedAt: parseTimestamp(permit.issuedAt, "permit.issuedAt"),
     expiresAt: parseTimestamp(permit.expiresAt ?? 0, "permit.expiresAt"),
     nonce: normalizeBytes32(permit.nonce, "permit.nonce"),
+  };
+}
+
+export function normalizeSignature(signature, label = "signature") {
+  if (typeof signature !== "string" || !/^0x(?:[0-9a-fA-F]{2})+$/.test(signature)) {
+    throw new Error(`${label} must be a hex string.`);
+  }
+
+  return signature;
+}
+
+export function buildAuthDomain(chainId, verifyingContract) {
+  return {
+    name: AUTH_DOMAIN_NAME,
+    version: AUTH_DOMAIN_VERSION,
+    chainId,
+    verifyingContract: normalizeAddress(verifyingContract, "verifyingContract"),
+  };
+}
+
+function expandUserPath(filePath) {
+  if (typeof filePath !== "string" || filePath.trim().length === 0) {
+    throw new Error("Path is required.");
+  }
+
+  const trimmed = filePath.trim();
+  if (trimmed === "~") {
+    return homedir();
+  }
+  if (trimmed.startsWith("~/")) {
+    return join(homedir(), trimmed.slice(2));
+  }
+  return trimmed;
+}
+
+function resolveSecretFilePath(filePath, label) {
+  const expanded = expandUserPath(filePath);
+  const resolved = isAbsolute(expanded)
+    ? expanded
+    : resolveFromPackageRoot(expanded);
+
+  if (!existsSync(resolved)) {
+    throw new Error(`${label} not found: ${resolved}`);
+  }
+
+  return resolved;
+}
+
+function resolveKeystorePath(keystore, label) {
+  if (typeof keystore !== "string" || keystore.trim().length === 0) {
+    throw new Error(`${label} is required.`);
+  }
+
+  const trimmed = keystore.trim();
+  const explicitPath =
+    trimmed.startsWith(".") ||
+    trimmed.startsWith("~") ||
+    trimmed.includes("/") ||
+    trimmed.includes("\\");
+  const resolved = explicitPath
+    ? resolveSecretFilePath(trimmed, label)
+    : join(process.env.HOME ?? homedir(), ".foundry", "keystores", trimmed);
+
+  if (!existsSync(resolved)) {
+    throw new Error(`${label} not found: ${resolved}`);
+  }
+
+  return resolved;
+}
+
+function loadSecretFromFile(filePath, label) {
+  const resolvedPath = resolveSecretFilePath(filePath, label);
+  const secret = readFileSync(resolvedPath, "utf8").trim();
+
+  if (!secret) {
+    throw new Error(`${label} at ${resolvedPath} is empty.`);
+  }
+
+  return secret;
+}
+
+async function promptSecret(promptText) {
+  const { stdin, stderr } = process;
+
+  if (!stdin.isTTY || !stderr.isTTY || typeof stdin.setRawMode !== "function") {
+    throw new Error(
+      "Interactive secret entry requires a TTY. Supply a password file/env instead."
+    );
+  }
+
+  return await new Promise((resolvePromise, rejectPromise) => {
+    let value = "";
+
+    const cleanup = () => {
+      stdin.off("data", handleData);
+      stdin.setRawMode(false);
+      stdin.pause();
+    };
+
+    const rejectWith = (error) => {
+      cleanup();
+      stderr.write("\n");
+      rejectPromise(error);
+    };
+
+    const resolveWith = () => {
+      cleanup();
+      stderr.write("\n");
+      resolvePromise(value);
+    };
+
+    const handleData = (chunk) => {
+      const data = chunk.toString("utf8");
+
+      if (data === "\u0003") {
+        rejectWith(new Error("Secret entry aborted by user."));
+        return;
+      }
+
+      if (data === "\r" || data === "\n") {
+        resolveWith();
+        return;
+      }
+
+      if (data === "\u007f") {
+        value = value.slice(0, -1);
+        return;
+      }
+
+      value += data;
+    };
+
+    stderr.write(promptText);
+    stdin.resume();
+    stdin.setRawMode(true);
+    stdin.on("data", handleData);
+  });
+}
+
+async function resolveKeystorePassword({
+  passwordEnv,
+  passwordFile,
+  promptLabel,
+}) {
+  if (passwordEnv && passwordFile) {
+    throw new Error(
+      `Provide either ${promptLabel} password env or password file, not both.`
+    );
+  }
+
+  if (passwordEnv) {
+    const value = process.env[passwordEnv]?.trim();
+    if (!value) {
+      throw new Error(`Password env ${passwordEnv} is empty or unset.`);
+    }
+    return value;
+  }
+
+  if (passwordFile) {
+    return loadSecretFromFile(passwordFile, `${promptLabel} password file`);
+  }
+
+  return await promptSecret(`Enter password for ${promptLabel}: `);
+}
+
+async function loadWalletFromKeystore({
+  keystore,
+  passwordEnv,
+  passwordFile,
+  label,
+}) {
+  const keystorePath = resolveKeystorePath(keystore, `${label} keystore`);
+  const password = await resolveKeystorePassword({
+    passwordEnv,
+    passwordFile,
+    promptLabel: `${label} keystore ${keystorePath}`,
+  });
+
+  try {
+    const encryptedJson = readFileSync(keystorePath, "utf8");
+    return await ethers.Wallet.fromEncryptedJson(encryptedJson, password);
+  } catch (error) {
+    throw new Error(`Failed to unlock ${label} keystore ${keystorePath}: ${error.message}`);
+  }
+}
+
+async function resolveSignerWallet({
+  purpose,
+  privateKey,
+  privateKeyEnv,
+  keystore,
+  keystorePasswordEnv,
+  keystorePasswordFile,
+  allowUnsafePrivateKey,
+}) {
+  if (keystore && privateKey !== undefined) {
+    throw new Error(
+      `Provide either --${purpose}-keystore or --${purpose}-private-key, not both.`
+    );
+  }
+
+  if (keystore) {
+    return loadWalletFromKeystore({
+      keystore,
+      passwordEnv: keystorePasswordEnv,
+      passwordFile: keystorePasswordFile,
+      label: purpose,
+    });
+  }
+
+  if (privateKey !== undefined) {
+    if (!allowUnsafePrivateKey) {
+      throw new Error(
+        `Raw ${purpose} private keys on the command line are disabled. Prefer --${purpose}-keystore with a password env/file (or the interactive prompt), or set ${privateKeyEnv} for local automation. If you absolutely need the old behavior for an ephemeral local test, repeat the command with --allow-unsafe-private-key.`
+      );
+    }
+
+    return new ethers.Wallet(normalizePrivateKey(privateKey));
+  }
+
+  if (process.env[privateKeyEnv]) {
+    return new ethers.Wallet(normalizePrivateKey(undefined, privateKeyEnv));
+  }
+
+  throw new Error(
+    `Missing ${purpose} signer. Prefer --${purpose}-keystore <name|path> with a password env/file or interactive prompt. For local automation you can set ${privateKeyEnv}.`
+  );
+}
+
+function normalizeOptionalAddress(value, label) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  return normalizeAddress(value, label);
+}
+
+export async function inspectPermitBundle(options = {}) {
+  const bundle = options.bundle ?? loadPermitBundle(options.permitFile);
+  const provider = options.provider ?? createProvider(options);
+  const permit = normalizeBundlePermit(bundle.permit);
+  const signature = normalizeSignature(bundle.signature, "Permit bundle signature");
+  const registryAddress = normalizeAddress(
+    options.registry ?? bundle.registry ?? bundle.domain?.verifyingContract,
+    "registry"
+  );
+
+  const problems = [];
+  const bundleRegistry = normalizeOptionalAddress(bundle.registry, "bundle.registry");
+  const bundleDomainVerifyingContract = normalizeOptionalAddress(
+    bundle.domain?.verifyingContract,
+    "bundle.domain.verifyingContract"
+  );
+  const bundleVerifier = normalizeOptionalAddress(bundle.verifier, "bundle.verifier");
+
+  if (
+    bundleRegistry &&
+    bundleRegistry.toLowerCase() !== registryAddress.toLowerCase()
+  ) {
+    problems.push(
+      `Bundle registry mismatch. Bundle targets ${bundleRegistry}, but the command targets ${registryAddress}.`
+    );
+  }
+
+  if (
+    bundleDomainVerifyingContract &&
+    bundleDomainVerifyingContract.toLowerCase() !== registryAddress.toLowerCase()
+  ) {
+    problems.push(
+      `Bundle registry mismatch. Bundle domain targets ${bundleDomainVerifyingContract}, but the command targets ${registryAddress}.`
+    );
+  }
+
+  if (bundle.domain?.name && bundle.domain.name !== AUTH_DOMAIN_NAME) {
+    problems.push(
+      `Bundle domain name mismatch. Expected ${AUTH_DOMAIN_NAME}, got ${bundle.domain.name}.`
+    );
+  }
+
+  if (bundle.domain?.version && bundle.domain.version !== AUTH_DOMAIN_VERSION) {
+    problems.push(
+      `Bundle domain version mismatch. Expected ${AUTH_DOMAIN_VERSION}, got ${bundle.domain.version}.`
+    );
+  }
+
+  if (bundle.domain?.chainId !== undefined) {
+    const bundleDomainChainId = parsePositiveInteger(
+      bundle.domain.chainId,
+      "bundle.domain.chainId"
+    );
+    if (bundleDomainChainId !== permit.chainId) {
+      problems.push(
+        `Bundle domain chainId ${bundleDomainChainId} does not match permit.chainId ${permit.chainId}.`
+      );
+    }
+  }
+
+  const registry = getRegistryContract(registryAddress, provider);
+  const [
+    network,
+    latestBlock,
+    currentVerifier,
+    currentGameNamespace,
+    onchainDomainSeparator,
+    nonceUsed,
+  ] = await Promise.all([
+    provider.getNetwork(),
+    provider.getBlock("latest"),
+    registry.verifier(),
+    registry.gameNamespace(),
+    registry.domainSeparatorV4(),
+    registry.hasUsedNonce(permit.nonce),
+  ]);
+
+  if (permit.chainId !== network.chainId) {
+    problems.push(
+      `Permit chainId ${permit.chainId} does not match connected chain ${network.chainId}.`
+    );
+  }
+
+  if (
+    permit.gameNamespace.toLowerCase() !== currentGameNamespace.toLowerCase()
+  ) {
+    problems.push(
+      `Permit namespace mismatch. Registry exposes ${currentGameNamespace}, but the bundle encodes ${permit.gameNamespace}.`
+    );
+  }
+
+  if (permit.issuedAt === 0 || permit.issuedAt > latestBlock.timestamp) {
+    problems.push(
+      `Permit issuedAt ${permit.issuedAt} is outside the current chain time window (latest block timestamp ${latestBlock.timestamp}).`
+    );
+  }
+
+  if (permit.expiresAt !== 0 && permit.expiresAt <= permit.issuedAt) {
+    problems.push(
+      `Permit expiresAt ${permit.expiresAt} must be 0 or greater than issuedAt ${permit.issuedAt}.`
+    );
+  }
+
+  if (permit.expiresAt !== 0 && permit.expiresAt < latestBlock.timestamp) {
+    problems.push(
+      `Permit already expired at ${permit.expiresAt}; latest block timestamp is ${latestBlock.timestamp}.`
+    );
+  }
+
+  if (nonceUsed) {
+    problems.push(
+      `Permit nonce ${permit.nonce} was already used on registry ${registryAddress}.`
+    );
+  }
+
+  const domain = buildAuthDomain(network.chainId, registryAddress);
+  const computedDomainSeparator = ethers.utils._TypedDataEncoder.hashDomain(domain);
+  if (
+    computedDomainSeparator.toLowerCase() !== onchainDomainSeparator.toLowerCase()
+  ) {
+    problems.push(
+      "Local EIP-712 domain constants do not match the onchain AgentAuthRegistry. Check the CLI and contract are in sync."
+    );
+  }
+
+  let recoveredSigner = null;
+  try {
+    recoveredSigner = ethers.utils.verifyTypedData(
+      domain,
+      AUTH_PERMIT_TYPES,
+      permit,
+      signature
+    );
+  } catch (error) {
+    problems.push(`Failed to recover permit signer: ${error.message}`);
+  }
+
+  if (
+    recoveredSigner &&
+    recoveredSigner.toLowerCase() !== currentVerifier.toLowerCase()
+  ) {
+    problems.push(
+      `Permit verifier mismatch. Registry expects ${currentVerifier}, but the bundle signature recovers to ${recoveredSigner}. This usually means the wrong verifier signed the bundle or the registry verifier rotated after the bundle was created.`
+    );
+  }
+
+  if (
+    bundleVerifier &&
+    recoveredSigner &&
+    bundleVerifier.toLowerCase() !== recoveredSigner.toLowerCase()
+  ) {
+    problems.push(
+      `Bundle verifier field ${bundleVerifier} does not match the recovered signer ${recoveredSigner}.`
+    );
+  }
+
+  return {
+    registry: registryAddress,
+    permit,
+    domain,
+    latestBlockNumber: latestBlock.number,
+    latestBlockTimestamp: latestBlock.timestamp,
+    chainId: network.chainId,
+    currentVerifier,
+    currentGameNamespace,
+    bundleRegistry,
+    bundleDomainVerifyingContract,
+    bundleVerifier,
+    recoveredSigner,
+    nonceUsed,
+    registerable: problems.length === 0,
+    problems,
   };
 }
 
@@ -351,15 +759,9 @@ export async function buildAndSignAuthPermit(options = {}) {
     nonce: resolveNonce(fields),
   };
 
-  const domain = {
-    name: AUTH_DOMAIN_NAME,
-    version: AUTH_DOMAIN_VERSION,
-    chainId: network.chainId,
-    verifyingContract: registryAddress,
-  };
+  const domain = buildAuthDomain(network.chainId, registryAddress);
 
-  const computedDomainSeparator =
-    ethers.utils._TypedDataEncoder.hashDomain(domain);
+  const computedDomainSeparator = ethers.utils._TypedDataEncoder.hashDomain(domain);
   if (
     computedDomainSeparator.toLowerCase() !==
     onchainDomainSeparator.toLowerCase()
@@ -369,14 +771,18 @@ export async function buildAndSignAuthPermit(options = {}) {
     );
   }
 
-  const verifierPrivateKey = normalizePrivateKey(
-    options.verifierPrivateKey,
-    VERIFIER_PK_ENV
-  );
-  const verifierWallet = new ethers.Wallet(verifierPrivateKey);
+  const verifierWallet = await resolveSignerWallet({
+    purpose: "verifier",
+    privateKey: options.verifierPrivateKey,
+    privateKeyEnv: VERIFIER_PK_ENV,
+    keystore: options.verifierKeystore,
+    keystorePasswordEnv: options.verifierKeystorePasswordEnv,
+    keystorePasswordFile: options.verifierKeystorePasswordFile,
+    allowUnsafePrivateKey: Boolean(options.allowUnsafePrivateKey),
+  });
   if (verifierWallet.address.toLowerCase() !== expectedVerifier.toLowerCase()) {
     throw new Error(
-      `Verifier key mismatch. Registry expects ${expectedVerifier}, but the supplied verifier key resolves to ${verifierWallet.address}.`
+      `Verifier key mismatch. Registry expects ${expectedVerifier}, but the supplied verifier signer resolves to ${verifierWallet.address}.`
     );
   }
 
@@ -420,15 +826,23 @@ export async function getAuthStatus(options = {}) {
     ? loadPermitBundle(options.permitFile)
     : options.bundle;
   const provider = options.provider ?? createProvider(options);
+  const bundleInspection = bundle
+    ? await inspectPermitBundle({
+        bundle,
+        provider,
+        registry: options.registry,
+      })
+    : null;
   const registryAddress = normalizeAddress(
-    options.registry ?? bundle?.registry,
+    options.registry ?? bundleInspection?.registry ?? bundle?.registry,
     "registry"
   );
   const wallet = normalizeAddress(
-    options.wallet ?? bundle?.permit?.wallet,
+    options.wallet ?? bundleInspection?.permit.wallet ?? bundle?.permit?.wallet,
     "wallet"
   );
-  const nonce = options.nonce ?? bundle?.permit?.nonce;
+  const nonce =
+    options.nonce ?? bundleInspection?.permit.nonce ?? bundle?.permit?.nonce;
   const registry = getRegistryContract(registryAddress, provider);
 
   const [
@@ -478,66 +892,73 @@ export async function getAuthStatus(options = {}) {
     nonceChecked: nonce ? normalizeBytes32(nonce, "nonce") : null,
     nonceUsed,
     record,
+    ...(bundleInspection
+      ? {
+          bundleInspection: {
+            registerable: bundleInspection.registerable,
+            recoveredSigner: bundleInspection.recoveredSigner,
+            bundleVerifier: bundleInspection.bundleVerifier,
+            bundleRegistry: bundleInspection.bundleRegistry,
+            bundleDomainVerifyingContract:
+              bundleInspection.bundleDomainVerifyingContract,
+            problems: bundleInspection.problems,
+          },
+        }
+      : {}),
   };
 }
 
 export async function registerSignedPermit(options = {}) {
   const bundle = options.bundle ?? loadPermitBundle(options.permitFile);
   const provider = options.provider ?? createProvider(options);
-  const registryAddress = normalizeAddress(
-    options.registry ?? bundle.registry,
-    "registry"
-  );
-  const permit = normalizeBundlePermit(bundle.permit);
-  const signature = bundle.signature;
+  const inspection = await inspectPermitBundle({
+    bundle,
+    provider,
+    registry: options.registry,
+  });
 
-  if (typeof signature !== "string" || !/^0x[0-9a-fA-F]+$/.test(signature)) {
-    throw new Error("Permit bundle signature must be a hex string.");
-  }
-
-  if (bundle.domain?.verifyingContract) {
-    const bundleRegistry = normalizeAddress(
-      bundle.domain.verifyingContract,
-      "bundle.domain.verifyingContract"
-    );
-    if (bundleRegistry.toLowerCase() !== registryAddress.toLowerCase()) {
-      throw new Error(
-        `Bundle registry mismatch. Bundle targets ${bundleRegistry}, but the command targets ${registryAddress}.`
-      );
-    }
-  }
-
-  const network = await provider.getNetwork();
-  if (permit.chainId !== network.chainId) {
+  if (!inspection.registerable) {
     throw new Error(
-      `Permit chainId ${permit.chainId} does not match connected chain ${network.chainId}.`
+      `Permit bundle is not registerable: ${inspection.problems.join(" ")}`
     );
   }
 
-  const walletPrivateKey = normalizePrivateKey(
-    options.walletPrivateKey,
-    GAMEPLAY_PK_ENV
-  );
-  const gameplayWallet = new ethers.Wallet(walletPrivateKey, provider);
-  if (gameplayWallet.address.toLowerCase() !== permit.wallet.toLowerCase()) {
+  const gameplayWallet = (
+    await resolveSignerWallet({
+      purpose: "wallet",
+      privateKey: options.walletPrivateKey,
+      privateKeyEnv: GAMEPLAY_PK_ENV,
+      keystore: options.walletKeystore,
+      keystorePasswordEnv: options.walletKeystorePasswordEnv,
+      keystorePasswordFile: options.walletKeystorePasswordFile,
+      allowUnsafePrivateKey: Boolean(options.allowUnsafePrivateKey),
+    })
+  ).connect(provider);
+
+  if (
+    gameplayWallet.address.toLowerCase() !== inspection.permit.wallet.toLowerCase()
+  ) {
     throw new Error(
-      `Gameplay wallet mismatch. Permit is for ${permit.wallet}, but the supplied wallet key resolves to ${gameplayWallet.address}.`
+      `Gameplay wallet mismatch. Permit is for ${inspection.permit.wallet}, but the supplied wallet signer resolves to ${gameplayWallet.address}.`
     );
   }
 
-  const registry = getRegistryContract(registryAddress, gameplayWallet);
-  const transaction = await registry.registerAuth(permit, signature);
+  const registry = getRegistryContract(inspection.registry, gameplayWallet);
+  const transaction = await registry.registerAuth(
+    inspection.permit,
+    bundle.signature
+  );
   const receipt = await transaction.wait();
   const status = await getAuthStatus({
     provider,
-    registry: registryAddress,
-    wallet: permit.wallet,
-    nonce: permit.nonce,
+    registry: inspection.registry,
+    wallet: inspection.permit.wallet,
+    nonce: inspection.permit.nonce,
   });
 
   return {
-    registry: registryAddress,
-    wallet: permit.wallet,
+    registry: inspection.registry,
+    wallet: inspection.permit.wallet,
     txHash: receipt.transactionHash,
     blockNumber: receipt.blockNumber,
     gasUsed: receipt.gasUsed.toString(),
@@ -620,6 +1041,18 @@ export function printStatusSummary(status) {
   if (status.nonceChecked) {
     console.log(`Nonce checked:  ${status.nonceChecked}`);
     console.log(`Nonce used:     ${status.nonceUsed}`);
+  }
+  if (status.bundleInspection) {
+    console.log(`Bundle ready:   ${status.bundleInspection.registerable}`);
+    console.log(
+      `Bundle signer:  ${status.bundleInspection.recoveredSigner ?? "(unrecoverable)"}`
+    );
+    if (status.bundleInspection.problems.length > 0) {
+      console.log("Bundle issues:");
+      for (const problem of status.bundleInspection.problems) {
+        console.log(`  - ${problem}`);
+      }
+    }
   }
 }
 
