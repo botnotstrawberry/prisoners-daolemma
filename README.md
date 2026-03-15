@@ -15,6 +15,8 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `TEST_PLAN.md` — validation strategy from Foundry to Anvil to live chain
 - `PARAMETERS.md` — recommended timings, caps, and launch profiles
 - `LAUNCH_PLAN.md` — staged rollout and go/no-go gates
+- `SEPOLIA_CANARY_RUNBOOK.md` — repo-native Base Sepolia canary operator runbook
+- `SEPOLIA_CANARY_CHECKLIST.md` — Base Sepolia canary execution + artifact checklist
 - `OPEN_QUESTIONS.md` — highest-value unresolved decisions
 - `SKILLS.md` — coder/auditor skill routing for this repo
 
@@ -40,10 +42,10 @@ The repo now contains:
 - Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
 - Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that now stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
-- CLI-first gameplay/operator tooling for create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
+- CLI-first gameplay/operator tooling for cause whitelisting plus create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
 - repo-native local load/chaos harness tooling for multi-player single-game and sequential-game local runs with machine-readable reports + evidence export
 - CLI-first evidence/query tooling for game/auth/chat exports
-- Base-focused deployment config
+- Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -113,7 +115,7 @@ The repo includes CLI-first gameplay/operator tooling under `packages/foundry/sc
 Current boundary:
 
 - wraps the live onchain `PrisonersDaollema` + `GameChat` write surface only
-- covers `create`, `advance`, `cancel-if-insufficient`, `join`, `prepare-commit`, `commit`, `reveal`, `claim`, `refund`, `withdraw-treasury`, `withdraw-cause`, `post-global`, and `post-cause`
+- covers `whitelist-cause`, `create`, `advance`, `cancel-if-insufficient`, `join`, `prepare-commit`, `commit`, `reveal`, `claim`, `refund`, `withdraw-treasury`, `withdraw-cause`, `post-global`, and `post-cause`
 - `prepare-commit` generates a local bundle containing the round, choice, salt, and commitment so `commit` and `reveal` can share one auditable input file
 - the read/evidence side stays intentionally separate in `queryCli.js`
 - signer handling matches the hardened auth tooling stance: keystore-first by default, env fallback for local automation, raw `--wallet-private-key` gated behind `--allow-unsafe-private-key`
@@ -121,6 +123,7 @@ Current boundary:
 Useful commands:
 
 - `yarn game -- --help`
+- `yarn game:whitelist-cause -- --help`
 - `yarn game:create -- --help`
 - `yarn game:advance -- --help`
 - `yarn game:cancel -- --help`
@@ -137,18 +140,20 @@ Useful commands:
 
 Typical local flow after auth:
 
-1. run `yarn game:create -- --rpc-url localhost --game <PrisonersDaollema> --wallet-keystore <owner-keystore> ...`
-2. run `yarn game:join -- --rpc-url localhost --game-id 1 --cause-id 1 --wallet-keystore <player-keystore> ...`
-3. run `yarn game:advance -- --rpc-url localhost --game-id 1 --wallet-keystore <owner-keystore> ...` after the join window closes
-4. run `yarn game:prepare-commit -- --rpc-url localhost --game-id 1 --choice share --wallet-keystore <player-keystore> ... --out commit-bundles/p1-r1.json`
-5. run `yarn game:commit -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
-6. run `yarn game:reveal -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
-7. later, run the terminal path that applies onchain now:
+1. on a fresh deployment, whitelist at least one cause first:
+   - `yarn game:whitelist-cause -- --rpc-url localhost --game <PrisonersDaollema> --cause-id 1 --recipient <cause-recipient> --metadata-text "cause-alpha" --wallet-keystore <owner-keystore> ...`
+2. run `yarn game:create -- --rpc-url localhost --game <PrisonersDaollema> --wallet-keystore <owner-keystore> ...`
+3. run `yarn game:join -- --rpc-url localhost --game-id 1 --cause-id 1 --wallet-keystore <player-keystore> ...`
+4. run `yarn game:advance -- --rpc-url localhost --game-id 1 --wallet-keystore <owner-keystore> ...` after the join window closes
+5. run `yarn game:prepare-commit -- --rpc-url localhost --game-id 1 --choice share --wallet-keystore <player-keystore> ... --out commit-bundles/p1-r1.json`
+6. run `yarn game:commit -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
+7. run `yarn game:reveal -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
+8. later, run the terminal path that applies onchain now:
    - `yarn game:claim -- ...`
    - `yarn game:refund -- ...`
    - `yarn game:withdraw-treasury -- ...`
    - `yarn game:withdraw-cause -- ...`
-8. optional comms:
+9. optional comms:
    - `yarn game:post-global -- ...`
    - `yarn game:post-cause -- ...`
 
@@ -321,5 +326,26 @@ yarn start
 - Base is the target launch chain
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
-- deployment currently creates a fresh local `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio
+- deployment currently creates a fresh `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio per run
 - production auth and SIWA integration will be layered in during implementation
+
+## Base Sepolia canary readiness
+
+Repo-native canary references:
+
+- `SEPOLIA_CANARY_RUNBOOK.md`
+- `SEPOLIA_CANARY_CHECKLIST.md`
+- `yarn canary:preflight -- --help`
+- `yarn canary:deployment -- --help`
+- `yarn game:whitelist-cause -- --help`
+- `yarn verify -- --help`
+
+Suggested operator flow:
+
+1. copy `packages/foundry/.env.example` to `.env` and set explicit `PRISONERS_OWNER`, `PRISONERS_TREASURY`, `PRISONERS_AUTH_VERIFIER`, plus `BASESCAN_API_KEY`
+2. run `yarn canary:preflight -- --rpc-url baseSepolia --deployer-keystore <name|path>`
+3. deploy with `yarn deploy -- --network baseSepolia --keystore <name|path>`
+4. inspect the deployed wiring with `yarn canary:deployment -- --rpc-url baseSepolia`
+5. verify contracts with `yarn verify -- --network baseSepolia`
+6. whitelist the live canary causes before calling `createGame()`
+7. run auth/game/query flows and capture artifacts exactly as described in the runbook/checklist

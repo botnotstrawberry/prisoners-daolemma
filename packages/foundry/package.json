@@ -18,7 +18,11 @@
     "query:export": "node scripts-js/queryCli.js export",
     "query:messages": "node scripts-js/queryCli.js messages",
     "query:summary": "node scripts-js/queryCli.js summary",
+    "canary": "node scripts-js/canaryCli.js",
+    "canary:preflight": "node scripts-js/canaryCli.js preflight",
+    "canary:deployment": "node scripts-js/canaryCli.js deployment",
     "game": "node scripts-js/gameCli.js",
+    "game:whitelist-cause": "node scripts-js/gameCli.js whitelist-cause",
     "game:create": "node scripts-js/gameCli.js create",
     "game:advance": "node scripts-js/gameCli.js advance",
     "game:cancel": "node scripts-js/gameCli.js cancel-if-insufficient",
@@ -49,7 +53,7 @@
     "lint": "make lint",
     "test": "forge test && node --test scripts-js/*.test.js",
     "test:js": "node --test scripts-js/*.test.js",
-    "verify": "make verify RPC_URL=${1:-localhost}"
+    "verify": "node scripts-js/verifyCli.js"
   },
   "dependencies": {
     "@buildersgarden/siwa": "0.0.24",

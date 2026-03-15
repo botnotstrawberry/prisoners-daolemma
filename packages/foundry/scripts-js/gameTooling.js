@@ -36,14 +36,19 @@ export const OUTCOME_NAMES = ["Unset", "Winners", "NoWinners", "Cancelled"];
 export const CHOICE_NAMES = ["Unset", "Share", "Catch", "Steal"];
 
 export const GAMEPLAY_ABI = [
+  "function owner() view returns (address)",
   "function authRegistry() view returns (address)",
   "function currentGameId() view returns (uint256)",
   "function activeGameId() view returns (uint256)",
   "function gameExists(uint256 gameId) view returns (bool)",
   "function getGame(uint256 gameId) view returns ((uint256 entryFeeWei,uint16 creatorFeeBps,uint16 causeFeeBps,uint32 joinDurationSeconds,uint32 commitDurationBlocks,uint32 revealDurationBlocks,uint16 minPlayers,uint16 maxPlayers,uint16 maxCauses,uint16 joinedCount,uint16 aliveCount,uint16 usedCauseCount,uint16 committedCount,uint16 revealedCount,uint64 createdAt,uint64 joinDeadline,uint64 commitDeadlineBlock,uint64 revealDeadlineBlock,uint32 round,uint32 shareStreak,uint8 phase,uint8 outcome,address treasury))",
   "function getPlayer(uint256 gameId, address wallet) view returns ((bool joined,bool alive,bool claimed,bool refunded,bool committedThisRound,bool revealedThisRound,address wallet,bytes32 agentKey,uint16 causeId,bytes32 commitment,uint8 revealedChoice,uint8 effectiveChoice,uint32 lastChoiceRound))",
+  "function getCause(uint16 causeId) view returns ((bool active,address recipient,bytes32 metadataHash))",
   "function getGameCause(uint256 gameId, uint16 causeId) view returns ((bool used,uint16 entrantCount,address recipient,bytes32 metadataHash))",
+  "function causeCount() view returns (uint256)",
+  "function causeAt(uint256 index) view returns (uint16)",
   "function createGame() returns (uint256 gameId)",
+  "function whitelistCause(uint16 causeId, address recipient, bytes32 metadataHash)",
   "function advancePhase(uint256 gameId)",
   "function cancelIfInsufficientPlayers(uint256 gameId)",
   "function join(uint256 gameId, uint16 causeId) payable",
@@ -60,6 +65,7 @@ export const GAMEPLAY_ABI = [
   "function canAdvancePhase(uint256 gameId) view returns (bool)",
   "function isRoundReadyForResolution(uint256 gameId) view returns (bool)",
   "function computeCommitment(uint256 gameId, uint32 round, address wallet, uint8 choice, bytes32 salt) view returns (bytes32)",
+  "event CauseWhitelisted(uint16 indexed causeId, address indexed recipient, bytes32 metadataHash)",
   "event GameCreated(uint256 indexed gameId, uint64 joinDeadline, uint256 entryFeeWei, uint16 minPlayers, uint16 maxPlayers, uint16 maxCauses)",
   "event PhaseAdvanced(uint256 indexed gameId, uint8 newPhase)",
   "event GameCancelled(uint256 indexed gameId)",
@@ -146,8 +152,14 @@ function normalizeGameSnapshot(snapshot) {
     maxCauses: toNumber(snapshot.maxCauses, "snapshot.maxCauses"),
     joinedCount: toNumber(snapshot.joinedCount, "snapshot.joinedCount"),
     aliveCount: toNumber(snapshot.aliveCount, "snapshot.aliveCount"),
-    usedCauseCount: toNumber(snapshot.usedCauseCount, "snapshot.usedCauseCount"),
-    committedCount: toNumber(snapshot.committedCount, "snapshot.committedCount"),
+    usedCauseCount: toNumber(
+      snapshot.usedCauseCount,
+      "snapshot.usedCauseCount"
+    ),
+    committedCount: toNumber(
+      snapshot.committedCount,
+      "snapshot.committedCount"
+    ),
     revealedCount: toNumber(snapshot.revealedCount, "snapshot.revealedCount"),
     createdAt: toNumber(snapshot.createdAt, "snapshot.createdAt"),
     joinDeadline: toNumber(snapshot.joinDeadline, "snapshot.joinDeadline"),
@@ -181,7 +193,11 @@ function normalizePlayerState(player) {
     agentKey: player.agentKey,
     causeId: toNumber(player.causeId, "player.causeId"),
     commitment: player.commitment,
-    revealedChoice: enumName(CHOICE_NAMES, player.revealedChoice, "player.revealedChoice"),
+    revealedChoice: enumName(
+      CHOICE_NAMES,
+      player.revealedChoice,
+      "player.revealedChoice"
+    ),
     revealedChoiceCode: toNumber(
       player.revealedChoice,
       "player.revealedChoice"
@@ -233,7 +249,8 @@ function normalizeMessagePostedEvent(event) {
     round: toNumber(event.args.round, "message.round"),
     phase: enumName(PHASE_NAMES, event.args.phase, "message.phase"),
     phaseCode: toNumber(event.args.phase, "message.phase"),
-    scope: toNumber(event.args.scope, "message.scope") === 0 ? "global" : "cause",
+    scope:
+      toNumber(event.args.scope, "message.scope") === 0 ? "global" : "cause",
     causeId:
       toNumber(event.args.scope, "message.scope") === 0
         ? null
@@ -311,7 +328,12 @@ function resolveKeystoreLookupPath(keystore) {
     keystore.includes("\\");
 
   if (!explicitPath) {
-    return join(process.env.HOME ?? homedir(), ".foundry", "keystores", keystore);
+    return join(
+      process.env.HOME ?? homedir(),
+      ".foundry",
+      "keystores",
+      keystore
+    );
   }
 
   if (keystore === "~") {
@@ -375,15 +397,23 @@ function deriveWalletAddressFromEnv(envName) {
   return new ethers.Wallet(normalizePrivateKey(undefined, envName)).address;
 }
 
-function resolveExpectedWalletAddress(options = {}, { allowMissing = false } = {}) {
-  if (options.walletPrivateKey !== undefined && !options.allowUnsafePrivateKey) {
+function resolveExpectedWalletAddress(
+  options = {},
+  { allowMissing = false } = {}
+) {
+  if (
+    options.walletPrivateKey !== undefined &&
+    !options.allowUnsafePrivateKey
+  ) {
     throw new Error(
       `Raw wallet private keys on the command line are disabled. Prefer --wallet-keystore with a password env/file (or the interactive prompt), or set ${GAMEPLAY_PK_ENV} for local automation. If you absolutely need the old behavior for an ephemeral local test, repeat the command with --allow-unsafe-private-key.`
     );
   }
 
   const explicitWallet =
-    options.wallet !== undefined ? normalizeAddress(options.wallet, "wallet") : null;
+    options.wallet !== undefined
+      ? normalizeAddress(options.wallet, "wallet")
+      : null;
   const derivedWallet =
     deriveWalletAddressFromKeystore(options.walletKeystore) ??
     deriveWalletAddressFromPrivateKey(options.walletPrivateKey) ??
@@ -425,7 +455,9 @@ async function resolveWalletSigner(options = {}, provider) {
     allowUnsafePrivateKey: Boolean(options.allowUnsafePrivateKey),
   });
   const signer = signerWallet.connect(provider);
-  const expectedWallet = resolveExpectedWalletAddress(options, { allowMissing: true });
+  const expectedWallet = resolveExpectedWalletAddress(options, {
+    allowMissing: true,
+  });
 
   if (
     expectedWallet &&
@@ -507,7 +539,9 @@ async function resolveGameContext(options = {}, config = {}) {
     label: "game",
   });
   const gameReader = new ethers.Contract(gameAddress, GAMEPLAY_ABI, provider);
-  const signer = requireSigner ? await resolveWalletSigner(options, provider) : null;
+  const signer = requireSigner
+    ? await resolveWalletSigner(options, provider)
+    : null;
   const walletAddress = signer
     ? signer.address
     : resolveExpectedWalletAddress(options, { allowMissing: false });
@@ -550,7 +584,9 @@ async function resolveGameContext(options = {}, config = {}) {
 
 function parseChoice(choice) {
   if (choice === undefined || choice === null || choice === "") {
-    throw new Error("Missing choice. Provide --choice <share|catch|steal|1|2|3>.");
+    throw new Error(
+      "Missing choice. Provide --choice <share|catch|steal|1|2|3>."
+    );
   }
 
   const normalized = String(choice).trim().toLowerCase();
@@ -577,9 +613,10 @@ function parseChoice(choice) {
 }
 
 function resolvePrepareSalt(options = {}) {
-  const provided = [options.salt !== undefined, options.saltText !== undefined].filter(
-    Boolean
-  ).length;
+  const provided = [
+    options.salt !== undefined,
+    options.saltText !== undefined,
+  ].filter(Boolean).length;
 
   if (provided > 1) {
     throw new Error("Provide either --salt or --salt-text, not both.");
@@ -597,9 +634,10 @@ function resolvePrepareSalt(options = {}) {
 }
 
 function resolveRevealSalt(options = {}) {
-  const provided = [options.salt !== undefined, options.saltText !== undefined].filter(
-    Boolean
-  ).length;
+  const provided = [
+    options.salt !== undefined,
+    options.saltText !== undefined,
+  ].filter(Boolean).length;
 
   if (provided > 1) {
     throw new Error("Provide either --salt or --salt-text, not both.");
@@ -712,6 +750,27 @@ function normalizeTextInput(value, label) {
   return value;
 }
 
+function resolveCauseMetadataHash(options = {}) {
+  const provided = [
+    options.metadataHash !== undefined,
+    options.metadataText !== undefined,
+  ].filter(Boolean).length;
+
+  if (provided !== 1) {
+    throw new Error(
+      "Provide exactly one of --metadata-hash <bytes32> or --metadata-text <text>."
+    );
+  }
+
+  if (options.metadataHash !== undefined) {
+    return normalizeBytes32(options.metadataHash, "metadataHash");
+  }
+
+  return bytes32FromUtf8(
+    normalizeTextInput(options.metadataText, "metadataText")
+  );
+}
+
 function buildCounts(snapshot) {
   return {
     joined: snapshot.joinedCount,
@@ -729,11 +788,17 @@ export async function createGameAction(options = {}) {
   });
   const tx = await context.game.createGame();
   const receipt = await tx.wait();
-  const createdEvent = findReceiptEvent(receipt, context.game.interface, "GameCreated");
+  const createdEvent = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "GameCreated"
+  );
   const gameId = createdEvent
     ? toNumber(createdEvent.args.gameId, "gameCreated.gameId")
     : toNumber(await context.gameReader.currentGameId(), "currentGameId");
-  const snapshot = normalizeGameSnapshot(await context.gameReader.getGame(gameId));
+  const snapshot = normalizeGameSnapshot(
+    await context.gameReader.getGame(gameId)
+  );
 
   return {
     boundaryNote: GAMEPLAY_BOUNDARY_NOTE,
@@ -755,6 +820,56 @@ export async function createGameAction(options = {}) {
   };
 }
 
+export async function whitelistCauseAction(options = {}) {
+  const context = await resolveGameContext(options, {
+    requireSigner: true,
+    requireGameId: false,
+  });
+  const causeId = parsePositiveInteger(options.causeId, "causeId");
+  if (causeId > 65_535) {
+    throw new Error("causeId must fit into uint16.");
+  }
+  const recipient = normalizeAddress(options.recipient, "recipient");
+  const metadataHash = resolveCauseMetadataHash(options);
+  const owner = normalizeAddress(
+    await context.gameReader.owner(),
+    "game.owner()"
+  );
+
+  if (context.walletAddress.toLowerCase() !== owner.toLowerCase()) {
+    throw new Error(
+      `Connected wallet ${context.walletAddress} is not the game owner ${owner}. whitelist-cause is owner-only.`
+    );
+  }
+
+  const tx = await context.game.whitelistCause(
+    causeId,
+    recipient,
+    metadataHash
+  );
+  const receipt = await tx.wait();
+  const cause = await context.gameReader.getCause(causeId);
+  const knownCauseCount = toNumber(
+    await context.gameReader.causeCount(),
+    "causeCount"
+  );
+
+  return {
+    boundaryNote: GAMEPLAY_BOUNDARY_NOTE,
+    command: "whitelist-cause",
+    chainId: context.chainId,
+    game: context.gameAddress,
+    wallet: context.walletAddress,
+    txHash: receipt.transactionHash,
+    blockNumber: receipt.blockNumber,
+    causeId,
+    recipient: cause.recipient,
+    metadataHash: cause.metadataHash,
+    active: cause.active,
+    knownCauseCount,
+  };
+}
+
 export async function advancePhaseAction(options = {}) {
   const context = await resolveGameContext(options, {
     requireSigner: true,
@@ -763,7 +878,9 @@ export async function advancePhaseAction(options = {}) {
   const snapshotBefore = normalizeGameSnapshot(
     await context.gameReader.getGame(context.gameId)
   );
-  const canAdvanceBefore = await context.gameReader.canAdvancePhase(context.gameId);
+  const canAdvanceBefore = await context.gameReader.canAdvancePhase(
+    context.gameId
+  );
 
   if (!canAdvanceBefore) {
     throw new Error(
@@ -792,9 +909,8 @@ export async function advancePhaseAction(options = {}) {
     round: snapshotAfter.round,
     shareStreak: snapshotAfter.shareStreak,
     canAdvanceNow: await context.gameReader.canAdvancePhase(context.gameId),
-    isRoundReadyForResolution: await context.gameReader.isRoundReadyForResolution(
-      context.gameId
-    ),
+    isRoundReadyForResolution:
+      await context.gameReader.isRoundReadyForResolution(context.gameId),
     counts: buildCounts(snapshotAfter),
   };
 }
@@ -938,7 +1054,9 @@ export async function prepareCommitAction(options = {}) {
     commitment,
   };
 
-  const outputFile = options.out ? writePreparedCommitBundle(options.out, bundle) : null;
+  const outputFile = options.out
+    ? writePreparedCommitBundle(options.out, bundle)
+    : null;
 
   return {
     ...bundle,
@@ -1063,13 +1181,18 @@ export async function revealAction(options = {}) {
     );
   }
 
-  if (playerBefore.commitment.toLowerCase() !== expectedCommitment.toLowerCase()) {
+  if (
+    playerBefore.commitment.toLowerCase() !== expectedCommitment.toLowerCase()
+  ) {
     throw new Error(
       `Reveal preimage does not match the stored onchain commitment. Stored ${playerBefore.commitment}, computed ${expectedCommitment}.`
     );
   }
 
-  if (bundle && bundle.commitment.toLowerCase() !== expectedCommitment.toLowerCase()) {
+  if (
+    bundle &&
+    bundle.commitment.toLowerCase() !== expectedCommitment.toLowerCase()
+  ) {
     throw new Error(
       `Prepared commit bundle mismatch. Bundle commitment ${bundle.commitment} does not match the computed commitment ${expectedCommitment}.`
     );
@@ -1110,7 +1233,10 @@ export async function claimAction(options = {}) {
     requireGameId: true,
   });
   const previewBefore = normalizeWinnerClaimPreview(
-    await context.gameReader.previewWinnerClaim(context.gameId, context.walletAddress)
+    await context.gameReader.previewWinnerClaim(
+      context.gameId,
+      context.walletAddress
+    )
   );
 
   if (!previewBefore.availableNow) {
@@ -1121,12 +1247,19 @@ export async function claimAction(options = {}) {
 
   const tx = await context.game.claim(context.gameId);
   const receipt = await tx.wait();
-  const event = findReceiptEvent(receipt, context.game.interface, "PrizeClaimed");
+  const event = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "PrizeClaimed"
+  );
   const playerAfter = normalizePlayerState(
     await context.gameReader.getPlayer(context.gameId, context.walletAddress)
   );
   const previewAfter = normalizeWinnerClaimPreview(
-    await context.gameReader.previewWinnerClaim(context.gameId, context.walletAddress)
+    await context.gameReader.previewWinnerClaim(
+      context.gameId,
+      context.walletAddress
+    )
   );
 
   return {
@@ -1138,7 +1271,9 @@ export async function claimAction(options = {}) {
     gameId: context.gameId,
     txHash: receipt.transactionHash,
     blockNumber: receipt.blockNumber,
-    causeId: event ? toNumber(event.args.causeId, "prizeClaimed.causeId") : playerAfter.causeId,
+    causeId: event
+      ? toNumber(event.args.causeId, "prizeClaimed.causeId")
+      : playerAfter.causeId,
     grossPrizeWei: event
       ? toDecimalString(event.args.grossPrizeWei)
       : previewBefore.grossPrizeWei,
@@ -1160,7 +1295,10 @@ export async function refundAction(options = {}) {
     requireGameId: true,
   });
   const previewBefore = normalizeRefundPreview(
-    await context.gameReader.previewRefund(context.gameId, context.walletAddress)
+    await context.gameReader.previewRefund(
+      context.gameId,
+      context.walletAddress
+    )
   );
 
   if (!previewBefore.availableNow) {
@@ -1171,12 +1309,19 @@ export async function refundAction(options = {}) {
 
   const tx = await context.game.claimRefund(context.gameId);
   const receipt = await tx.wait();
-  const event = findReceiptEvent(receipt, context.game.interface, "RefundClaimed");
+  const event = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "RefundClaimed"
+  );
   const playerAfter = normalizePlayerState(
     await context.gameReader.getPlayer(context.gameId, context.walletAddress)
   );
   const previewAfter = normalizeRefundPreview(
-    await context.gameReader.previewRefund(context.gameId, context.walletAddress)
+    await context.gameReader.previewRefund(
+      context.gameId,
+      context.walletAddress
+    )
   );
 
   return {
@@ -1188,7 +1333,9 @@ export async function refundAction(options = {}) {
     gameId: context.gameId,
     txHash: receipt.transactionHash,
     blockNumber: receipt.blockNumber,
-    refundWei: event ? toDecimalString(event.args.refundWei) : previewBefore.refundWei,
+    refundWei: event
+      ? toDecimalString(event.args.refundWei)
+      : previewBefore.refundWei,
     availableBefore: previewBefore.availableNow,
     availableAfter: previewAfter.availableNow,
     refunded: playerAfter.refunded,
@@ -1210,10 +1357,16 @@ export async function withdrawTreasuryAction(options = {}) {
     );
   }
 
-  const snapshot = normalizeGameSnapshot(await context.gameReader.getGame(context.gameId));
+  const snapshot = normalizeGameSnapshot(
+    await context.gameReader.getGame(context.gameId)
+  );
   const tx = await context.game.withdrawTreasury(context.gameId);
   const receipt = await tx.wait();
-  const event = findReceiptEvent(receipt, context.game.interface, "TreasuryWithdrawal");
+  const event = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "TreasuryWithdrawal"
+  );
 
   return {
     boundaryNote: GAMEPLAY_BOUNDARY_NOTE,
@@ -1254,7 +1407,11 @@ export async function withdrawCauseAction(options = {}) {
   );
   const tx = await context.game.withdrawCause(context.gameId, causeId);
   const receipt = await tx.wait();
-  const event = findReceiptEvent(receipt, context.game.interface, "CauseWithdrawal");
+  const event = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "CauseWithdrawal"
+  );
 
   return {
     boundaryNote: GAMEPLAY_BOUNDARY_NOTE,
@@ -1291,7 +1448,11 @@ async function postMessageAction(options = {}, scope) {
   }
 
   const receipt = await tx.wait();
-  const event = findReceiptEvent(receipt, context.chat.interface, "MessagePosted");
+  const event = findReceiptEvent(
+    receipt,
+    context.chat.interface,
+    "MessagePosted"
+  );
   const normalizedEvent = event
     ? normalizeMessagePostedEvent(event)
     : {
@@ -1342,6 +1503,18 @@ export async function postCauseAction(options = {}) {
 export function printGameplayResult(result) {
   const command = result.command;
 
+  if (command === "whitelist-cause") {
+    console.log("\n✅ Whitelisted cause.");
+    console.log(`Game:           ${result.game}`);
+    console.log(`Wallet:         ${result.wallet}`);
+    console.log(`Cause ID:       ${result.causeId}`);
+    console.log(`Recipient:      ${result.recipient}`);
+    console.log(`Metadata hash:  ${result.metadataHash}`);
+    console.log(`Known causes:   ${result.knownCauseCount}`);
+    console.log(`Tx:             ${result.txHash}`);
+    return;
+  }
+
   if (command === "create") {
     console.log("\n✅ Created game.");
     console.log(`Game ID:        ${result.gameId}`);
@@ -1355,7 +1528,13 @@ export function printGameplayResult(result) {
   }
 
   if (command === "advance" || command === "cancel-if-insufficient") {
-    console.log(`\n✅ ${command === "advance" ? "Advanced game phase." : "Cancelled underfilled joining game."}`);
+    console.log(
+      `\n✅ ${
+        command === "advance"
+          ? "Advanced game phase."
+          : "Cancelled underfilled joining game."
+      }`
+    );
     console.log(`Game ID:        ${result.gameId}`);
     console.log(`Game:           ${result.game}`);
     console.log(`Wallet:         ${result.wallet}`);
@@ -1392,7 +1571,11 @@ export function printGameplayResult(result) {
     console.log(`Choice:         ${result.choice}`);
     console.log(`Salt:           ${result.salt}`);
     console.log(`Commitment:     ${result.commitment}`);
-    console.log(`Saved:          ${result.outputFile ?? "(not written; use --out to save)"}`);
+    console.log(
+      `Saved:          ${
+        result.outputFile ?? "(not written; use --out to save)"
+      }`
+    );
     console.log(`Note:           ${PREPARED_COMMIT_SECRET_NOTE}`);
     return;
   }

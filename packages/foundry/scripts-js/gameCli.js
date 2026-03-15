@@ -14,6 +14,7 @@ import {
   printGameplayResult,
   refundAction,
   revealAction,
+  whitelistCauseAction,
   withdrawCauseAction,
   withdrawTreasuryAction,
 } from "./gameTooling.js";
@@ -28,6 +29,7 @@ Usage:
   node scripts-js/gameCli.js <command> [options]
 
 Commands:
+  whitelist-cause           Owner-only: whitelist or update a cause while the contract is idle.
   create                    Create a new game from the current default config.
   advance                   Advance the selected game to its next onchain phase.
   cancel-if-insufficient    Cancel a joining game after the join window closes without enough players.
@@ -65,7 +67,43 @@ function sharedGameOptions({ includeGameId = true, includeChat = false } = {}) {
   return `Common contract options:
   --rpc-url <url|network>                 Required unless AUTH_RPC_URL/RPC_URL is set.
   --game <address|name>                   Game contract address or deployment name. Defaults to deployed PrisonersDaollema for the connected chain when available.
-${includeGameId ? "  --game-id <uint256>                     Optional. Defaults to activeGameId, then currentGameId.\n" : ""}${includeChat ? "  --chat <address|name>                   Chat contract address or deployment name. Defaults to deployed GameChat for the connected chain when available.\n" : ""}`;
+${
+  includeGameId
+    ? "  --game-id <uint256>                     Optional. Defaults to activeGameId, then currentGameId.\n"
+    : ""
+}${
+    includeChat
+      ? "  --chat <address|name>                   Chat contract address or deployment name. Defaults to deployed GameChat for the connected chain when available.\n"
+      : ""
+  }`;
+}
+
+function printWhitelistCauseHelp() {
+  console.log(`
+Usage:
+  node scripts-js/gameCli.js whitelist-cause --rpc-url <url|network> [--game <address|name>] \
+    --cause-id <uint16> --recipient <address> (--metadata-hash <bytes32> | --metadata-text <text>) \
+    [signer options] [--json]
+
+${sharedGameOptions({ includeGameId: false })}
+${sharedSignerOptions()}
+Additional options:
+  --cause-id <uint16>                     Required cause identifier to whitelist.
+  --recipient <address>                   Required payout recipient for that cause.
+  --metadata-hash <bytes32>               Use an explicit metadata hash.
+  --metadata-text <text>                  Hash a human-readable cause label into bytes32 locally.
+
+Notes:
+  - This wraps whitelistCause(causeId, recipient, metadataHash).
+  - The selected wallet must be the game owner's wallet.
+  - The contract must still be idle; whitelisting is not allowed once a game is active.
+  - A fresh deployment needs at least one active cause before createGame() will succeed.
+
+Example:
+  node scripts-js/gameCli.js whitelist-cause --rpc-url baseSepolia --game 0xGame \
+    --cause-id 1 --recipient 0xCauseRecipient --metadata-text "cause-alpha" \
+    --wallet-keystore owner --wallet-keystore-password-file .secrets/owner.pass
+`);
 }
 
 function printCreateHelp() {
@@ -332,7 +370,16 @@ Example:
 async function main() {
   const { subcommand, args } = parseCliArgs();
 
-  if (!subcommand || subcommand === "--help" || subcommand === "-h" || args.help) {
+  if (
+    !subcommand ||
+    subcommand === "--help" ||
+    subcommand === "-h" ||
+    args.help
+  ) {
+    if (subcommand === "whitelist-cause") {
+      printWhitelistCauseHelp();
+      return;
+    }
     if (subcommand === "create") {
       printCreateHelp();
       return;
@@ -392,7 +439,9 @@ async function main() {
 
   let result;
 
-  if (subcommand === "create") {
+  if (subcommand === "whitelist-cause") {
+    result = await whitelistCauseAction(args);
+  } else if (subcommand === "create") {
     result = await createGameAction(args);
   } else if (subcommand === "advance") {
     result = await advancePhaseAction(args);
@@ -420,7 +469,7 @@ async function main() {
     result = await postCauseAction(args);
   } else {
     throw new Error(
-      `Unknown gameplay command '${subcommand}'. Use create, advance, cancel-if-insufficient, join, prepare-commit, commit, reveal, claim, refund, withdraw-treasury, withdraw-cause, post-global, or post-cause.`
+      `Unknown gameplay command '${subcommand}'. Use whitelist-cause, create, advance, cancel-if-insufficient, join, prepare-commit, commit, reveal, claim, refund, withdraw-treasury, withdraw-cause, post-global, or post-cause.`
     );
   }
 
