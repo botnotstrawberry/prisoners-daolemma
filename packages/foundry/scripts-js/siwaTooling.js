@@ -1,15 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname } from "path";
 import { createPublicClient, http } from "viem";
-import {
-  createSIWANonce,
-  parseSIWAMessage,
-  verifySIWA,
-} from "@buildersgarden/siwa/siwa";
+import { createSIWANonce } from "@buildersgarden/siwa/siwa";
 import {
   loadJsonFile,
   normalizeAddress,
+  normalizeAgentRegistry,
   normalizeBytes32,
+  parsePositiveDecimalString,
   parsePositiveInteger,
   resolveFromPackageRoot,
   resolveRpcTarget,
@@ -30,7 +28,7 @@ export async function issueSiwaChallenge(options = {}) {
     options.wallet ?? input.wallet ?? input.address,
     "wallet"
   );
-  const agentId = parsePositiveInteger(
+  const agentId = parsePositiveDecimalString(
     options.agentId ?? input.agentId,
     "agentId"
   );
@@ -47,6 +45,11 @@ export async function issueSiwaChallenge(options = {}) {
     options.chainId ?? input.chainId ?? agentRegistry.chainId,
     "chainId"
   );
+  if (chainId !== agentRegistry.chainId) {
+    throw new Error(
+      `SIWA chainId ${chainId} must match agentRegistry chain ${agentRegistry.chainId}.`
+    );
+  }
   const statement = optionalNonEmptyString(
     options.statement ?? input.statement
   );
@@ -64,6 +67,8 @@ export async function issueSiwaChallenge(options = {}) {
       : undefined;
   const nonceStorePath = resolveNonceStorePath(options, input);
   const client = createSiwaPublicClient(options);
+  const rpcChainId = await getConnectedChainId(client);
+  assertSiwaRpcChainContext(rpcChainId, agentRegistry.chainId);
   const result = await createSIWANonce(
     {
       address: wallet,
@@ -143,7 +148,7 @@ export async function verifySiwaAuthInput(options = {}) {
   const message = resolveSiwaMessage(options, input);
   const signature = resolveSiwaSignature(options, input);
   const nonceStorePath = resolveNonceStorePath(options, input);
-  const fields = parseSIWAMessage(message);
+  const fields = parseSiwaMessageExact(message);
   const challengeRecord = consumeChallengeRecord(nonceStorePath, fields.nonce);
 
   if (!challengeRecord) {
@@ -163,27 +168,36 @@ export async function verifySiwaAuthInput(options = {}) {
   }
 
   const client = createSiwaPublicClient(options);
-  const result = await verifySIWA(
+  const rpcChainId = await getConnectedChainId(client);
+  const messageAgentRegistry = normalizeAgentRegistry(
+    fields.agentRegistry,
+    "SIWA message agentRegistry"
+  );
+  assertSiwaRpcChainContext(rpcChainId, messageAgentRegistry.chainId);
+  if (fields.chainId !== messageAgentRegistry.chainId) {
+    throw new Error(
+      `SIWA chainId ${fields.chainId} must match agentRegistry chain ${messageAgentRegistry.chainId}.`
+    );
+  }
+
+  const verification = await verifySiwaMessageAgainstChain({
+    client,
     message,
     signature,
-    challengeRecord.domain,
-    async () => true,
-    client
-  );
-
-  if (!result.valid) {
-    throw new Error(formatSiwaFailure("SIWA verification", result));
-  }
+    fields,
+    expectedDomain: challengeRecord.domain,
+    expectedWallet: challengeRecord.wallet,
+  });
 
   const manifestBinding = resolveManifestBinding(options, input);
   const authRegistry =
     options.registry ?? input.registry ?? challengeRecord.registry ?? undefined;
   const output = {
     boundaryNote: SIWA_VERIFY_BOUNDARY_NOTE,
-    wallet: normalizeAddress(result.address, "wallet"),
-    agentId: result.agentId,
-    agentRegistry: normalizeAgentRegistry(result.agentRegistry).value,
-    agentKeyText: buildAgentKeyText(result.agentRegistry, result.agentId),
+    wallet: verification.wallet,
+    agentId: fields.agentId,
+    agentRegistry: messageAgentRegistry.value,
+    agentKeyText: buildAgentKeyText(messageAgentRegistry.value, fields.agentId),
     issuedAt: isoStringToUnixSeconds(fields.issuedAt, "SIWA issuedAt"),
     ...(fields.expirationTime
       ? {
@@ -199,8 +213,8 @@ export async function verifySiwaAuthInput(options = {}) {
     ...manifestBinding,
     siwa: {
       valid: true,
-      verified: result.verified,
-      signerType: result.signerType ?? null,
+      verified: verification.verified,
+      signerType: verification.signerType,
       domain: fields.domain,
       uri: fields.uri,
       chainId: fields.chainId,
@@ -308,27 +322,172 @@ function createSiwaPublicClient(options = {}) {
   });
 }
 
-function normalizeAgentRegistry(agentRegistry) {
-  if (typeof agentRegistry !== "string" || agentRegistry.length === 0) {
+async function getConnectedChainId(client) {
+  return parsePositiveInteger(await client.getChainId(), "connected RPC chainId");
+}
+
+function assertSiwaRpcChainContext(rpcChainId, expectedChainId) {
+  if (rpcChainId !== expectedChainId) {
     throw new Error(
-      "agentRegistry is required and must use eip155:<chainId>:<address> format."
+      `Connected RPC chain ${rpcChainId} does not match declared agentRegistry chain ${expectedChainId}.`
     );
   }
+}
 
-  const match = agentRegistry.match(/^eip155:(\d+):(0x[0-9a-fA-F]{40})$/);
-  if (!match) {
-    throw new Error(
-      "agentRegistry must use eip155:<chainId>:<address> format."
-    );
+function parseSiwaMessageExact(message) {
+  const lines = message.split("\n");
+  const domainMatch = lines[0]?.match(
+    /^(.+) wants you to sign in with your Agent account:$/
+  );
+  if (!domainMatch) {
+    throw new Error("Invalid SIWA message: missing domain line");
   }
 
-  const chainId = parsePositiveInteger(match[1], "agentRegistry chainId");
-  const address = normalizeAddress(match[2], "agentRegistry address");
+  const fieldMap = {};
+  let statement;
+  let inStatement = false;
+  const statementLines = [];
+
+  for (let i = 2; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (i === 2 && line === "") {
+      inStatement = true;
+      continue;
+    }
+
+    if (inStatement) {
+      if (line === "" || line.startsWith("URI: ")) {
+        inStatement = false;
+        statement = statementLines.join("\n").trim() || undefined;
+        if (line.startsWith("URI: ")) {
+          const [key, ...rest] = line.split(": ");
+          fieldMap[key] = rest.join(": ");
+        }
+        continue;
+      }
+
+      statementLines.push(line);
+      continue;
+    }
+
+    if (line.includes(": ")) {
+      const [key, ...rest] = line.split(": ");
+      fieldMap[key] = rest.join(": ");
+    }
+  }
 
   return {
-    chainId,
-    address,
-    value: `eip155:${chainId}:${address}`,
+    domain: domainMatch[1],
+    address: normalizeAddress(lines[1], "SIWA message address"),
+    statement,
+    uri: requireNonEmptyString(fieldMap.URI, "SIWA message URI"),
+    version: fieldMap.Version || "1",
+    agentId: parsePositiveDecimalString(fieldMap["Agent ID"], "SIWA message agentId"),
+    agentRegistry: requireNonEmptyString(
+      fieldMap["Agent Registry"],
+      "SIWA message agentRegistry"
+    ),
+    chainId: parsePositiveInteger(fieldMap["Chain ID"], "SIWA message chainId"),
+    nonce: requireNonEmptyString(fieldMap.Nonce, "SIWA message nonce"),
+    issuedAt: requireNonEmptyString(fieldMap["Issued At"], "SIWA message issuedAt"),
+    expirationTime: fieldMap["Expiration Time"],
+    notBefore: fieldMap["Not Before"],
+    requestId: fieldMap["Request ID"],
+  };
+}
+
+async function verifySiwaMessageAgainstChain({
+  client,
+  message,
+  signature,
+  fields,
+  expectedDomain,
+  expectedWallet,
+}) {
+  const wallet = normalizeAddress(fields.address, "SIWA message address");
+  if (wallet.toLowerCase() !== expectedWallet.toLowerCase()) {
+    throw new Error(
+      `SIWA wallet mismatch. Challenge expected ${expectedWallet}, but the message resolves to ${wallet}.`
+    );
+  }
+
+  if (fields.domain !== expectedDomain) {
+    throw new Error(
+      `SIWA domain mismatch. Challenge expected ${expectedDomain}, but the message declares ${fields.domain}.`
+    );
+  }
+
+  const validSignature = await client.verifyMessage({
+    address: wallet,
+    message,
+    signature,
+  });
+  if (!validSignature) {
+    throw new Error("SIWA verification failed [INVALID_SIGNATURE] Invalid signature");
+  }
+
+  const now = new Date();
+
+  if (fields.expirationTime) {
+    const expirationTime = new Date(fields.expirationTime);
+    if (Number.isNaN(expirationTime.getTime())) {
+      throw new Error("SIWA verification failed [MESSAGE_EXPIRED] Invalid expirationTime");
+    }
+    if (now > expirationTime) {
+      throw new Error("SIWA verification failed [MESSAGE_EXPIRED] Message expired");
+    }
+  }
+
+  if (fields.notBefore) {
+    const notBefore = new Date(fields.notBefore);
+    if (Number.isNaN(notBefore.getTime())) {
+      throw new Error("SIWA verification failed [MESSAGE_NOT_YET_VALID] Invalid notBefore");
+    }
+    if (now < notBefore) {
+      throw new Error(
+        "SIWA verification failed [MESSAGE_NOT_YET_VALID] Message not yet valid (notBefore)"
+      );
+    }
+  }
+
+  const agentRegistry = normalizeAgentRegistry(
+    fields.agentRegistry,
+    "SIWA message agentRegistry"
+  );
+
+  let owner;
+  try {
+    owner = await client.readContract({
+      address: agentRegistry.address,
+      abi: [
+        {
+          name: "ownerOf",
+          type: "function",
+          stateMutability: "view",
+          inputs: [{ name: "tokenId", type: "uint256" }],
+          outputs: [{ name: "", type: "address" }],
+        },
+      ],
+      functionName: "ownerOf",
+      args: [BigInt(fields.agentId)],
+    });
+  } catch {
+    throw new Error(
+      "SIWA verification failed [NOT_REGISTERED] Agent is not registered on the ERC-8004 Identity Registry"
+    );
+  }
+
+  if (normalizeAddress(owner, "ERC-8004 ownerOf result").toLowerCase() !== wallet.toLowerCase()) {
+    throw new Error(
+      "SIWA verification failed [NOT_OWNER] Signer is not the owner of this agent NFT"
+    );
+  }
+
+  const signerCode = await client.getCode({ address: wallet });
+  return {
+    wallet,
+    verified: "onchain",
+    signerType: signerCode && signerCode !== "0x" ? "sca" : "eoa",
   };
 }
 
@@ -436,9 +595,13 @@ function compareChallengeToMessage(record, fields) {
     );
   }
 
-  if (Number(fields.agentId) !== Number(record.agentId)) {
+  const recordAgentId = parsePositiveDecimalString(
+    record.agentId,
+    "challenge agentId"
+  );
+  if (fields.agentId !== recordAgentId) {
     mismatches.push(
-      `agentId mismatch (challenge ${record.agentId}, message ${fields.agentId})`
+      `agentId mismatch (challenge ${recordAgentId}, message ${fields.agentId})`
     );
   }
 
@@ -539,7 +702,7 @@ function formatManifestBinding(result) {
 }
 
 function buildAgentKeyText(agentRegistry, agentId) {
-  return `${normalizeAgentRegistry(agentRegistry).value}:${parsePositiveInteger(
+  return `${normalizeAgentRegistry(agentRegistry).value}:${parsePositiveDecimalString(
     agentId,
     "agentId"
   )}`;

@@ -221,6 +221,61 @@ export function parsePositiveInteger(value, label) {
   return parsed;
 }
 
+export function parsePositiveDecimalString(value, label) {
+  if (typeof value === "bigint") {
+    if (value <= 0n) {
+      throw new Error(`${label} must be a positive integer.`);
+    }
+
+    return value.toString();
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value) || value <= 0) {
+      throw new Error(
+        `${label} must be provided as an exact positive integer. Use a decimal string for values above ${Number.MAX_SAFE_INTEGER}.`
+      );
+    }
+
+    return String(value);
+  }
+
+  if (typeof value === "string" && /^(?:0|[1-9]\d*)$/.test(value.trim())) {
+    const normalized = value.trim().replace(/^0+(?=\d)/, "");
+    if (normalized === "0") {
+      throw new Error(`${label} must be a positive integer.`);
+    }
+
+    return normalized;
+  }
+
+  throw new Error(`${label} must be a positive integer.`);
+}
+
+export function normalizeAgentRegistry(agentRegistry, label = "agentRegistry") {
+  if (typeof agentRegistry !== "string" || agentRegistry.length === 0) {
+    throw new Error(
+      `${label} is required and must use eip155:<chainId>:<address> format.`
+    );
+  }
+
+  const match = agentRegistry.match(/^eip155:(\d+):(0x[0-9a-fA-F]{40})$/);
+  if (!match) {
+    throw new Error(
+      `${label} must use eip155:<chainId>:<address> format.`
+    );
+  }
+
+  const chainId = parsePositiveInteger(match[1], `${label} chainId`);
+  const address = normalizeAddress(match[2], `${label} address`);
+
+  return {
+    chainId,
+    address,
+    value: `eip155:${chainId}:${address}`,
+  };
+}
+
 export function resolvePermitFieldInput(args = {}, input = {}) {
   return {
     wallet: args.wallet ?? input.wallet,
@@ -522,6 +577,74 @@ function normalizeOptionalAddress(value, label) {
   return normalizeAddress(value, label);
 }
 
+function extractVerifiedInputContext(input = {}) {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const registry = normalizeOptionalAddress(input.registry, "input.registry");
+  const agentRegistry =
+    input.agentRegistry !== undefined
+      ? normalizeAgentRegistry(input.agentRegistry, "input.agentRegistry")
+      : null;
+  const siwa = input.siwa;
+  const siwaChainId =
+    siwa && typeof siwa === "object" && siwa.chainId !== undefined
+      ? parsePositiveInteger(siwa.chainId, "input.siwa.chainId")
+      : null;
+
+  if (!registry && !agentRegistry && siwaChainId === null) {
+    return null;
+  }
+
+  return {
+    registry,
+    agentRegistry,
+    siwaChainId,
+  };
+}
+
+function assertVerifiedInputMatchesPermitContext(input, { registryAddress, chainId }) {
+  const context = extractVerifiedInputContext(input);
+  if (!context) {
+    return;
+  }
+
+  if (
+    context.registry &&
+    context.registry.toLowerCase() !== registryAddress.toLowerCase()
+  ) {
+    throw new Error(
+      `Verified auth input registry mismatch. Input targets ${context.registry}, but the permit command targets ${registryAddress}.`
+    );
+  }
+
+  if (
+    context.agentRegistry &&
+    context.agentRegistry.chainId !== chainId
+  ) {
+    throw new Error(
+      `Verified SIWA agentRegistry chain ${context.agentRegistry.chainId} does not match connected permit chain ${chainId}.`
+    );
+  }
+
+  if (context.siwaChainId !== null && context.siwaChainId !== chainId) {
+    throw new Error(
+      `Verified SIWA chainId ${context.siwaChainId} does not match connected permit chain ${chainId}.`
+    );
+  }
+
+  if (
+    context.agentRegistry &&
+    context.siwaChainId !== null &&
+    context.agentRegistry.chainId !== context.siwaChainId
+  ) {
+    throw new Error(
+      `Verified SIWA chain context mismatch. agentRegistry declares chain ${context.agentRegistry.chainId}, but siwa.chainId is ${context.siwaChainId}.`
+    );
+  }
+}
+
 export async function inspectPermitBundle(options = {}) {
   const bundle = options.bundle ?? loadPermitBundle(options.permitFile);
   const provider = options.provider ?? createProvider(options);
@@ -722,6 +845,11 @@ export async function buildAndSignAuthPermit(options = {}) {
     registry.verifier(),
     registry.domainSeparatorV4(),
   ]);
+
+  assertVerifiedInputMatchesPermitContext(input, {
+    registryAddress,
+    chainId: network.chainId,
+  });
 
   const issuedAt =
     fields.issuedAt !== undefined

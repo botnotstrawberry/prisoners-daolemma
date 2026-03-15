@@ -29,7 +29,11 @@ const identityRegistryArtifact = JSON.parse(
 );
 
 const RPC_URL = "http://127.0.0.1:8548";
+const RPC_URL_ALT = "http://127.0.0.1:8549";
 const ANVIL_PORT = "8548";
+const ANVIL_PORT_ALT = "8549";
+const CHAIN_ID = 31337;
+const CHAIN_ID_ALT = 31338;
 const ANVIL_PRIVATE_KEYS = [
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 ];
@@ -42,25 +46,29 @@ const KEYSTORE_OPTIONS = {
 };
 
 let anvilProcess;
+let anvilProcessAlt;
 
 before(async () => {
-  anvilProcess = spawn("anvil", ["--port", ANVIL_PORT, "--chain-id", "31337"], {
+  anvilProcess = spawn("anvil", ["--port", ANVIL_PORT, "--chain-id", String(CHAIN_ID)], {
     cwd: packageDir,
     stdio: "ignore",
   });
+  anvilProcessAlt = spawn(
+    "anvil",
+    ["--port", ANVIL_PORT_ALT, "--chain-id", String(CHAIN_ID_ALT)],
+    {
+      cwd: packageDir,
+      stdio: "ignore",
+    }
+  );
 
-  await waitForAnvil();
+  await waitForAnvil(RPC_URL);
+  await waitForAnvil(RPC_URL_ALT);
 });
 
 after(async () => {
-  if (!anvilProcess) {
-    return;
-  }
-
-  await new Promise((resolve) => {
-    anvilProcess.once("exit", resolve);
-    anvilProcess.kill("SIGTERM");
-  });
+  await stopAnvil(anvilProcessAlt);
+  await stopAnvil(anvilProcess);
 });
 
 test("SIWA CLI verifies a local signed challenge and feeds the permit/register flow", async () => {
@@ -69,131 +77,59 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   const gameplay = ethers.Wallet.createRandom().connect(provider);
   const verifier = ethers.Wallet.createRandom();
 
-  await (
-    await owner.sendTransaction({
-      to: gameplay.address,
-      value: ethers.utils.parseEther("1"),
-    })
-  ).wait();
+  await fundWallet(owner, gameplay.address);
 
-  const authRegistryFactory = new ethers.ContractFactory(
-    authRegistryArtifact.abi,
-    authRegistryArtifact.bytecode.object,
-    owner
-  );
-  const authRegistry = await authRegistryFactory.deploy(
-    owner.address,
-    verifier.address
-  );
-  await authRegistry.deployed();
-
-  const identityRegistryFactory = new ethers.ContractFactory(
-    identityRegistryArtifact.abi,
-    identityRegistryArtifact.bytecode.object,
-    owner
-  );
-  const identityRegistry = await identityRegistryFactory.deploy();
-  await identityRegistry.deployed();
-
-  const agentId = 42;
-  await (
-    await identityRegistry.setOwner(agentId, gameplay.address)
-  ).wait();
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const agentId = "42";
+  await (await identityRegistry.setOwner(agentId, gameplay.address)).wait();
 
   const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
-  const nonceStore = join(tempDir, "siwa-nonces.json");
-  const challengeFile = join(tempDir, "siwa-challenge.json");
-  const signedFile = join(tempDir, "signed-siwa.json");
-  const verifiedFile = join(tempDir, "verified-auth.json");
   const permitFile = join(tempDir, "auth-permit.json");
   const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
   const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
-  const domain = "prisoners.local";
-  const uri = "https://prisoners.local/siwa";
-  const manifestUri = "manifest://agent-alpha";
-  const agentRegistry = `eip155:31337:${identityRegistry.address}`;
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    agentId,
+    tempDir,
+    manifestUri: "manifest://agent-alpha",
+  });
 
-  const challenge = JSON.parse(
-    runCli([
-      "siwa-nonce",
-      "--rpc-url",
-      RPC_URL,
-      "--wallet",
-      gameplay.address,
-      "--agent-id",
-      String(agentId),
-      "--agent-registry",
-      agentRegistry,
-      "--domain",
-      domain,
-      "--uri",
-      uri,
-      "--chain-id",
-      "31337",
-      "--nonce-store",
-      nonceStore,
-      "--registry",
-      authRegistry.address,
-      "--out",
-      challengeFile,
-      "--json",
-    ])
-  );
-
-  assert.equal(challenge.wallet.toLowerCase(), gameplay.address.toLowerCase());
-  assert.equal(challenge.agentId, agentId);
+  assert.equal(flow.challenge.wallet.toLowerCase(), gameplay.address.toLowerCase());
+  assert.equal(flow.challenge.agentId, agentId);
+  assert.equal(flow.challenge.siwaFields.agentId, agentId);
   assert.equal(
-    challenge.agentRegistry.toLowerCase(),
-    agentRegistry.toLowerCase()
+    flow.challenge.agentRegistry.toLowerCase(),
+    flow.agentRegistry.toLowerCase()
   );
-  assert.equal(challenge.challenge.domain, domain);
-  assert.equal(challenge.challenge.uri, uri);
-  assert.equal(challenge.challenge.chainId, 31337);
-  assert.equal(existsSync(challengeFile), true);
-  assert.equal(existsSync(nonceStore), true);
+  assert.equal(flow.challenge.challenge.domain, flow.domain);
+  assert.equal(flow.challenge.challenge.uri, flow.uri);
+  assert.equal(flow.challenge.challenge.chainId, CHAIN_ID);
+  assert.equal(existsSync(flow.challengeFile), true);
+  assert.equal(existsSync(flow.nonceStore), true);
 
-  const signer = {
-    getAddress: async () => gameplay.address,
-    signMessage: async (message) => gameplay.signMessage(message),
-  };
-  const signed = await signSIWAMessage(challenge.siwaFields, signer);
-  writeFileSync(signedFile, `${JSON.stringify(signed, null, 2)}\n`, "utf8");
-
-  const verified = JSON.parse(
-    runCli([
-      "siwa-verify",
-      "--rpc-url",
-      RPC_URL,
-      "--input",
-      signedFile,
-      "--nonce-store",
-      nonceStore,
-      "--manifest-uri",
-      manifestUri,
-      "--registry",
-      authRegistry.address,
-      "--out",
-      verifiedFile,
-      "--json",
-    ])
-  );
-
-  const expectedAgentKeyText = `eip155:31337:${ethers.utils.getAddress(
+  const expectedAgentKeyText = `eip155:${CHAIN_ID}:${ethers.utils.getAddress(
     identityRegistry.address
   )}:${agentId}`;
-  assert.equal(verified.wallet.toLowerCase(), gameplay.address.toLowerCase());
-  assert.equal(verified.agentId, agentId);
-  assert.equal(verified.agentRegistry, agentRegistry);
-  assert.equal(verified.agentKeyText, expectedAgentKeyText);
-  assert.equal(verified.registry.toLowerCase(), authRegistry.address.toLowerCase());
-  assert.equal(verified.manifestUri, manifestUri);
-  assert.equal(verified.siwa.domain, domain);
-  assert.equal(verified.siwa.uri, uri);
-  assert.equal(verified.siwa.chainId, 31337);
-  assert.equal(verified.siwa.signerType, "eoa");
-  assert.equal(existsSync(verifiedFile), true);
+  assert.equal(flow.verified.wallet.toLowerCase(), gameplay.address.toLowerCase());
+  assert.equal(flow.verified.agentId, agentId);
+  assert.equal(flow.verified.agentRegistry, flow.agentRegistry);
+  assert.equal(flow.verified.agentKeyText, expectedAgentKeyText);
+  assert.equal(
+    flow.verified.registry.toLowerCase(),
+    authRegistry.address.toLowerCase()
+  );
+  assert.equal(flow.verified.manifestUri, flow.manifestUri);
+  assert.equal(flow.verified.siwa.domain, flow.domain);
+  assert.equal(flow.verified.siwa.uri, flow.uri);
+  assert.equal(flow.verified.siwa.chainId, CHAIN_ID);
+  assert.equal(flow.verified.siwa.signerType, "eoa");
+  assert.equal(existsSync(flow.verifiedFile), true);
 
-  const nonceState = JSON.parse(readFileSync(nonceStore, "utf8"));
+  const nonceState = JSON.parse(readFileSync(flow.nonceStore, "utf8"));
   assert.deepEqual(nonceState.nonces, {});
 
   const replayError = runCliFailure([
@@ -201,11 +137,11 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
     "--rpc-url",
     RPC_URL,
     "--input",
-    signedFile,
+    flow.signedFile,
     "--nonce-store",
-    nonceStore,
+    flow.nonceStore,
     "--manifest-uri",
-    manifestUri,
+    flow.manifestUri,
     "--registry",
     authRegistry.address,
     "--json",
@@ -218,7 +154,7 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
       "--rpc-url",
       RPC_URL,
       "--input",
-      verifiedFile,
+      flow.verifiedFile,
       "--verifier-keystore",
       verifierSetup.keystorePath,
       "--verifier-keystore-password-file",
@@ -237,7 +173,7 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   );
   assert.equal(
     permit.permit.manifestHash,
-    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(manifestUri))
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(flow.manifestUri))
   );
   assert.equal(existsSync(permitFile), true);
 
@@ -289,6 +225,295 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   );
 });
 
+test("siwa-nonce rejects an RPC chain that does not match the declared agentRegistry chain", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+
+  await fundWallet(owner, gameplay.address);
+
+  const identityRegistry = await deployIdentityRegistry(owner);
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  const error = runCliFailure([
+    "siwa-nonce",
+    "--rpc-url",
+    RPC_URL,
+    "--wallet",
+    gameplay.address,
+    "--agent-id",
+    "42",
+    "--agent-registry",
+    `eip155:${CHAIN_ID_ALT}:${identityRegistry.address}`,
+    "--domain",
+    "prisoners.local",
+    "--json",
+  ]);
+
+  assert.match(
+    error,
+    /Connected RPC chain 31337 does not match declared agentRegistry chain 31338/
+  );
+});
+
+test("siwa-nonce rejects SIWA chain context that does not match the declared agentRegistry chain", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+
+  await fundWallet(owner, gameplay.address);
+
+  const identityRegistry = await deployIdentityRegistry(owner);
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  const error = runCliFailure([
+    "siwa-nonce",
+    "--rpc-url",
+    RPC_URL,
+    "--wallet",
+    gameplay.address,
+    "--agent-id",
+    "42",
+    "--agent-registry",
+    `eip155:${CHAIN_ID}:${identityRegistry.address}`,
+    "--domain",
+    "prisoners.local",
+    "--chain-id",
+    String(CHAIN_ID_ALT),
+    "--json",
+  ]);
+
+  assert.match(error, /SIWA chainId 31338 must match agentRegistry chain 31337/);
+});
+
+test("permit rejects a verified SIWA artifact when the permit chain does not match the verified chain context", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const providerAlt = new ethers.providers.JsonRpcProvider(RPC_URL_ALT);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const ownerAlt = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], providerAlt);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const authRegistryAlt = await deployAuthRegistry(ownerAlt, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    agentId: "42",
+    tempDir,
+    manifestUri: "manifest://agent-alpha",
+    includeRegistry: false,
+  });
+
+  const error = runCliFailure([
+    "permit",
+    "--rpc-url",
+    RPC_URL_ALT,
+    "--registry",
+    authRegistryAlt.address,
+    "--input",
+    flow.verifiedFile,
+    "--verifier-keystore",
+    verifierSetup.keystorePath,
+    "--verifier-keystore-password-file",
+    verifierSetup.passwordFile,
+    "--json",
+  ]);
+
+  assert.match(
+    error,
+    /Verified SIWA agentRegistry chain 31337 does not match connected permit chain 31338/
+  );
+});
+
+test("SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe integer range", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const agentId = "9007199254740993";
+  await (await identityRegistry.setOwner(agentId, gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const flow = await runVerifiedSiwaFlow({
+    rpcUrl: RPC_URL,
+    authRegistry,
+    identityRegistry,
+    gameplay,
+    agentId,
+    tempDir,
+    manifestUri: "manifest://agent-large",
+  });
+
+  const checksumRegistry = ethers.utils.getAddress(identityRegistry.address);
+  const expectedAgentKeyText = `eip155:${CHAIN_ID}:${checksumRegistry}:${agentId}`;
+  const roundedAgentId = String(Number(agentId));
+  const roundedAgentKeyText = `eip155:${CHAIN_ID}:${checksumRegistry}:${roundedAgentId}`;
+
+  assert.equal(flow.challenge.agentId, agentId);
+  assert.equal(flow.challenge.siwaFields.agentId, agentId);
+  assert.equal(flow.verified.agentId, agentId);
+  assert.equal(flow.verified.agentKeyText, expectedAgentKeyText);
+  assert.notEqual(expectedAgentKeyText, roundedAgentKeyText);
+
+  const permit = JSON.parse(
+    runCli([
+      "permit",
+      "--rpc-url",
+      RPC_URL,
+      "--input",
+      flow.verifiedFile,
+      "--verifier-keystore",
+      verifierSetup.keystorePath,
+      "--verifier-keystore-password-file",
+      verifierSetup.passwordFile,
+      "--json",
+    ])
+  );
+
+  assert.equal(
+    permit.permit.agentKey,
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(expectedAgentKeyText))
+  );
+  assert.notEqual(
+    permit.permit.agentKey,
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes(roundedAgentKeyText))
+  );
+});
+
+async function runVerifiedSiwaFlow({
+  rpcUrl,
+  authRegistry,
+  identityRegistry,
+  gameplay,
+  agentId,
+  tempDir,
+  manifestUri,
+  domain = "prisoners.local",
+  uri = "https://prisoners.local/siwa",
+  includeRegistry = true,
+}) {
+  const nonceStore = join(tempDir, `siwa-${agentId}-nonces.json`);
+  const challengeFile = join(tempDir, `siwa-${agentId}-challenge.json`);
+  const signedFile = join(tempDir, `siwa-${agentId}-signed.json`);
+  const verifiedFile = join(tempDir, `siwa-${agentId}-verified.json`);
+  const agentRegistry = `eip155:${CHAIN_ID}:${identityRegistry.address}`;
+
+  const challenge = JSON.parse(
+    runCli([
+      "siwa-nonce",
+      "--rpc-url",
+      rpcUrl,
+      "--wallet",
+      gameplay.address,
+      "--agent-id",
+      agentId,
+      "--agent-registry",
+      agentRegistry,
+      "--domain",
+      domain,
+      "--uri",
+      uri,
+      "--chain-id",
+      String(CHAIN_ID),
+      "--nonce-store",
+      nonceStore,
+      ...(includeRegistry ? ["--registry", authRegistry.address] : []),
+      "--out",
+      challengeFile,
+      "--json",
+    ])
+  );
+
+  const signer = {
+    getAddress: async () => gameplay.address,
+    signMessage: async (message) => gameplay.signMessage(message),
+  };
+  const signed = await signSIWAMessage(challenge.siwaFields, signer);
+  writeFileSync(signedFile, `${JSON.stringify(signed, null, 2)}\n`, "utf8");
+
+  const verified = JSON.parse(
+    runCli([
+      "siwa-verify",
+      "--rpc-url",
+      rpcUrl,
+      "--input",
+      signedFile,
+      "--nonce-store",
+      nonceStore,
+      "--manifest-uri",
+      manifestUri,
+      ...(includeRegistry ? ["--registry", authRegistry.address] : []),
+      "--out",
+      verifiedFile,
+      "--json",
+    ])
+  );
+
+  return {
+    agentRegistry,
+    challenge,
+    challengeFile,
+    signed,
+    signedFile,
+    verified,
+    verifiedFile,
+    nonceStore,
+    domain,
+    uri,
+    manifestUri,
+  };
+}
+
+async function deployAuthRegistry(owner, verifierAddress) {
+  const authRegistryFactory = new ethers.ContractFactory(
+    authRegistryArtifact.abi,
+    authRegistryArtifact.bytecode.object,
+    owner
+  );
+  const authRegistry = await authRegistryFactory.deploy(
+    owner.address,
+    verifierAddress
+  );
+  await authRegistry.deployed();
+  return authRegistry;
+}
+
+async function deployIdentityRegistry(owner) {
+  const identityRegistryFactory = new ethers.ContractFactory(
+    identityRegistryArtifact.abi,
+    identityRegistryArtifact.bytecode.object,
+    owner
+  );
+  const identityRegistry = await identityRegistryFactory.deploy();
+  await identityRegistry.deployed();
+  return identityRegistry;
+}
+
+async function fundWallet(owner, target) {
+  await (
+    await owner.sendTransaction({
+      to: target,
+      value: ethers.utils.parseEther("1"),
+    })
+  ).wait();
+}
+
 async function writeKeystoreFixture(tempDir, label, wallet) {
   const password = `${label}-password`;
   const keystorePath = join(tempDir, `${label}.keystore.json`);
@@ -303,8 +528,8 @@ async function writeKeystoreFixture(tempDir, label, wallet) {
   return { keystorePath, passwordFile, password };
 }
 
-async function waitForAnvil() {
-  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+async function waitForAnvil(rpcUrl) {
+  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
   const deadline = Date.now() + 15_000;
 
   while (Date.now() < deadline) {
@@ -316,7 +541,18 @@ async function waitForAnvil() {
     }
   }
 
-  throw new Error("Timed out waiting for anvil to start.");
+  throw new Error(`Timed out waiting for anvil to start at ${rpcUrl}.`);
+}
+
+async function stopAnvil(child) {
+  if (!child) {
+    return;
+  }
+
+  await new Promise((resolve) => {
+    child.once("exit", resolve);
+    child.kill("SIGTERM");
+  });
 }
 
 function runCli(args) {

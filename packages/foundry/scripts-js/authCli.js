@@ -56,6 +56,7 @@ Usage:
 
 Notes:
   - --rpc-url must point at the chain that serves the ERC-8004 identity registry used in --agent-registry.
+  - --chain-id must match the chain encoded in --agent-registry for this local CLI flow.
   - The challenge is stored in a local nonce store (default: packages/foundry/.siwa-nonces.json).
   - The returned siwaFields object can be signed with a SIWA-compatible signer.
 
@@ -110,6 +111,7 @@ Notes:
   - For local chains (31337/1337), expiry defaults to 0 if you omit --expires-at/--ttl-seconds.
   - For non-local chains, expiry is required.
   - --input lets siwa-verify or another verifier hand this CLI already-approved fields. This command does NOT verify SIWA.
+  - When --input includes verified SIWA context, the permit chain/registry must match that verified context or the command rejects.
   - Permit issuedAt defaults to the current chain time at signing; SIWA input timestamps are reference data unless you explicitly pass --issued-at.
   - Prefer Foundry keystores for local use. If no keystore password env/file is supplied, the CLI prompts interactively.
   - Raw --verifier-private-key / --wallet-private-key flags are disabled unless you also pass --allow-unsafe-private-key.
