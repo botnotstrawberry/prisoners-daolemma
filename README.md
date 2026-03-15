@@ -33,8 +33,9 @@ For implementation in this repo, treat these docs as the source of truth:
 ## Current code state
 The repo now contains:
 - Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
-- Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that stitches auth -> gameplay -> evidence export together
+- Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that now stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
+- CLI-first gameplay/operator tooling for create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config
 - project-local skill routing for auth, comms/replay, and Solidity security
@@ -92,6 +93,49 @@ Thin local wrapper:
 - it writes every intermediate artifact into a temp/work directory instead of hiding the steps behind a new abstraction
 - the JSON output includes the exact subcommands it executed plus the staged results/files, so you can inspect or re-run any boundary manually
 
+## CLI gameplay/operator tooling
+
+The repo includes CLI-first gameplay/operator tooling under `packages/foundry/scripts-js/gameCli.js`.
+
+Current boundary:
+- wraps the live onchain `PrisonersDaollema` + `GameChat` write surface only
+- covers `create`, `advance`, `cancel-if-insufficient`, `join`, `prepare-commit`, `commit`, `reveal`, `claim`, `refund`, `withdraw-treasury`, `withdraw-cause`, `post-global`, and `post-cause`
+- `prepare-commit` generates a local bundle containing the round, choice, salt, and commitment so `commit` and `reveal` can share one auditable input file
+- the read/evidence side stays intentionally separate in `queryCli.js`
+- signer handling matches the hardened auth tooling stance: keystore-first by default, env fallback for local automation, raw `--wallet-private-key` gated behind `--allow-unsafe-private-key`
+
+Useful commands:
+- `yarn game -- --help`
+- `yarn game:create -- --help`
+- `yarn game:advance -- --help`
+- `yarn game:cancel -- --help`
+- `yarn game:join -- --help`
+- `yarn game:prepare-commit -- --help`
+- `yarn game:commit -- --help`
+- `yarn game:reveal -- --help`
+- `yarn game:claim -- --help`
+- `yarn game:refund -- --help`
+- `yarn game:withdraw-treasury -- --help`
+- `yarn game:withdraw-cause -- --help`
+- `yarn game:post-global -- --help`
+- `yarn game:post-cause -- --help`
+
+Typical local flow after auth:
+1. run `yarn game:create -- --rpc-url localhost --game <PrisonersDaollema> --wallet-keystore <owner-keystore> ...`
+2. run `yarn game:join -- --rpc-url localhost --game-id 1 --cause-id 1 --wallet-keystore <player-keystore> ...`
+3. run `yarn game:advance -- --rpc-url localhost --game-id 1 --wallet-keystore <owner-keystore> ...` after the join window closes
+4. run `yarn game:prepare-commit -- --rpc-url localhost --game-id 1 --choice share --wallet-keystore <player-keystore> ... --out commit-bundles/p1-r1.json`
+5. run `yarn game:commit -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
+6. run `yarn game:reveal -- --rpc-url localhost --game-id 1 --input commit-bundles/p1-r1.json --wallet-keystore <player-keystore> ...`
+7. later, run the terminal path that applies onchain now:
+   - `yarn game:claim -- ...`
+   - `yarn game:refund -- ...`
+   - `yarn game:withdraw-treasury -- ...`
+   - `yarn game:withdraw-cause -- ...`
+8. optional comms:
+   - `yarn game:post-global -- ...`
+   - `yarn game:post-cause -- ...`
+
 ## CLI evidence/query tooling
 
 The repo includes CLI-first evidence/query tooling under `packages/foundry/scripts-js/queryCli.js`.
@@ -132,19 +176,19 @@ yarn smoke:integration
 ```
 
 What it currently proves end to end:
-- local auth wrapper flow (`siwa-nonce -> siwa-sign -> siwa-verify -> permit -> register -> status`) for two wallets
+- local auth wrapper flow (`siwa-nonce -> siwa-sign -> siwa-verify -> permit -> register -> status`) for three wallets
 - onchain auth registration against `AgentAuthRegistry`
-- game creation plus auth-gated joins
-- one real commit/reveal round boundary with two players
-- `GameChat` global and cause-scoped posting
-- evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, `messages.jsonl`, and `export-manifest.json`
+- game creation plus auth-gated joins through the gameplay/operator CLI
+- a multi-round winner path ending in finalized settlement plus winner claims through the gameplay/operator CLI
+- a cancelled path ending in finalized settlement plus refunds through the gameplay/operator CLI
+- a no-winner path ending in finalized settlement plus treasury/cause withdrawals through the gameplay/operator CLI
+- `GameChat` global and cause-scoped posting through the gameplay/operator CLI inside the winner-path scenario
+- evidence export via `queryCli export`, including `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, `messages.jsonl`, and `export-manifest.json` after those settlement flows
 
 What it intentionally does **not** claim yet:
-- round resolution or eliminations inside the smoke path itself
-- winner / no-winner terminal outcomes inside the smoke path itself
-- that the smoke scenario has actually finalized settlement, even though the contract/query surface now supports those later slices
-
-The smoke still stops at the pre-resolution boundary for this specific scenario, but the export now includes honest settlement/payout scaffolding (unfinalized when the selected game has not yet ended).
+- Sepolia or mainnet behavior
+- stress/load characteristics beyond this deterministic local smoke
+- that one smoke run replaces the broader Foundry/unit/fuzz/testnet validation plan in `TEST_PLAN.md`
 
 ## Quick start
 
