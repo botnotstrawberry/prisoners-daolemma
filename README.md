@@ -69,6 +69,8 @@ Secret-handling stance:
 
 Useful commands:
 - `yarn auth -- --help`
+- `yarn auth:flow -- --help`
+- `yarn auth:smoke -- --help`
 - `yarn siwa-nonce -- --help`
 - `yarn siwa-sign -- --help`
 - `yarn siwa-verify -- --help`
@@ -83,6 +85,12 @@ Typical local flow:
 4. run `yarn auth:permit -- --rpc-url <url|network> --input verified-auth.json --verifier-keystore <name|path> ... --out auth-permit.json`
 5. run `yarn auth:register -- --rpc-url <url|network> --permit-file auth-permit.json --wallet-keystore <name|path> ...`
 6. run `yarn auth:status -- --rpc-url <url|network> --permit-file auth-permit.json` to inspect wallet state and, if desired, bundle health
+
+Thin local wrapper:
+- `yarn auth:flow -- ...` or `yarn auth:smoke -- ...`
+- the wrapper still runs the same six commands above, in order
+- it writes every intermediate artifact into a temp/work directory instead of hiding the steps behind a new abstraction
+- the JSON output includes the exact subcommands it executed plus the staged results/files, so you can inspect or re-run any boundary manually
 
 ## CLI evidence/query tooling
 

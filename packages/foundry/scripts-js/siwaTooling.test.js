@@ -652,6 +652,116 @@ test("SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe int
   );
 });
 
+test("auth flow wrapper runs the explicit six-step local path and keeps stage artifacts inspectable", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const verifier = ethers.Wallet.createRandom();
+
+  await fundWallet(owner, gameplay.address);
+
+  const authRegistry = await deployAuthRegistry(owner, verifier.address);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const agentId = "42";
+  await (await identityRegistry.setOwner(agentId, gameplay.address)).wait();
+
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-auth-flow-"));
+  const workDir = join(tempDir, "flow-artifacts");
+  const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
+  const manifestUri = "manifest://agent-flow-wrapper";
+  const agentRegistry = `eip155:${CHAIN_ID}:${identityRegistry.address}`;
+
+  const summary = JSON.parse(
+    runFlowCli([
+      "--rpc-url",
+      RPC_URL,
+      "--registry",
+      authRegistry.address,
+      "--agent-registry",
+      agentRegistry,
+      "--agent-id",
+      agentId,
+      "--manifest-uri",
+      manifestUri,
+      "--domain",
+      "prisoners.local",
+      "--wallet-keystore",
+      gameplaySetup.keystorePath,
+      "--wallet-keystore-password-file",
+      gameplaySetup.passwordFile,
+      "--verifier-keystore",
+      verifierSetup.keystorePath,
+      "--verifier-keystore-password-file",
+      verifierSetup.passwordFile,
+      "--work-dir",
+      workDir,
+      "--json",
+    ])
+  );
+
+  assert.equal(summary.localOnly, true);
+  assert.match(summary.boundaryNote, /local orchestration wrapper/i);
+  assert.equal(summary.workDir, workDir);
+  assert.equal(summary.wallet.toLowerCase(), gameplay.address.toLowerCase());
+  assert.equal(summary.registry.toLowerCase(), authRegistry.address.toLowerCase());
+  assert.equal(summary.agentRegistry, agentRegistry);
+  assert.equal(summary.agentId, agentId);
+  assert.equal(summary.manifest.manifestUri, manifestUri);
+
+  assert.equal(summary.steps.length, 6);
+  assert.deepEqual(
+    summary.steps.map((step) => step.name),
+    [
+      "siwa-nonce",
+      "siwa-sign",
+      "siwa-verify",
+      "auth:permit",
+      "auth:register",
+      "auth:status",
+    ]
+  );
+  assert.match(summary.steps[0].command, /authCli\.js siwa-nonce/);
+  assert.match(summary.steps[1].command, /authCli\.js siwa-sign/);
+  assert.match(summary.steps[2].command, /authCli\.js siwa-verify/);
+  assert.match(summary.steps[3].command, /authCli\.js permit/);
+  assert.match(summary.steps[4].command, /authCli\.js register/);
+  assert.match(summary.steps[5].command, /authCli\.js status/);
+
+  for (const filePath of Object.values(summary.files)) {
+    assert.equal(existsSync(filePath), true);
+  }
+
+  assert.equal(
+    summary.results.challenge.wallet.toLowerCase(),
+    gameplay.address.toLowerCase()
+  );
+  assert.equal(
+    summary.results.signed.address.toLowerCase(),
+    gameplay.address.toLowerCase()
+  );
+  assert.equal(
+    summary.results.verified.wallet.toLowerCase(),
+    gameplay.address.toLowerCase()
+  );
+  assert.equal(
+    summary.results.permit.registry.toLowerCase(),
+    authRegistry.address.toLowerCase()
+  );
+  assert.equal(summary.results.registration.status.isAuthorized, true);
+  assert.equal(summary.results.status.isAuthorized, true);
+  assert.equal(summary.results.status.nonceUsed, true);
+  assert.equal(summary.results.status.bundleInspection.registerable, false);
+  assert.match(
+    summary.results.status.bundleInspection.problems.join("\n"),
+    /already used/
+  );
+
+  const persistedStatus = JSON.parse(readFileSync(summary.files.status, "utf8"));
+  assert.equal(persistedStatus.isAuthorized, true);
+  assert.equal(persistedStatus.wallet.toLowerCase(), gameplay.address.toLowerCase());
+});
+
 async function runVerifiedSiwaFlow({
   rpcUrl,
   authRegistry,
@@ -819,6 +929,14 @@ async function stopAnvil(child) {
 
 function runCli(args) {
   return execFileSync("node", ["scripts-js/authCli.js", ...args], {
+    cwd: packageDir,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+}
+
+function runFlowCli(args) {
+  return execFileSync("node", ["scripts-js/authFlowCli.js", ...args], {
     cwd: packageDir,
     encoding: "utf8",
     stdio: ["pipe", "pipe", "pipe"],

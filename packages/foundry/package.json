@@ -8,6 +8,8 @@
     "account:import": "node scripts-js/importAccount.js",
     "account:reveal-pk": "node scripts-js/revealPK.js",
     "auth": "node scripts-js/authCli.js",
+    "auth:flow": "node scripts-js/authFlowCli.js",
+    "auth:smoke": "node scripts-js/authFlowCli.js",
     "auth:permit": "node scripts-js/authCli.js permit",
     "auth:register": "node scripts-js/authCli.js register",
     "auth:status": "node scripts-js/authCli.js status",

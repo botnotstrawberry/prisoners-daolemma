@@ -44,6 +44,7 @@ Commands:
 
 Run a command with --help for details.
 Keystore-based signing is the preferred local path for siwa-sign, permit, and register.
+For a thin local wrapper that runs the six-step happy path with temp files and explicit stage artifacts, use scripts-js/authFlowCli.js (workspace scripts: auth:flow / auth:smoke).
 `);
 }
 
