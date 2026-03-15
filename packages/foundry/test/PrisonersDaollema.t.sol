@@ -38,6 +38,27 @@ contract PrisonersDaollemaTest is Test {
     address internal player3;
     address internal player4;
 
+    struct WinnerSequenceContext {
+        uint256 gameId;
+        uint256 creatorFeeWei;
+        uint256 winnerShareWei;
+        uint256 causeCutWei;
+        uint256 netPrizeWei;
+        address treasury;
+        address causeARecipient;
+        address causeBRecipient;
+    }
+
+    struct NoWinnerSequenceContext {
+        uint256 gameId;
+        uint256 treasuryWei;
+        uint256 causeAWei;
+        uint256 causeBWei;
+        address treasury;
+        address causeARecipient;
+        address causeBRecipient;
+    }
+
     function setUp() public {
         owner = vm.addr(ownerPk);
         verifier = vm.addr(verifierPk);
@@ -1278,7 +1299,214 @@ contract PrisonersDaollemaTest is Test {
         _assertDefaultThreePlayerNoWinnerSnapshotIsolation(
             gameId1, gameId2, updatedTreasury, updatedCauseARecipient, updatedCauseBRecipient
         );
-        _withdrawDefaultThreePlayerNoWinnerFunds(gameId1, updatedTreasury, updatedCauseARecipient, updatedCauseBRecipient);
+        _withdrawDefaultThreePlayerNoWinnerFunds(
+            gameId1, updatedTreasury, updatedCauseARecipient, updatedCauseBRecipient
+        );
+    }
+
+    function testMixedTerminalOutcomeSequencePreservesOlderAccountingAcrossAdminChanges() public {
+        uint256 cancelledGameId = _createGame();
+        _joinPlayer(cancelledGameId, player1, PLAYER1_AGENT, keccak256("nonce-mixed-cancel-1"), CAUSE_A);
+
+        vm.warp(game.getGame(cancelledGameId).joinDeadline + 1);
+        game.cancelIfInsufficientPlayers(cancelledGameId);
+
+        uint256 cancelledRefundWei = game.getGame(cancelledGameId).entryFeeWei;
+        _assertRefundPreview(cancelledGameId, player1, cancelledRefundWei, true);
+
+        WinnerSequenceContext memory winnerCtx = _prepareMixedWinnerSequence();
+        _assertMixedWinnerAccountingState(winnerCtx, true, true, 0, 0);
+
+        uint256 player2BalanceBeforeClaim = player2.balance;
+        vm.prank(player2);
+        game.claim(winnerCtx.gameId);
+        assertEq(player2.balance, player2BalanceBeforeClaim + winnerCtx.netPrizeWei);
+        _assertMixedWinnerAccountingState(winnerCtx, false, true, winnerCtx.causeCutWei, 0);
+
+        NoWinnerSequenceContext memory noWinnerCtx = _prepareMixedNoWinnerSequence();
+        _assertNoWinnerAccountingState(
+            noWinnerCtx, noWinnerCtx.treasuryWei, noWinnerCtx.causeAWei, noWinnerCtx.causeBWei
+        );
+
+        _assertRefundPreview(cancelledGameId, player1, cancelledRefundWei, true);
+        _assertMixedWinnerAccountingState(winnerCtx, false, true, winnerCtx.causeCutWei, 0);
+
+        vm.prank(noWinnerCtx.treasury);
+        game.withdrawTreasury(noWinnerCtx.gameId);
+        assertEq(noWinnerCtx.treasury.balance, noWinnerCtx.treasuryWei);
+        _assertNoWinnerAccountingState(noWinnerCtx, 0, noWinnerCtx.causeAWei, noWinnerCtx.causeBWei);
+
+        vm.prank(noWinnerCtx.causeARecipient);
+        game.withdrawCause(noWinnerCtx.gameId, CAUSE_A);
+        assertEq(noWinnerCtx.causeARecipient.balance, noWinnerCtx.causeAWei);
+        _assertNoWinnerAccountingState(noWinnerCtx, 0, 0, noWinnerCtx.causeBWei);
+
+        _assertRefundPreview(cancelledGameId, player1, cancelledRefundWei, true);
+        _assertMixedWinnerAccountingState(winnerCtx, false, true, winnerCtx.causeCutWei, 0);
+
+        uint256 player3BalanceBeforeClaim = player3.balance;
+        vm.prank(player3);
+        game.claim(winnerCtx.gameId);
+        assertEq(player3.balance, player3BalanceBeforeClaim + winnerCtx.netPrizeWei);
+        _assertMixedWinnerAccountingState(winnerCtx, false, false, winnerCtx.causeCutWei, winnerCtx.causeCutWei);
+
+        uint256 player1BalanceBeforeRefund = player1.balance;
+        vm.prank(player1);
+        game.claimRefund(cancelledGameId);
+        assertEq(player1.balance, player1BalanceBeforeRefund + cancelledRefundWei);
+        _assertRefundPreview(cancelledGameId, player1, cancelledRefundWei, false);
+
+        vm.prank(winnerCtx.treasury);
+        game.withdrawTreasury(winnerCtx.gameId);
+        assertEq(winnerCtx.treasury.balance, winnerCtx.creatorFeeWei);
+        assertEq(noWinnerCtx.treasury.balance, noWinnerCtx.treasuryWei);
+
+        vm.prank(winnerCtx.causeARecipient);
+        game.withdrawCause(winnerCtx.gameId, CAUSE_A);
+        assertEq(winnerCtx.causeARecipient.balance, winnerCtx.causeCutWei);
+        assertEq(noWinnerCtx.causeARecipient.balance, noWinnerCtx.causeAWei);
+
+        vm.prank(winnerCtx.causeBRecipient);
+        game.withdrawCause(winnerCtx.gameId, CAUSE_B);
+        assertEq(winnerCtx.causeBRecipient.balance, winnerCtx.causeCutWei);
+        assertEq(game.treasuryClaimableAmount(winnerCtx.gameId), 0);
+        assertEq(game.gameCauseClaimableAmount(winnerCtx.gameId, CAUSE_A), 0);
+        assertEq(game.gameCauseClaimableAmount(winnerCtx.gameId, CAUSE_B), 0);
+
+        vm.prank(noWinnerCtx.causeBRecipient);
+        game.withdrawCause(noWinnerCtx.gameId, CAUSE_B);
+        assertEq(noWinnerCtx.causeBRecipient.balance, noWinnerCtx.causeBWei);
+        _assertNoWinnerAccountingState(noWinnerCtx, 0, 0, 0);
+    }
+
+    function _prepareMixedWinnerSequence() internal returns (WinnerSequenceContext memory ctx) {
+        ctx.treasury = makeAddr("winner-sequence-treasury");
+        ctx.causeARecipient = makeAddr("winner-sequence-cause-a");
+        ctx.causeBRecipient = makeAddr("winner-sequence-cause-b");
+
+        vm.startPrank(owner);
+        game.setTreasury(ctx.treasury);
+        game.configureDefaults(_configWith(0.002 ether, 2, 4, 2));
+        game.whitelistCause(CAUSE_A, ctx.causeARecipient, keccak256("winner-sequence-cause-a"));
+        game.whitelistCause(CAUSE_B, ctx.causeBRecipient, keccak256("winner-sequence-cause-b"));
+        vm.stopPrank();
+
+        ctx.gameId = _createGame();
+        _joinPlayer(ctx.gameId, player2, PLAYER2_AGENT, keccak256("nonce-mixed-winner-2"), CAUSE_A);
+        _joinPlayer(ctx.gameId, player3, PLAYER3_AGENT, keccak256("nonce-mixed-winner-3"), CAUSE_B);
+
+        vm.warp(game.getGame(ctx.gameId).joinDeadline + 1);
+        game.advancePhase(ctx.gameId);
+
+        _resolveCurrentRoundTwoPlayers(
+            ctx.gameId, player2, PrisonersDaollema.Choice.Share, SALT_1, player3, PrisonersDaollema.Choice.Share, SALT_2
+        );
+        _resolveCurrentRoundTwoPlayers(
+            ctx.gameId, player2, PrisonersDaollema.Choice.Share, SALT_3, player3, PrisonersDaollema.Choice.Share, SALT_4
+        );
+        _resolveCurrentRoundTwoPlayers(
+            ctx.gameId,
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(501)),
+            player3,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(502))
+        );
+
+        PrisonersDaollema.GameSnapshot memory winnerGame = game.getGame(ctx.gameId);
+        assertEq(uint256(winnerGame.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(winnerGame.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+
+        uint256 winnerTotalPotWei = winnerGame.entryFeeWei * uint256(winnerGame.joinedCount);
+        ctx.creatorFeeWei = winnerTotalPotWei * uint256(winnerGame.creatorFeeBps) / 10_000;
+        ctx.winnerShareWei = (winnerTotalPotWei - ctx.creatorFeeWei) / uint256(winnerGame.aliveCount);
+        ctx.causeCutWei = ctx.winnerShareWei * uint256(winnerGame.causeFeeBps) / 10_000;
+        ctx.netPrizeWei = ctx.winnerShareWei - ctx.causeCutWei;
+    }
+
+    function _prepareMixedNoWinnerSequence() internal returns (NoWinnerSequenceContext memory ctx) {
+        ctx.treasury = makeAddr("no-winner-sequence-treasury");
+        ctx.causeARecipient = makeAddr("no-winner-sequence-cause-a");
+        ctx.causeBRecipient = makeAddr("no-winner-sequence-cause-b");
+
+        vm.startPrank(owner);
+        game.setTreasury(ctx.treasury);
+        game.configureDefaults(_configWith(0.003 ether, 2, 4, 2));
+        game.removeCause(CAUSE_A);
+        game.removeCause(CAUSE_B);
+        game.whitelistCause(CAUSE_A, ctx.causeARecipient, keccak256("no-winner-sequence-cause-a"));
+        game.whitelistCause(CAUSE_B, ctx.causeBRecipient, keccak256("no-winner-sequence-cause-b"));
+        vm.stopPrank();
+
+        ctx.gameId = _createGame();
+        _joinPlayer(ctx.gameId, player1, PLAYER1_AGENT, keccak256("nonce-mixed-no-winner-1"), CAUSE_A);
+        _joinPlayer(ctx.gameId, player2, PLAYER2_AGENT, keccak256("nonce-mixed-no-winner-2"), CAUSE_A);
+        _joinPlayer(ctx.gameId, player4, PLAYER4_AGENT, keccak256("nonce-mixed-no-winner-4"), CAUSE_B);
+
+        vm.warp(game.getGame(ctx.gameId).joinDeadline + 1);
+        game.advancePhase(ctx.gameId);
+
+        _resolveCurrentRoundThreePlayers(
+            ctx.gameId,
+            player1,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(601)),
+            player2,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(602)),
+            player4,
+            PrisonersDaollema.Choice.Catch,
+            bytes32(uint256(604))
+        );
+
+        PrisonersDaollema.GameSnapshot memory noWinnerGame = game.getGame(ctx.gameId);
+        assertEq(uint256(noWinnerGame.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(noWinnerGame.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+
+        uint256 noWinnerTotalPotWei = noWinnerGame.entryFeeWei * uint256(noWinnerGame.joinedCount);
+        uint256 noWinnerCreatorFeeWei = noWinnerTotalPotWei * uint256(noWinnerGame.creatorFeeBps) / 10_000;
+        uint256 noWinnerCausePoolWei = (noWinnerTotalPotWei - noWinnerCreatorFeeWei) * 9_000 / 10_000;
+        ctx.causeAWei =
+            noWinnerCausePoolWei * uint256(game.causeEntrants(ctx.gameId, CAUSE_A)) / uint256(noWinnerGame.joinedCount);
+        ctx.causeBWei =
+            noWinnerCausePoolWei * uint256(game.causeEntrants(ctx.gameId, CAUSE_B)) / uint256(noWinnerGame.joinedCount);
+        ctx.treasuryWei = noWinnerTotalPotWei - (ctx.causeAWei + ctx.causeBWei);
+    }
+
+    function _assertMixedWinnerAccountingState(
+        WinnerSequenceContext memory ctx,
+        bool player2Available,
+        bool player3Available,
+        uint256 causeAClaimableWei,
+        uint256 causeBClaimableWei
+    ) internal view {
+        _assertWinnerClaimPreview(
+            ctx.gameId, player2, ctx.winnerShareWei, ctx.causeCutWei, ctx.netPrizeWei, player2Available
+        );
+        _assertWinnerClaimPreview(
+            ctx.gameId, player3, ctx.winnerShareWei, ctx.causeCutWei, ctx.netPrizeWei, player3Available
+        );
+        assertEq(game.getGame(ctx.gameId).treasury, ctx.treasury);
+        assertEq(game.gameCauseRecipient(ctx.gameId, CAUSE_A), ctx.causeARecipient);
+        assertEq(game.gameCauseRecipient(ctx.gameId, CAUSE_B), ctx.causeBRecipient);
+        assertEq(game.treasuryClaimableAmount(ctx.gameId), ctx.creatorFeeWei);
+        assertEq(game.gameCauseClaimableAmount(ctx.gameId, CAUSE_A), causeAClaimableWei);
+        assertEq(game.gameCauseClaimableAmount(ctx.gameId, CAUSE_B), causeBClaimableWei);
+    }
+
+    function _assertNoWinnerAccountingState(
+        NoWinnerSequenceContext memory ctx,
+        uint256 treasuryClaimableWei,
+        uint256 causeAClaimableWei,
+        uint256 causeBClaimableWei
+    ) internal view {
+        assertEq(game.getGame(ctx.gameId).treasury, ctx.treasury);
+        assertEq(game.gameCauseRecipient(ctx.gameId, CAUSE_A), ctx.causeARecipient);
+        assertEq(game.gameCauseRecipient(ctx.gameId, CAUSE_B), ctx.causeBRecipient);
+        assertEq(game.treasuryClaimableAmount(ctx.gameId), treasuryClaimableWei);
+        assertEq(game.gameCauseClaimableAmount(ctx.gameId, CAUSE_A), causeAClaimableWei);
+        assertEq(game.gameCauseClaimableAmount(ctx.gameId, CAUSE_B), causeBClaimableWei);
     }
 
     function _assertDefaultThreePlayerNoWinnerSnapshotIsolation(
