@@ -258,3 +258,66 @@ test(
     assert.ok(existsSync(game.evidence.manifestPath));
   }
 );
+
+
+test(
+  "load harness adversarial-random mode hunts for weird local state without leaving wedges or drain inconsistencies",
+  { timeout: 180_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-adversarial-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "adversarial-random",
+      playerCount: 7,
+      causeCount: 3,
+      games: 4,
+      concurrency: 3,
+      skipCommitRate: 0.25,
+      skipRevealRate: 0.25,
+      underfilledRate: 0.5,
+      invalidRevealRate: 0.2,
+      probeRate: 0.6,
+      seed: "load-harness-adversarial-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.mode, "sequential");
+    assert.deepEqual(report.scenarios.plan, [
+      "adversarial-random",
+      "adversarial-random",
+      "adversarial-random",
+      "adversarial-random",
+    ]);
+    assert.ok(report.chaos.probeAttempts > 0);
+    assert.ok(report.breakageSummary.probeSummary.attempted > 0);
+    assert.ok(report.breakageSummary.probeSummary.failedAsExpected > 0);
+    assert.equal(report.breakageSummary.probeSummary.unexpectedSuccesses, 0);
+    assert.equal(report.breakageSummary.gamesWithWedgedActiveSlot, 0);
+    assert.equal(report.breakageSummary.gamesWithTerminalStateMismatch, 0);
+    assert.equal(report.breakageSummary.gamesWithAccountingMismatch, 0);
+    assert.equal(report.breakageSummary.gamesWithPreviewMismatch, 0);
+    assert.equal(report.breakageSummary.gamesWithDrainMismatch, 0);
+    assert.equal(report.breakageSummary.gamesWithReplayInconsistency, 0);
+    assert.equal(report.breakageSummary.gamesWithUnexpectedFailures, 0);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+
+    for (const game of report.games) {
+      assert.equal(game.scenario.type, "adversarial-random");
+      assert.equal(game.breakageChecks.ok, true);
+      assert.equal(game.replayConsistency.ok, true);
+      assert.equal(game.txSummary.failedUnexpected, 0);
+      assert.ok(
+        ["Winners", "NoWinners", "Cancelled"].includes(
+          game.resultState.outcome
+        )
+      );
+      assert.ok(game.probes.attempted >= 0);
+      assert.ok(existsSync(game.evidence.outputDir));
+      assert.ok(existsSync(game.evidence.manifestPath));
+    }
+  }
+);

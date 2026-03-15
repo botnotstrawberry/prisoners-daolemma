@@ -44,7 +44,7 @@ const gameArtifact = JSON.parse(
 
 export const LOAD_HARNESS_SCHEMA_VERSION = "prisoners-daollema/load-harness-v1";
 export const LOAD_HARNESS_BOUNDARY_NOTE =
-  "This is a local Anvil-focused load/chaos harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos knobs, and writes machine-readable reports plus evidence exports. It does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.";
+  "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.";
 export const DEFAULT_ANVIL_CHAIN_ID = 31337;
 export const DEFAULT_ANVIL_PORT = 8555;
 export const DEFAULT_ANVIL_MNEMONIC =
@@ -111,6 +111,13 @@ const SCENARIO_DEFS = {
       "All selected players join, commit CATCH, reveal CATCH in round one, and then the treasury/cause withdrawal path is exercised.",
     terminalPath: "no-winner-routing",
   },
+  "adversarial-random": {
+    type: "adversarial-random",
+    family: "adversarial",
+    description:
+      "Seeded local adversarial stress that randomizes underfilled vs started games, move choices, commit/reveal omissions, wrong-preimage and late-action probes, duplicate follow-ups, and settlement ordering to hunt weird contract or harness state breakage.",
+    terminalPath: "variable-by-outcome",
+  },
 };
 const SCENARIO_ALIASES = {
   winner: "winner-all-share",
@@ -122,8 +129,13 @@ const SCENARIO_ALIASES = {
   nowinner: "no-winner-all-catch",
   "no-winner-all-catch": "no-winner-all-catch",
   "no-winner-catchers": "no-winner-all-catch",
+  adversarial: "adversarial-random",
+  chaos: "adversarial-random",
+  random: "adversarial-random",
+  "adversarial-random": "adversarial-random",
   mixed: "mixed",
 };
+const CHOICE_VALUES = ["share", "catch", "steal"];
 
 function toNumber(value, label = "value") {
   if (ethers.BigNumber.isBigNumber(value)) {
@@ -335,6 +347,16 @@ function buildTxSummary(entries) {
         (entry) =>
           entry.status === "failed" && entry.failureClass === "unexpected"
       ).length,
+      failedOnchain: groupEntries.filter(
+        (entry) =>
+          entry.status === "failed" &&
+          entry.failureTransport === "onchain-revert"
+      ).length,
+      failedLocal: groupEntries.filter(
+        (entry) =>
+          entry.status === "failed" &&
+          entry.failureTransport === "local-rejection"
+      ).length,
       unexpectedSuccesses: groupEntries.filter(
         (entry) => entry.failureClass === "unexpected-success"
       ).length,
@@ -382,6 +404,14 @@ function buildTxSummary(entries) {
       (entry) =>
         entry.status === "failed" && entry.failureClass === "unexpected"
     ).length,
+    failedOnchain: entries.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "onchain-revert"
+    ).length,
+    failedLocal: entries.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "local-rejection"
+    ).length,
     unexpectedSuccesses: entries.filter(
       (entry) => entry.failureClass === "unexpected-success"
     ).length,
@@ -394,7 +424,61 @@ function buildTxSummary(entries) {
     byPhase: summarizeBy((entry) => entry.phase),
     byScenario: summarizeBy((entry) => entry.scenarioType ?? "bootstrap"),
     byExpectation: summarizeBy((entry) => entry.expectation ?? "success"),
+    byProbeKind: summarizeBy((entry) => entry.probeKind ?? "(none)"),
   };
+}
+
+function buildFailureClusters(entries, { onlyUnexpected = false } = {}) {
+  const filtered = entries.filter((entry) => {
+    if (entry.status !== "failed") {
+      return false;
+    }
+    if (onlyUnexpected && entry.failureClass !== "unexpected") {
+      return false;
+    }
+    return true;
+  });
+
+  const grouped = new Map();
+  for (const entry of filtered) {
+    const fingerprint = fingerprintErrorMessage(entry.error);
+    const key = [entry.action, entry.phase, fingerprint].join("|");
+    const current = grouped.get(key) ?? {
+      action: entry.action,
+      phase: entry.phase,
+      expectation: entry.expectation,
+      probeKind: entry.probeKind,
+      failureClass: entry.failureClass,
+      failureTransport: entry.failureTransport,
+      errorFingerprint: fingerprint,
+      count: 0,
+      scenarios: new Set(),
+      games: new Set(),
+    };
+    current.count += 1;
+    if (entry.scenarioType) {
+      current.scenarios.add(entry.scenarioType);
+    }
+    if (entry.gameId !== null && entry.gameId !== undefined) {
+      current.games.add(entry.gameId);
+    }
+    grouped.set(key, current);
+  }
+
+  return [...grouped.values()]
+    .sort((a, b) => b.count - a.count || a.action.localeCompare(b.action))
+    .map((entry) => ({
+      action: entry.action,
+      phase: entry.phase,
+      expectation: entry.expectation,
+      probeKind: entry.probeKind,
+      failureClass: entry.failureClass,
+      failureTransport: entry.failureTransport,
+      errorFingerprint: entry.errorFingerprint,
+      count: entry.count,
+      scenarios: [...entry.scenarios].sort(),
+      gameIds: [...entry.games].sort((a, b) => a - b),
+    }));
 }
 
 function normalizeSnapshot(snapshot) {
@@ -465,7 +549,7 @@ function resolveScenarioType(rawScenario) {
   const resolved = SCENARIO_ALIASES[normalized];
   if (!resolved) {
     throw new Error(
-      `Unsupported scenario '${rawScenario}'. Use winner-all-share, cancelled-underfilled, no-winner-all-catch, a comma-separated list of those, or mixed.`
+      `Unsupported scenario '${rawScenario}'. Use winner-all-share, cancelled-underfilled, no-winner-all-catch, adversarial-random, a comma-separated list of those, or mixed.`
     );
   }
   return resolved;
@@ -668,6 +752,31 @@ function buildResolvedConfig(rawOptions = {}) {
     rawOptions.skipRevealRate ?? 0,
     "skipRevealRate"
   );
+  const underfilledRate = parseRate(
+    rawOptions.underfilledRate ?? 0.2,
+    "underfilledRate"
+  );
+  const invalidRevealRate = parseRate(
+    rawOptions.invalidRevealRate ?? 0.15,
+    "invalidRevealRate"
+  );
+  const probeRate = parseRate(rawOptions.probeRate ?? 0.35, "probeRate");
+  const choiceWeights = {
+    share: parsePositiveNumber(rawOptions.shareWeight ?? 1, "shareWeight", {
+      allowZero: true,
+    }),
+    catch: parsePositiveNumber(rawOptions.catchWeight ?? 1, "catchWeight", {
+      allowZero: true,
+    }),
+    steal: parsePositiveNumber(rawOptions.stealWeight ?? 1, "stealWeight", {
+      allowZero: true,
+    }),
+  };
+  if (choiceWeights.share + choiceWeights.catch + choiceWeights.steal <= 0) {
+    throw new Error(
+      "At least one of shareWeight, catchWeight, or stealWeight must be positive."
+    );
+  }
   const chainId = parseInteger(
     rawOptions.chainId ?? DEFAULT_ANVIL_CHAIN_ID,
     "chainId",
@@ -759,10 +868,23 @@ function buildResolvedConfig(rawOptions = {}) {
 
   if (
     (skipCommitRate > 0 || skipRevealRate > 0) &&
-    scenarioPlan.some((scenario) => scenario.type !== "winner-all-share")
+    scenarioPlan.some(
+      (scenario) =>
+        scenario.type !== "winner-all-share" &&
+        scenario.type !== "adversarial-random"
+    )
   ) {
     notes.push(
-      "skipCommitRate and skipRevealRate only affect winner-all-share games. Cancelled and no-winner scenarios ignore those knobs so their terminal outcomes stay deterministic."
+      "skipCommitRate and skipRevealRate only affect winner-all-share and adversarial-random games. Cancelled and no-winner scenarios ignore those knobs so their terminal outcomes stay deterministic."
+    );
+  }
+
+  const adversarialScenarioSelected = scenarioPlan.some(
+    (scenario) => scenario.type === "adversarial-random"
+  );
+  if (adversarialScenarioSelected) {
+    notes.push(
+      `Adversarial scenario enabled with underfilledRate=${underfilledRate}, invalidRevealRate=${invalidRevealRate}, probeRate=${probeRate}, and choiceWeights share/catch/steal=${choiceWeights.share}/${choiceWeights.catch}/${choiceWeights.steal}.`
     );
   }
 
@@ -814,6 +936,10 @@ function buildResolvedConfig(rawOptions = {}) {
     concurrency,
     skipCommitRate,
     skipRevealRate,
+    underfilledRate,
+    invalidRevealRate,
+    probeRate,
+    choiceWeights,
     chainId,
     anvilPort,
     mnemonic: String(rawOptions.mnemonic ?? DEFAULT_ANVIL_MNEMONIC),
@@ -860,6 +986,7 @@ function pushTrackedEntry(
     gasUsed = null,
     error = null,
     failureClass = null,
+    failureTransport = null,
   }
 ) {
   tracker.entries.push({
@@ -870,7 +997,9 @@ function pushTrackedEntry(
     scenarioType: meta.scenarioType ?? null,
     expectation: meta.expectation ?? "success",
     failureLabel: meta.failureLabel ?? null,
+    probeKind: meta.probeKind ?? null,
     failureClass,
+    failureTransport,
     gameIndex: meta.gameIndex ?? null,
     gameId: meta.gameId ?? null,
     round: meta.round ?? null,
@@ -884,6 +1013,22 @@ function pushTrackedEntry(
     gasUsed,
     error,
   });
+}
+
+function extractFailureReceipt(error) {
+  const receipt = error?.receipt ?? error?.error?.receipt ?? null;
+  if (receipt?.transactionHash) {
+    return {
+      transactionHash: receipt.transactionHash,
+      blockNumber: receipt.blockNumber ?? null,
+      gasUsed:
+        receipt.gasUsed !== undefined && receipt.gasUsed !== null
+          ? bigintFrom(receipt.gasUsed, "failureReceipt.gasUsed").toString()
+          : null,
+    };
+  }
+
+  return null;
 }
 
 async function extractReceipt(provider, outcome) {
@@ -958,13 +1103,18 @@ async function trackedTx(tracker, provider, meta, operation) {
     });
     return outcome;
   } catch (error) {
+    const failureReceipt = extractFailureReceipt(error);
     pushTrackedEntry(tracker, meta, {
       status: "failed",
       startedAt,
       finishedAt: new Date().toISOString(),
       durationMs: Date.now() - startedMs,
+      txHash: failureReceipt?.transactionHash ?? null,
+      blockNumber: failureReceipt?.blockNumber ?? null,
+      gasUsed: failureReceipt?.gasUsed ?? null,
       error: describeError(error),
       failureClass: "unexpected",
+      failureTransport: failureReceipt ? "onchain-revert" : "local-rejection",
     });
     throw error;
   }
@@ -980,7 +1130,7 @@ async function trackedExpectedFailure(tracker, provider, meta, operation) {
       tracker,
       {
         ...meta,
-        expectation: "expected-failure",
+        expectation: meta.expectation ?? "expected-failure",
       },
       {
         status: "succeeded",
@@ -1010,15 +1160,21 @@ async function trackedExpectedFailure(tracker, provider, meta, operation) {
       tracker,
       {
         ...meta,
-        expectation: "expected-failure",
+        expectation: meta.expectation ?? "expected-failure",
       },
       {
         status: "failed",
         startedAt,
         finishedAt: new Date().toISOString(),
         durationMs: Date.now() - startedMs,
+        txHash: extractFailureReceipt(error)?.transactionHash ?? null,
+        blockNumber: extractFailureReceipt(error)?.blockNumber ?? null,
+        gasUsed: extractFailureReceipt(error)?.gasUsed ?? null,
         error: describeError(error),
         failureClass: "expected",
+        failureTransport: extractFailureReceipt(error)
+          ? "onchain-revert"
+          : "local-rejection",
       }
     );
 
@@ -1046,6 +1202,23 @@ async function minePastBlock(provider, blockNumber) {
   return mined;
 }
 
+function sampleUnitInterval({
+  seed,
+  stage,
+  gameIndex = 0,
+  round = 0,
+  playerIndex = 0,
+  wallet = "global",
+  extra = "",
+}) {
+  const digest = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      `${seed}:${stage}:game-${gameIndex}:round-${round}:player-${playerIndex}:${wallet}:${extra}`
+    )
+  );
+  return Number(BigInt(digest) % 1_000_000n) / 1_000_000;
+}
+
 function shouldSample({
   seed,
   stage,
@@ -1054,6 +1227,7 @@ function shouldSample({
   playerIndex,
   wallet,
   rate,
+  extra = "",
 }) {
   if (rate <= 0) {
     return false;
@@ -1062,13 +1236,157 @@ function shouldSample({
     return true;
   }
 
-  const digest = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes(
-      `${seed}:${stage}:game-${gameIndex}:round-${round}:player-${playerIndex}:${wallet}`
-    )
+  return (
+    sampleUnitInterval({
+      seed,
+      stage,
+      gameIndex,
+      round,
+      playerIndex,
+      wallet,
+      extra,
+    }) < rate
   );
-  const sample = Number(BigInt(digest) % 1_000_000n) / 1_000_000;
-  return sample < rate;
+}
+
+function parsePositiveNumber(value, label, { allowZero = false } = {}) {
+  const numeric = Number(value);
+  const min = allowZero ? 0 : Number.EPSILON;
+  if (!Number.isFinite(numeric) || numeric < min) {
+    throw new Error(
+      `${label} must be a finite ${allowZero ? "non-negative" : "positive"} number.`
+    );
+  }
+  return numeric;
+}
+
+function sampleIntegerInRange({
+  seed,
+  stage,
+  gameIndex = 0,
+  round = 0,
+  min,
+  max,
+  playerIndex = 0,
+  wallet = "global",
+  extra = "",
+}) {
+  if (!Number.isInteger(min) || !Number.isInteger(max) || max < min) {
+    throw new Error(`Invalid integer range for ${stage}: [${min}, ${max}].`);
+  }
+  if (min === max) {
+    return min;
+  }
+
+  const sample = sampleUnitInterval({
+    seed,
+    stage,
+    gameIndex,
+    round,
+    playerIndex,
+    wallet,
+    extra,
+  });
+  return min + Math.floor(sample * (max - min + 1));
+}
+
+function deterministicShuffle(
+  items,
+  {
+    seed,
+    stage,
+    gameIndex = 0,
+    round = 0,
+    extra = "",
+    keyFn = (_, index) => String(index),
+  }
+) {
+  return items
+    .map((item, index) => ({
+      item,
+      rank: sampleUnitInterval({
+        seed,
+        stage,
+        gameIndex,
+        round,
+        playerIndex: index,
+        wallet: String(keyFn(item, index)),
+        extra,
+      }),
+      index,
+    }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map((entry) => entry.item);
+}
+
+function pickWeightedChoice({
+  seed,
+  stage,
+  gameIndex,
+  round,
+  playerIndex,
+  wallet,
+  weights,
+}) {
+  const orderedChoices = CHOICE_VALUES.map((choice) => ({
+    choice,
+    weight: Number(weights[choice] ?? 0),
+  })).filter((entry) => entry.weight > 0);
+
+  if (orderedChoices.length === 0) {
+    throw new Error("At least one choice weight must be positive.");
+  }
+
+  const totalWeight = orderedChoices.reduce(
+    (sum, entry) => sum + entry.weight,
+    0
+  );
+  const sample =
+    sampleUnitInterval({
+      seed,
+      stage,
+      gameIndex,
+      round,
+      playerIndex,
+      wallet,
+    }) * totalWeight;
+
+  let cursor = 0;
+  for (const entry of orderedChoices) {
+    cursor += entry.weight;
+    if (sample <= cursor) {
+      return entry.choice;
+    }
+  }
+
+  return orderedChoices[orderedChoices.length - 1].choice;
+}
+
+function countChoiceValues(values) {
+  return {
+    Share: values.filter((value) => value === "share").length,
+    Catch: values.filter((value) => value === "catch").length,
+    Steal: values.filter((value) => value === "steal").length,
+  };
+}
+
+function mutateSalt(salt, label) {
+  const mutated = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(`${label}:${salt}`)
+  );
+  if (mutated.toLowerCase() !== String(salt).toLowerCase()) {
+    return mutated;
+  }
+  return `0x${"0".repeat(63)}1`;
+}
+
+function fingerprintErrorMessage(message) {
+  return String(message ?? "unknown-error")
+    .replace(/0x[a-fA-F0-9]{40,}/g, "0x*")
+    .replace(/\b\d+\b/g, "#")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
 }
 
 function buildCauseDefinitions({ mnemonic, playerCount, causeCount }) {
@@ -1476,6 +1794,116 @@ function buildReplayConsistency({
   };
 }
 
+function buildObservedReplayConsistency({
+  evidence,
+  config,
+  claimSummary,
+  refundSummary,
+  withdrawalSummary,
+}) {
+  const summary = evidence.summary;
+  const payouts = evidence.payouts;
+  const settlement = summary.game.settlement;
+  const checks = [];
+  const joinedCount = summary.game.counts.joined;
+  const totalPotWei = (
+    bigintFrom(config.entryFeeWei) * BigInt(joinedCount)
+  ).toString();
+
+  function addCheck(name, expected, actual) {
+    checks.push({
+      name,
+      expected,
+      actual,
+      ok: expected === actual,
+    });
+  }
+
+  addCheck("settlementFinalized", true, settlement.finalized);
+  addCheck("totalPotWei", totalPotWei, settlement.totalPotWei);
+  addCheck(
+    "usedCauses",
+    payouts.causes.length,
+    summary.game.counts.usedCauses
+  );
+
+  if (summary.game.outcome === "Winners") {
+    const totalCauseClaimableWei = sumDecimalStrings(
+      payouts.causes.map((cause) => cause.claimableFromGameWei)
+    );
+    addCheck("phase", "Ended", summary.game.phase);
+    addCheck("winnerCount", summary.game.counts.alive, settlement.winnerCount);
+    addCheck(
+      "claimedWinnerCount",
+      summary.game.counts.claimed,
+      payouts.claims.winners.claimedWinnerCount
+    );
+    addCheck(
+      "grossClaimsAgreeWithEvidence",
+      claimSummary.totalGrossPrizeWei,
+      payouts.claims.winners.totalGrossClaimedWei
+    );
+    addCheck("treasuryClaimableWei", "0", payouts.treasury.claimableWei);
+    addCheck(
+      "causeClaimableWeiAfterWithdrawals",
+      "0",
+      totalCauseClaimableWei.toString()
+    );
+    addCheck(
+      "treasuryWithdrawnAgreeWithHarness",
+      withdrawalSummary.treasury.amountWei,
+      payouts.treasury.withdrawnWei
+    );
+    addCheck(
+      "causeWithdrawalsAgreeWithHarness",
+      withdrawalSummary.causes.totalAmountWei,
+      sumDecimalStrings(
+        payouts.causes.map((cause) => cause.withdrawnFromGameWei)
+      ).toString()
+    );
+  } else if (summary.game.outcome === "Cancelled") {
+    addCheck("phase", "Cancelled", summary.game.phase);
+    addCheck(
+      "refundedCount",
+      summary.game.counts.refunded,
+      payouts.claims.refunds.refundedCount
+    );
+    addCheck(
+      "refundsAgreeWithEvidence",
+      refundSummary.totalRefundWei,
+      payouts.claims.refunds.totalRefundedWei
+    );
+  } else if (summary.game.outcome === "NoWinners") {
+    addCheck("phase", "Ended", summary.game.phase);
+    addCheck("aliveCount", 0, summary.game.counts.alive);
+    addCheck("treasuryClaimableWei", "0", payouts.treasury.claimableWei);
+    addCheck(
+      "causeClaimableWeiAfterWithdrawals",
+      "0",
+      sumDecimalStrings(
+        payouts.causes.map((cause) => cause.claimableFromGameWei)
+      ).toString()
+    );
+    addCheck(
+      "treasuryWithdrawnAgreeWithHarness",
+      withdrawalSummary.treasury.amountWei,
+      payouts.treasury.withdrawnWei
+    );
+    addCheck(
+      "causeWithdrawalsAgreeWithHarness",
+      withdrawalSummary.causes.totalAmountWei,
+      sumDecimalStrings(
+        payouts.causes.map((cause) => cause.withdrawnFromGameWei)
+      ).toString()
+    );
+  }
+
+  return {
+    ok: checks.every((check) => check.ok),
+    checks,
+  };
+}
+
 async function deployContracts({
   provider,
   owner,
@@ -1800,16 +2228,222 @@ async function runAvailableWithdrawals({
   };
 }
 
-function selectScenarioPlayers(players, scenarioType, config) {
+function connectGameWithSigner(gameAddress, wallet) {
+  return new ethers.Contract(gameAddress, gameArtifact.abi, wallet);
+}
+
+async function sendRawGameTx({
+  gameAddress,
+  wallet,
+  method,
+  args = [],
+  overrides = {},
+}) {
+  const connectedGame = connectGameWithSigner(gameAddress, wallet);
+  return connectedGame[method](...args, {
+    gasLimit: overrides.gasLimit ?? 1_500_000,
+    ...overrides,
+  });
+}
+
+async function maybeTrackProbe({
+  enabled,
+  tracker,
+  provider,
+  meta,
+  operation,
+  skippedProbes,
+  skipReason,
+}) {
+  if (!enabled) {
+    if (skippedProbes && skipReason) {
+      skippedProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+    };
+  }
+
+  return trackedExpectedFailure(
+    tracker,
+    provider,
+    {
+      ...meta,
+      expectation: "probe",
+    },
+    operation
+  );
+}
+
+function buildGameExecutionPlan({
+  players,
+  scenarioType,
+  config,
+  gameIndex,
+  seed,
+  underfilledRate,
+}) {
   if (scenarioType === "cancelled-underfilled") {
-    const joinedPlayers = Math.min(
+    const joinedCount = Math.min(
       players.length,
       Math.max(1, config.minPlayers - 1)
     );
-    return players.slice(0, joinedPlayers);
+    return {
+      joinedPlayers: players.slice(0, joinedCount),
+      joinOrder: players.slice(0, joinedCount),
+      nonJoinedPlayers: players.slice(joinedCount),
+      plan: {
+        underfilledIntent: true,
+        joinedCount,
+      },
+    };
   }
 
-  return [...players];
+  if (scenarioType === "adversarial-random") {
+    const roster = deterministicShuffle(players, {
+      seed,
+      stage: "adversarial-roster",
+      gameIndex,
+      keyFn: (player) => player.wallet.address.toLowerCase(),
+    });
+    const underfilledIntent = shouldSample({
+      seed,
+      stage: "adversarial-underfilled",
+      gameIndex,
+      round: 0,
+      playerIndex: 0,
+      wallet: "roster",
+      rate: underfilledRate,
+    });
+    const joinedCount = underfilledIntent
+      ? sampleIntegerInRange({
+          seed,
+          stage: "adversarial-underfilled-count",
+          gameIndex,
+          min: 1,
+          max: Math.max(1, config.minPlayers - 1),
+        })
+      : sampleIntegerInRange({
+          seed,
+          stage: "adversarial-started-count",
+          gameIndex,
+          min: config.minPlayers,
+          max: players.length,
+        });
+    const joinedPlayers = roster.slice(0, joinedCount);
+    return {
+      joinedPlayers,
+      joinOrder: deterministicShuffle(joinedPlayers, {
+        seed,
+        stage: "adversarial-join-order",
+        gameIndex,
+        keyFn: (player) => player.wallet.address.toLowerCase(),
+      }),
+      nonJoinedPlayers: roster.slice(joinedCount),
+      plan: {
+        underfilledIntent,
+        joinedCount,
+        selectedPlayerIndexes: joinedPlayers.map((player) => player.index),
+      },
+    };
+  }
+
+  return {
+    joinedPlayers: [...players],
+    joinOrder: [...players],
+    nonJoinedPlayers: [],
+    plan: {
+      underfilledIntent: false,
+      joinedCount: players.length,
+    },
+  };
+}
+
+async function loadAlivePlayers(gameReader, gameId, players) {
+  const playerStates = await Promise.all(
+    players.map(async (player) => ({
+      player,
+      state: await gameReader.getPlayer(gameId, player.wallet.address),
+    }))
+  );
+
+  return playerStates
+    .filter(({ state }) => Boolean(state.joined) && Boolean(state.alive))
+    .map(({ player }) => player);
+}
+
+function buildRoundPlayerPlans({
+  players,
+  scenarioType,
+  gameIndex,
+  round,
+  seed,
+  fixedChoice = null,
+  choiceWeights,
+  skipCommitRate,
+  skipRevealRate,
+  invalidRevealRate,
+}) {
+  const orderedPlayers = deterministicShuffle(players, {
+    seed,
+    stage: `${scenarioType}-round-order`,
+    gameIndex,
+    round,
+    keyFn: (player) => player.wallet.address.toLowerCase(),
+  });
+
+  return orderedPlayers.map((player) => {
+    const choice =
+      fixedChoice ??
+      pickWeightedChoice({
+        seed,
+        stage: `${scenarioType}-choice`,
+        gameIndex,
+        round,
+        playerIndex: player.index,
+        wallet: player.wallet.address,
+        weights: choiceWeights,
+      });
+    const skipCommit = shouldSample({
+      seed,
+      stage: `${scenarioType}-skip-commit`,
+      gameIndex,
+      round,
+      playerIndex: player.index,
+      wallet: player.wallet.address,
+      rate: skipCommitRate,
+    });
+    const skipReveal = skipCommit
+      ? false
+      : shouldSample({
+          seed,
+          stage: `${scenarioType}-skip-reveal`,
+          gameIndex,
+          round,
+          playerIndex: player.index,
+          wallet: player.wallet.address,
+          rate: skipRevealRate,
+        });
+    const invalidRevealBeforeValid = skipCommit
+      ? false
+      : shouldSample({
+          seed,
+          stage: `${scenarioType}-invalid-reveal`,
+          gameIndex,
+          round,
+          playerIndex: player.index,
+          wallet: player.wallet.address,
+          rate: invalidRevealRate,
+        });
+
+    return {
+      player,
+      choice,
+      skipCommit,
+      skipReveal,
+      invalidRevealBeforeValid,
+    };
+  });
 }
 
 async function runPlannedRound({
@@ -1819,16 +2453,16 @@ async function runPlannedRound({
   gameAddress,
   gameIndex,
   gameId,
-  joinedPlayers,
+  playerPlans,
   concurrency,
   seed,
-  choice,
-  skipCommitRate,
-  skipRevealRate,
   tracker,
   scenarioType,
   expectedFailures,
   skippedExpectedFailures,
+  enableAdversarialProbes = false,
+  probeRate = 0,
+  skippedProbes = [],
 }) {
   const snapshotBeforeRound = normalizeSnapshot(
     await gameReader.getGame(gameId)
@@ -1841,36 +2475,24 @@ async function runPlannedRound({
 
   const round = snapshotBeforeRound.round;
   const roundStartedMs = Date.now();
-
-  const committedPlayers = [];
-  const skippedCommitWallets = [];
-  for (const player of joinedPlayers) {
-    if (
-      shouldSample({
-        seed,
-        stage: "skip-commit",
-        gameIndex,
-        round,
-        playerIndex: player.index,
-        wallet: player.wallet.address,
-        rate: skipCommitRate,
-      })
-    ) {
-      skippedCommitWallets.push(player.wallet.address);
-    } else {
-      committedPlayers.push(player);
-    }
-  }
+  const committedPlans = playerPlans.filter((plan) => !plan.skipCommit);
+  const skippedCommitPlans = playerPlans.filter((plan) => plan.skipCommit);
+  const skippedCommitWallets = skippedCommitPlans.map(
+    (plan) => plan.player.wallet.address
+  );
+  const invalidRevealPlans = playerPlans.filter(
+    (plan) => !plan.skipCommit && !plan.skipReveal && plan.invalidRevealBeforeValid
+  );
 
   const preparedBundles = await Promise.all(
-    committedPlayers.map((player) =>
+    committedPlans.map((plan) =>
       prepareCommitAction({
         provider,
         game: gameAddress,
         gameId,
-        wallet: player.wallet.address,
-        choice,
-        saltText: `game-${gameIndex}-round-${round}-player-${player.index}`,
+        wallet: plan.player.wallet.address,
+        choice: plan.choice,
+        saltText: `game-${gameIndex}-round-${round}-player-${plan.player.index}-${plan.choice}`,
       })
     )
   );
@@ -1880,38 +2502,38 @@ async function runPlannedRound({
 
   const commitStartedMs = Date.now();
   await runGameBatch({
-    items: committedPlayers,
+    items: committedPlans,
     concurrency,
     actionName: "commit",
     provider,
     tracker,
-    buildMeta: (player) => ({
+    buildMeta: (plan) => ({
       action: "commit",
       phase: "commit",
       scenarioType,
       gameIndex,
       gameId,
       round,
-      wallet: player.wallet.address,
+      wallet: plan.player.wallet.address,
     }),
-    operation: (player) =>
+    operation: (plan) =>
       commitAction({
         provider,
         game: gameAddress,
         gameId,
-        commitment: bundleByWallet.get(player.wallet.address.toLowerCase())
+        commitment: bundleByWallet.get(plan.player.wallet.address.toLowerCase())
           .commitment,
-        wallet: player.wallet.address,
-        walletPrivateKey: player.wallet.privateKey,
+        wallet: plan.player.wallet.address,
+        walletPrivateKey: plan.player.wallet.privateKey,
         allowUnsafePrivateKey: true,
       }),
   });
 
   if (expectedFailures) {
-    if (committedPlayers.length > 0) {
-      const duplicateCommitPlayer = committedPlayers[0];
+    if (committedPlans.length > 0) {
+      const duplicateCommitPlan = committedPlans[0];
       const bundle = bundleByWallet.get(
-        duplicateCommitPlayer.wallet.address.toLowerCase()
+        duplicateCommitPlan.player.wallet.address.toLowerCase()
       );
       await trackedExpectedFailure(
         tracker,
@@ -1924,17 +2546,14 @@ async function runPlannedRound({
           gameIndex,
           gameId,
           round,
-          wallet: duplicateCommitPlayer.wallet.address,
+          wallet: duplicateCommitPlan.player.wallet.address,
         },
         async () =>
-          commitAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            commitment: bundle.commitment,
-            wallet: duplicateCommitPlayer.wallet.address,
-            walletPrivateKey: duplicateCommitPlayer.wallet.privateKey,
-            allowUnsafePrivateKey: true,
+          sendRawGameTx({
+            gameAddress,
+            wallet: duplicateCommitPlan.player.wallet,
+            method: "commit",
+            args: [bundle.commitment],
           })
       );
     } else {
@@ -1944,15 +2563,97 @@ async function runPlannedRound({
     }
   }
 
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      playerPlans.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-claim-during-commit",
+        gameIndex,
+        round,
+        playerIndex: 0,
+        wallet: playerPlans[0].player.wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "claim",
+      phase: "commit",
+      scenarioType,
+      gameIndex,
+      gameId,
+      round,
+      wallet: playerPlans[0]?.player.wallet.address ?? null,
+      failureLabel: "claim-during-commit",
+      probeKind: "invalid-phase",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: playerPlans[0].player.wallet,
+        method: "claim",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: `round-${round}:claim-during-commit probe skipped`,
+  });
+
   let manualBlocksMined = 0;
   let commitDeadlineHit = false;
-  if (skippedCommitWallets.length > 0) {
+  if (skippedCommitPlans.length > 0) {
     const snapshot = normalizeSnapshot(await gameReader.getGame(gameId));
     manualBlocksMined += await minePastBlock(
       provider,
       snapshot.commitDeadlineBlock
     );
     commitDeadlineHit = true;
+
+    const lateCommitPlan = skippedCommitPlans[0];
+    const lateBundle = await prepareCommitAction({
+      provider,
+      game: gameAddress,
+      gameId,
+      wallet: lateCommitPlan.player.wallet.address,
+      choice: lateCommitPlan.choice,
+      saltText: `late-game-${gameIndex}-round-${round}-player-${lateCommitPlan.player.index}`,
+    });
+    await maybeTrackProbe({
+      enabled:
+        enableAdversarialProbes &&
+        shouldSample({
+          seed,
+          stage: "probe-late-commit",
+          gameIndex,
+          round,
+          playerIndex: lateCommitPlan.player.index,
+          wallet: lateCommitPlan.player.wallet.address,
+          rate: probeRate,
+        }),
+      tracker,
+      provider,
+      meta: {
+        action: "commit",
+        phase: "commit",
+        scenarioType,
+        gameIndex,
+        gameId,
+        round,
+        wallet: lateCommitPlan.player.wallet.address,
+        failureLabel: "late-commit-after-deadline",
+        probeKind: "late-action",
+      },
+      operation: async () =>
+        sendRawGameTx({
+          gameAddress,
+          wallet: lateCommitPlan.player.wallet,
+          method: "commit",
+          args: [lateBundle.commitment],
+        }),
+      skippedProbes,
+      skipReason: `round-${round}:late-commit probe skipped`,
+    });
   }
 
   const commitAdvanceResult = await trackedTx(
@@ -1979,52 +2680,70 @@ async function runPlannedRound({
   );
   const commitDurationMs = Date.now() - commitStartedMs;
 
-  const revealCandidates = committedPlayers.filter(
-    (player) =>
-      !shouldSample({
-        seed,
-        stage: "skip-reveal",
+  const revealPlans = committedPlans.filter((plan) => !plan.skipReveal);
+  const skippedRevealPlans = committedPlans.filter((plan) => plan.skipReveal);
+  const skippedRevealWallets = skippedRevealPlans.map(
+    (plan) => plan.player.wallet.address
+  );
+
+  for (const invalidPlan of invalidRevealPlans) {
+    const bundle = bundleByWallet.get(
+      invalidPlan.player.wallet.address.toLowerCase()
+    );
+    await maybeTrackProbe({
+      enabled: enableAdversarialProbes,
+      tracker,
+      provider,
+      meta: {
+        action: "reveal",
+        phase: "reveal",
+        scenarioType,
         gameIndex,
+        gameId,
         round,
-        playerIndex: player.index,
-        wallet: player.wallet.address,
-        rate: skipRevealRate,
-      })
-  );
-  const revealCandidateWallets = new Set(
-    revealCandidates.map((player) => player.wallet.address.toLowerCase())
-  );
-  const skippedRevealWallets = committedPlayers
-    .filter(
-      (player) =>
-        !revealCandidateWallets.has(player.wallet.address.toLowerCase())
-    )
-    .map((player) => player.wallet.address);
+        wallet: invalidPlan.player.wallet.address,
+        failureLabel: "wrong-reveal-preimage",
+        probeKind: "wrong-preimage",
+      },
+      operation: async () =>
+        sendRawGameTx({
+          gameAddress,
+          wallet: invalidPlan.player.wallet,
+          method: "reveal",
+          args: [
+            bundle.choiceCode,
+            mutateSalt(bundle.salt, `wrong-reveal-${gameIndex}-${round}`),
+          ],
+        }),
+      skippedProbes,
+      skipReason: `round-${round}:wrong-reveal-preimage probe skipped`,
+    });
+  }
 
   const revealStartedMs = Date.now();
   await runGameBatch({
-    items: revealCandidates,
+    items: revealPlans,
     concurrency,
     actionName: "reveal",
     provider,
     tracker,
-    buildMeta: (player) => ({
+    buildMeta: (plan) => ({
       action: "reveal",
       phase: "reveal",
       scenarioType,
       gameIndex,
       gameId,
       round,
-      wallet: player.wallet.address,
+      wallet: plan.player.wallet.address,
     }),
-    operation: (player) => {
-      const bundle = bundleByWallet.get(player.wallet.address.toLowerCase());
+    operation: (plan) => {
+      const bundle = bundleByWallet.get(plan.player.wallet.address.toLowerCase());
       return revealAction({
         provider,
         game: gameAddress,
         gameId,
-        wallet: player.wallet.address,
-        walletPrivateKey: player.wallet.privateKey,
+        wallet: plan.player.wallet.address,
+        walletPrivateKey: plan.player.wallet.privateKey,
         allowUnsafePrivateKey: true,
         choice: bundle.choice,
         salt: bundle.salt,
@@ -2033,10 +2752,10 @@ async function runPlannedRound({
   });
 
   if (expectedFailures) {
-    if (revealCandidates.length > 0) {
-      const duplicateRevealPlayer = revealCandidates[0];
+    if (revealPlans.length > 0) {
+      const duplicateRevealPlan = revealPlans[0];
       const bundle = bundleByWallet.get(
-        duplicateRevealPlayer.wallet.address.toLowerCase()
+        duplicateRevealPlan.player.wallet.address.toLowerCase()
       );
       await trackedExpectedFailure(
         tracker,
@@ -2049,18 +2768,14 @@ async function runPlannedRound({
           gameIndex,
           gameId,
           round,
-          wallet: duplicateRevealPlayer.wallet.address,
+          wallet: duplicateRevealPlan.player.wallet.address,
         },
         async () =>
-          revealAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            wallet: duplicateRevealPlayer.wallet.address,
-            walletPrivateKey: duplicateRevealPlayer.wallet.privateKey,
-            allowUnsafePrivateKey: true,
-            choice: bundle.choice,
-            salt: bundle.salt,
+          sendRawGameTx({
+            gameAddress,
+            wallet: duplicateRevealPlan.player.wallet,
+            method: "reveal",
+            args: [bundle.choiceCode, bundle.salt],
           })
       );
     } else {
@@ -2071,13 +2786,53 @@ async function runPlannedRound({
   }
 
   let revealDeadlineHit = false;
-  if (skippedRevealWallets.length > 0) {
+  if (skippedRevealPlans.length > 0) {
     const snapshot = normalizeSnapshot(await gameReader.getGame(gameId));
     manualBlocksMined += await minePastBlock(
       provider,
       snapshot.revealDeadlineBlock
     );
     revealDeadlineHit = true;
+
+    const lateRevealPlan = skippedRevealPlans[0];
+    const bundle = bundleByWallet.get(
+      lateRevealPlan.player.wallet.address.toLowerCase()
+    );
+    await maybeTrackProbe({
+      enabled:
+        enableAdversarialProbes &&
+        shouldSample({
+          seed,
+          stage: "probe-late-reveal",
+          gameIndex,
+          round,
+          playerIndex: lateRevealPlan.player.index,
+          wallet: lateRevealPlan.player.wallet.address,
+          rate: probeRate,
+        }),
+      tracker,
+      provider,
+      meta: {
+        action: "reveal",
+        phase: "reveal",
+        scenarioType,
+        gameIndex,
+        gameId,
+        round,
+        wallet: lateRevealPlan.player.wallet.address,
+        failureLabel: "late-reveal-after-deadline",
+        probeKind: "late-action",
+      },
+      operation: async () =>
+        sendRawGameTx({
+          gameAddress,
+          wallet: lateRevealPlan.player.wallet,
+          method: "reveal",
+          args: [bundle.choiceCode, bundle.salt],
+        }),
+      skippedProbes,
+      skipReason: `round-${round}:late-reveal probe skipped`,
+    });
   }
 
   const revealAdvanceResult = await trackedTx(
@@ -2115,11 +2870,15 @@ async function runPlannedRound({
       round,
       wallClockMs: Date.now() - roundStartedMs,
       choicePlan: {
-        choice: choice[0].toUpperCase() + choice.slice(1),
-        intendedPlayers: joinedPlayers.length,
+        activePlayers: playerPlans.length,
+        intendedCounts: countChoiceValues(playerPlans.map((plan) => plan.choice)),
+        committedCounts: countChoiceValues(
+          committedPlans.map((plan) => plan.choice)
+        ),
+        revealedCounts: countChoiceValues(revealPlans.map((plan) => plan.choice)),
       },
       commit: {
-        submitted: committedPlayers.length,
+        submitted: committedPlans.length,
         skipped: skippedCommitWallets.length,
         skippedWallets: skippedCommitWallets,
         deadlineHit: commitDeadlineHit,
@@ -2131,9 +2890,10 @@ async function runPlannedRound({
         },
       },
       reveal: {
-        submitted: revealCandidates.length,
+        submitted: revealPlans.length,
         skipped: skippedRevealWallets.length,
         skippedWallets: skippedRevealWallets,
+        invalidRevealAttempts: invalidRevealPlans.length,
         deadlineHit: revealDeadlineHit,
         durationMs: revealDurationMs,
         advanceResult: {
@@ -2143,6 +2903,856 @@ async function runPlannedRound({
           shareStreak: revealAdvanceResult.shareStreak,
         },
       },
+    },
+  };
+}
+
+function pickDeterministicCandidate(candidates, { seed, stage, gameIndex, step }) {
+  if (candidates.length === 0) {
+    return null;
+  }
+  const index = sampleIntegerInRange({
+    seed,
+    stage,
+    gameIndex,
+    round: step,
+    min: 0,
+    max: candidates.length - 1,
+  });
+  return candidates[index];
+}
+
+function buildProbeSummary(entries) {
+  const probeEntries = entries.filter((entry) => entry.expectation === "probe");
+  return {
+    attempted: probeEntries.length,
+    failedAsExpected: probeEntries.filter(
+      (entry) => entry.status === "failed" && entry.failureClass === "expected"
+    ).length,
+    unexpectedSuccesses: probeEntries.filter(
+      (entry) => entry.failureClass === "unexpected-success"
+    ).length,
+    onchainReverts: probeEntries.filter(
+      (entry) => entry.status === "failed" && entry.failureTransport === "onchain-revert"
+    ).length,
+    localRejections: probeEntries.filter(
+      (entry) => entry.status === "failed" && entry.failureTransport === "local-rejection"
+    ).length,
+    byKind: groupCount(probeEntries, (entry) => entry.probeKind ?? "(none)"),
+    byAction: groupCount(probeEntries, (entry) => entry.action),
+    byPhase: groupCount(probeEntries, (entry) => entry.phase),
+  };
+}
+
+async function runWinnerSettlement({
+  provider,
+  owner,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  joinedPlayers,
+  causeIds,
+  concurrency,
+  tracker,
+  expectedFailures,
+  skippedExpectedFailures,
+  seed,
+  enableAdversarialProbes = false,
+  probeRate = 0,
+  skippedProbes = [],
+}) {
+  const winnerPlayers = await loadAlivePlayers(gameReader, gameId, joinedPlayers);
+  const claimResults = [];
+  const causeWithdrawalResults = [];
+  let treasuryWithdrawal = null;
+  let step = 0;
+
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      winnerPlayers.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-refund-on-winner",
+        gameIndex,
+        round: 0,
+        playerIndex: winnerPlayers[0].index,
+        wallet: winnerPlayers[0].wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "refund",
+      phase: "settlement",
+      scenarioType: "adversarial-random",
+      gameIndex,
+      gameId,
+      wallet: winnerPlayers[0]?.wallet.address ?? null,
+      failureLabel: "refund-on-winner-game",
+      probeKind: "invalid-path",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: winnerPlayers[0].wallet,
+        method: "claimRefund",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: "winner-settlement:refund probe skipped",
+  });
+
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      causeIds.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-early-cause-withdraw",
+        gameIndex,
+        round: 0,
+        playerIndex: 0,
+        wallet: owner.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "withdrawCause",
+      phase: "settlement",
+      scenarioType: "adversarial-random",
+      gameIndex,
+      gameId,
+      wallet: owner.address,
+      causeId: causeIds[0] ?? null,
+      failureLabel: "early-cause-withdraw-before-claims",
+      probeKind: "settlement-ordering",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: owner,
+        method: "withdrawCause",
+        args: [gameId, causeIds[0]],
+      }),
+    skippedProbes,
+    skipReason: "winner-settlement:early cause withdraw probe skipped",
+  });
+
+  while (true) {
+    const candidates = [];
+    for (const player of winnerPlayers) {
+      const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
+      if (preview.availableNow) {
+        candidates.push({
+          type: "claim",
+          player,
+        });
+      }
+    }
+
+    const treasuryClaimableWei = bigintFrom(
+      await gameReader.treasuryClaimableAmount(gameId),
+      "winnerSettlement.treasuryClaimableWei"
+    );
+    if (treasuryClaimableWei > 0n) {
+      candidates.push({ type: "withdrawTreasury" });
+    }
+
+    for (const causeId of [...new Set(causeIds)].sort((a, b) => a - b)) {
+      const claimableWei = bigintFrom(
+        await gameReader.gameCauseClaimableAmount(gameId, causeId),
+        `winnerSettlement.cause-${causeId}.claimableWei`
+      );
+      if (claimableWei > 0n) {
+        candidates.push({ type: "withdrawCause", causeId });
+      }
+    }
+
+    const selected = pickDeterministicCandidate(candidates, {
+      seed,
+      stage: "winner-settlement-step",
+      gameIndex,
+      step,
+    });
+    if (!selected) {
+      break;
+    }
+
+    if (selected.type === "claim") {
+      const result = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "claim",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: selected.player.wallet.address,
+        },
+        async () =>
+          claimAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: selected.player.wallet.address,
+            walletPrivateKey: selected.player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+      claimResults.push(result);
+
+      await maybeTrackProbe({
+        enabled:
+          enableAdversarialProbes &&
+          shouldSample({
+            seed,
+            stage: "probe-duplicate-claim",
+            gameIndex,
+            round: step,
+            playerIndex: selected.player.index,
+            wallet: selected.player.wallet.address,
+            rate: probeRate,
+          }),
+        tracker,
+        provider,
+        meta: {
+          action: "claim",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: selected.player.wallet.address,
+          failureLabel: "duplicate-claim-after-success",
+          probeKind: "duplicate-follow-up",
+        },
+        operation: async () =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: selected.player.wallet,
+            method: "claim",
+            args: [gameId],
+          }),
+        skippedProbes,
+        skipReason: "winner-settlement:duplicate claim probe skipped",
+      });
+    } else if (selected.type === "withdrawTreasury") {
+      treasuryWithdrawal = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+        },
+        async () =>
+          withdrawTreasuryAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+
+      await maybeTrackProbe({
+        enabled:
+          enableAdversarialProbes &&
+          shouldSample({
+            seed,
+            stage: "probe-duplicate-withdraw-treasury",
+            gameIndex,
+            round: step,
+            playerIndex: 0,
+            wallet: owner.address,
+            rate: probeRate,
+          }),
+        tracker,
+        provider,
+        meta: {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          failureLabel: "duplicate-withdraw-treasury-after-success",
+          probeKind: "duplicate-follow-up",
+        },
+        operation: async () =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawTreasury",
+            args: [gameId],
+          }),
+        skippedProbes,
+        skipReason: "winner-settlement:duplicate treasury withdraw probe skipped",
+      });
+    } else if (selected.type === "withdrawCause") {
+      const result = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          causeId: selected.causeId,
+        },
+        async () =>
+          withdrawCauseAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            causeId: selected.causeId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+      causeWithdrawalResults.push(result);
+
+      await maybeTrackProbe({
+        enabled:
+          enableAdversarialProbes &&
+          shouldSample({
+            seed,
+            stage: "probe-duplicate-withdraw-cause",
+            gameIndex,
+            round: step,
+            playerIndex: 0,
+            wallet: owner.address,
+            rate: probeRate,
+            extra: `cause-${selected.causeId}`,
+          }),
+        tracker,
+        provider,
+        meta: {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+          causeId: selected.causeId,
+          failureLabel: "duplicate-withdraw-cause-after-success",
+          probeKind: "duplicate-follow-up",
+        },
+        operation: async () =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: owner,
+            method: "withdrawCause",
+            args: [gameId, selected.causeId],
+          }),
+        skippedProbes,
+        skipReason: "winner-settlement:duplicate cause withdraw probe skipped",
+      });
+    }
+
+    step += 1;
+  }
+
+  const remainingWinnerPlayers = [];
+  for (const player of winnerPlayers) {
+    const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
+    if (preview.availableNow) {
+      remainingWinnerPlayers.push(player);
+    }
+  }
+  if (remainingWinnerPlayers.length > 0) {
+    claimResults.push(
+      ...(await runGameBatch({
+        items: remainingWinnerPlayers,
+        concurrency,
+        actionName: "claim",
+        provider,
+        tracker,
+        buildMeta: (player) => ({
+          action: "claim",
+          phase: "settlement",
+          scenarioType: "adversarial-random",
+          gameIndex,
+          gameId,
+          wallet: player.wallet.address,
+        }),
+        operation: (player) =>
+          claimAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: player.wallet.address,
+            walletPrivateKey: player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+          }),
+      }))
+    );
+  }
+
+  const remainingWithdrawals = await runAvailableWithdrawals({
+    provider,
+    owner,
+    gameReader,
+    gameAddress,
+    gameIndex,
+    gameId,
+    scenarioType: "adversarial-random",
+    causeIds,
+    concurrency,
+    tracker,
+    expectedFailures,
+    skippedExpectedFailures,
+  });
+  treasuryWithdrawal = treasuryWithdrawal ?? remainingWithdrawals.treasuryWithdrawal;
+  causeWithdrawalResults.push(...remainingWithdrawals.causeWithdrawalResults);
+
+  return {
+    claimResults,
+    refundResults: [],
+    treasuryWithdrawal,
+    causeWithdrawalResults,
+  };
+}
+
+async function runCancelledSettlement({
+  provider,
+  owner,
+  gameAddress,
+  gameIndex,
+  gameId,
+  joinedPlayers,
+  concurrency,
+  tracker,
+  expectedFailures,
+  skippedExpectedFailures,
+  seed,
+  enableAdversarialProbes = false,
+  probeRate = 0,
+  skippedProbes = [],
+}) {
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      joinedPlayers.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-claim-on-cancelled",
+        gameIndex,
+        round: 0,
+        playerIndex: joinedPlayers[0].index,
+        wallet: joinedPlayers[0].wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "claim",
+      phase: "settlement",
+      scenarioType: "adversarial-random",
+      gameIndex,
+      gameId,
+      wallet: joinedPlayers[0]?.wallet.address ?? null,
+      failureLabel: "claim-on-cancelled-game",
+      probeKind: "invalid-path",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: joinedPlayers[0].wallet,
+        method: "claim",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: "cancelled-settlement:claim probe skipped",
+  });
+
+  const orderedRefundPlayers = deterministicShuffle(joinedPlayers, {
+    seed,
+    stage: "cancelled-refund-order",
+    gameIndex,
+    keyFn: (player) => player.wallet.address.toLowerCase(),
+  });
+  const refundResults = await runGameBatch({
+    items: orderedRefundPlayers,
+    concurrency,
+    actionName: "refund",
+    provider,
+    tracker,
+    buildMeta: (player) => ({
+      action: "refund",
+      phase: "settlement",
+      scenarioType: enableAdversarialProbes ? "adversarial-random" : "cancelled-underfilled",
+      gameIndex,
+      gameId,
+      wallet: player.wallet.address,
+    }),
+    operation: (player) =>
+      refundAction({
+        provider,
+        game: gameAddress,
+        gameId,
+        wallet: player.wallet.address,
+        walletPrivateKey: player.wallet.privateKey,
+        allowUnsafePrivateKey: true,
+      }),
+  });
+
+  if (expectedFailures) {
+    if (orderedRefundPlayers.length > 0) {
+      const duplicateRefundPlayer = orderedRefundPlayers[0];
+      await trackedExpectedFailure(
+        tracker,
+        provider,
+        {
+          action: "refund",
+          phase: "settlement",
+          scenarioType: enableAdversarialProbes ? "adversarial-random" : "cancelled-underfilled",
+          failureLabel: "duplicate-refund",
+          gameIndex,
+          gameId,
+          wallet: duplicateRefundPlayer.wallet.address,
+        },
+        async () =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: duplicateRefundPlayer.wallet,
+            method: "claimRefund",
+            args: [gameId],
+          })
+      );
+    } else {
+      skippedExpectedFailures.push("duplicate-refund(no refunded player)");
+    }
+  }
+
+  return {
+    claimResults: [],
+    refundResults,
+    treasuryWithdrawal: null,
+    causeWithdrawalResults: [],
+  };
+}
+
+async function runNoWinnerSettlement({
+  provider,
+  owner,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  joinedPlayers,
+  causeIds,
+  concurrency,
+  tracker,
+  expectedFailures,
+  skippedExpectedFailures,
+  seed,
+  enableAdversarialProbes = false,
+  probeRate = 0,
+  skippedProbes = [],
+}) {
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      joinedPlayers.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-claim-on-no-winner",
+        gameIndex,
+        round: 0,
+        playerIndex: joinedPlayers[0].index,
+        wallet: joinedPlayers[0].wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "claim",
+      phase: "settlement",
+      scenarioType: "adversarial-random",
+      gameIndex,
+      gameId,
+      wallet: joinedPlayers[0]?.wallet.address ?? null,
+      failureLabel: "claim-on-no-winner-game",
+      probeKind: "invalid-path",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: joinedPlayers[0].wallet,
+        method: "claim",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: "no-winner-settlement:claim probe skipped",
+  });
+
+  let treasuryWithdrawal = null;
+  const causeWithdrawalResults = [];
+  let step = 0;
+  while (true) {
+    const candidates = [];
+    const treasuryClaimableWei = bigintFrom(
+      await gameReader.treasuryClaimableAmount(gameId),
+      "noWinnerSettlement.treasuryClaimableWei"
+    );
+    if (treasuryClaimableWei > 0n) {
+      candidates.push({ type: "withdrawTreasury" });
+    }
+
+    for (const causeId of [...new Set(causeIds)].sort((a, b) => a - b)) {
+      const claimableWei = bigintFrom(
+        await gameReader.gameCauseClaimableAmount(gameId, causeId),
+        `noWinnerSettlement.cause-${causeId}.claimableWei`
+      );
+      if (claimableWei > 0n) {
+        candidates.push({ type: "withdrawCause", causeId });
+      }
+    }
+
+    const selected = pickDeterministicCandidate(candidates, {
+      seed,
+      stage: "no-winner-settlement-step",
+      gameIndex,
+      step,
+    });
+    if (!selected) {
+      break;
+    }
+
+    if (selected.type === "withdrawTreasury") {
+      treasuryWithdrawal = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+          gameIndex,
+          gameId,
+          wallet: owner.address,
+        },
+        async () =>
+          withdrawTreasuryAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    } else {
+      causeWithdrawalResults.push(
+        await trackedTx(
+          tracker,
+          provider,
+          {
+            action: "withdrawCause",
+            phase: "settlement",
+            scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+            gameIndex,
+            gameId,
+            wallet: owner.address,
+            causeId: selected.causeId,
+          },
+          async () =>
+            withdrawCauseAction({
+              provider,
+              game: gameAddress,
+              gameId,
+              causeId: selected.causeId,
+              wallet: owner.address,
+              walletPrivateKey: owner.privateKey,
+              allowUnsafePrivateKey: true,
+            })
+        )
+      );
+    }
+
+    step += 1;
+  }
+
+  const remainingWithdrawals = await runAvailableWithdrawals({
+    provider,
+    owner,
+    gameReader,
+    gameAddress,
+    gameIndex,
+    gameId,
+    scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+    causeIds,
+    concurrency,
+    tracker,
+    expectedFailures,
+    skippedExpectedFailures,
+  });
+  treasuryWithdrawal = treasuryWithdrawal ?? remainingWithdrawals.treasuryWithdrawal;
+  causeWithdrawalResults.push(...remainingWithdrawals.causeWithdrawalResults);
+
+  return {
+    claimResults: [],
+    refundResults: [],
+    treasuryWithdrawal,
+    causeWithdrawalResults,
+  };
+}
+
+async function buildBreakageChecks({
+  gameReader,
+  gameId,
+  evidence,
+  claimDrainIntended,
+}) {
+  const onchainSnapshot = normalizeSnapshot(await gameReader.getGame(gameId));
+  const activeGameId = toNumber(await gameReader.activeGameId(), "activeGameId");
+  const currentGameId = toNumber(await gameReader.currentGameId(), "currentGameId");
+  const payouts = evidence.payouts;
+  const evidenceGame = evidence.summary.game;
+  const checks = [];
+
+  function addCheck(category, name, expected, actual) {
+    checks.push({
+      category,
+      name,
+      expected,
+      actual,
+      ok: expected === actual,
+    });
+  }
+
+  addCheck("slot", "activeGameIdCleared", 0, activeGameId);
+  addCheck("slot", "currentGameIdAtLeastGameId", true, currentGameId >= gameId);
+  addCheck("terminal", "phaseMatchesEvidence", evidenceGame.phase, onchainSnapshot.phase);
+  addCheck("terminal", "outcomeMatchesEvidence", evidenceGame.outcome, onchainSnapshot.outcome);
+  addCheck("terminal", "roundMatchesEvidence", evidenceGame.round, onchainSnapshot.round);
+  addCheck(
+    "accounting",
+    "treasuryAccruedEqualsClaimablePlusWithdrawn",
+    payouts.treasury.accruedWei,
+    (
+      bigintFrom(payouts.treasury.claimableWei) +
+      bigintFrom(payouts.treasury.withdrawnWei)
+    ).toString()
+  );
+
+  for (const cause of payouts.causes) {
+    addCheck(
+      "accounting",
+      `cause-${cause.causeId}-routedEqualsClaimablePlusWithdrawn`,
+      cause.routedFromGameWei,
+      (
+        bigintFrom(cause.claimableFromGameWei) +
+        bigintFrom(cause.withdrawnFromGameWei)
+      ).toString()
+    );
+
+    addCheck(
+      "preview",
+      `cause-${cause.causeId}-claimableMatchesEvidence`,
+      cause.claimableFromGameWei,
+      decimalString(await gameReader.gameCauseClaimableAmount(gameId, cause.causeId))
+    );
+  }
+
+  addCheck(
+    "preview",
+    "treasuryClaimableMatchesEvidence",
+    payouts.treasury.claimableWei,
+    decimalString(await gameReader.treasuryClaimableAmount(gameId))
+  );
+
+  for (const participant of payouts.participants) {
+    const winnerPreview = await gameReader.previewWinnerClaim(gameId, participant.wallet);
+    const refundPreview = await gameReader.previewRefund(gameId, participant.wallet);
+    addCheck(
+      "preview",
+      `winner-preview-available-${participant.wallet}`,
+      participant.claim.availableNow,
+      winnerPreview.availableNow
+    );
+    addCheck(
+      "preview",
+      `winner-preview-gross-${participant.wallet}`,
+      participant.claim.grossPrizeWei,
+      decimalString(winnerPreview.grossPrizeWei)
+    );
+    addCheck(
+      "preview",
+      `refund-preview-available-${participant.wallet}`,
+      participant.refund.availableNow,
+      refundPreview.availableNow
+    );
+    addCheck(
+      "preview",
+      `refund-preview-amount-${participant.wallet}`,
+      participant.refund.refundWei,
+      decimalString(refundPreview.refundWei)
+    );
+  }
+
+  if (onchainSnapshot.phase === "Cancelled") {
+    addCheck(
+      "drain",
+      "pendingRefundCountAfterCleanup",
+      0,
+      payouts.claims.refunds.pendingRefundCount
+    );
+  } else if (onchainSnapshot.outcome === "NoWinners") {
+    addCheck("drain", "treasuryClaimableAfterCleanup", "0", payouts.treasury.claimableWei);
+    addCheck(
+      "drain",
+      "causeClaimableAfterCleanup",
+      "0",
+      sumDecimalStrings(
+        payouts.causes.map((cause) => cause.claimableFromGameWei)
+      ).toString()
+    );
+  } else if (onchainSnapshot.outcome === "Winners" && claimDrainIntended) {
+    addCheck(
+      "drain",
+      "unclaimedWinnerCountAfterCleanup",
+      0,
+      payouts.claims.winners.unclaimedWinnerCount
+    );
+    addCheck("drain", "treasuryClaimableAfterCleanup", "0", payouts.treasury.claimableWei);
+    addCheck(
+      "drain",
+      "causeClaimableAfterCleanup",
+      "0",
+      sumDecimalStrings(
+        payouts.causes.map((cause) => cause.claimableFromGameWei)
+      ).toString()
+    );
+  }
+
+  const categorySummary = {};
+  for (const category of [...new Set(checks.map((check) => check.category))]) {
+    const categoryChecks = checks.filter((check) => check.category === category);
+    categorySummary[category] = {
+      ok: categoryChecks.every((check) => check.ok),
+      failed: categoryChecks.filter((check) => !check.ok),
+      total: categoryChecks.length,
+    };
+  }
+
+  return {
+    ok: checks.every((check) => check.ok),
+    checks,
+    categories: categorySummary,
+    slotState: {
+      activeGameId,
+      currentGameId,
     },
   };
 }
@@ -2161,6 +3771,10 @@ async function runSingleGame({
   seed,
   skipCommitRate,
   skipRevealRate,
+  underfilledRate,
+  invalidRevealRate,
+  probeRate,
+  choiceWeights,
   claimWinners,
   expectedFailures,
   tracker,
@@ -2170,6 +3784,14 @@ async function runSingleGame({
   const startBlock = await provider.getBlockNumber();
   const scenarioType = scenario.type;
   const skippedExpectedFailures = [];
+  const skippedProbes = [];
+  const notes = [scenario.description];
+  const enableAdversarialProbes = scenarioType === "adversarial-random";
+  const claimDrainIntended = enableAdversarialProbes ? true : claimWinners;
+  const preCreateActiveGameId = toNumber(
+    await gameReader.activeGameId(),
+    "preCreate.activeGameId"
+  );
 
   const createResult = await trackedTx(
     tracker,
@@ -2192,6 +3814,10 @@ async function runSingleGame({
   );
 
   const gameId = createResult.gameId;
+  const postCreateActiveGameId = toNumber(
+    await gameReader.activeGameId(),
+    "postCreate.activeGameId"
+  );
   const createEntry = tracker.entries.find(
     (entry) => entry.txHash === createResult.txHash
   );
@@ -2199,7 +3825,17 @@ async function runSingleGame({
     createEntry.gameId = gameId;
   }
 
-  const joinedPlayers = selectScenarioPlayers(players, scenarioType, config);
+  const gamePlan = buildGameExecutionPlan({
+    players,
+    scenarioType,
+    config,
+    gameIndex,
+    seed,
+    underfilledRate,
+  });
+  const joinedPlayers = gamePlan.joinedPlayers;
+  const joinOrder = gamePlan.joinOrder;
+  const nonJoinedPlayers = gamePlan.nonJoinedPlayers;
   const causeAssignments = joinedPlayers.map((player) => ({
     wallet: player.wallet.address,
     causeId: assignCauseId(player.index, gameIndex, causeCount),
@@ -2207,7 +3843,7 @@ async function runSingleGame({
 
   const joinStartedMs = Date.now();
   await runGameBatch({
-    items: joinedPlayers,
+    items: joinOrder,
     concurrency,
     actionName: "join",
     provider,
@@ -2254,18 +3890,14 @@ async function runSingleGame({
           ),
         },
         async () =>
-          joinGameAction({
-            provider,
-            game: gameAddress,
-            gameId,
-            causeId: assignCauseId(
-              duplicateJoinPlayer.index,
-              gameIndex,
-              causeCount
-            ),
-            wallet: duplicateJoinPlayer.wallet.address,
-            walletPrivateKey: duplicateJoinPlayer.wallet.privateKey,
-            allowUnsafePrivateKey: true,
+          sendRawGameTx({
+            gameAddress,
+            wallet: duplicateJoinPlayer.wallet,
+            method: "join",
+            args: [gameId, assignCauseId(duplicateJoinPlayer.index, gameIndex, causeCount)],
+            overrides: {
+              value: config.entryFeeWei,
+            },
           })
       );
     } else {
@@ -2273,9 +3905,89 @@ async function runSingleGame({
     }
   }
 
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      shouldSample({
+        seed,
+        stage: "probe-early-advance-from-joining",
+        gameIndex,
+        round: 0,
+        playerIndex: 0,
+        wallet: owner.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "advanceFromJoining",
+      phase: "joining",
+      scenarioType,
+      gameIndex,
+      gameId,
+      wallet: owner.address,
+      failureLabel: "advance-from-joining-before-deadline",
+      probeKind: "invalid-timing",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: owner,
+        method: "advancePhase",
+        args: [gameId],
+      }),
+    skippedProbes,
+    skipReason: "joining:early advance probe skipped",
+  });
+
   await provider.send("evm_increaseTime", [config.joinDurationSeconds + 1]);
   await provider.send("evm_mine", []);
   let manualBlocksMined = 1;
+
+  await maybeTrackProbe({
+    enabled:
+      enableAdversarialProbes &&
+      nonJoinedPlayers.length > 0 &&
+      shouldSample({
+        seed,
+        stage: "probe-late-join",
+        gameIndex,
+        round: 0,
+        playerIndex: nonJoinedPlayers[0].index,
+        wallet: nonJoinedPlayers[0].wallet.address,
+        rate: probeRate,
+      }),
+    tracker,
+    provider,
+    meta: {
+      action: "join",
+      phase: "joining",
+      scenarioType,
+      gameIndex,
+      gameId,
+      wallet: nonJoinedPlayers[0]?.wallet.address ?? null,
+      causeId: nonJoinedPlayers[0]
+        ? assignCauseId(nonJoinedPlayers[0].index, gameIndex, causeCount)
+        : null,
+      failureLabel: "late-join-after-deadline",
+      probeKind: "late-action",
+    },
+    operation: async () =>
+      sendRawGameTx({
+        gameAddress,
+        wallet: nonJoinedPlayers[0].wallet,
+        method: "join",
+        args: [
+          gameId,
+          assignCauseId(nonJoinedPlayers[0].index, gameIndex, causeCount),
+        ],
+        overrides: {
+          value: config.entryFeeWei,
+        },
+      }),
+    skippedProbes,
+    skipReason: "joining:late join probe skipped",
+  });
 
   const roundReports = [];
   let totalSkippedCommits = 0;
@@ -2283,8 +3995,11 @@ async function runSingleGame({
   let commitDeadlineRounds = 0;
   let revealDeadlineRounds = 0;
   let joinDurationMs = 0;
+  const shouldCancel =
+    scenarioType === "cancelled-underfilled" ||
+    (enableAdversarialProbes && gamePlan.plan.underfilledIntent);
 
-  if (scenarioType === "cancelled-underfilled") {
+  if (shouldCancel) {
     await trackedTx(
       tracker,
       provider,
@@ -2340,6 +4055,7 @@ async function runSingleGame({
           break;
         }
 
+        const alivePlayers = await loadAlivePlayers(gameReader, gameId, joinedPlayers);
         const roundResult = await runPlannedRound({
           provider,
           owner,
@@ -2347,12 +4063,20 @@ async function runSingleGame({
           gameAddress,
           gameIndex,
           gameId,
-          joinedPlayers,
+          playerPlans: buildRoundPlayerPlans({
+            players: alivePlayers,
+            scenarioType,
+            gameIndex,
+            round: snapshotBeforeRound.round,
+            seed,
+            fixedChoice: "share",
+            choiceWeights,
+            skipCommitRate,
+            skipRevealRate,
+            invalidRevealRate: 0,
+          }),
           concurrency,
           seed,
-          choice: "share",
-          skipCommitRate,
-          skipRevealRate,
           tracker,
           scenarioType,
           expectedFailures,
@@ -2373,6 +4097,7 @@ async function runSingleGame({
         }
       }
     } else if (scenarioType === "no-winner-all-catch") {
+      const alivePlayers = await loadAlivePlayers(gameReader, gameId, joinedPlayers);
       const roundResult = await runPlannedRound({
         provider,
         owner,
@@ -2380,12 +4105,20 @@ async function runSingleGame({
         gameAddress,
         gameIndex,
         gameId,
-        joinedPlayers,
+        playerPlans: buildRoundPlayerPlans({
+          players: alivePlayers,
+          scenarioType,
+          gameIndex,
+          round: normalizeSnapshot(await gameReader.getGame(gameId)).round,
+          seed,
+          fixedChoice: "catch",
+          choiceWeights,
+          skipCommitRate: 0,
+          skipRevealRate: 0,
+          invalidRevealRate: 0,
+        }),
         concurrency,
         seed,
-        choice: "catch",
-        skipCommitRate: 0,
-        skipRevealRate: 0,
         tracker,
         scenarioType,
         expectedFailures,
@@ -2406,6 +4139,64 @@ async function runSingleGame({
           `No-winner scenario resolved to ${roundResult.revealAdvanceResult.outcome} instead of NoWinners.`
         );
       }
+    } else if (scenarioType === "adversarial-random") {
+      while (true) {
+        const snapshotBeforeRound = normalizeSnapshot(
+          await gameReader.getGame(gameId)
+        );
+        if (snapshotBeforeRound.phase !== "Commit") {
+          break;
+        }
+
+        const alivePlayers = await loadAlivePlayers(gameReader, gameId, joinedPlayers);
+        if (alivePlayers.length === 0) {
+          throw new Error(
+            `Adversarial game ${gameId} entered Commit with zero alive players.`
+          );
+        }
+
+        const roundResult = await runPlannedRound({
+          provider,
+          owner,
+          gameReader,
+          gameAddress,
+          gameIndex,
+          gameId,
+          playerPlans: buildRoundPlayerPlans({
+            players: alivePlayers,
+            scenarioType,
+            gameIndex,
+            round: snapshotBeforeRound.round,
+            seed,
+            choiceWeights,
+            skipCommitRate,
+            skipRevealRate,
+            invalidRevealRate,
+          }),
+          concurrency,
+          seed,
+          tracker,
+          scenarioType,
+          expectedFailures,
+          skippedExpectedFailures,
+          enableAdversarialProbes: true,
+          probeRate,
+          skippedProbes,
+        });
+        roundReports.push(roundResult.roundReport);
+        manualBlocksMined += roundResult.manualBlocksMined;
+        totalSkippedCommits += roundResult.skippedCommits;
+        totalSkippedReveals += roundResult.skippedReveals;
+        if (roundResult.commitDeadlineHit) {
+          commitDeadlineRounds += 1;
+        }
+        if (roundResult.revealDeadlineHit) {
+          revealDeadlineRounds += 1;
+        }
+        if (roundResult.revealAdvanceResult.outcome !== "Unset") {
+          break;
+        }
+      }
     } else {
       throw new Error(`Unsupported scenario type '${scenarioType}'.`);
     }
@@ -2417,16 +4208,41 @@ async function runSingleGame({
   let treasuryWithdrawal = null;
   let causeWithdrawalResults = [];
 
-  if (scenarioType === "winner-all-share") {
-    if (claimWinners) {
-      claimResults = await runGameBatch({
+  const terminalSnapshot = normalizeSnapshot(await gameReader.getGame(gameId));
+  const causeIds = causeAssignments.map((entry) => entry.causeId);
+
+  if (terminalSnapshot.phase === "Cancelled") {
+    if (enableAdversarialProbes) {
+      ({
+        claimResults,
+        refundResults,
+        treasuryWithdrawal,
+        causeWithdrawalResults,
+      } = await runCancelledSettlement({
+        provider,
+        owner,
+        gameAddress,
+        gameIndex,
+        gameId,
+        joinedPlayers,
+        concurrency,
+        tracker,
+        expectedFailures,
+        skippedExpectedFailures,
+        seed,
+        enableAdversarialProbes,
+        probeRate,
+        skippedProbes,
+      }));
+    } else {
+      refundResults = await runGameBatch({
         items: joinedPlayers,
         concurrency,
-        actionName: "claim",
+        actionName: "refund",
         provider,
         tracker,
         buildMeta: (player) => ({
-          action: "claim",
+          action: "refund",
           phase: "settlement",
           scenarioType,
           gameIndex,
@@ -2434,7 +4250,7 @@ async function runSingleGame({
           wallet: player.wallet.address,
         }),
         operation: (player) =>
-          claimAction({
+          refundAction({
             provider,
             game: gameAddress,
             gameId,
@@ -2446,125 +4262,179 @@ async function runSingleGame({
 
       if (expectedFailures) {
         if (joinedPlayers.length > 0) {
-          const duplicateClaimPlayer = joinedPlayers[0];
+          const duplicateRefundPlayer = joinedPlayers[0];
           await trackedExpectedFailure(
             tracker,
             provider,
             {
-              action: "claim",
+              action: "refund",
               phase: "settlement",
               scenarioType,
-              failureLabel: "duplicate-claim",
+              failureLabel: "duplicate-refund",
               gameIndex,
               gameId,
-              wallet: duplicateClaimPlayer.wallet.address,
+              wallet: duplicateRefundPlayer.wallet.address,
             },
             async () =>
-              claimAction({
-                provider,
-                game: gameAddress,
-                gameId,
-                wallet: duplicateClaimPlayer.wallet.address,
-                walletPrivateKey: duplicateClaimPlayer.wallet.privateKey,
-                allowUnsafePrivateKey: true,
+              sendRawGameTx({
+                gameAddress,
+                wallet: duplicateRefundPlayer.wallet,
+                method: "claimRefund",
+                args: [gameId],
               })
           );
         } else {
-          skippedExpectedFailures.push("duplicate-claim(no winner)");
+          skippedExpectedFailures.push("duplicate-refund(no refunded player)");
         }
       }
-    } else if (expectedFailures) {
-      skippedExpectedFailures.push(
-        "duplicate-claim(skipped because winner claims disabled)"
-      );
     }
-
-    ({ treasuryWithdrawal, causeWithdrawalResults } =
-      await runAvailableWithdrawals({
+  } else if (terminalSnapshot.outcome === "Winners") {
+    if (enableAdversarialProbes) {
+      ({
+        claimResults,
+        refundResults,
+        treasuryWithdrawal,
+        causeWithdrawalResults,
+      } = await runWinnerSettlement({
         provider,
         owner,
         gameReader,
         gameAddress,
         gameIndex,
         gameId,
-        scenarioType,
-        causeIds: causeAssignments.map((entry) => entry.causeId),
+        joinedPlayers,
+        causeIds,
         concurrency,
         tracker,
         expectedFailures,
         skippedExpectedFailures,
+        seed,
+        enableAdversarialProbes,
+        probeRate,
+        skippedProbes,
       }));
-  } else if (scenarioType === "cancelled-underfilled") {
-    refundResults = await runGameBatch({
-      items: joinedPlayers,
-      concurrency,
-      actionName: "refund",
-      provider,
-      tracker,
-      buildMeta: (player) => ({
-        action: "refund",
-        phase: "settlement",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: player.wallet.address,
-      }),
-      operation: (player) =>
-        refundAction({
+    } else {
+      if (claimDrainIntended) {
+        claimResults = await runGameBatch({
+          items: joinedPlayers,
+          concurrency,
+          actionName: "claim",
           provider,
-          game: gameAddress,
-          gameId,
-          wallet: player.wallet.address,
-          walletPrivateKey: player.wallet.privateKey,
-          allowUnsafePrivateKey: true,
-        }),
-    });
-
-    if (expectedFailures) {
-      if (joinedPlayers.length > 0) {
-        const duplicateRefundPlayer = joinedPlayers[0];
-        await trackedExpectedFailure(
           tracker,
-          provider,
-          {
-            action: "refund",
+          buildMeta: (player) => ({
+            action: "claim",
             phase: "settlement",
             scenarioType,
-            failureLabel: "duplicate-refund",
             gameIndex,
             gameId,
-            wallet: duplicateRefundPlayer.wallet.address,
-          },
-          async () =>
-            refundAction({
+            wallet: player.wallet.address,
+          }),
+          operation: (player) =>
+            claimAction({
               provider,
               game: gameAddress,
               gameId,
-              wallet: duplicateRefundPlayer.wallet.address,
-              walletPrivateKey: duplicateRefundPlayer.wallet.privateKey,
+              wallet: player.wallet.address,
+              walletPrivateKey: player.wallet.privateKey,
               allowUnsafePrivateKey: true,
-            })
+            }),
+        });
+
+        if (expectedFailures) {
+          if (joinedPlayers.length > 0) {
+            const duplicateClaimPlayer = joinedPlayers[0];
+            await trackedExpectedFailure(
+              tracker,
+              provider,
+              {
+                action: "claim",
+                phase: "settlement",
+                scenarioType,
+                failureLabel: "duplicate-claim",
+                gameIndex,
+                gameId,
+                wallet: duplicateClaimPlayer.wallet.address,
+              },
+              async () =>
+                sendRawGameTx({
+                  gameAddress,
+                  wallet: duplicateClaimPlayer.wallet,
+                  method: "claim",
+                  args: [gameId],
+                })
+            );
+          } else {
+            skippedExpectedFailures.push("duplicate-claim(no winner)");
+          }
+        }
+      } else if (expectedFailures) {
+        skippedExpectedFailures.push(
+          "duplicate-claim(skipped because winner claims disabled)"
         );
-      } else {
-        skippedExpectedFailures.push("duplicate-refund(no refunded player)");
       }
+
+      ({ treasuryWithdrawal, causeWithdrawalResults } =
+        await runAvailableWithdrawals({
+          provider,
+          owner,
+          gameReader,
+          gameAddress,
+          gameIndex,
+          gameId,
+          scenarioType,
+          causeIds,
+          concurrency,
+          tracker,
+          expectedFailures,
+          skippedExpectedFailures,
+        }));
     }
-  } else if (scenarioType === "no-winner-all-catch") {
-    ({ treasuryWithdrawal, causeWithdrawalResults } =
-      await runAvailableWithdrawals({
+  } else if (terminalSnapshot.outcome === "NoWinners") {
+    if (enableAdversarialProbes) {
+      ({
+        claimResults,
+        refundResults,
+        treasuryWithdrawal,
+        causeWithdrawalResults,
+      } = await runNoWinnerSettlement({
         provider,
         owner,
         gameReader,
         gameAddress,
         gameIndex,
         gameId,
-        scenarioType,
-        causeIds: causeAssignments.map((entry) => entry.causeId),
+        joinedPlayers,
+        causeIds,
         concurrency,
         tracker,
         expectedFailures,
         skippedExpectedFailures,
+        seed,
+        enableAdversarialProbes,
+        probeRate,
+        skippedProbes,
       }));
+    } else {
+      ({ treasuryWithdrawal, causeWithdrawalResults } =
+        await runAvailableWithdrawals({
+          provider,
+          owner,
+          gameReader,
+          gameAddress,
+          gameIndex,
+          gameId,
+          scenarioType,
+          causeIds,
+          concurrency,
+          tracker,
+          expectedFailures,
+          skippedExpectedFailures,
+        }));
+    }
+  } else {
+    throw new Error(
+      `Game ${gameId} reached unsupported terminal snapshot ${terminalSnapshot.phase}/${terminalSnapshot.outcome}.`
+    );
   }
   const settlementDurationMs = Date.now() - settlementStartedMs;
 
@@ -2590,16 +4460,29 @@ async function runSingleGame({
     causes: causeWithdrawalSummary,
   };
   const postRunOutstanding = buildPostRunOutstanding(exported.evidence);
-
-  const replayConsistency = buildReplayConsistency({
-    scenarioType,
+  const replayConsistency = enableAdversarialProbes
+    ? buildObservedReplayConsistency({
+        evidence: exported.evidence,
+        config,
+        claimSummary,
+        refundSummary,
+        withdrawalSummary,
+      })
+    : buildReplayConsistency({
+        scenarioType,
+        evidence: exported.evidence,
+        config,
+        causeAssignments,
+        claimSummary,
+        claimWinners: claimDrainIntended,
+        refundSummary,
+        withdrawalSummary,
+      });
+  const breakageChecks = await buildBreakageChecks({
+    gameReader,
+    gameId,
     evidence: exported.evidence,
-    config,
-    causeAssignments,
-    claimSummary,
-    claimWinners,
-    refundSummary,
-    withdrawalSummary,
+    claimDrainIntended,
   });
 
   const endBlock = await provider.getBlockNumber();
@@ -2607,10 +4490,11 @@ async function runSingleGame({
     (entry) => entry.gameId === gameId
   );
   const gameTxSummary = buildTxSummary(gameEntries);
+  const probeSummary = buildProbeSummary(gameEntries);
 
-  const notes = [scenario.description];
   if (
     scenarioType !== "winner-all-share" &&
+    scenarioType !== "adversarial-random" &&
     (skipCommitRate > 0 || skipRevealRate > 0)
   ) {
     notes.push(
@@ -2624,15 +4508,30 @@ async function runSingleGame({
     notes.push(
       "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable."
     );
-    if (!claimWinners) {
+    if (!claimDrainIntended) {
       notes.push(
         "Winner claims were skipped for this run, so claimed-count and payout reconciliation checks are intentionally incomplete even though the creator-fee treasury withdrawal may still execute."
       );
     }
   }
+  if (enableAdversarialProbes) {
+    notes.push(
+      "This game used seeded synthetic adversarial local stress only: randomized valid and invalid action ordering, omissions, and follow-up probes aimed at surfacing contract or harness breakage."
+    );
+    notes.push(
+      `Adversarial knobs for this game: underfilledIntent=${gamePlan.plan.underfilledIntent}, probeRate=${probeRate}, invalidRevealRate=${invalidRevealRate}, choiceWeights=${choiceWeights.share}/${choiceWeights.catch}/${choiceWeights.steal}.`
+    );
+  }
   if (expectedFailures && skippedExpectedFailures.length > 0) {
     notes.push(
       `Expected-failure mode skipped some duplicate checks because the prerequisite successful action never happened: ${skippedExpectedFailures.join(
+        ", "
+      )}.`
+    );
+  }
+  if (skippedProbes.length > 0) {
+    notes.push(
+      `Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: ${skippedProbes.join(
         ", "
       )}.`
     );
@@ -2645,12 +4544,26 @@ async function runSingleGame({
       type: scenario.type,
       family: scenario.family,
       description: scenario.description,
-      terminalPath: scenario.terminalPath,
+      terminalPath: exported.evidence.summary.game.terminalOutcome.terminalPath,
       expectedFailuresEnabled: expectedFailures,
+      adversarialProbeModeEnabled: enableAdversarialProbes,
       registeredPlayers: players.length,
       plannedJoinedPlayers: joinedPlayers.length,
       nonJoiningRegisteredPlayers: players.length - joinedPlayers.length,
     },
+    adversarialPlan: enableAdversarialProbes
+      ? {
+          underfilledIntent: gamePlan.plan.underfilledIntent,
+          joinedPlayerIndexes: gamePlan.plan.selectedPlayerIndexes ?? joinedPlayers.map((player) => player.index),
+          nonJoinedPlayerCount: nonJoinedPlayers.length,
+          preCreateActiveGameId,
+          postCreateActiveGameId,
+          probeRate,
+          invalidRevealRate,
+          choiceWeights,
+          claimDrainIntended,
+        }
+      : null,
     wallClockMs: Date.now() - gameStartedAtMs,
     blocks: {
       start: startBlock,
@@ -2678,7 +4591,7 @@ async function runSingleGame({
     refunds: refundSummary,
     withdrawals: withdrawalSummary,
     terminalActions: {
-      path: scenario.terminalPath,
+      path: exported.evidence.summary.game.terminalOutcome.terminalPath,
       winnerClaimsExecuted: claimSummary.succeeded,
       refundsExecuted: refundSummary.succeeded,
       treasuryWithdrawalExecuted: withdrawalSummary.treasury.executed,
@@ -2689,9 +4602,19 @@ async function runSingleGame({
       attempted: gameEntries.filter(
         (entry) => entry.expectation === "expected-failure"
       ).length,
-      failedAsExpected: gameTxSummary.failedExpected,
-      unexpectedSuccesses: gameTxSummary.unexpectedSuccesses,
+      failedAsExpected: gameEntries.filter(
+        (entry) =>
+          entry.expectation === "expected-failure" &&
+          entry.status === "failed" &&
+          entry.failureClass === "expected"
+      ).length,
+      unexpectedSuccesses: gameEntries.filter(
+        (entry) =>
+          entry.expectation === "expected-failure" &&
+          entry.failureClass === "unexpected-success"
+      ).length,
     },
+    probes: probeSummary,
     txSummary: gameTxSummary,
     resultState: {
       phase: exported.evidence.summary.game.phase,
@@ -2704,6 +4627,7 @@ async function runSingleGame({
     },
     postRunOutstanding,
     replayConsistency,
+    breakageChecks,
     evidence: {
       outputDir: exported.manifest.outputDir,
       manifestPath: exported.manifest.produced.find(
@@ -2856,6 +4780,58 @@ function buildLocalScaleReadiness({
   };
 }
 
+function buildBreakageSummary({ games, txEntries }) {
+  const probeEntries = txEntries.filter((entry) => entry.expectation === "probe");
+  const unexpectedFailures = txEntries.filter(
+    (entry) => entry.status === "failed" && entry.failureClass === "unexpected"
+  );
+
+  return {
+    gamesChecked: games.length,
+    gamesWithWedgedActiveSlot: games.filter(
+      (game) => game.breakageChecks?.categories?.slot?.ok === false
+    ).length,
+    gamesWithTerminalStateMismatch: games.filter(
+      (game) => game.breakageChecks?.categories?.terminal?.ok === false
+    ).length,
+    gamesWithAccountingMismatch: games.filter(
+      (game) => game.breakageChecks?.categories?.accounting?.ok === false
+    ).length,
+    gamesWithPreviewMismatch: games.filter(
+      (game) => game.breakageChecks?.categories?.preview?.ok === false
+    ).length,
+    gamesWithDrainMismatch: games.filter(
+      (game) => game.breakageChecks?.categories?.drain?.ok === false
+    ).length,
+    gamesWithReplayInconsistency: games.filter(
+      (game) => game.replayConsistency?.ok === false
+    ).length,
+    gamesWithUnexpectedFailures: games.filter(
+      (game) => game.txSummary.failedUnexpected > 0
+    ).length,
+    totalUnexpectedFailures: unexpectedFailures.length,
+    probeSummary: {
+      attempted: probeEntries.length,
+      failedAsExpected: probeEntries.filter(
+        (entry) => entry.status === "failed" && entry.failureClass === "expected"
+      ).length,
+      unexpectedSuccesses: probeEntries.filter(
+        (entry) => entry.failureClass === "unexpected-success"
+      ).length,
+      onchainReverts: probeEntries.filter(
+        (entry) => entry.status === "failed" && entry.failureTransport === "onchain-revert"
+      ).length,
+      localRejections: probeEntries.filter(
+        (entry) => entry.status === "failed" && entry.failureTransport === "local-rejection"
+      ).length,
+    },
+    unexpectedFailureClusters: buildFailureClusters(txEntries, {
+      onlyUnexpected: true,
+    }),
+    probeFailureClusters: buildFailureClusters(probeEntries),
+  };
+}
+
 function buildFailureReport({ baseReport, tracker, error, startedAt }) {
   const finishedAt = new Date().toISOString();
   return {
@@ -2884,7 +4860,7 @@ export async function runLoadHarness(rawOptions = {}) {
       source: options.profile.source,
       notes: options.notes,
       strategy:
-        "scenario-driven local flows: winner-all-share, cancelled-underfilled, and no-winner-all-catch, with optional winner-path deadline misses and deterministic expected-failure injection.",
+        "scenario-driven local flows: deterministic winner/cancelled/no-winner paths plus a seeded adversarial-random mode that mixes started vs underfilled games, random round choices, omissions, invalid follow-ups, and settlement-order probes for local breakage hunting.",
     },
     options: {
       playerCount: options.playerCount,
@@ -2893,6 +4869,10 @@ export async function runLoadHarness(rawOptions = {}) {
       concurrency: options.concurrency,
       skipCommitRate: options.skipCommitRate,
       skipRevealRate: options.skipRevealRate,
+      underfilledRate: options.underfilledRate,
+      invalidRevealRate: options.invalidRevealRate,
+      probeRate: options.probeRate,
+      choiceWeights: options.choiceWeights,
       claimWinners: options.claimWinners,
       expectedFailures: options.expectedFailures,
       requestedScenario: options.requestedScenario,
@@ -2912,8 +4892,8 @@ export async function runLoadHarness(rawOptions = {}) {
     },
     limitations: [
       "This harness currently drives verifier-approved permit/register directly for speed; it does not rehearse the full SIWA nonce/sign/verify wrapper.",
-      "The harness now covers winner, cancelled/underfilled, and all-catch no-winner local flows plus deterministic duplicate-operation checks when expected-failure mode is enabled, but it still does not cover auth expiry, multi-instance parallel deployments, or broader invalid-op fuzzing.",
-      "The included automated smoke test proves only small local runs. A 250-player result still needs to be produced intentionally by running the harness with a larger profile; it is not CI-proven by this patch alone.",
+      "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
+      "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
       "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
     ],
   };
@@ -3006,6 +4986,10 @@ export async function runLoadHarness(rawOptions = {}) {
           seed: options.seed,
           skipCommitRate: options.skipCommitRate,
           skipRevealRate: options.skipRevealRate,
+          underfilledRate: options.underfilledRate,
+          invalidRevealRate: options.invalidRevealRate,
+          probeRate: options.probeRate,
+          choiceWeights: options.choiceWeights,
           claimWinners: options.claimWinners,
           expectedFailures: options.expectedFailures,
           tracker,
@@ -3060,6 +5044,10 @@ export async function runLoadHarness(rawOptions = {}) {
       chaos: {
         skipCommitRate: options.skipCommitRate,
         skipRevealRate: options.skipRevealRate,
+        underfilledRate: options.underfilledRate,
+        invalidRevealRate: options.invalidRevealRate,
+        probeRate: options.probeRate,
+        choiceWeights: options.choiceWeights,
         expectedFailuresEnabled: options.expectedFailures,
         skippedCommitCount: games.reduce(
           (sum, game) => sum + game.deadlineMisses.skippedCommits,
@@ -3085,6 +5073,18 @@ export async function runLoadHarness(rawOptions = {}) {
           (sum, game) => sum + game.expectedFailures.failedAsExpected,
           0
         ),
+        probeAttempts: games.reduce(
+          (sum, game) => sum + (game.probes?.attempted ?? 0),
+          0
+        ),
+        probeFailuresAsExpected: games.reduce(
+          (sum, game) => sum + (game.probes?.failedAsExpected ?? 0),
+          0
+        ),
+        probeUnexpectedSuccesses: games.reduce(
+          (sum, game) => sum + (game.probes?.unexpectedSuccesses ?? 0),
+          0
+        ),
       },
       scenarioSummary: {
         byType: groupCount(games, (game) => game.scenario.type),
@@ -3104,6 +5104,10 @@ export async function runLoadHarness(rawOptions = {}) {
         txSummary,
         wallClockMs,
         options,
+      }),
+      breakageSummary: buildBreakageSummary({
+        games,
+        txEntries: tracker.entries,
       }),
       games,
     };
@@ -3158,6 +5162,8 @@ export function printLoadHarnessSummary(report) {
   );
   console.log(`Skip commit:    ${report.options.skipCommitRate}`);
   console.log(`Skip reveal:    ${report.options.skipRevealRate}`);
+  console.log(`Probe rate:     ${report.options.probeRate ?? 0}`);
+  console.log(`Underfilled:    ${report.options.underfilledRate ?? 0}`);
   console.log(
     `Exp failures:   ${
       report.options.expectedFailures ? "enabled" : "disabled"
@@ -3199,6 +5205,17 @@ export function printLoadHarnessSummary(report) {
       `Succ tx/s:      ${report.localScaleReadiness.throughput.successfulTxPerSecond}`
     );
   }
+  if (report.breakageSummary) {
+    console.log(
+      `Breakage ok:    ${report.breakageSummary.gamesWithUnexpectedFailures === 0 && report.breakageSummary.gamesWithWedgedActiveSlot === 0 && report.breakageSummary.gamesWithDrainMismatch === 0 ? "clean" : "issues detected"}`
+    );
+    console.log(
+      `Probe fails:    ${report.breakageSummary.probeSummary.failedAsExpected}/${report.breakageSummary.probeSummary.attempted}`
+    );
+    console.log(
+      `Unexp fails:    ${report.breakageSummary.totalUnexpectedFailures}`
+    );
+  }
 
   if (Array.isArray(report.games)) {
     for (const game of report.games) {
@@ -3219,9 +5236,15 @@ export function printLoadHarnessSummary(report) {
           game.expectedFailures?.attempted ?? 0
         }`
       );
+      console.log(
+        `  Probes:       ${game.probes?.failedAsExpected ?? 0}/${game.probes?.attempted ?? 0}`
+      );
       console.log(`  Unexp fails:  ${game.txSummary.failedUnexpected ?? 0}`);
       console.log(`  Manual blocks:${game.blocks.manualMined}`);
       console.log(`  Replay ok:    ${game.replayConsistency.ok}`);
+      console.log(
+        `  Breakage ok:  ${game.breakageChecks?.ok ?? false}`
+      );
       console.log(
         `  Drained:      ${
           game.postRunOutstanding?.fullyDrainedByHarness ?? false

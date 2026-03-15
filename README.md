@@ -159,9 +159,9 @@ Typical local flow after auth:
    - `yarn game:post-global -- ...`
    - `yarn game:post-cause -- ...`
 
-## Local load / chaos harness
+## Local load / chaos / adversarial harness
 
-The repo now includes a local load/chaos harness under `packages/foundry/scripts-js/loadHarnessCli.js`.
+The repo now includes a local load/chaos/adversarial harness under `packages/foundry/scripts-js/loadHarnessCli.js`.
 
 Current boundary:
 
@@ -175,10 +175,11 @@ Current boundary:
   - `winner-all-share`: deterministic winner path, with optional missed commit / missed reveal chaos using configurable skip rates, followed by winner claims plus creator-fee/cause withdrawals when those pull-based balances are claimable
   - `cancelled-underfilled`: underfilled join window leading to cancel + refunds
   - `no-winner-all-catch`: deterministic no-winner round-one outcome leading to treasury/cause withdrawals
+  - `adversarial-random`: seeded synthetic local breakage hunting across sequential games with randomized started-vs-underfilled game selection, random move choices, commit/reveal omissions, wrong-preimage / late-action / duplicate probes, and randomized settlement ordering
   - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
   - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
-  - `report.json` (including top-level `localScaleReadiness` plus per-game `postRunOutstanding` drain checks)
+  - `report.json` (including top-level `localScaleReadiness`, top-level `breakageSummary`, per-game `probes`, per-game `breakageChecks`, and per-game `postRunOutstanding` drain checks)
   - `txs.jsonl`
   - per-game evidence export directories with `game-summary.json`, `roster.json`, `rounds.json`, `auth.json`, `payouts.json`, and `export-manifest.json`
 
@@ -201,23 +202,27 @@ Example runs:
    - `yarn load:harness -- --profile smoke --player-count 32 --cause-count 8 --games 3 --scenario winner-all-share --concurrency 8 --commit-duration-blocks 48 --reveal-duration-blocks 48`
 5. deterministic no-winner check:
    - `yarn load:harness -- --profile smoke --player-count 12 --scenario no-winner-all-catch`
+6. adversarial many-game local breakage hunt:
+   - `yarn load:harness -- --profile smoke --player-count 12 --cause-count 4 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6`
 
 What this harness honestly proves today:
 
 - the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup
-- the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, tx counts, gas totals, timing/block summaries, target-hit counts, tx hotspots, and resulting game state
-- the harness can now exercise three concrete local settlement families on the current codebase, with post-run drain checks instead of stopping early at partially settled balances:
+- the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, probe counts, tx counts, gas totals, timing/block summaries, tx hotspots, resulting game state, and breakage-oriented summaries (`breakageSummary`, per-game `breakageChecks`)
+- the harness can now exercise three concrete local settlement families on the current codebase, plus a seeded adversarial-random mode that deliberately mixes valid and invalid local behavior aimed at surfacing wedge/state/accounting bugs:
   - winner claims plus creator-fee/cause withdrawals after those claims route funds
   - cancelled-game refunds
   - no-winner treasury/cause routing
-- per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed
-- deterministic duplicate/invalid follow-up attempts can be accounted for explicitly as expected failures instead of getting mixed into normal tx failures
+  - randomized local invalid-path / late-action / duplicate follow-up probes with explicit accounting of whether they failed as expected or succeeded unexpectedly
+- per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed and whether preview/claimable/export views stayed consistent
+- deterministic duplicate/invalid follow-up attempts and adversarial probes are accounted for separately instead of getting mixed into normal tx failures
 
 What it intentionally does **not** claim yet:
 
 - live-network realism, mempool behavior, or independent-agent network jitter
 - full SIWA wrapper rehearsal inside the harness itself
-- auth-expiry chaos, broad invalid-op fuzzing, or multi-instance parallel deployment stress inside the harness
+- proof of exploitable contract bugs just because adversarial local probes did not break a given run
+- exhaustive fuzzing or parallel multi-instance deployment stress inside the harness
 - that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
