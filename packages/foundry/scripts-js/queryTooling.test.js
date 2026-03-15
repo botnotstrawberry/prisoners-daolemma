@@ -204,13 +204,14 @@ test(
 );
 
 test(
-  "bounded query export labels partial hybrid evidence windows",
+  "bounded query export reads state at numeric toBlock when historical calls are available",
   { concurrency: false },
   async () => {
-    const { registry, game, chat, causeMessageReceipt } =
+    const { provider, registry, game, chat, causeMessageReceipt } =
       await setupEvidenceFixture();
     const outputDir = mkdtempSync(join(tmpdir(), "pd-query-bounded-export-"));
     const boundedBlock = String(causeMessageReceipt.blockNumber);
+    const causeMessageBlock = await provider.getBlock(causeMessageReceipt.blockNumber);
 
     const manifest = JSON.parse(
       runCli([
@@ -269,12 +270,20 @@ test(
       causeMessageReceipt.blockNumber
     );
     assert.equal(
+      summary.evidenceWindow.stateSnapshot.blockNumber,
+      causeMessageReceipt.blockNumber
+    );
+    assert.equal(
+      summary.evidenceWindow.stateSnapshot.timestamp,
+      causeMessageBlock.timestamp
+    );
+    assert.equal(
       summary.evidenceWindow.logRange.coversFullHistoryToStateSnapshot,
       false
     );
     assert.equal(
       summary.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
-      true
+      false
     );
     assert.deepEqual(manifest.evidenceWindow, summary.evidenceWindow);
     assert.deepEqual(roster.evidenceWindow, summary.evidenceWindow);
@@ -283,7 +292,9 @@ test(
     assert.deepEqual(auth.evidenceWindow, summary.evidenceWindow);
 
     assert.equal(summary.game.counts.messages, 1);
-    assert.equal(summary.game.counts.revealed, 1);
+    assert.equal(summary.game.counts.committed, 1);
+    assert.equal(summary.game.counts.revealed, 0);
+    assert.equal(roster.participants[0].revealedThisRound, false);
     assert.equal(rounds.rounds.length, 1);
     assert.equal(rounds.rounds[0].commits.length, 0);
     assert.equal(rounds.rounds[0].reveals.length, 0);
@@ -293,8 +304,48 @@ test(
     assert.ok(
       summary.notes.some((note) => note.includes("bounded evidence slice"))
     );
+    assert.equal(
+      summary.notes.some((note) => note.includes("intentionally hybrid")),
+      false
+    );
+  }
+);
+
+test(
+  "bounded query evidence falls back to latest hybrid state when provider lacks historical eth_call",
+  { concurrency: false },
+  async () => {
+    const { registry, game, chat, causeMessageReceipt, revealReceipt } =
+      await setupEvidenceFixture();
+    const provider = new NoHistoricalStateProvider(RPC_URL);
+
+    const evidence = await collectGameEvidence({
+      provider,
+      game: game.address,
+      registry: registry.address,
+      chat: chat.address,
+      gameId: 1,
+      fromBlock: causeMessageReceipt.blockNumber,
+      toBlock: causeMessageReceipt.blockNumber,
+    });
+
+    assert.equal(
+      evidence.summary.evidenceWindow.stateSnapshot.blockNumber,
+      revealReceipt.blockNumber
+    );
+    assert.equal(
+      evidence.summary.evidenceWindow.logRange.isHybridAgainstStateSnapshot,
+      true
+    );
+    assert.equal(evidence.summary.game.counts.messages, 1);
+    assert.equal(evidence.summary.game.counts.revealed, 1);
     assert.ok(
-      summary.notes.some((note) => note.includes("intentionally hybrid"))
+      evidence.summary.notes.some((note) =>
+        note.includes("could not serve them")
+      )
+    );
+    assert.ok(
+      evidence.summary.notes.some((note) => note.includes("intentionally hybrid"))
     );
   }
 );
@@ -322,6 +373,33 @@ test(
     );
   }
 );
+
+class NoHistoricalStateProvider extends ethers.providers.JsonRpcProvider {
+  async call(transaction, blockTag) {
+    const numericBlockTag = parseNumericBlockTag(blockTag);
+
+    if (numericBlockTag !== null) {
+      const latestBlockNumber = await this.getBlockNumber();
+      if (numericBlockTag < latestBlockNumber) {
+        throw new Error(
+          `archive state unavailable at block ${numericBlockTag}: historical eth_call disabled for test`
+        );
+      }
+    }
+
+    return super.call(transaction, blockTag);
+  }
+}
+
+function parseNumericBlockTag(blockTag) {
+  if (typeof blockTag === "number") {
+    return blockTag;
+  }
+  if (typeof blockTag === "string" && /^0x[0-9a-f]+$/i.test(blockTag)) {
+    return Number.parseInt(blockTag, 16);
+  }
+  return null;
+}
 
 async function setupEvidenceFixture() {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);

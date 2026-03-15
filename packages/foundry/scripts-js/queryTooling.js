@@ -170,6 +170,65 @@ function buildEvidenceWindow({
   };
 }
 
+function describeProviderError(error) {
+  if (!error) {
+    return "Unknown provider error.";
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (typeof error.reason === "string" && error.reason.length > 0) {
+    return error.reason;
+  }
+  if (typeof error.body === "string" && error.body.length > 0) {
+    try {
+      const parsed = JSON.parse(error.body);
+      const nestedMessage =
+        parsed?.error?.message ?? parsed?.message ?? parsed?.error;
+      if (typeof nestedMessage === "string" && nestedMessage.length > 0) {
+        return nestedMessage;
+      }
+    } catch {
+      return error.body;
+    }
+  }
+  if (error.error) {
+    const nestedMessage = describeProviderError(error.error);
+    if (typeof nestedMessage === "string" && nestedMessage.length > 0) {
+      return nestedMessage;
+    }
+  }
+  if (typeof error.message === "string" && error.message.length > 0) {
+    return error.message;
+  }
+  return String(error);
+}
+
+function isHistoricalStateReadSupportError(error) {
+  const message = describeProviderError(error).toLowerCase();
+  return [
+    "missing trie node",
+    "archive",
+    "historical state",
+    "historical eth_call",
+    "header not found",
+    "state is not available",
+    "old state",
+    "pruned",
+    "missing block or state",
+  ].some((fragment) => message.includes(fragment));
+}
+
+async function readBlockOrThrow(provider, blockTag, label) {
+  const block = await provider.getBlock(blockTag);
+  if (!block) {
+    throw new Error(
+      `Unable to read ${label} ${formatBlockTag(blockTag)} from the current RPC provider.`
+    );
+  }
+  return block;
+}
+
 function sortEvents(events = []) {
   return [...events].sort((a, b) => {
     if (a.blockNumber !== b.blockNumber) {
@@ -319,8 +378,19 @@ function normalizeGameCause(causeId, rawCause, members) {
   };
 }
 
-function buildEvidenceNotes({ chatConfigured, evidenceWindow }) {
+function buildEvidenceNotes({
+  chatConfigured,
+  evidenceWindow,
+  historicalStateBlockRequested,
+  historicalStateFallbackReason,
+}) {
   const notes = [];
+
+  if (historicalStateFallbackReason) {
+    notes.push(
+      `Historical state reads were requested at block ${historicalStateBlockRequested}, but the current RPC provider could not serve them (${historicalStateFallbackReason}). State snapshots fell back to block ${evidenceWindow.stateSnapshot.blockNumber}.`
+    );
+  }
 
   if (!evidenceWindow.logRange.coversFullHistoryToStateSnapshot) {
     notes.push(
@@ -713,84 +783,28 @@ async function resolveGameContext(options = {}) {
   };
 }
 
-export async function collectGameEvidence(options = {}) {
-  const context = await resolveGameContext(options);
-  const requestedFromBlock = normalizeBlockTag(
-    options.fromBlock,
-    0,
-    "fromBlock"
-  );
-  const requestedToBlock = normalizeBlockTag(
-    options.toBlock,
-    "latest",
-    "toBlock"
-  );
-  const latestBlock = await context.provider.getBlock("latest");
-  const stateSnapshotBlock = latestBlock.number;
+async function collectStateAtBlock({
+  context,
+  stateSnapshotBlock,
+  stateSnapshotTimestamp,
+  fromBlock,
+  toBlock,
+  phaseHistory,
+  getBlockTimestamp,
+}) {
   const stateReadOptions = { blockTag: stateSnapshotBlock };
-  const fromBlock = resolveBlockTag(requestedFromBlock, stateSnapshotBlock);
-  const toBlock = resolveBlockTag(requestedToBlock, stateSnapshotBlock);
-
-  if (fromBlock > toBlock) {
-    throw new Error(
-      `fromBlock ${formatBlockTag(
-        requestedFromBlock
-      )} resolves above toBlock ${formatBlockTag(requestedToBlock)}.`
-    );
-  }
-
-  const evidenceWindow = buildEvidenceWindow({
-    requestedFromBlock,
-    requestedToBlock,
-    resolvedFromBlock: fromBlock,
-    resolvedToBlock: toBlock,
-    stateSnapshotBlock,
-    stateSnapshotTimestamp: latestBlock.timestamp,
-  });
-  const blockTimestampCache = new Map();
-
-  async function getBlockTimestamp(blockNumber) {
-    if (!blockTimestampCache.has(blockNumber)) {
-      const block = await context.provider.getBlock(blockNumber);
-      blockTimestampCache.set(blockNumber, block.timestamp);
-    }
-    return blockTimestampCache.get(blockNumber);
-  }
-
   const [
     rawSnapshot,
     rawPlayerCount,
     rawKnownCauseCount,
     rawUsedCauseCount,
-    createdEvents,
-    phaseEvents,
-    commitEvents,
-    revealEvents,
+    verifier,
   ] = await Promise.all([
     context.game.getGame(context.gameId, stateReadOptions),
     context.game.playerCount(context.gameId, stateReadOptions),
     context.game.causeCount(stateReadOptions),
     context.game.gameCauseCount(context.gameId, stateReadOptions),
-    context.game.queryFilter(
-      context.game.filters.GameCreated(context.gameId),
-      fromBlock,
-      toBlock
-    ),
-    context.game.queryFilter(
-      context.game.filters.PhaseAdvanced(context.gameId),
-      fromBlock,
-      toBlock
-    ),
-    context.game.queryFilter(
-      context.game.filters.Committed(context.gameId, null, null),
-      fromBlock,
-      toBlock
-    ),
-    context.game.queryFilter(
-      context.game.filters.Revealed(context.gameId, null, null),
-      fromBlock,
-      toBlock
-    ),
+    context.registry.verifier(stateReadOptions),
   ]);
 
   const snapshot = normalizeGameSnapshot(rawSnapshot);
@@ -816,7 +830,7 @@ export async function collectGameEvidence(options = {}) {
     ),
   ]);
 
-  const [rawPlayers, authResults, rawKnownCauses, rawUsedCauses, phaseHistory] =
+  const [rawPlayers, authResults, rawKnownCauses, rawUsedCauses] =
     await Promise.all([
       Promise.all(
         wallets.map((wallet) =>
@@ -846,11 +860,14 @@ export async function collectGameEvidence(options = {}) {
           )
         )
       ),
-      buildPhaseHistory(phaseEvents, getBlockTimestamp),
     ]);
 
   const participants = rawPlayers.map((rawPlayer, index) =>
-    normalizePlayerState(rawPlayer, authResults[index], latestBlock.timestamp)
+    normalizePlayerState(
+      rawPlayer,
+      authResults[index],
+      stateSnapshotTimestamp
+    )
   );
   const participantMap = new Map(
     participants.map((player) => [player.wallet.toLowerCase(), player])
@@ -886,14 +903,172 @@ export async function collectGameEvidence(options = {}) {
     });
   }
 
+  return {
+    snapshot,
+    participants,
+    participantMap,
+    knownCauses,
+    usedCauses,
+    authParticipants,
+    phaseHistory,
+    verifier,
+  };
+}
+
+export async function collectGameEvidence(options = {}) {
+  const context = await resolveGameContext(options);
+  const requestedFromBlock = normalizeBlockTag(
+    options.fromBlock,
+    0,
+    "fromBlock"
+  );
+  const requestedToBlock = normalizeBlockTag(
+    options.toBlock,
+    "latest",
+    "toBlock"
+  );
+  const latestBlock = await readBlockOrThrow(
+    context.provider,
+    "latest",
+    "latest block"
+  );
+  const fromBlock = resolveBlockTag(requestedFromBlock, latestBlock.number);
+  const toBlock = resolveBlockTag(requestedToBlock, latestBlock.number);
+
+  if (fromBlock > toBlock) {
+    throw new Error(
+      `fromBlock ${formatBlockTag(
+        requestedFromBlock
+      )} resolves above toBlock ${formatBlockTag(requestedToBlock)}.`
+    );
+  }
+
+  const requestedHistoricalStateBlock =
+    typeof requestedToBlock === "number" && toBlock < latestBlock.number
+      ? toBlock
+      : null;
+
+  let stateSnapshotBlock = latestBlock.number;
+  let stateSnapshotTimestamp = latestBlock.timestamp;
+
+  if (requestedHistoricalStateBlock !== null) {
+    const historicalStateBlock = await readBlockOrThrow(
+      context.provider,
+      requestedHistoricalStateBlock,
+      "state snapshot block"
+    );
+    stateSnapshotBlock = historicalStateBlock.number;
+    stateSnapshotTimestamp = historicalStateBlock.timestamp;
+  }
+
+  const blockTimestampCache = new Map([[latestBlock.number, latestBlock.timestamp]]);
+  if (stateSnapshotBlock !== latestBlock.number) {
+    blockTimestampCache.set(stateSnapshotBlock, stateSnapshotTimestamp);
+  }
+
+  async function getBlockTimestamp(blockNumber) {
+    if (!blockTimestampCache.has(blockNumber)) {
+      const block = await readBlockOrThrow(
+        context.provider,
+        blockNumber,
+        "event block"
+      );
+      blockTimestampCache.set(blockNumber, block.timestamp);
+    }
+    return blockTimestampCache.get(blockNumber);
+  }
+
+  const [createdEvents, phaseEvents, commitEvents, revealEvents, messageEvents] =
+    await Promise.all([
+      context.game.queryFilter(
+        context.game.filters.GameCreated(context.gameId),
+        fromBlock,
+        toBlock
+      ),
+      context.game.queryFilter(
+        context.game.filters.PhaseAdvanced(context.gameId),
+        fromBlock,
+        toBlock
+      ),
+      context.game.queryFilter(
+        context.game.filters.Committed(context.gameId, null, null),
+        fromBlock,
+        toBlock
+      ),
+      context.game.queryFilter(
+        context.game.filters.Revealed(context.gameId, null, null),
+        fromBlock,
+        toBlock
+      ),
+      context.chat
+        ? context.chat.queryFilter(
+            context.chat.filters.MessagePosted(context.gameId, null, null),
+            fromBlock,
+            toBlock
+          )
+        : Promise.resolve([]),
+    ]);
+
+  const phaseHistory = await buildPhaseHistory(phaseEvents, getBlockTimestamp);
+
+  let historicalStateFallbackReason = null;
+  let stateData;
+
+  try {
+    stateData = await collectStateAtBlock({
+      context,
+      stateSnapshotBlock,
+      stateSnapshotTimestamp,
+      fromBlock,
+      toBlock,
+      phaseHistory,
+      getBlockTimestamp,
+    });
+  } catch (error) {
+    if (
+      requestedHistoricalStateBlock === null ||
+      !isHistoricalStateReadSupportError(error)
+    ) {
+      throw error;
+    }
+
+    historicalStateFallbackReason = describeProviderError(error);
+    stateSnapshotBlock = latestBlock.number;
+    stateSnapshotTimestamp = latestBlock.timestamp;
+    blockTimestampCache.set(stateSnapshotBlock, stateSnapshotTimestamp);
+
+    stateData = await collectStateAtBlock({
+      context,
+      stateSnapshotBlock,
+      stateSnapshotTimestamp,
+      fromBlock,
+      toBlock,
+      phaseHistory,
+      getBlockTimestamp,
+    });
+  }
+
+  const evidenceWindow = buildEvidenceWindow({
+    requestedFromBlock,
+    requestedToBlock,
+    resolvedFromBlock: fromBlock,
+    resolvedToBlock: toBlock,
+    stateSnapshotBlock,
+    stateSnapshotTimestamp,
+  });
+
+  const {
+    snapshot,
+    participants,
+    participantMap,
+    knownCauses,
+    usedCauses,
+    authParticipants,
+    verifier,
+  } = stateData;
+
   let messages = [];
   if (context.chat) {
-    const messageEvents = await context.chat.queryFilter(
-      context.chat.filters.MessagePosted(context.gameId, null, null),
-      fromBlock,
-      toBlock
-    );
-
     messages = sortEvents(messageEvents).map((event) => {
       const senderWallet = normalizeAddress(
         event.args.sender,
@@ -953,6 +1128,8 @@ export async function collectGameEvidence(options = {}) {
   const notes = buildEvidenceNotes({
     chatConfigured: Boolean(context.chat),
     evidenceWindow,
+    historicalStateBlockRequested: requestedHistoricalStateBlock,
+    historicalStateFallbackReason,
   });
   const capabilities = buildCapabilities({
     chatConfigured: Boolean(context.chat),
@@ -1029,7 +1206,7 @@ export async function collectGameEvidence(options = {}) {
       gameId: context.gameId,
       evidenceWindow,
       registry: context.registryAddress,
-      verifier: await context.registry.verifier(stateReadOptions),
+      verifier,
       participants: authParticipants,
     },
     messages,

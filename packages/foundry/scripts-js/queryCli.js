@@ -36,7 +36,7 @@ function printSharedOptions() {
   --registry <address|name>   Optional override. Defaults to game.authRegistry().
   --chat <address|name>       Optional GameChat contract address or deployment name. Defaults to deployed GameChat for the connected chain when available.
   --from-block <block>        Optional log lower bound. Default: 0.
-  --to-block <block|latest>   Optional log upper bound. Default: latest.
+  --to-block <block|latest>   Optional log upper bound. Default: latest. Numeric values also attempt to snapshot contract state at that same block when the RPC provider supports historical eth_call.
   --json                      Print machine-readable JSON.
 `;
 }
