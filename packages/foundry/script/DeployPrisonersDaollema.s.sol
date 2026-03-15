@@ -3,6 +3,7 @@ pragma solidity ^0.8.23;
 
 import "./DeployHelpers.s.sol";
 import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { GameChat } from "../contracts/GameChat.sol";
 import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
 
 contract DeployPrisonersDaollema is ScaffoldETHDeploy {
@@ -25,8 +26,10 @@ contract DeployPrisonersDaollema is ScaffoldETHDeploy {
 
         AgentAuthRegistry registry = new AgentAuthRegistry(owner, authVerifier);
         PrisonersDaollema game = new PrisonersDaollema(owner, treasury, address(registry), defaultConfig);
+        GameChat chat = new GameChat(address(game));
 
         deployments.push(Deployment({ name: "AgentAuthRegistry", addr: address(registry) }));
         deployments.push(Deployment({ name: "PrisonersDaollema", addr: address(game) }));
+        deployments.push(Deployment({ name: "GameChat", addr: address(chat) }));
     }
 }

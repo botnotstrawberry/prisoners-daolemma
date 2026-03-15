@@ -32,25 +32,23 @@ For implementation in this repo, treat these docs as the source of truth:
 
 ## Current code state
 The repo now contains:
-- generic project tooling and scaffold
-- fresh placeholder contracts for `AgentAuthRegistry` and `PrisonersDaollema`
-- fresh smoke tests
+- Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
+- Foundry tests for auth registration, join gating, join/commit/reveal timing, and chat posting rules
+- CLI-first auth tooling for the local SIWA -> permit -> register path
+- CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config
 - project-local skill routing for auth, comms/replay, and Solidity security
 
-Current planned contract split:
-- `PrisonersDaollema` for game truth and settlement
-- `AgentAuthRegistry` for admission
-- dedicated `GameChat` contract for public onchain messaging
+Current implemented contract slice:
+- `AgentAuthRegistry` stores verifier-signed wallet -> agent bindings with expiry + nonce replay protection
+- `PrisonersDaollema` currently implements config, cause whitelist snapshots, game creation, auth-gated join, and commit/reveal state
+- `GameChat` emits global and cause-scoped public message events tied to game truth
 
-Current planned auth flow:
-- SIWA sign-in
-- local verifier CLI signs auth permit
-- wallet registers auth onchain
-- game contract enforces join-time admission
-- optional local API wrapper may be added later for testing ergonomics
-
-The full game logic still needs to be implemented from the current repo docs.
+Current not-yet-implemented contract slice:
+- deterministic round resolution
+- eliminations and winner/no-winner end states
+- claims, refunds, and payout routing
+- settlement-oriented replay outputs
 
 ## CLI auth tooling
 
@@ -85,6 +83,36 @@ Typical local flow:
 4. run `yarn auth:permit -- --rpc-url <url|network> --input verified-auth.json --verifier-keystore <name|path> ... --out auth-permit.json`
 5. run `yarn auth:register -- --rpc-url <url|network> --permit-file auth-permit.json --wallet-keystore <name|path> ...`
 6. run `yarn auth:status -- --rpc-url <url|network> --permit-file auth-permit.json` to inspect wallet state and, if desired, bundle health
+
+## CLI evidence/query tooling
+
+The repo includes CLI-first evidence/query tooling under `packages/foundry/scripts-js/queryCli.js`.
+
+Current boundary:
+- exports only what the current contracts actually expose onchain
+- supports game summary, roster, cause/team, auth, round-context, and optional `GameChat` message export
+- aligns with `REPLAY_SPEC.md` where possible without inventing missing resolution/payout data
+- intentionally does **not** fabricate eliminations, winners, refunds, or payouts before those paths exist onchain
+
+Useful commands:
+- `yarn query -- --help`
+- `yarn query:summary -- --help`
+- `yarn query:auth -- --help`
+- `yarn query:messages -- --help`
+- `yarn query:export -- --help`
+
+Typical local flow after deployment:
+1. run `yarn query:summary -- --rpc-url localhost --game-id 1`
+2. run `yarn query:messages -- --rpc-url localhost --game-id 1 --chat <GameChat>`
+3. run `yarn query:export -- --rpc-url localhost --game-id 1 --chat <GameChat> --out exports/game-1`
+4. inspect:
+   - `game-summary.json`
+   - `roster.json`
+   - `causes.json`
+   - `rounds.json`
+   - `auth.json`
+   - `messages.jsonl` when chat is configured
+   - `export-manifest.json` for any intentionally skipped artifacts
 
 ## Quick start
 
@@ -122,5 +150,5 @@ yarn start
 - Base is the target launch chain
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
-- deployment currently creates a fresh local `AgentAuthRegistry` + `PrisonersDaollema` pair
+- deployment currently creates a fresh local `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio
 - production auth and SIWA integration will be layered in during implementation
