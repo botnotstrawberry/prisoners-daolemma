@@ -13,14 +13,17 @@ import {
 import {
   issueSiwaChallenge,
   printSiwaChallengeSummary,
+  printSiwaSignSummary,
   printSiwaVerificationSummary,
+  signIssuedSiwaChallenge,
   SIWA_CHALLENGE_BOUNDARY_NOTE,
+  SIWA_SIGN_BOUNDARY_NOTE,
   SIWA_VERIFY_BOUNDARY_NOTE,
   verifySiwaAuthInput,
 } from "./siwaTooling.js";
 
 const MAIN_BOUNDARY_NOTE =
-  "Local SIWA verification is available through siwa-nonce + siwa-verify. The permit/register commands still only consume verifier-approved inputs and never parse SIWA payloads directly.";
+  "Local SIWA verification is available through siwa-nonce + siwa-sign + siwa-verify. The permit/register commands still only consume verifier-approved inputs and never parse SIWA payloads directly.";
 
 function printMainHelp() {
   console.log(`
@@ -33,13 +36,14 @@ Usage:
 
 Commands:
   siwa-nonce   Issue a local SIWA challenge after checking ERC-8004 ownerOf(agentId).
+  siwa-sign    Sign a local SIWA challenge with the gameplay wallet.
   siwa-verify  Verify a signed SIWA message and output JSON consumable by permit.
   permit       Build and sign a verifier-backed AuthPermit for AgentAuthRegistry.
   status       Inspect onchain auth status for a wallet.
   register     Submit a signed permit onchain from the gameplay wallet.
 
 Run a command with --help for details.
-Keystore-based signing is the preferred local path for permit/register.
+Keystore-based signing is the preferred local path for siwa-sign, permit, and register.
 `);
 }
 
@@ -58,13 +62,39 @@ Notes:
   - --rpc-url must point at the chain that serves the ERC-8004 identity registry used in --agent-registry.
   - --chain-id must match the chain encoded in --agent-registry for this local CLI flow.
   - The challenge is stored in a local nonce store (default: packages/foundry/.siwa-nonces.json).
-  - The returned siwaFields object can be signed with a SIWA-compatible signer.
+  - The returned JSON is meant to feed directly into siwa-sign for a keystore-first local signing flow.
 
 Example:
   node scripts-js/authCli.js siwa-nonce --rpc-url localhost --wallet 0xWallet \
     --agent-id 42 --agent-registry eip155:31337:0xMockIdentityRegistry \
     --domain prisoners.local --uri https://prisoners.local/siwa \
     --chain-id 31337 --nonce-store tmp/siwa-nonces.json --out siwa-challenge.json
+`);
+}
+
+function printSiwaSignHelp() {
+  console.log(`
+${SIWA_SIGN_BOUNDARY_NOTE}
+
+Usage:
+  node scripts-js/authCli.js siwa-sign --input <siwa-challenge.json> \
+    [--wallet-keystore <name|path>] \
+    [--wallet-keystore-password-env <ENV> | --wallet-keystore-password-file <file>] \
+    [--out <json-file>] [--json]
+
+Notes:
+  - --input should normally be the JSON output from siwa-nonce and must include the SIWA fields to sign.
+  - The gameplay signer must match the challenge wallet exactly.
+  - Prefer Foundry keystores for local use. If no keystore password env/file is supplied, the CLI prompts interactively.
+  - Raw --wallet-private-key is disabled unless you also pass --allow-unsafe-private-key.
+  - When the challenge file includes nonceStore / registry context, this command carries it forward so the signed JSON can flow directly into siwa-verify.
+  - The output JSON can flow directly into: node scripts-js/authCli.js siwa-verify --rpc-url <url|network> --input signed-siwa.json ...
+
+Example:
+  node scripts-js/authCli.js siwa-sign --input siwa-challenge.json \
+    --wallet-keystore gameplay-demo \
+    --wallet-keystore-password-env GAMEPLAY_KEYSTORE_PASSWORD \
+    --out signed-siwa.json
 `);
 }
 
@@ -177,6 +207,10 @@ async function main() {
       printSiwaNonceHelp();
       return;
     }
+    if (subcommand === "siwa-sign") {
+      printSiwaSignHelp();
+      return;
+    }
     if (subcommand === "siwa-verify") {
       printSiwaVerifyHelp();
       return;
@@ -205,6 +239,18 @@ async function main() {
       printJson(challenge);
     } else {
       printSiwaChallengeSummary(challenge, outputPath);
+    }
+    return;
+  }
+
+  if (subcommand === "siwa-sign") {
+    const signed = await signIssuedSiwaChallenge(args);
+    const outputPath = args.out ? writeJson(args.out, signed) : null;
+
+    if (args.json) {
+      printJson(signed);
+    } else {
+      printSiwaSignSummary(signed, outputPath);
     }
     return;
   }
@@ -265,7 +311,7 @@ async function main() {
   }
 
   throw new Error(
-    `Unknown auth command '${subcommand}'. Use siwa-nonce, siwa-verify, permit, status, or register.`
+    `Unknown auth command '${subcommand}'. Use siwa-nonce, siwa-sign, siwa-verify, permit, status, or register.`
   );
 }
 

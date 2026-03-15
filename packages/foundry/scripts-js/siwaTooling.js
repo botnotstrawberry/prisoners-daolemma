@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname } from "path";
 import { createPublicClient, http } from "viem";
-import { createSIWANonce } from "@buildersgarden/siwa/siwa";
+import { createSIWANonce, signSIWAMessage } from "@buildersgarden/siwa/siwa";
 import {
+  GAMEPLAY_PK_ENV,
   loadJsonFile,
   normalizeAddress,
   normalizeAgentRegistry,
@@ -11,12 +12,15 @@ import {
   parsePositiveInteger,
   resolveFromPackageRoot,
   resolveRpcTarget,
+  resolveSignerWallet,
 } from "./authTooling.js";
 
 export const DEFAULT_SIWA_NONCE_STORE = ".siwa-nonces.json";
 export const SIWA_NONCE_STORE_VERSION = 1;
 export const SIWA_CHALLENGE_BOUNDARY_NOTE =
   "This command issues a local SIWA challenge after checking ERC-8004 ownerOf(agentId) for the requested wallet. It does not register auth onchain or sign an AgentAuthRegistry permit.";
+export const SIWA_SIGN_BOUNDARY_NOTE =
+  "This command signs a previously issued local SIWA challenge with the gameplay wallet. It does not verify the SIWA payload, register auth onchain, or sign an AgentAuthRegistry permit.";
 export const SIWA_VERIFY_BOUNDARY_NOTE =
   "This command verifies the SIWA message/signature, challenge nonce, domain/URI/chain challenge match, and ERC-8004 ownerOf(agentId). Any manifest binding in this output is operator-supplied context for the later auth permit, not something SIWA authenticates by itself.";
 
@@ -141,6 +145,42 @@ export async function issueSiwaChallenge(options = {}) {
   };
 }
 
+export async function signIssuedSiwaChallenge(options = {}) {
+  const input = loadSiwaChallengeInput(options);
+  const siwaFields = resolveSiwaSignFields(input);
+  const gameplayWallet = await resolveSignerWallet({
+    purpose: "wallet",
+    privateKey: options.walletPrivateKey,
+    privateKeyEnv: GAMEPLAY_PK_ENV,
+    keystore: options.walletKeystore,
+    keystorePasswordEnv: options.walletKeystorePasswordEnv,
+    keystorePasswordFile: options.walletKeystorePasswordFile,
+    allowUnsafePrivateKey: Boolean(options.allowUnsafePrivateKey),
+  });
+
+  const signed = await signSIWAMessage(siwaFields, {
+    async getAddress() {
+      return gameplayWallet.address;
+    },
+    async signMessage(message) {
+      return gameplayWallet.signMessage(message);
+    },
+  });
+
+  return {
+    boundaryNote: SIWA_SIGN_BOUNDARY_NOTE,
+    ...(typeof input.nonceStore === "string" && input.nonceStore.length > 0
+      ? { nonceStore: resolveFromPackageRoot(input.nonceStore) }
+      : {}),
+    ...(input.registry !== undefined && input.registry !== null
+      ? { registry: normalizeAddress(input.registry, "registry") }
+      : {}),
+    address: normalizeAddress(signed.address, "SIWA signer address"),
+    message: signed.message,
+    signature: signed.signature,
+  };
+}
+
 export async function verifySiwaAuthInput(options = {}) {
   const input = options.input
     ? loadJsonFile(options.input, "SIWA signed input file")
@@ -237,6 +277,24 @@ export async function verifySiwaAuthInput(options = {}) {
   return output;
 }
 
+export function printSiwaSignSummary(result, outputPath) {
+  const fields = parseSiwaMessageExact(result.message);
+  console.log("\n✅ SIWA challenge signed.");
+  console.log(`Wallet:         ${result.address}`);
+  console.log(`Agent ID:       ${fields.agentId}`);
+  console.log(`Agent registry: ${normalizeAgentRegistry(fields.agentRegistry).value}`);
+  console.log(`Domain:         ${fields.domain}`);
+  console.log(`URI:            ${fields.uri}`);
+  console.log(`Chain ID:       ${fields.chainId}`);
+  console.log(`Nonce:          ${fields.nonce}`);
+  console.log(`Issued at:      ${fields.issuedAt}`);
+  console.log(`Expires at:     ${fields.expirationTime ?? "(none)"}`);
+  if (outputPath) {
+    console.log(`Signed file:    ${outputPath}`);
+  }
+  console.log(`\nBoundary note: ${result.boundaryNote}`);
+}
+
 export function printSiwaChallengeSummary(result, outputPath) {
   console.log("\n✅ SIWA challenge issued.");
   console.log(`Wallet:         ${result.wallet}`);
@@ -278,6 +336,82 @@ export function printSiwaVerificationSummary(result, outputPath) {
     console.log(`Verified file:  ${outputPath}`);
   }
   console.log(`\nBoundary note: ${result.boundaryNote}`);
+}
+
+function loadSiwaChallengeInput(options = {}) {
+  if (!options.input) {
+    throw new Error(
+      "Missing SIWA challenge input. Provide --input <siwa-challenge.json> from siwa-nonce."
+    );
+  }
+
+  return loadJsonFile(options.input, "SIWA challenge input file");
+}
+
+function resolveSiwaSignFields(input = {}) {
+  const rawFields =
+    input &&
+    typeof input === "object" &&
+    input.siwaFields &&
+    typeof input.siwaFields === "object"
+      ? input.siwaFields
+      : input;
+
+  if (!rawFields || typeof rawFields !== "object") {
+    throw new Error(
+      "SIWA challenge input must be a JSON object or contain a siwaFields object."
+    );
+  }
+
+  const agentRegistry = normalizeAgentRegistry(
+    rawFields.agentRegistry ?? input.agentRegistry,
+    "SIWA challenge agentRegistry"
+  );
+  const chainId = parsePositiveInteger(
+    rawFields.chainId ?? input.chainId ?? agentRegistry.chainId,
+    "SIWA challenge chainId"
+  );
+  if (chainId !== agentRegistry.chainId) {
+    throw new Error(
+      `SIWA chainId ${chainId} must match agentRegistry chain ${agentRegistry.chainId}.`
+    );
+  }
+
+  const challengeAddress =
+    rawFields.address ?? input.wallet ?? input.address ?? undefined;
+  const statement = optionalNonEmptyString(rawFields.statement);
+  const expirationTime = optionalNonEmptyString(rawFields.expirationTime);
+  const notBefore = optionalNonEmptyString(rawFields.notBefore);
+  const requestId = optionalNonEmptyString(rawFields.requestId);
+
+  return {
+    domain: requireNonEmptyString(rawFields.domain, "SIWA challenge domain"),
+    ...(challengeAddress
+      ? {
+          address: normalizeAddress(
+            challengeAddress,
+            "SIWA challenge address"
+          ),
+        }
+      : {}),
+    uri: requireNonEmptyString(rawFields.uri, "SIWA challenge URI"),
+    version: optionalNonEmptyString(rawFields.version) ?? "1",
+    agentId: parsePositiveDecimalString(
+      rawFields.agentId,
+      "SIWA challenge agentId"
+    ),
+    agentRegistry: agentRegistry.value,
+    chainId,
+    nonce: requireNonEmptyString(rawFields.nonce, "SIWA challenge nonce"),
+    issuedAt: requireNonEmptyString(
+      rawFields.issuedAt,
+      "SIWA challenge issuedAt"
+    ),
+    ...(statement ? { statement } : {}),
+    ...(expirationTime ? { expirationTime } : {}),
+    ...(notBefore ? { notBefore } : {}),
+    ...(requestId ? { requestId } : {}),
+  };
 }
 
 function resolveSiwaMessage(options = {}, input = {}) {

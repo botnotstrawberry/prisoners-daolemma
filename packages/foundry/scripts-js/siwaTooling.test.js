@@ -6,7 +6,6 @@ import { tmpdir } from "os";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ethers } from "ethers";
-import { signSIWAMessage } from "@buildersgarden/siwa/siwa";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageDir = join(__dirname, "..");
@@ -71,7 +70,7 @@ after(async () => {
   await stopAnvil(anvilProcess);
 });
 
-test("SIWA CLI verifies a local signed challenge and feeds the permit/register flow", async () => {
+test("SIWA CLI issues, signs, verifies, and feeds the permit/register flow", async () => {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
   const gameplay = ethers.Wallet.createRandom().connect(provider);
@@ -93,6 +92,7 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
     authRegistry,
     identityRegistry,
     gameplay,
+    gameplaySetup,
     agentId,
     tempDir,
     manifestUri: "manifest://agent-alpha",
@@ -109,7 +109,11 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   assert.equal(flow.challenge.challenge.uri, flow.uri);
   assert.equal(flow.challenge.challenge.chainId, CHAIN_ID);
   assert.equal(existsSync(flow.challengeFile), true);
+  assert.equal(existsSync(flow.signedFile), true);
   assert.equal(existsSync(flow.nonceStore), true);
+  assert.equal(flow.signed.address.toLowerCase(), gameplay.address.toLowerCase());
+  assert.equal(flow.signed.nonceStore, flow.nonceStore);
+  assert.equal(flow.signed.registry.toLowerCase(), authRegistry.address.toLowerCase());
 
   const expectedAgentKeyText = `eip155:${CHAIN_ID}:${ethers.utils.getAddress(
     identityRegistry.address
@@ -138,12 +142,8 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
     RPC_URL,
     "--input",
     flow.signedFile,
-    "--nonce-store",
-    flow.nonceStore,
     "--manifest-uri",
     flow.manifestUri,
-    "--registry",
-    authRegistry.address,
     "--json",
   ]);
   assert.match(replayError, /No active SIWA challenge found/);
@@ -225,6 +225,101 @@ test("SIWA CLI verifies a local signed challenge and feeds the permit/register f
   );
 });
 
+test("siwa-sign rejects raw wallet private keys on the command line by default", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const challengeFile = join(tempDir, "siwa-challenge.json");
+  const nonceStore = join(tempDir, "siwa-nonces.json");
+
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  runCli([
+    "siwa-nonce",
+    "--rpc-url",
+    RPC_URL,
+    "--wallet",
+    gameplay.address,
+    "--agent-id",
+    "42",
+    "--agent-registry",
+    `eip155:${CHAIN_ID}:${identityRegistry.address}`,
+    "--domain",
+    "prisoners.local",
+    "--nonce-store",
+    nonceStore,
+    "--out",
+    challengeFile,
+    "--json",
+  ]);
+
+  const error = runCliFailure([
+    "siwa-sign",
+    "--input",
+    challengeFile,
+    "--wallet-private-key",
+    gameplay.privateKey,
+    "--json",
+  ]);
+
+  assert.match(error, /Raw wallet private keys on the command line are disabled/);
+  assert.match(error, /--allow-unsafe-private-key/);
+});
+
+test("siwa-sign fails fast when the gameplay signer does not match the issued challenge wallet", async () => {
+  const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
+  const gameplay = ethers.Wallet.createRandom().connect(provider);
+  const wrongGameplay = ethers.Wallet.createRandom();
+  const identityRegistry = await deployIdentityRegistry(owner);
+  const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
+  const challengeFile = join(tempDir, "siwa-challenge.json");
+  const nonceStore = join(tempDir, "siwa-nonces.json");
+  const wrongGameplaySetup = await writeKeystoreFixture(
+    tempDir,
+    "wrong-gameplay",
+    wrongGameplay
+  );
+
+  await (await identityRegistry.setOwner("42", gameplay.address)).wait();
+
+  runCli([
+    "siwa-nonce",
+    "--rpc-url",
+    RPC_URL,
+    "--wallet",
+    gameplay.address,
+    "--agent-id",
+    "42",
+    "--agent-registry",
+    `eip155:${CHAIN_ID}:${identityRegistry.address}`,
+    "--domain",
+    "prisoners.local",
+    "--nonce-store",
+    nonceStore,
+    "--out",
+    challengeFile,
+    "--json",
+  ]);
+
+  const error = runCliFailure([
+    "siwa-sign",
+    "--input",
+    challengeFile,
+    "--wallet-keystore",
+    wrongGameplaySetup.keystorePath,
+    "--wallet-keystore-password-file",
+    wrongGameplaySetup.passwordFile,
+    "--json",
+  ]);
+
+  assert.match(error, /Address mismatch/);
+  assert.match(error, new RegExp(gameplay.address, "i"));
+  assert.match(error, new RegExp(wrongGameplay.address, "i"));
+});
+
 test("siwa-nonce rejects an RPC chain that does not match the declared agentRegistry chain", async () => {
   const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
   const owner = new ethers.Wallet(ANVIL_PRIVATE_KEYS[0], provider);
@@ -303,11 +398,13 @@ test("permit rejects a verified SIWA artifact when the permit chain does not mat
 
   const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
   const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
   const flow = await runVerifiedSiwaFlow({
     rpcUrl: RPC_URL,
     authRegistry,
     identityRegistry,
     gameplay,
+    gameplaySetup,
     agentId: "42",
     tempDir,
     manifestUri: "manifest://agent-alpha",
@@ -350,11 +447,13 @@ test("SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe int
 
   const tempDir = mkdtempSync(join(tmpdir(), "pd-siwa-tooling-"));
   const verifierSetup = await writeKeystoreFixture(tempDir, "verifier", verifier);
+  const gameplaySetup = await writeKeystoreFixture(tempDir, "gameplay", gameplay);
   const flow = await runVerifiedSiwaFlow({
     rpcUrl: RPC_URL,
     authRegistry,
     identityRegistry,
     gameplay,
+    gameplaySetup,
     agentId,
     tempDir,
     manifestUri: "manifest://agent-large",
@@ -401,6 +500,7 @@ async function runVerifiedSiwaFlow({
   authRegistry,
   identityRegistry,
   gameplay,
+  gameplaySetup,
   agentId,
   tempDir,
   manifestUri,
@@ -440,12 +540,20 @@ async function runVerifiedSiwaFlow({
     ])
   );
 
-  const signer = {
-    getAddress: async () => gameplay.address,
-    signMessage: async (message) => gameplay.signMessage(message),
-  };
-  const signed = await signSIWAMessage(challenge.siwaFields, signer);
-  writeFileSync(signedFile, `${JSON.stringify(signed, null, 2)}\n`, "utf8");
+  const signed = JSON.parse(
+    runCli([
+      "siwa-sign",
+      "--input",
+      challengeFile,
+      "--wallet-keystore",
+      gameplaySetup.keystorePath,
+      "--wallet-keystore-password-file",
+      gameplaySetup.passwordFile,
+      "--out",
+      signedFile,
+      "--json",
+    ])
+  );
 
   const verified = JSON.parse(
     runCli([
@@ -454,11 +562,8 @@ async function runVerifiedSiwaFlow({
       rpcUrl,
       "--input",
       signedFile,
-      "--nonce-store",
-      nonceStore,
       "--manifest-uri",
       manifestUri,
-      ...(includeRegistry ? ["--registry", authRegistry.address] : []),
       "--out",
       verifiedFile,
       "--json",

@@ -57,10 +57,11 @@ The full game logic still needs to be implemented from the current repo docs.
 The repo includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
 
 Current boundary:
-- `siwa-nonce` and `siwa-verify` handle the dedicated local SIWA path
+- `siwa-nonce`, `siwa-sign`, and `siwa-verify` handle the dedicated local SIWA path
 - `permit` and `register` still only consume verifier-approved inputs
 - `permit` / `register` do **not** parse or verify SIWA payloads on their own
 - this keeps the verifier/signing layer honest and auditable
+- no hosted API is required for the local end-to-end auth rehearsal path
 
 Secret-handling stance:
 - prefer Foundry keystores for local verifier/gameplay signing
@@ -70,17 +71,20 @@ Secret-handling stance:
 
 Useful commands:
 - `yarn auth -- --help`
+- `yarn siwa-nonce -- --help`
+- `yarn siwa-sign -- --help`
+- `yarn siwa-verify -- --help`
 - `yarn auth:permit -- --help`
 - `yarn auth:status -- --help`
 - `yarn auth:register -- --help`
 
 Typical local flow:
-1. run `siwa-nonce`
-2. sign the SIWA challenge with the gameplay wallet
-3. run `siwa-verify`
-4. run `auth:permit` to sign an `AuthPermit` with the verifier signer
-5. run `auth:register` from the gameplay wallet to store the auth record onchain
-6. run `auth:status` to inspect wallet state and, if desired, bundle health
+1. run `yarn siwa-nonce -- ... --out siwa-challenge.json`
+2. run `yarn siwa-sign -- --input siwa-challenge.json --wallet-keystore <name|path> ... --out signed-siwa.json`
+3. run `yarn siwa-verify -- --rpc-url <url|network> --input signed-siwa.json ... --out verified-auth.json`
+4. run `yarn auth:permit -- --rpc-url <url|network> --input verified-auth.json --verifier-keystore <name|path> ... --out auth-permit.json`
+5. run `yarn auth:register -- --rpc-url <url|network> --permit-file auth-permit.json --wallet-keystore <name|path> ...`
+6. run `yarn auth:status -- --rpc-url <url|network> --permit-file auth-permit.json` to inspect wallet state and, if desired, bundle health
 
 ## Quick start
 
