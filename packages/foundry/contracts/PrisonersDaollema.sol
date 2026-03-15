@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IAgentAuthRegistry {
     function isAuthorized(address wallet) external view returns (bool);
@@ -450,6 +450,11 @@ contract PrisonersDaollema is Ownable {
 
     function getGame(uint256 gameId) external view returns (GameSnapshot memory) {
         return _games[gameId];
+    }
+
+    function chatContext(uint256 gameId) external view returns (uint32 round, uint8 phase) {
+        GameSnapshot memory game = _games[gameId];
+        return (game.round, uint8(game.phase));
     }
 
     function getPlayer(uint256 gameId, address wallet) external view returns (PlayerState memory) {
