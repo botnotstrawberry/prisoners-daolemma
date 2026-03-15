@@ -52,6 +52,26 @@ Current planned auth flow:
 
 The full game logic still needs to be implemented from the current repo docs.
 
+## CLI auth tooling (foundation)
+
+The repo now includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
+
+Important boundary:
+- the tooling signs and submits **already-verified** auth inputs
+- it does **not** implement SIWA payload verification yet
+- this keeps the verifier/signing layer honest while the exact SIWA packaging is still being finalized
+
+Useful commands:
+- `yarn auth:permit -- --help`
+- `yarn auth:status -- --help`
+- `yarn auth:register -- --help`
+
+Typical local flow:
+1. verify SIWA or other agent-auth inputs offchain
+2. run `auth:permit` to sign an `AuthPermit` with the verifier key
+3. run `auth:register` from the gameplay wallet to store the auth record onchain
+4. run `auth:status` to inspect the resulting registry state
+
 ## Quick start
 
 ### 1. Install JS dependencies

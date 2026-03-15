@@ -7,6 +7,10 @@
     "account:generate": "node scripts-js/generateKeystore.js",
     "account:import": "node scripts-js/importAccount.js",
     "account:reveal-pk": "node scripts-js/revealPK.js",
+    "auth": "node scripts-js/authCli.js",
+    "auth:permit": "node scripts-js/authCli.js permit",
+    "auth:register": "node scripts-js/authCli.js register",
+    "auth:status": "node scripts-js/authCli.js status",
     "chain": "make chain",
     "clean": "forge clean",
     "compile": "make compile",
@@ -16,7 +20,8 @@
     "format": "make format",
     "postinstall": "shx cp -n .env.example .env",
     "lint": "make lint",
-    "test": "forge test",
+    "test": "forge test && node --test scripts-js/*.test.js",
+    "test:js": "node --test scripts-js/*.test.js",
     "verify": "make verify RPC_URL=${1:-localhost}"
   },
   "dependencies": {

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {Test} from "forge-std/Test.sol";
-import {AgentAuthRegistry} from "../contracts/AgentAuthRegistry.sol";
-import {PrisonersDaollema} from "../contracts/PrisonersDaollema.sol";
+import { Test } from "forge-std/Test.sol";
+import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
 
 contract PrisonersDaollemaTest is Test {
     uint16 internal constant CAUSE_A = 1;
@@ -205,7 +205,7 @@ contract PrisonersDaollemaTest is Test {
 
         vm.expectRevert(PrisonersDaollema.UnauthorizedWallet.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
     function testJoinRejectsExpiredAuthAndAdmissionViewTurnsFalse() public {
@@ -219,7 +219,7 @@ contract PrisonersDaollemaTest is Test {
 
         vm.expectRevert(PrisonersDaollema.UnauthorizedWallet.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
     function testJoinRejectsRevokedAuthAndAdmissionViewTurnsFalse() public {
@@ -234,7 +234,7 @@ contract PrisonersDaollemaTest is Test {
 
         vm.expectRevert(PrisonersDaollema.UnauthorizedWallet.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
     function testJoinRejectsDuplicateWalletPerGame() public {
@@ -242,11 +242,11 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-wallet-1"));
 
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.expectRevert(PrisonersDaollema.DuplicateWallet.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
     function testJoinRejectsDuplicateAgentKeyPerGame() public {
@@ -257,11 +257,11 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player2, sharedAgentKey, uint64(block.timestamp + 1 hours), keccak256("nonce-agent-2"));
 
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.expectRevert(PrisonersDaollema.DuplicateAgentKey.selector);
         vm.prank(player2);
-        game.join{value: 0.001 ether}(gameId, CAUSE_B);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_B);
     }
 
     function testJoinRejectsInvalidCause() public {
@@ -270,7 +270,7 @@ contract PrisonersDaollemaTest is Test {
 
         vm.expectRevert(PrisonersDaollema.InvalidCause.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, 999);
+        game.join{ value: 0.001 ether }(gameId, 999);
     }
 
     function testJoinRequiresExactEntryFee() public {
@@ -279,11 +279,11 @@ contract PrisonersDaollemaTest is Test {
 
         vm.expectRevert(PrisonersDaollema.EntryFeeMismatch.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether - 1}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether - 1 }(gameId, CAUSE_A);
 
         vm.expectRevert(PrisonersDaollema.EntryFeeMismatch.selector);
         vm.prank(player1);
-        game.join{value: 0.001 ether + 1}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether + 1 }(gameId, CAUSE_A);
     }
 
     function testJoinEnforcesMaxPlayers() public {
@@ -298,14 +298,14 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player3, PLAYER3_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-players-3"));
 
         vm.prank(player1);
-        limitedGame.join{value: 0.001 ether}(gameId, CAUSE_A);
+        limitedGame.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.prank(player2);
-        limitedGame.join{value: 0.001 ether}(gameId, CAUSE_B);
+        limitedGame.join{ value: 0.001 ether }(gameId, CAUSE_B);
 
         vm.expectRevert(PrisonersDaollema.MaxPlayersReached.selector);
         vm.prank(player3);
-        limitedGame.join{value: 0.001 ether}(gameId, CAUSE_C);
+        limitedGame.join{ value: 0.001 ether }(gameId, CAUSE_C);
     }
 
     function testJoinEnforcesMaxCausesButAllowsExistingCauseReuse() public {
@@ -320,14 +320,14 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player3, PLAYER3_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-causes-3"));
 
         vm.prank(player1);
-        singleCauseGame.join{value: 0.001 ether}(gameId, CAUSE_A);
+        singleCauseGame.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.prank(player2);
-        singleCauseGame.join{value: 0.001 ether}(gameId, CAUSE_A);
+        singleCauseGame.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.expectRevert(PrisonersDaollema.MaxCausesReached.selector);
         vm.prank(player3);
-        singleCauseGame.join{value: 0.001 ether}(gameId, CAUSE_B);
+        singleCauseGame.join{ value: 0.001 ether }(gameId, CAUSE_B);
     }
 
     function testJoinStoresPlayerStateRosterAndCauseSnapshotReads() public {
@@ -336,10 +336,10 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-read-2"));
 
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.prank(player2);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, player1);
         PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
@@ -389,14 +389,14 @@ contract PrisonersDaollemaTest is Test {
         assertFalse(game.canAdvancePhase(gameId));
 
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
 
         vm.warp(joinDeadline + 1);
         assertTrue(game.canAdvancePhase(gameId));
 
         vm.expectRevert(PrisonersDaollema.JoinWindowClosed.selector);
         vm.prank(player2);
-        game.join{value: 0.001 ether}(gameId, CAUSE_B);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_B);
     }
 
     function testAdvancePhaseMovesJoiningToCommitAfterDeadlineWhenMinPlayersMet() public {
@@ -641,7 +641,7 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-snapshot-1"));
 
         vm.prank(player1);
-        game.join{value: 0.001 ether}(gameId1, CAUSE_A);
+        game.join{ value: 0.001 ether }(gameId1, CAUSE_A);
 
         PrisonersDaollema.GameSnapshot memory game1BeforeCancel = game.getGame(gameId1);
         assertEq(game1BeforeCancel.entryFeeWei, 0.001 ether);
@@ -669,7 +669,7 @@ contract PrisonersDaollemaTest is Test {
 
         _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-snapshot-2"));
         vm.prank(player2);
-        game.join{value: 0.002 ether}(gameId2, CAUSE_A);
+        game.join{ value: 0.002 ether }(gameId2, CAUSE_A);
 
         PrisonersDaollema.GameSnapshot memory game1AfterChanges = game.getGame(gameId1);
         PrisonersDaollema.GameSnapshot memory game2 = game.getGame(gameId2);
@@ -713,7 +713,7 @@ contract PrisonersDaollemaTest is Test {
         _registerWallet(wallet_, agentKey_, uint64(block.timestamp + 1 hours), nonce_);
 
         vm.prank(wallet_);
-        game.join{value: _defaultConfig().entryFeeWei}(gameId, causeId);
+        game.join{ value: _defaultConfig().entryFeeWei }(gameId, causeId);
     }
 
     function _commitmentFor(uint256 gameId, address wallet_, PrisonersDaollema.Choice choice_, bytes32 salt_)
