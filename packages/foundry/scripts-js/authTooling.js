@@ -14,7 +14,7 @@ export const LOCAL_CHAIN_IDS = new Set([31337, 1337]);
 export const VERIFIER_PK_ENV = "AUTH_VERIFIER_PRIVATE_KEY";
 export const GAMEPLAY_PK_ENV = "GAMEPLAY_WALLET_PRIVATE_KEY";
 export const PERMIT_BOUNDARY_NOTE =
-  "This CLI signs and submits already-verified auth inputs. SIWA payload verification is intentionally not implemented here yet.";
+  "This command signs and submits verifier-approved auth inputs. It does not parse or verify SIWA payloads itself; use siwa-nonce and siwa-verify first if you need a real local SIWA verification step.";
 
 export const AUTH_PERMIT_TYPES = {
   AuthPermit: [

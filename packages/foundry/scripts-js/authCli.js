@@ -10,22 +10,83 @@ import {
   registerSignedPermit,
   writeJson,
 } from "./authTooling.js";
+import {
+  issueSiwaChallenge,
+  printSiwaChallengeSummary,
+  printSiwaVerificationSummary,
+  SIWA_CHALLENGE_BOUNDARY_NOTE,
+  SIWA_VERIFY_BOUNDARY_NOTE,
+  verifySiwaAuthInput,
+} from "./siwaTooling.js";
+
+const MAIN_BOUNDARY_NOTE =
+  "Local SIWA verification is available through siwa-nonce + siwa-verify. The permit/register commands still only consume verifier-approved inputs and never parse SIWA payloads directly.";
 
 function printMainHelp() {
   console.log(`
 Prisoners DAOllema auth tooling
 
-${PERMIT_BOUNDARY_NOTE}
+${MAIN_BOUNDARY_NOTE}
 
 Usage:
   node scripts-js/authCli.js <command> [options]
 
 Commands:
-  permit    Build and sign a verifier-backed AuthPermit for AgentAuthRegistry.
-  status    Inspect onchain auth status for a wallet.
-  register  Submit a signed permit onchain from the gameplay wallet.
+  siwa-nonce   Issue a local SIWA challenge after checking ERC-8004 ownerOf(agentId).
+  siwa-verify  Verify a signed SIWA message and output JSON consumable by permit.
+  permit       Build and sign a verifier-backed AuthPermit for AgentAuthRegistry.
+  status       Inspect onchain auth status for a wallet.
+  register     Submit a signed permit onchain from the gameplay wallet.
 
 Run a command with --help for details.
+`);
+}
+
+function printSiwaNonceHelp() {
+  console.log(`
+${SIWA_CHALLENGE_BOUNDARY_NOTE}
+
+Usage:
+  node scripts-js/authCli.js siwa-nonce --rpc-url <url|network> --wallet <address> \
+    --agent-id <uint256> --agent-registry <eip155:chainId:address> --domain <text> \
+    [--uri <https-url>] [--chain-id <uint256>] [--statement <text>] [--request-id <text>] \
+    [--ttl-seconds <seconds>] [--nonce-store <json-file>] [--registry <auth-registry-address>] \
+    [--input <json-file>] [--out <json-file>] [--json]
+
+Notes:
+  - --rpc-url must point at the chain that serves the ERC-8004 identity registry used in --agent-registry.
+  - The challenge is stored in a local nonce store (default: packages/foundry/.siwa-nonces.json).
+  - The returned siwaFields object can be signed with a SIWA-compatible signer.
+
+Example:
+  node scripts-js/authCli.js siwa-nonce --rpc-url localhost --wallet 0xWallet \
+    --agent-id 42 --agent-registry eip155:31337:0xMockIdentityRegistry \
+    --domain prisoners.local --uri https://prisoners.local/siwa \
+    --chain-id 31337 --nonce-store tmp/siwa-nonces.json --out siwa-challenge.json
+`);
+}
+
+function printSiwaVerifyHelp() {
+  console.log(`
+${SIWA_VERIFY_BOUNDARY_NOTE}
+
+Usage:
+  node scripts-js/authCli.js siwa-verify --rpc-url <url|network> \
+    (--input <signed-siwa.json> | --message-file <message.txt> --signature <hex>) \
+    [--nonce-store <json-file>] [--registry <auth-registry-address>] \
+    (--manifest-hash <bytes32> | --manifest-uri <text> | --manifest-text <text>) \
+    [--out <json-file>] [--json]
+
+Notes:
+  - The signed SIWA payload must match a previously issued siwa-nonce challenge.
+  - The nonce is consumed on verification attempt; if verification fails, issue a new challenge.
+  - The output JSON is shaped to feed directly into: node scripts-js/authCli.js permit --rpc-url <game-chain> --input verified-auth.json
+  - Manifest binding is operator-supplied context for the later auth permit, not something SIWA authenticates.
+
+Example:
+  node scripts-js/authCli.js siwa-verify --rpc-url localhost --input signed-siwa.json \
+    --nonce-store tmp/siwa-nonces.json --manifest-uri manifest://agent-alpha \
+    --registry 0xAgentAuthRegistry --out verified-auth.json
 `);
 }
 
@@ -45,7 +106,7 @@ Usage:
 Notes:
   - For local chains (31337/1337), expiry defaults to 0 if you omit --expires-at/--ttl-seconds.
   - For non-local chains, expiry is required.
-  - --input lets a future SIWA verifier hand this CLI already-verified fields. This command does NOT verify SIWA.
+  - --input lets siwa-verify or another verifier hand this CLI already-approved fields. This command does NOT verify SIWA.
 
 Examples:
   node scripts-js/authCli.js permit --rpc-url localhost --registry 0xRegistry --wallet 0xWallet \
@@ -94,6 +155,14 @@ async function main() {
     subcommand === "-h" ||
     args.help
   ) {
+    if (subcommand === "siwa-nonce") {
+      printSiwaNonceHelp();
+      return;
+    }
+    if (subcommand === "siwa-verify") {
+      printSiwaVerifyHelp();
+      return;
+    }
     if (subcommand === "permit") {
       printPermitHelp();
       return;
@@ -107,6 +176,30 @@ async function main() {
       return;
     }
     printMainHelp();
+    return;
+  }
+
+  if (subcommand === "siwa-nonce") {
+    const challenge = await issueSiwaChallenge(args);
+    const outputPath = args.out ? writeJson(args.out, challenge) : null;
+
+    if (args.json) {
+      printJson(challenge);
+    } else {
+      printSiwaChallengeSummary(challenge, outputPath);
+    }
+    return;
+  }
+
+  if (subcommand === "siwa-verify") {
+    const verified = await verifySiwaAuthInput(args);
+    const outputPath = args.out ? writeJson(args.out, verified) : null;
+
+    if (args.json) {
+      printJson(verified);
+    } else {
+      printSiwaVerificationSummary(verified, outputPath);
+    }
     return;
   }
 
@@ -154,7 +247,7 @@ async function main() {
   }
 
   throw new Error(
-    `Unknown auth command '${subcommand}'. Use permit, status, or register.`
+    `Unknown auth command '${subcommand}'. Use siwa-nonce, siwa-verify, permit, status, or register.`
   );
 }
 

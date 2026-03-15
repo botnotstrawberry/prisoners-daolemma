@@ -25,12 +25,14 @@
     "verify": "make verify RPC_URL=${1:-localhost}"
   },
   "dependencies": {
+    "@buildersgarden/siwa": "0.0.24",
     "dotenv": "~16.3.1",
     "envfile": "~6.18.0",
     "ethers": "~5.7.1",
     "prettier": "~2.8.8",
     "qrcode": "~1.5.3",
-    "toml": "~3.0.0"
+    "toml": "~3.0.0",
+    "viem": "2.39.0"
   },
   "devDependencies": {
     "shx": "^0.3.4"
