@@ -408,6 +408,8 @@ export function resolvePermitFieldInput(args = {}, input = {}) {
     }
   }
 
+  const inheritedExpiresAt = verifiedIdentity ? undefined : input.expiresAt;
+
   return {
     wallet: verifiedIdentity?.wallet ?? args.wallet ?? input.wallet,
     agentKey:
@@ -428,7 +430,10 @@ export function resolvePermitFieldInput(args = {}, input = {}) {
       input.manifestText ??
       input.manifestUri,
     issuedAt: args.issuedAt,
-    expiresAt: args.expiresAt ?? input.expiresAt,
+    // A verified SIWA challenge expiry proves message freshness, not the desired
+    // onchain auth-record lifetime. Keep the documented local default (expiresAt=0)
+    // unless the operator explicitly supplies permit expiry flags.
+    expiresAt: args.expiresAt ?? inheritedExpiresAt,
     ttlSeconds: args.ttlSeconds,
     nonce: args.nonce ?? input.nonce,
     nonceText: args.nonceText ?? input.nonceText,

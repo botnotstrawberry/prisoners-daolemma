@@ -81,6 +81,7 @@ This section is not a release waiver. It is the current honest state of local va
   - seeded `adversarial-random` breakage hunting
   - phase-edge burst probes around commit/reveal/advance/settlement actions
   - optional same-block no-automine ordering probes for underfilled transitions, per-round last action vs `advancePhase`, and duplicate settlement attempts
+  - optional bounded pre-join auth-expiry chaos that locally rehearses stale permit/register rejection, expired-auth join rejection, and fresh-auth recovery
 - the broader local soak presets now extend through `xlarge-local`, including:
   - deterministic 32-player mixed-family coverage
   - started full-roster 32-player adversarial sweeps across multiple seeds
@@ -89,8 +90,8 @@ This section is not a release waiver. It is the current honest state of local va
 - a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 
 ### Still not proven locally
-- multi-instance parallel local stress
-- broad auth-expiry chaos inside the load harness
+- heavier multi-instance parallel saturation beyond the current bounded 3-instance host-local proof
+- broader auth-expiry chaos beyond the current bounded pre-join stale-permit / expired-join rehearsal
 - a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
 
 ### Blocked on external execution
@@ -334,7 +335,7 @@ Before Sepolia:
 - no unresolved critical/high severity issue from stress runs
 
 Current known gap against those gates:
-- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, but the remaining broader local stress gaps are heavier multi-instance saturation, auth-expiry chaos breadth, and preserving a full raw xlarge / multi-seed matrix bundle
+- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, and bounded pre-join auth-expiry rehearsal is now covered locally, but the remaining broader local stress gaps are heavier multi-instance saturation, broader auth-expiry breadth, and preserving a full raw xlarge / multi-seed matrix bundle
 
 ---
 

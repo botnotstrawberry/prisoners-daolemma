@@ -175,6 +175,11 @@ test("SIWA CLI issues, signs, verifies, and feeds the permit/register flow", asy
     permit.permit.manifestHash,
     ethers.utils.keccak256(ethers.utils.toUtf8Bytes(flow.manifestUri))
   );
+  assert.equal(
+    permit.permit.expiresAt,
+    0,
+    "Verified SIWA challenge expiry should not silently become local auth expiry."
+  );
   assert.equal(existsSync(permitFile), true);
 
   const preRegisterStatus = JSON.parse(
@@ -215,6 +220,7 @@ test("SIWA CLI issues, signs, verifies, and feeds the permit/register flow", asy
   );
   assert.equal(registration.status.isAuthorized, true);
   assert.equal(registration.status.record.agentKey, permit.permit.agentKey);
+  assert.equal(registration.status.record.expiresAt, 0);
   assert.equal(
     registration.status.record.manifestHash,
     permit.permit.manifestHash
