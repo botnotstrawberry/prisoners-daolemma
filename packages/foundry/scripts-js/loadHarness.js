@@ -907,6 +907,52 @@ function buildResolvedConfig(rawOptions = {}) {
     );
   }
 
+  const authExpiryChaosRequested =
+    Boolean(rawOptions.authExpiryChaos) ||
+    rawOptions.authExpiryStaleBundles !== undefined ||
+    rawOptions.authExpiryJoinFailures !== undefined ||
+    rawOptions.authExpiryTtlSeconds !== undefined;
+  const authExpiryStaleBundles = authExpiryChaosRequested
+    ? parseInteger(
+        rawOptions.authExpiryStaleBundles ?? 1,
+        "authExpiryStaleBundles",
+        { min: 0, max: playerCount }
+      )
+    : 0;
+  const authExpiryJoinFailures = authExpiryChaosRequested
+    ? parseInteger(
+        rawOptions.authExpiryJoinFailures ?? 1,
+        "authExpiryJoinFailures",
+        { min: 0, max: playerCount }
+      )
+    : 0;
+  const authExpiryTtlSeconds = authExpiryChaosRequested
+    ? parseInteger(
+        rawOptions.authExpiryTtlSeconds ?? 2,
+        "authExpiryTtlSeconds",
+        { min: 1, max: 3600 }
+      )
+    : 0;
+
+  if (
+    authExpiryChaosRequested &&
+    authExpiryStaleBundles === 0 &&
+    authExpiryJoinFailures === 0
+  ) {
+    throw new Error(
+      "authExpiryChaos needs at least one stale bundle or expired join failure configured."
+    );
+  }
+
+  if (authExpiryChaosRequested) {
+    notes.push(
+      `authExpiryChaos enabled for one bounded pre-join rehearsal before game 1: staleBundleFailures=${authExpiryStaleBundles}, expiredJoinFailures=${authExpiryJoinFailures}, ttlSeconds=${authExpiryTtlSeconds}.`
+    );
+    notes.push(
+      "Auth-expiry chaos currently runs once per harness run before the first game's main join batch, then refreshes the affected wallets so the requested gameplay scenario can still execute."
+    );
+  }
+
   if (joinDurationSeconds !== profile.joinDurationSeconds) {
     notes.push(
       `Overrode joinDurationSeconds from profile default ${profile.joinDurationSeconds} to ${joinDurationSeconds} for this run.`
@@ -984,6 +1030,13 @@ function buildResolvedConfig(rawOptions = {}) {
     claimWinners: rawOptions.skipClaims ? false : true,
     expectedFailures: Boolean(rawOptions.expectedFailures),
     sameBlockProbes: Boolean(rawOptions.sameBlockProbes),
+    authExpiryChaos: {
+      enabled: authExpiryChaosRequested,
+      staleBundleFailures: authExpiryStaleBundles,
+      expiredJoinFailures: authExpiryJoinFailures,
+      ttlSeconds: authExpiryTtlSeconds,
+      applyBeforeGameIndex: authExpiryChaosRequested ? 1 : null,
+    },
     requestedScenario,
     selectedScenarioTypes,
     scenarioPlan,
@@ -1456,6 +1509,55 @@ function buildCauseDefinitions({ mnemonic, playerCount, causeCount }) {
       metadataHash: bytes32FromUtf8(`cause-${causeId}`),
     };
   });
+}
+
+function buildHarnessAgentKeyText(player) {
+  return `load-agent-${player.index}`;
+}
+
+function buildHarnessManifestUri(player) {
+  return `manifest://load-harness/player-${player.index}`;
+}
+
+function buildHarnessAuthPermitOptions({
+  provider,
+  authRegistry,
+  verifier,
+  player,
+  nonceText,
+  ttlSeconds,
+  manifestUri,
+}) {
+  return {
+    provider,
+    registry: authRegistry.address,
+    wallet: player.wallet.address,
+    agentKeyText: buildHarnessAgentKeyText(player),
+    manifestUri: manifestUri ?? buildHarnessManifestUri(player),
+    nonceText,
+    ...(ttlSeconds !== undefined ? { ttlSeconds } : {}),
+    verifierPrivateKey: verifier.privateKey,
+    allowUnsafePrivateKey: true,
+  };
+}
+
+async function readAuthStateSnapshot(authRegistry, wallet) {
+  const [isAuthorized, record] = await Promise.all([
+    authRegistry.isAuthorized(wallet),
+    authRegistry.authRecordOf(wallet),
+  ]);
+
+  return {
+    isAuthorized,
+    record: {
+      agentKey: record.agentKey,
+      manifestHash: record.manifestHash,
+      issuedAt: toNumber(record.issuedAt, "authRecord.issuedAt"),
+      expiresAt: toNumber(record.expiresAt, "authRecord.expiresAt"),
+      issuer: record.issuer,
+      active: record.active,
+    },
+  };
 }
 
 function assignCauseId(playerIndex, gameIndex, causeCount) {
@@ -2054,16 +2156,15 @@ async function registerPlayers({
 }) {
   const permits = await Promise.all(
     players.map((player) =>
-      buildAndSignAuthPermit({
-        provider,
-        registry: authRegistry.address,
-        wallet: player.wallet.address,
-        agentKeyText: `load-agent-${player.index}`,
-        manifestUri: `manifest://load-harness/player-${player.index}`,
-        nonceText: `load-permit-${player.index}`,
-        verifierPrivateKey: verifier.privateKey,
-        allowUnsafePrivateKey: true,
-      })
+      buildAndSignAuthPermit(
+        buildHarnessAuthPermitOptions({
+          provider,
+          authRegistry,
+          verifier,
+          player,
+          nonceText: `load-permit-${player.index}`,
+        })
+      )
     )
   );
 
@@ -2099,6 +2200,360 @@ async function registerPlayers({
   }
 
   return registrationResults.map((result) => result.value);
+}
+
+function buildAuthExpiryChaosPlan({
+  joinedPlayers,
+  seed,
+  gameIndex,
+  authExpiryChaos,
+}) {
+  if (!authExpiryChaos?.enabled) {
+    return {
+      orderedPlayers: [],
+      staleBundlePlayers: [],
+      expiredJoinPlayers: [],
+      skipped: [],
+    };
+  }
+
+  const orderedPlayers = deterministicShuffle(joinedPlayers, {
+    seed,
+    stage: "auth-expiry-chaos-order",
+    gameIndex,
+    keyFn: (player) => player.wallet.address.toLowerCase(),
+  });
+  const staleBundlePlayers = orderedPlayers.slice(
+    0,
+    Math.min(authExpiryChaos.staleBundleFailures, orderedPlayers.length)
+  );
+  const expiredJoinPlayers = orderedPlayers.slice(
+    staleBundlePlayers.length,
+    staleBundlePlayers.length +
+      Math.min(
+        authExpiryChaos.expiredJoinFailures,
+        Math.max(0, orderedPlayers.length - staleBundlePlayers.length)
+      )
+  );
+  const skipped = [];
+
+  if (staleBundlePlayers.length < authExpiryChaos.staleBundleFailures) {
+    skipped.push(
+      `Requested ${authExpiryChaos.staleBundleFailures} stale bundle probe wallet(s), but only ${staleBundlePlayers.length} joined player(s) were available before game ${gameIndex}.`
+    );
+  }
+  if (expiredJoinPlayers.length < authExpiryChaos.expiredJoinFailures) {
+    skipped.push(
+      `Requested ${authExpiryChaos.expiredJoinFailures} expired join probe wallet(s), but only ${expiredJoinPlayers.length} remaining joined player(s) were available before game ${gameIndex}.`
+    );
+  }
+
+  return {
+    orderedPlayers,
+    staleBundlePlayers,
+    expiredJoinPlayers,
+    skipped,
+  };
+}
+
+async function runAuthExpiryChaos({
+  provider,
+  authRegistry,
+  verifier,
+  gameAddress,
+  gameId,
+  gameIndex,
+  scenarioType,
+  seed,
+  joinedPlayers,
+  causeCount,
+  config,
+  authExpiryChaos,
+  tracker,
+}) {
+  const summary = {
+    enabled: Boolean(authExpiryChaos?.enabled),
+    applied: false,
+    configured: {
+      staleBundleFailures: authExpiryChaos?.staleBundleFailures ?? 0,
+      expiredJoinFailures: authExpiryChaos?.expiredJoinFailures ?? 0,
+      ttlSeconds: authExpiryChaos?.ttlSeconds ?? 0,
+      applyBeforeGameIndex: authExpiryChaos?.applyBeforeGameIndex ?? null,
+    },
+    gameIndex,
+    gameId,
+    timeWarpSeconds: 0,
+    manualBlocksMined: 0,
+    staleBundle: {
+      requested: authExpiryChaos?.staleBundleFailures ?? 0,
+      planned: 0,
+      attempted: 0,
+      failedAsExpected: 0,
+      unexpectedSuccesses: 0,
+      players: [],
+    },
+    expiredJoin: {
+      requested: authExpiryChaos?.expiredJoinFailures ?? 0,
+      planned: 0,
+      shortAuthRegistrations: 0,
+      joinAttempts: 0,
+      failedAsExpected: 0,
+      localRegisterRejections: 0,
+      unexpectedSuccesses: 0,
+      refreshedRegistrations: 0,
+      players: [],
+    },
+    skipped: [],
+  };
+
+  if (
+    !authExpiryChaos?.enabled ||
+    authExpiryChaos.applyBeforeGameIndex !== gameIndex
+  ) {
+    return summary;
+  }
+
+  const plan = buildAuthExpiryChaosPlan({
+    joinedPlayers,
+    seed,
+    gameIndex,
+    authExpiryChaos,
+  });
+  summary.skipped.push(...plan.skipped);
+  summary.staleBundle.planned = plan.staleBundlePlayers.length;
+  summary.expiredJoin.planned = plan.expiredJoinPlayers.length;
+
+  if (
+    plan.staleBundlePlayers.length === 0 &&
+    plan.expiredJoinPlayers.length === 0
+  ) {
+    return summary;
+  }
+
+  const staleBundles = await Promise.all(
+    plan.staleBundlePlayers.map(async (player) => ({
+      player,
+      bundle: await buildAndSignAuthPermit(
+        buildHarnessAuthPermitOptions({
+          provider,
+          authRegistry,
+          verifier,
+          player,
+          nonceText: `load-auth-expiry-stale-game-${gameIndex}-player-${player.index}`,
+          ttlSeconds: authExpiryChaos.ttlSeconds,
+          manifestUri: `${buildHarnessManifestUri(player)}/stale-bundle/game-${gameIndex}`,
+        })
+      ),
+    }))
+  );
+
+  for (const player of plan.expiredJoinPlayers) {
+    const shortBundle = await buildAndSignAuthPermit(
+      buildHarnessAuthPermitOptions({
+        provider,
+        authRegistry,
+        verifier,
+        player,
+        nonceText: `load-auth-expiry-short-game-${gameIndex}-player-${player.index}`,
+        ttlSeconds: authExpiryChaos.ttlSeconds,
+        manifestUri: `${buildHarnessManifestUri(player)}/short-auth/game-${gameIndex}`,
+      })
+    );
+
+    const registration = await trackedTx(
+      tracker,
+      provider,
+      {
+        action: "authRegister",
+        phase: "auth-chaos",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: player.wallet.address,
+      },
+      async () =>
+        registerSignedPermit({
+          provider,
+          bundle: shortBundle,
+          walletPrivateKey: player.wallet.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+    const statusAfterRegister = await readAuthStateSnapshot(
+      authRegistry,
+      player.wallet.address
+    );
+    if (!statusAfterRegister.isAuthorized) {
+      throw new Error(
+        `Short-lived auth registration for ${player.wallet.address} did not leave the wallet authorized before expiry.`
+      );
+    }
+
+    summary.expiredJoin.shortAuthRegistrations += 1;
+    summary.expiredJoin.players.push({
+      index: player.index,
+      wallet: player.wallet.address,
+      causeId: assignCauseId(player.index, gameIndex, causeCount),
+      shortAuth: {
+        txHash: registration.txHash,
+        issuedAt: shortBundle.permit.issuedAt,
+        expiresAt: shortBundle.permit.expiresAt,
+        statusAfterRegister,
+      },
+      statusAfterExpiry: null,
+      joinFailure: null,
+      refreshedAuth: null,
+    });
+  }
+
+  await provider.send("evm_increaseTime", [authExpiryChaos.ttlSeconds + 1]);
+  await provider.send("evm_mine", []);
+  summary.timeWarpSeconds = authExpiryChaos.ttlSeconds + 1;
+  summary.manualBlocksMined = 1;
+  summary.applied = true;
+
+  for (const entry of staleBundles) {
+    const statusBeforeAttempt = await readAuthStateSnapshot(
+      authRegistry,
+      entry.player.wallet.address
+    );
+    const failure = await trackedExpectedFailure(
+      tracker,
+      provider,
+      {
+        action: "authRegister",
+        phase: "auth-chaos",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: entry.player.wallet.address,
+        failureLabel: "stale-bundle-before-join",
+      },
+      async () =>
+        registerSignedPermit({
+          provider,
+          bundle: entry.bundle,
+          walletPrivateKey: entry.player.wallet.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+    const statusAfterFailure = await readAuthStateSnapshot(
+      authRegistry,
+      entry.player.wallet.address
+    );
+    summary.staleBundle.attempted += 1;
+    summary.staleBundle.failedAsExpected += 1;
+    summary.staleBundle.players.push({
+      index: entry.player.index,
+      wallet: entry.player.wallet.address,
+      bundleExpiresAt: entry.bundle.permit.expiresAt,
+      statusBeforeAttempt,
+      failure: failure.error,
+      statusAfterFailure,
+    });
+  }
+
+  for (const entry of summary.expiredJoin.players) {
+    entry.statusAfterExpiry = await readAuthStateSnapshot(
+      authRegistry,
+      entry.wallet
+    );
+    if (entry.statusAfterExpiry.isAuthorized) {
+      throw new Error(
+        `Auth-expiry chaos expected ${entry.wallet} to become unauthorized before join, but the registry still reports it as authorized.`
+      );
+    }
+
+    const joinFailure = await trackedExpectedFailure(
+      tracker,
+      provider,
+      {
+        action: "join",
+        phase: "joining",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: entry.wallet,
+        causeId: entry.causeId,
+        failureLabel: "expired-auth-before-join",
+      },
+      async () =>
+        sendRawGameTx({
+          gameAddress,
+          wallet: plan.expiredJoinPlayers.find(
+            (player) => player.wallet.address.toLowerCase() === entry.wallet.toLowerCase()
+          ).wallet,
+          method: "join",
+          args: [gameId, entry.causeId],
+          overrides: {
+            value: config.entryFeeWei,
+          },
+        })
+    );
+    summary.expiredJoin.joinAttempts += 1;
+    summary.expiredJoin.failedAsExpected += 1;
+    entry.joinFailure = joinFailure.error;
+
+    const player = plan.expiredJoinPlayers.find(
+      (candidate) => candidate.wallet.address.toLowerCase() === entry.wallet.toLowerCase()
+    );
+    const refreshBundle = await buildAndSignAuthPermit(
+      buildHarnessAuthPermitOptions({
+        provider,
+        authRegistry,
+        verifier,
+        player,
+        nonceText: `load-auth-expiry-refresh-game-${gameIndex}-player-${player.index}`,
+        manifestUri: `${buildHarnessManifestUri(player)}/refresh/game-${gameIndex}`,
+      })
+    );
+    const refreshed = await trackedTx(
+      tracker,
+      provider,
+      {
+        action: "authRegister",
+        phase: "auth-chaos",
+        scenarioType,
+        gameIndex,
+        gameId,
+        wallet: player.wallet.address,
+      },
+      async () =>
+        registerSignedPermit({
+          provider,
+          bundle: refreshBundle,
+          walletPrivateKey: player.wallet.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+    const statusAfterRefresh = await readAuthStateSnapshot(
+      authRegistry,
+      player.wallet.address
+    );
+    if (!statusAfterRefresh.isAuthorized) {
+      throw new Error(
+        `Auth refresh for ${player.wallet.address} did not restore authorization before the main join batch.`
+      );
+    }
+    summary.expiredJoin.refreshedRegistrations += 1;
+    entry.refreshedAuth = {
+      txHash: refreshed.txHash,
+      issuedAt: refreshBundle.permit.issuedAt,
+      expiresAt: refreshBundle.permit.expiresAt,
+      statusAfterRefresh,
+    };
+  }
+
+  summary.expiredJoin.localRegisterRejections = tracker.entries.filter(
+    (entry) =>
+      entry.gameId === gameId &&
+      entry.phase === "auth-chaos" &&
+      entry.action === "authRegister" &&
+      entry.failureLabel === "expired-auth-before-join" &&
+      entry.failureClass === "expected"
+  ).length;
+
+  return summary;
 }
 
 async function runGameBatch({
@@ -5500,6 +5955,8 @@ async function buildBreakageChecks({
 async function runSingleGame({
   provider,
   owner,
+  verifier,
+  authRegistry,
   gameReader,
   gameAddress,
   scenario,
@@ -5507,6 +5964,7 @@ async function runSingleGame({
   players,
   causeCount,
   config,
+  authExpiryChaos,
   concurrency,
   seed,
   skipCommitRate,
@@ -5585,6 +6043,30 @@ async function runSingleGame({
   }));
 
   const joinStartedMs = Date.now();
+  const authChaos = await runAuthExpiryChaos({
+    provider,
+    authRegistry,
+    verifier,
+    gameAddress,
+    gameId,
+    gameIndex,
+    scenarioType,
+    seed,
+    joinedPlayers,
+    causeCount,
+    config,
+    authExpiryChaos,
+    tracker,
+  });
+  if (authChaos.applied) {
+    notes.push(
+      `Auth-expiry chaos before joins: staleBundleFailures=${authChaos.staleBundle.failedAsExpected}/${authChaos.staleBundle.attempted}, expiredJoinFailures=${authChaos.expiredJoin.failedAsExpected}/${authChaos.expiredJoin.joinAttempts}, localRegisterRejections=${authChaos.expiredJoin.localRegisterRejections}, refreshed=${authChaos.expiredJoin.refreshedRegistrations}.`
+    );
+  }
+  if (authChaos.skipped.length > 0) {
+    notes.push(`Auth-expiry chaos skips: ${authChaos.skipped.join(" ")}`);
+  }
+
   await runGameBatch({
     items: joinOrder,
     concurrency,
@@ -5685,7 +6167,7 @@ async function runSingleGame({
 
   await provider.send("evm_increaseTime", [config.joinDurationSeconds + 1]);
   await provider.send("evm_mine", []);
-  let manualBlocksMined = 1;
+  let manualBlocksMined = authChaos.manualBlocksMined + 1;
 
   await maybeTrackProbe({
     enabled:
@@ -6407,6 +6889,7 @@ async function runSingleGame({
           claimDrainIntended,
         }
       : null,
+    authChaos,
     wallClockMs: Date.now() - gameStartedAtMs,
     blocks: {
       start: startBlock,
@@ -6543,6 +7026,74 @@ function buildGasAndLatencyHotspots(entries) {
       ? normalizeEntry(highestLatencyEntry)
       : null,
     byAction,
+  };
+}
+
+function buildAuthChaosSummary({ games, authExpiryChaos }) {
+  const gameAuthChaos = games
+    .map((game) => game.authChaos)
+    .filter((entry) => entry?.enabled);
+
+  return {
+    enabled: Boolean(authExpiryChaos?.enabled),
+    configured: {
+      staleBundleFailures: authExpiryChaos?.staleBundleFailures ?? 0,
+      expiredJoinFailures: authExpiryChaos?.expiredJoinFailures ?? 0,
+      ttlSeconds: authExpiryChaos?.ttlSeconds ?? 0,
+      applyBeforeGameIndex: authExpiryChaos?.applyBeforeGameIndex ?? null,
+    },
+    gamesConsidered: gameAuthChaos.length,
+    gamesApplied: gameAuthChaos.filter((entry) => entry.applied).length,
+    timeWarpSeconds: gameAuthChaos.reduce(
+      (sum, entry) => sum + (entry.timeWarpSeconds ?? 0),
+      0
+    ),
+    manualBlocksMined: gameAuthChaos.reduce(
+      (sum, entry) => sum + (entry.manualBlocksMined ?? 0),
+      0
+    ),
+    staleBundle: {
+      requested: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.staleBundle?.requested ?? 0),
+        0
+      ),
+      attempted: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.staleBundle?.attempted ?? 0),
+        0
+      ),
+      failedAsExpected: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.staleBundle?.failedAsExpected ?? 0),
+        0
+      ),
+    },
+    expiredJoin: {
+      requested: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.expiredJoin?.requested ?? 0),
+        0
+      ),
+      shortAuthRegistrations: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.expiredJoin?.shortAuthRegistrations ?? 0),
+        0
+      ),
+      joinAttempts: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.expiredJoin?.joinAttempts ?? 0),
+        0
+      ),
+      failedAsExpected: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.expiredJoin?.failedAsExpected ?? 0),
+        0
+      ),
+      localRegisterRejections: gameAuthChaos.reduce(
+        (sum, entry) =>
+          sum + (entry.expiredJoin?.localRegisterRejections ?? 0),
+        0
+      ),
+      refreshedRegistrations: gameAuthChaos.reduce(
+        (sum, entry) => sum + (entry.expiredJoin?.refreshedRegistrations ?? 0),
+        0
+      ),
+    },
+    skipped: gameAuthChaos.flatMap((entry) => entry.skipped ?? []),
   };
 }
 
@@ -6720,6 +7271,7 @@ export async function runLoadHarness(rawOptions = {}) {
       claimWinners: options.claimWinners,
       expectedFailures: options.expectedFailures,
       sameBlockProbes: options.sameBlockProbes,
+      authExpiryChaos: options.authExpiryChaos,
       requestedScenario: options.requestedScenario,
       selectedScenarioTypes: options.selectedScenarioTypes,
       seed: options.seed,
@@ -6741,6 +7293,7 @@ export async function runLoadHarness(rawOptions = {}) {
       "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
       "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
       "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
+      "Optional auth-expiry chaos is intentionally bounded to one pre-join rehearsal per run. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, but it does not prove broader mass-expiry, mid-game expiry, or full SIWA-wrapper expiry behavior.",
     ],
   };
 
@@ -6821,6 +7374,8 @@ export async function runLoadHarness(rawOptions = {}) {
         await runSingleGame({
           provider,
           owner,
+          verifier,
+          authRegistry: deployments.authRegistry,
           gameReader,
           gameAddress: deployments.game.address,
           scenario: options.scenarioPlan[gameIndex - 1],
@@ -6828,6 +7383,7 @@ export async function runLoadHarness(rawOptions = {}) {
           players,
           causeCount: options.causeCount,
           config: options.profileConfig,
+          authExpiryChaos: options.authExpiryChaos,
           concurrency: options.concurrency,
           seed: options.seed,
           skipCommitRate: options.skipCommitRate,
@@ -6940,6 +7496,10 @@ export async function runLoadHarness(rawOptions = {}) {
         sameBlockTxs: sameBlockSummary.attemptedTxs,
         sameBlockExpectedFailures: sameBlockSummary.expectedFailures,
       },
+      authChaos: buildAuthChaosSummary({
+        games,
+        authExpiryChaos: options.authExpiryChaos,
+      }),
       scenarioSummary: {
         byType: groupCount(games, (game) => game.scenario.type),
         byTerminalOutcome: groupCount(
@@ -7029,6 +7589,11 @@ export function printLoadHarnessSummary(report) {
       report.options.sameBlockProbes ? "enabled" : "disabled"
     }`
   );
+  if (report.authChaos?.enabled) {
+    console.log(
+      `Auth chaos:     stale=${report.authChaos.staleBundle.failedAsExpected}/${report.authChaos.staleBundle.attempted}, expiredJoin=${report.authChaos.expiredJoin.failedAsExpected}/${report.authChaos.expiredJoin.joinAttempts}, localRegRejects=${report.authChaos.expiredJoin.localRegisterRejections}, refresh=${report.authChaos.expiredJoin.refreshedRegistrations}`
+    );
+  }
   if (report.environment) {
     console.log(`RPC URL:        ${report.environment.rpcUrl}`);
     console.log(`Chain ID:       ${report.environment.chainId}`);
@@ -7110,6 +7675,11 @@ export function printLoadHarnessSummary(report) {
       console.log(
         `  Same-block:   ${game.sameBlock?.expectedFailures ?? 0}/${game.sameBlock?.attemptedTxs ?? 0} tx across ${game.sameBlock?.attemptedBatches ?? 0} batches`
       );
+      if (game.authChaos?.enabled) {
+        console.log(
+          `  Auth chaos:   stale=${game.authChaos.staleBundle.failedAsExpected}/${game.authChaos.staleBundle.attempted}, expiredJoin=${game.authChaos.expiredJoin.failedAsExpected}/${game.authChaos.expiredJoin.joinAttempts}, localRegRejects=${game.authChaos.expiredJoin.localRegisterRejections}, refresh=${game.authChaos.expiredJoin.refreshedRegistrations}`
+        );
+      }
       console.log(`  Unexp fails:  ${game.txSummary.failedUnexpected ?? 0}`);
       console.log(`  Manual blocks:${game.blocks.manualMined}`);
       console.log(`  Replay ok:    ${game.replayConsistency.ok}`);

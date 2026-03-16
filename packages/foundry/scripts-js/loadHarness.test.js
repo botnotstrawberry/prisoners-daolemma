@@ -132,6 +132,89 @@ test(
 );
 
 test(
+  "load harness can rehearse stale bundles plus expired auth before join and recover into a winner run",
+  { timeout: 120_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-auth-expiry-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "winner-all-share",
+      playerCount: 6,
+      causeCount: 3,
+      games: 1,
+      concurrency: 3,
+      authExpiryChaos: true,
+      authExpiryStaleBundles: 1,
+      authExpiryJoinFailures: 1,
+      authExpiryTtlSeconds: 2,
+      seed: "load-harness-auth-expiry-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    const game = report.games[0];
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.mode, "single-game");
+    assert.equal(report.options.authExpiryChaos.enabled, true);
+    assert.equal(report.authChaos.enabled, true);
+    assert.equal(report.authChaos.gamesApplied, 1);
+    assert.equal(report.authChaos.staleBundle.attempted, 1);
+    assert.equal(report.authChaos.staleBundle.failedAsExpected, 1);
+    assert.equal(report.authChaos.expiredJoin.shortAuthRegistrations, 1);
+    assert.equal(report.authChaos.expiredJoin.joinAttempts, 1);
+    assert.equal(report.authChaos.expiredJoin.failedAsExpected, 1);
+    assert.ok(report.authChaos.expiredJoin.localRegisterRejections >= 0);
+    assert.equal(report.authChaos.expiredJoin.refreshedRegistrations, 1);
+    assert.equal(report.authChaos.manualBlocksMined, 1);
+    assert.ok(report.txSummary.failed >= 2);
+    assert.ok(report.txSummary.failedExpected >= 2);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+    assert.ok(report.txSummary.failedOnchain >= 1);
+    assert.ok(report.txSummary.failedLocal >= 1);
+    assert.equal(report.txSummary.unexpectedSuccesses, 0);
+
+    assert.equal(game.resultState.outcome, "Winners");
+    assert.equal(game.resultState.phase, "Ended");
+    assert.equal(game.resultState.counts.joined, 6);
+    assert.equal(game.claims.succeeded, 6);
+    assert.equal(game.postRunOutstanding.unclaimedWinnerCount, 0);
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
+    assert.equal(game.replayConsistency.ok, true);
+    assert.equal(game.authChaos.enabled, true);
+    assert.equal(game.authChaos.applied, true);
+    assert.equal(game.authChaos.staleBundle.attempted, 1);
+    assert.equal(game.authChaos.staleBundle.failedAsExpected, 1);
+    assert.equal(game.authChaos.expiredJoin.shortAuthRegistrations, 1);
+    assert.equal(game.authChaos.expiredJoin.joinAttempts, 1);
+    assert.equal(game.authChaos.expiredJoin.failedAsExpected, 1);
+    assert.ok(game.authChaos.expiredJoin.localRegisterRejections >= 0);
+    assert.equal(game.authChaos.expiredJoin.refreshedRegistrations, 1);
+    assert.equal(game.authChaos.staleBundle.players[0].statusBeforeAttempt.isAuthorized, true);
+    assert.equal(game.authChaos.staleBundle.players[0].statusAfterFailure.isAuthorized, true);
+    assert.match(game.authChaos.staleBundle.players[0].failure, /expired/i);
+    assert.equal(
+      game.authChaos.expiredJoin.players[0].shortAuth.statusAfterRegister.isAuthorized,
+      true
+    );
+    assert.equal(
+      game.authChaos.expiredJoin.players[0].statusAfterExpiry.isAuthorized,
+      false
+    );
+    assert.ok(game.authChaos.expiredJoin.players[0].joinFailure.length > 0);
+    assert.equal(
+      game.authChaos.expiredJoin.players[0].refreshedAuth.statusAfterRefresh.isAuthorized,
+      true
+    );
+    assert.ok(game.blocks.manualMined >= 2);
+    assert.ok(existsSync(game.evidence.outputDir));
+    assert.ok(existsSync(game.evidence.manifestPath));
+  }
+);
+
+test(
   "load harness fully wires the cancelled-underfilled refund path and reports expected failures honestly",
   { timeout: 120_000, concurrency: false },
   async () => {

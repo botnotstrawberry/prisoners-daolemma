@@ -39,6 +39,7 @@
     "game:post-cause": "node scripts-js/gameCli.js post-cause",
     "load:harness": "node scripts-js/loadHarnessCli.js",
     "load:harness:smoke": "node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --concurrency 4",
+    "load:harness:auth-expiry": "node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --scenario winner-all-share --concurrency 4 --auth-expiry-chaos --auth-expiry-stale-bundles 2 --auth-expiry-join-failures 2 --auth-expiry-ttl-seconds 2",
     "load:harness:matrix": "node scripts-js/loadHarnessMatrixCli.js",
     "load:harness:matrix:broader": "node scripts-js/loadHarnessMatrixCli.js --preset broader-local",
     "load:harness:matrix:medium": "node scripts-js/loadHarnessMatrixCli.js --preset medium-local",
