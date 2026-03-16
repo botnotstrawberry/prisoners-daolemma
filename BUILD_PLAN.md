@@ -1,8 +1,8 @@
 # BUILD PLAN: Prisoners DAOllema v1
 
-**Date:** 2026-03-14  
-**Status:** Active implementation plan  
-**Purpose:** Give coders and auditors a concrete build order so the repo can be implemented without relying on outside project files.
+**Date:** 2026-03-16  
+**Status:** Implementation order + phase tracker  
+**Purpose:** Give coders and auditors a truthful build/status map rooted in the current repo. For the current local proof boundary, also read `LOCAL_READINESS.md`.
 
 ## 1. Authoritative inputs
 
@@ -22,243 +22,127 @@ If a question is not answered here, ask the human instead of inventing product b
 
 ---
 
-## 2. What is already done
+## 2. Current implementation status
 
-### Repository state
-- repo scaffold exists
-- Base-focused Foundry + Next.js setup exists
-- local project skills/routing exists
-- fresh placeholder contracts exist:
-  - `packages/foundry/contracts/AgentAuthRegistry.sol`
-  - `packages/foundry/contracts/PrisonersDaollema.sol`
-- fresh smoke tests exist
+### Already done in the current repo
+- real Foundry contracts exist for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
+- local Foundry unit/fuzz/invariant coverage exists for the contract surface
+- local JS tooling tests exist for auth, query/export, load harness, matrix runner, canary helpers, and judge-evidence packaging
+- a broader local integration smoke exists for auth -> gameplay -> query/export end to end
+- the local SIWA -> verify -> permit -> register path exists as CLI-first tooling
+- gameplay/operator tooling exists for create/advance/join/commit/reveal/claim/refund/withdraw/chat actions
+- query/export tooling exists for game/auth/chat evidence export
+- local load/chaos harness tooling exists, including adversarial and same-block ordering probes
+- broader local soak presets now extend through `xlarge-local`
+- Base Sepolia preflight/deployment inspection helpers and judge-evidence packaging helpers exist
 
-### What is intentionally *not* done yet
-- real SIWA verifier flow
-- real join / commit / reveal / resolve logic
-- real payout accounting
-- real chat ingestion
-- real replay/indexing
+### Still incomplete or unproven
+- no preserved repo-shipped artifact bundle currently captures the latest xlarge / multi-seed local runs
+- the 250-player single-game local proof target is still unmet
+- multi-instance parallel local stress is still not implemented
+- the first real Base Sepolia canary has not been executed and preserved in-repo
+- mainnet canary/pilot work has not started
+- richer replay/judge polish is still secondary to preserving truthful JSON/export evidence
 
 ---
 
-## 3. Phase-by-phase build order
+## 3. Phase-by-phase status
 
 ## Phase 1 — contract foundation
-**Goal:** turn the placeholder contracts into real product contracts.
+**Status:** done locally.
 
-### 3.1 `AgentAuthRegistry`
-Implement:
-- wallet -> agent binding
-- `agentKey`
-- `manifestHash`
-- expiry
-- nonce / replay protection if permits are used
-- events for auth registration and revocation
+Implemented locally now:
+- `AgentAuthRegistry` wallet -> agent binding with expiry + nonce replay protection
+- `PrisonersDaollema` game lifecycle, auth-gated join, commit/reveal, resolution, terminal outcomes, claim/refund/withdraw paths, and per-game snapshots
+- cause whitelist handling and snapshot-aware settlement routing
 
-### 3.2 `PrisonersDaollema`
-Implement the full state machine for:
-- join
-- commit
-- reveal
-- resolve
-- claim
-- refund
-
-### 3.3 Rules to encode
-- one active game flow at a time
-- one cause chosen at join time
-- deterministic truth-table resolution
-- non-reveal defaults to `SHARE`
-- sole survivor wins immediately
-- 3x all-`SHARE` streak => sharer win
-
-### 3.4 Tests required in this phase
-- constructor/config tests
-- phase transition tests
-- auth gating smoke tests
-- join precondition tests
-- commit/reveal timing tests
-
-**Exit condition:** the core state machine exists and compiles, even if payouts are not final.
-
----
+Remaining caveat:
+- local implementation exists, but live-chain execution still needs Sepolia proof
 
 ## Phase 2 — canonical gameplay logic
-**Goal:** prove the rules, not just the happy path.
+**Status:** done locally.
 
-### 4.1 Truth-table tests
-Create explicit tests for:
-- catchers only
-- sharers only
-- stealers only
-- sharers + catchers
-- stealers + catchers
-- stealers + sharers
-- all three
+Locked locally through:
+- deterministic unit coverage
+- fuzz coverage
+- invariant coverage
+- load-harness deterministic families for winner / cancelled / no-winner paths
 
-### 4.2 Survival and ending tests
-- sole survivor immediate win
-- share streak reset cases
-- share streak win at 3
-- no-winner end states
-
-### 4.3 Auth and duplication tests
-- unauthorized join reverts
-- duplicate wallet join reverts
-- duplicate agent join reverts
-- expired auth cannot join
-
-**Exit condition:** the gameplay canon is locked by tests.
-
----
+Remaining caveat:
+- this does not waive live-chain timing validation
 
 ## Phase 3 — economics and payout logic
-**Goal:** encode the ETH + cause payout model safely.
+**Status:** done locally.
 
-### 5.1 Required accounting
-- entry fee pool
-- creator fee
-- cause cut on winner claim
-- no-winner cause distribution
-- treasury cut on no-winner end
+Implemented locally now:
+- winner claims
+- cancelled refunds
+- no-winner treasury/cause routing
+- pull-based treasury/cause withdrawals
+- query/export coverage for settlement-aware evidence
 
-### 5.2 Tests required
-- winner payout split
-- cause cut routing
-- no-winner cause routing
-- treasury routing
-- refund on cancelled / unstarted game
-- edge cases around odd splits and rounding
-
-### 5.3 Security rules
-Use `.agents/skills/solidity-security/SKILL.md` for this phase.
-
-**Exit condition:** all payout and refund flows are implemented and tested.
-
----
+Remaining caveat:
+- live payout behavior still needs Sepolia observation
 
 ## Phase 4 — required SIWA admission path
-**Goal:** make SIWA load-bearing for admission.
+**Status:** local CLI-first path done.
 
-### 6.1 Implement offchain/onchain split
-- offchain verifier validates SIWA
-- verifier issues auth permit or registration approval
-- wallet registers auth onchain in `AgentAuthRegistry`
-- game contract checks auth registry in `join()`
+Implemented locally now:
+- `siwa-nonce`
+- `siwa-sign`
+- `siwa-verify`
+- verifier-signed permit generation
+- onchain auth registration/status inspection
+- thin explicit auth-flow wrapper that keeps every stage auditable
 
-### 6.2 Important constraints
-- SIWA is required for admission
-- SIWA is not repeated for every move
-- gameplay still uses a normal wallet
-- auth must not infect round resolution logic
-
-### 6.3 Deliverables
-- auth verifier CLI
-- auth registration flow
-- auth status script
-- end-to-end join demonstration
-- optional local API wrapper later if needed for testing ergonomics
-
-**Exit condition:** an agent cannot join the official path without SIWA-backed admission.
-
----
+Remaining caveat:
+- the proof today is local-first; live funded rehearsal still needs Sepolia execution
 
 ## Phase 5 — agent tooling
-**Goal:** make the game usable by agents without manual confusion.
+**Status:** done for local/operator CLI scope.
 
-### 7.1 Required CLI or script actions
-- auth status
-- SIWA challenge/sign-in
-- register auth onchain
-- join
-- commit
-- reveal
-- claim
-- state read
-- round summary
+Implemented locally now:
+- auth status / auth flow helpers
+- gameplay/operator commands for create/advance/join/commit/reveal/claim/refund/withdraw
+- query/export helpers for summary, auth, messages, and bundle export
+- judge-evidence packaging helper for an already-captured bundle
 
-### 7.2 Required guidance
-- onboarding instructions for gameplay wallet setup
-- manifest format for agents
-- error handling docs for failed auth / expired auth / missed reveal
-
-### 7.3 Deliverables
-- project skill docs updated as needed
-- agent-facing commands/scripts work on Base Sepolia first
-
-**Exit condition:** demo agents can complete the core loop with repo-native tooling.
-
----
+Remaining caveat:
+- the next meaningful step is real operator rehearsal on Base Sepolia, not inventing another local abstraction
 
 ## Phase 6 — chat and replay
-**Goal:** deliver the differentiator: what agents said vs what they did.
+**Status:** partial but usable.
 
-### 8.1 Minimal chat design
-Implement a dedicated `GameChat` contract that supports **game-native onchain** public messages with:
-- `gameId`
-- optional `round`
-- optional `causeId`
-- `senderWallet`
-- content
-- timestamp / block context
-- tx sender / event provenance
+Implemented locally now:
+- `GameChat` global + cause-scoped posting rules
+- query/export JSON for summaries, rounds, roster, auth, payouts, and messages when available
+- machine-readable evidence export suitable for audit-first inspection
 
-Posting rules:
-- global chat: joined participants, including eliminated players
-- cause chat: alive joined participants whose selected cause matches the cause channel
-
-### 8.2 Replay/indexing outputs
-At minimum produce:
-- current state view
-- round summaries
-- message log
-- chat-vs-move correlation artifact
-- clear labeling of actual same-cause teammates vs other participants
-
-### 8.3 Questions the replay should answer
-- who said what?
-- who played what?
-- who bluffed?
-- did same-cause agents coordinate?
-- what payouts followed?
-
-**Exit condition:** judges can inspect both messages and moves in a single coherent story.
-
----
+Still open:
+- richer chat-vs-move presentation and judge-facing polish
+- live replay/export capture from a real Base Sepolia run
 
 ## Phase 7 — polish and prize-layer integrations
-**Goal:** add optional integrations without breaking the core.
+**Status:** optional and mostly open.
 
-### 9.1 ENS
-- optional display support
-- optional demo subnames if useful
-- no requirement that agents own ENS names
-
-### 9.2 MetaMask Delegations
-- optional enhanced path only
-- must not block normal participation
-- good for safety + prize story if time allows
-
-### 9.3 Observer polish
-- cleaner replay UI
-- better summaries
-- screenshots and demo-script readiness
-
-**Exit condition:** the project is easier to judge and stronger for prize targeting, but the core loop still works without these extras.
+Still optional/not prioritized yet:
+- ENS display polish
+- MetaMask Delegations path
+- richer observer UI and replay visualization
+- additional prize-story integrations beyond the local-first truthful core
 
 ---
 
-## 4. Immediate next implementation tasks
+## 4. Immediate remaining tasks
 
 In order:
-1. replace placeholder `PrisonersDaollema` with real game structs/state
-2. replace placeholder `AgentAuthRegistry` with permit/expiry/nonce-aware auth model
-3. write truth-table tests
-4. write payout/refund tests
-5. implement SIWA verifier flow
-6. build auth/join scripts
-7. build minimal replay + chat ingestion
+1. keep `LOCAL_READINESS.md`, `TEST_PLAN.md`, `README.md`, and `JUDGE_EVIDENCE.md` honest as local coverage changes
+2. if more local-only time is available, close the biggest remaining local gaps:
+   - 250-player single-game proof
+   - multi-instance local stress
+   - broader auth-expiry chaos in the harness
+3. when wallet/operator availability exists, execute the Base Sepolia canary and preserve the full artifact bundle
+4. only after live proof exists, spend more time on replay/judge polish
 
 ---
 
@@ -271,39 +155,33 @@ Auditors should focus on:
 - commit/reveal timing bugs
 - payout routing bugs
 - rounding/withdrawal edge cases
-- chat/replay data mismatches vs contract events
+- export/replay mismatches vs contract truth
+- local harness overclaim risk (for example, confusing deterministic same-block probes with live mempool realism)
 
 ---
 
 ## 6. Scope guardrails
 
 Do not:
-- add Farcaster dependencies
-- make ENS mandatory
-- make MetaMask Delegations mandatory
-- overbuild the frontend before the core loop works
-- overbuild chat into a full messaging product
+- claim Sepolia execution happened before a real bundle exists
+- pretend local xlarge coverage is the same thing as live-network proof
+- overbuild the frontend before preserved live artifacts exist
 - weaken admission just to speed up the demo
+- add optional prize integrations that obscure the core game/evidence path
 
 Do:
 - keep the core game onchain
-- keep the rules test-driven
-- keep the admission story clear
-- keep replay and judge understanding in scope
+- keep the rules test-driven and auditable
+- keep the admission story explicit
+- keep replay/export JSON truthful even when a field is unavailable
+- preserve artifact bundles when meaningful local or Sepolia runs happen
 
 ---
 
 ## 7. Bottom line
 
-The repo is now ready for a clean implementation path.
-
-The build sequence should be:
-1. core contracts
-2. canonical tests
-3. payout logic
-4. SIWA admission
-5. agent tooling
-6. chat + replay
-7. optional prize polish
-
-That path keeps the hackathon build honest, scoped, and understandable.
+The repo is no longer at the placeholder stage. The honest next steps are:
+1. maintain truthful local-readiness tracking,
+2. optionally push the remaining local-only stress gaps,
+3. execute and preserve the first Base Sepolia canary,
+4. then spend polish effort on judge presentation.

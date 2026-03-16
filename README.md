@@ -13,6 +13,7 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `CONTRACT_SPEC.md` — recommended contract surfaces and state split
 - `REPLAY_SPEC.md` — required replay/indexing outputs and schemas
 - `TEST_PLAN.md` — validation strategy from Foundry to Anvil to live chain
+- `LOCAL_READINESS.md` — current done-locally vs unproven vs external-blocked status snapshot
 - `PARAMETERS.md` — recommended timings, caps, and launch profiles
 - `LAUNCH_PLAN.md` — staged rollout and go/no-go gates
 - `SEPOLIA_CANARY_RUNBOOK.md` — repo-native Base Sepolia canary operator runbook
@@ -36,12 +37,18 @@ For implementation in this repo, treat these docs as the source of truth:
 9. `LAUNCH_PLAN.md`
 10. `SKILLS.md`
 
+## Current readiness snapshot
+
+For the current done-locally vs still-unproven vs external-blocked split, start with `LOCAL_READINESS.md`.
+
+That file is intentionally short and should be kept in sync whenever local validation meaningfully advances.
+
 ## Current code state
 
 The repo now contains:
 
 - Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
-- Foundry tests for auth registration, join gating, join/commit/reveal timing, chat posting rules, and a broader local integration smoke that now stitches auth CLI -> gameplay/operator CLI -> evidence export together
+- Foundry unit, fuzz, and invariant coverage for auth registration, join gating, gameplay/settlement rules, chat posting rules, plus a broader local integration smoke that stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
 - CLI-first gameplay/operator tooling for cause whitelisting plus create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
 - repo-native local load/chaos harness tooling for multi-player single-game and sequential-game local runs with machine-readable reports + evidence export
@@ -334,10 +341,10 @@ Current boundary:
 Useful commands:
 
 - `yarn judge:evidence -- --help`
-- `yarn judge:evidence -- --bundle load-harness/manual-scale-proof-2026-03-15-64x3`
+- `yarn judge:evidence -- --bundle load-harness/<actual-run-dir>`
 - `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>`
 
-See `JUDGE_EVIDENCE.md` for the judge open-order, current local proof pointers, and the live canary packaging contract.
+See `JUDGE_EVIDENCE.md` for the judge open-order, the current honest local-proof boundary, and the live canary packaging contract.
 
 ## Broader local integration smoke
 
@@ -413,7 +420,7 @@ yarn start
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
 - deployment currently creates a fresh `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio per run
-- production auth and SIWA integration will be layered in during implementation
+- the local auth + SIWA path already exists; what is still missing is real Base Sepolia execution and preserved live artifacts
 
 ## Base Sepolia canary readiness
 

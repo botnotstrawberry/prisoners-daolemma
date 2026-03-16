@@ -1,131 +1,87 @@
 # Judge Evidence Guide
 
-This is the repo-native map for the **evidence/replay/export story**.
+This is the repo-native map for the **evidence / replay / export story**.
 
 It is intentionally conservative:
 
-- it separates **local proof already in the repo** from **future Base Sepolia proof**
-- it points judges to files they can open directly
+- it separates proof that already exists in the repo from proof that is only packaging-ready
 - it does not claim a live canary has happened until a real `canary/base-sepolia/<run-id>/` bundle exists
+- it does not claim a local bundle exists until a real `load-harness/<run-id>/` or equivalent artifact directory exists
 - it treats screenshots and tx hashes as supporting artifacts, not as replacements for query/export data
 
 ## Current honest status
 
-Right now this repo has three different evidence layers:
+Right now this repo has three evidence layers:
 
 1. **Code + tests**
-   - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth/game/query surface is wired together locally
-2. **Committed local artifact proof**
-   - the strongest checked-in bundle today is:
-     - `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/`
-   - that bundle is local-only, but it contains a real machine-readable report plus per-game evidence exports
-   - it currently showcases winner-path and no-winner-path exports; the cancelled path is still most directly evidenced by the broader integration smoke/test surface rather than a checked-in standalone judge bundle
+   - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth / game / query surface is wired together locally
+2. **Operator-ready local artifact tooling**
+   - the repo can generate local harness and matrix artifacts plus judge-facing indexes for an existing bundle
+   - the latest status tracking says local validation now extends through bounded xlarge / multi-seed runs
+   - however, the repo does **not** currently check in a preserved artifact bundle from that latest run set
 3. **Sepolia packaging readiness**
    - `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md` define the live artifact contract
    - they do **not** by themselves prove that the live run already happened
 
-What is still honestly **pending** until the first live canary bundle exists:
+What is still honestly pending until real bundles exist:
 
-- real Base Sepolia timing comfort for the chosen block/second windows
-- explorer verification evidence from the actual deployment
-- whether the first honest Sepolia run uses minimal permit/register or the full SIWA-backed path
-- whether a second Sepolia scenario is immediately needed after the first live game
+- a preserved local bundle from a meaningful current run if we want repo-shipped local proof artifacts
+- the first Base Sepolia canary bundle
+- explorer verification evidence from the real deployment
+- live replay/export artifacts from an actual Sepolia game
 
-## What judges should open first
+## What judges should open first right now
 
-If a judge only has a few minutes, use this order.
+If a judge only has a few minutes and no bundle directory was shipped alongside the repo, use this order.
 
 ### 1. `README.md`
 
 What it proves:
 
 - what is implemented now
-- where auth, gameplay, query/export, and canary tooling live
+- where auth, gameplay, query/export, load harness, and canary tooling live
 - what the repo currently does **not** claim yet
 
-### 2. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/report.json`
+### 2. `LOCAL_READINESS.md`
 
 What it proves:
 
-- this repo already has a checked-in local artifact bundle, not just code claims
-- the local proof bundle records a `64`-player, `3`-game sequential run
-- the bundle includes explicit limitations and boundary notes instead of overselling local results as live-network proof
-- the bundle records replay-consistency counts and points to per-game evidence export directories
+- the current done-locally vs not-yet-proven vs externally-blocked split
+- that the repo tracks the latest local validation envelope explicitly instead of implying every planned layer is complete
+- that xlarge / multi-seed local status is acknowledged without pretending a matching artifact bundle is already checked in
 
-### 3. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-1/evidence/game-summary.json`
-
-What it proves:
-
-- the repo can export a compact per-game summary from onchain state/events
-- terminal outcome, round count, counts, and settlement state are queryable
-- export notes stay explicit about bounded log windows and skipped chat artifacts
-
-### 4. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-1/evidence/rounds.json`
+### 3. `TEST_PLAN.md`
 
 What it proves:
 
-- round-by-round replay context exists in machine-readable form
-- replay does not require a flashy UI to be inspectable
+- the required validation ladder from deterministic tests through Anvil stress and live-chain gates
+- which local gates are already covered in practice and which still remain open
 
-### 5. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-1/evidence/payouts.json`
-
-What it proves:
-
-- payout routing is exported directly from contract settlement counters/events
-- money flow can be audited without guessing from wallet balances alone
-
-### 6. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-2/evidence/game-summary.json`
-
-What it proves:
-
-- the current committed local artifact set is not only a winner-path story
-- it also includes a `NoWinners` / `no-winner-routing` example
-
-### 7. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-2/evidence/payouts.json`
-
-What it proves:
-
-- the no-winner payout path is exported explicitly too
-- cause/treasury routing can be inspected independently from the happy-path winner flow
-
-### 8. `packages/foundry/load-harness/manual-scale-proof-2026-03-15-64x3/game-1/evidence/export-manifest.json`
-
-What it proves:
-
-- the export surface records which artifacts were produced
-- the export surface also records what was intentionally skipped and why
-- this keeps missing chat/message files honest instead of silently omitting them
-
-### 9. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
+### 4. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
 
 What they prove:
 
 - the live proof path is already packaged as a repeatable operator workflow
-- the repo already defines which live artifacts must be preserved
-- the remaining gap is **execution**, not “figure out what proof should look like later”
+- the remaining gap is **execution and artifact capture**, not “figure out what proof should look like later”
 
-## Replay/export interpretation guide
+## If a real local bundle exists
 
-When judges inspect an export bundle, the fastest useful file-to-question mapping is:
+Once a real local bundle has been captured, the fastest useful open order is:
 
-- `game-summary.json`
-  - what happened overall?
-  - what was the terminal outcome?
-  - what chain/game is this about?
-- `rounds.json`
-  - what happened round by round?
-  - which replay windows and eliminations are visible?
-- `roster.json`
-  - who joined and what cause/team did they choose?
-- `auth.json`
-  - which wallets had auth records relevant to the game?
-- `payouts.json`
-  - where did the money go?
-  - what remained claimable vs already withdrawn?
-- `messages.jsonl`
-  - what did participants say, when chat was configured and exported?
-- `export-manifest.json`
-  - what did the exporter intentionally produce or skip?
+1. `<bundle>/report.json` or `<bundle>/matrix-report.json`
+   - top-level scale, scenario mix, limitations, and overall status
+2. `<bundle>/MATRIX_SUMMARY.md` when present
+   - compact human summary of the run matrix
+3. `<bundle>/game-*/evidence/game-summary.json`
+   - compact per-game outcome and settlement status
+4. `<bundle>/game-*/evidence/rounds.json`
+   - round-by-round replay context
+5. `<bundle>/game-*/evidence/payouts.json`
+   - payout routing and remaining claimables
+6. `<bundle>/game-*/evidence/export-manifest.json`
+   - what the exporter produced or intentionally skipped
+7. `<bundle>/txs.jsonl`
+   - raw transaction log for the run
 
 That is the current repo-native replay story: **auditable JSON first, fancy UI optional**.
 
@@ -158,12 +114,12 @@ Packaging rule of thumb:
 
 ## Helper CLI for bundle generation
 
-The repo now includes a small helper that turns an existing artifact directory into a judge-facing mini-pack:
+The repo includes a helper that turns an existing artifact directory into a judge-facing mini-pack:
 
 ```bash
 # local proof bundle
 
-yarn judge:evidence -- --bundle load-harness/manual-scale-proof-2026-03-15-64x3
+yarn judge:evidence -- --bundle load-harness/<actual-run-dir>
 
 # future Sepolia bundle
 
@@ -186,12 +142,12 @@ What it does **not** do:
 
 - it does not fabricate proof
 - it does not replace the actual query export
-- it does not claim Sepolia execution happened if the bundle only contains local artifacts
+- it does not claim local or Sepolia execution happened if the bundle is absent or partial
 
 ## Bottom line
 
-The repo now has a clearer judge path:
+The honest judge path today is:
 
-- **open the committed local evidence bundle today** for honest local proof
-- **use the canary runbook/checklist** for the live proof contract
-- **generate `JUDGE_README.md` + `judge-evidence-index.json`** beside any real bundle so judges know exactly what to inspect first
+- open `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` for the current status boundary
+- use the canary runbook/checklist for the live proof contract
+- generate `JUDGE_README.md` + `judge-evidence-index.json` beside any **real** local or Sepolia bundle so judges know exactly what to inspect first

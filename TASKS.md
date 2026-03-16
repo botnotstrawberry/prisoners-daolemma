@@ -5,6 +5,11 @@
 - **P1** = strong improvement if time allows
 - **P2** = stretch
 
+## Status note
+This checklist is now best treated as a backlog, not as the authoritative completion record.
+
+For the current done-locally vs still-open status, start with `LOCAL_READINESS.md`.
+
 ## First read
 Before implementing, use:
 1. `CANON.md`

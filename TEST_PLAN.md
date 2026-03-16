@@ -1,8 +1,8 @@
 # TEST PLAN: Prisoners DAOllema v1
 
-**Date:** 2026-03-14  
-**Status:** Active planning document  
-**Purpose:** Define the full validation strategy from local unit tests through Base Sepolia and mainnet launch gates.
+**Date:** 2026-03-16  
+**Status:** Active validation plan + local status tracker  
+**Purpose:** Define the full validation strategy from local unit tests through Base Sepolia and mainnet launch gates, while keeping the current local proof boundary explicit.
 
 ## 1. Test philosophy
 
@@ -65,6 +65,37 @@ Run:
 - replay verification
 - payout verification
 - operational rollback drills
+
+---
+
+## 2.1 Current local status snapshot (2026-03-16)
+
+This section is not a release waiver. It is the current honest state of local validation.
+
+### Done locally now
+- Foundry unit, fuzz, and invariant suites exist against the current contracts.
+- JS tooling tests exist for auth, query/export, load harness, matrix runner, canary helpers, and judge-evidence packaging.
+- the broader integration smoke exercises local auth -> gameplay -> query/export end to end.
+- the local load harness now covers:
+  - deterministic winner / cancelled / no-winner scenario families
+  - seeded `adversarial-random` breakage hunting
+  - phase-edge burst probes around commit/reveal/advance/settlement actions
+  - optional same-block no-automine ordering probes for underfilled transitions, per-round last action vs `advancePhase`, and duplicate settlement attempts
+- the broader local soak presets now extend through `xlarge-local`, including:
+  - deterministic 32-player mixed-family coverage
+  - started full-roster 32-player adversarial sweeps across multiple seeds
+  - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
+
+### Still not proven locally
+- the automated 250-player single-game proof target
+- multi-instance parallel local stress
+- broad auth-expiry chaos inside the load harness
+- a preserved in-repo artifact bundle for the latest xlarge / multi-seed run set
+
+### Blocked on external execution
+- Base Sepolia canary deployment + preserved live artifact bundle
+- live testnet auth/game/query/verify rehearsal
+- any Base mainnet canary or pilot
 
 ---
 
@@ -252,14 +283,22 @@ The current bounded local foundation lives in `packages/foundry/scripts-js/loadH
 
 What it covers today:
 - Mode A foundation: single deployment, single game, configurable multi-player winner-path runs
-- Mode B scaffold: repeated sequential games on one deployment
+- Mode B scaffold: repeated sequential games on one deployment, including mixed scenario plans
 - machine-readable `report.json` + `txs.jsonl` + per-game evidence export directories
-- bounded chaos today: missed commit / missed reveal deadline pressure via configurable skip rates
+- bounded chaos today:
+  - missed commit / missed reveal deadline pressure via configurable skip rates on winner-path games
+  - deterministic cancelled/underfilled flow
+  - deterministic no-winner flow
+  - seeded `adversarial-random` breakage hunting with randomized omissions, wrong-preimage probes, and settlement-order probes
+  - phase-edge burst probes around late commit/reveal, `advancePhase`, and terminal settlement actions
+  - optional same-block no-automine ordering probes for underfilled transition ordering, per-round last action vs `advancePhase`, and duplicate `claim` / `refund` / `withdraw` contention
+  - broader matrix presets through `xlarge-local`, including deterministic 32-player mixed-family coverage and multi-seed started full-roster 32-player adversarial sweeps with explicit longer phase budgets
 
 What it does **not** cover yet:
 - the full 250-player proof target as an automated test
 - Mode C multi-instance parallel stress
-- invalid-attempt / auth-expiry / underfilled / refund / no-winner chaos inside the harness itself
+- auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
+- a preserved in-repo artifact bundle for the latest xlarge / multi-seed run set
 
 Purpose:
 - prove safety under ugly, non-demo behavior
@@ -286,6 +325,9 @@ Before Sepolia:
 - sequential soak completes with no stuck funds
 - replay artifacts match contract outcomes
 - no unresolved critical/high severity issue from stress runs
+
+Current known gap against those gates:
+- the serious local soak surface is much broader now, but the explicit 250-player single-game target is still not closed
 
 ---
 
