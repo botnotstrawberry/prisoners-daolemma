@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import {
@@ -146,6 +152,199 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
     6
   );
 });
+
+test("load harness matrix exposes a bounded parallel-local preset", () => {
+  const outDir = createOutDir("pd-load-harness-matrix-parallel-plan-");
+  const plan = buildLoadHarnessMatrixPlan({
+    preset: "parallel-local",
+    out: outDir,
+  });
+
+  assert.equal(plan.presetName, "parallel-local");
+  assert.equal(plan.plannedRunCount, 3);
+  assert.equal(plan.requestedInstanceConcurrency, 2);
+  assert.equal(plan.instanceConcurrency, 2);
+  assert.equal(plan.executionMode, "parallel-local");
+  assert.deepEqual(
+    plan.runs.map((run) => ({
+      id: run.id,
+      caseId: run.caseId,
+      seed: run.seed,
+      playerCount: run.harnessOptions.playerCount,
+      games: run.harnessOptions.games,
+      sameBlockProbes: Boolean(run.harnessOptions.sameBlockProbes),
+    })),
+    [
+      {
+        id: "parallel-same-block-a",
+        caseId: "smoke-mixed-same-block",
+        seed: "parallel-same-block-a",
+        playerCount: 6,
+        games: 3,
+        sameBlockProbes: true,
+      },
+      {
+        id: "parallel-adversarial-a",
+        caseId: "smoke-adversarial-sweep",
+        seed: "parallel-adversarial-a",
+        playerCount: 12,
+        games: 4,
+        sameBlockProbes: true,
+      },
+      {
+        id: "parallel-winner-a",
+        caseId: "scale-winner-soak",
+        seed: "parallel-winner-a",
+        playerCount: 20,
+        games: 2,
+        sameBlockProbes: false,
+      },
+    ]
+  );
+});
+
+test(
+  "load harness matrix can coordinate bounded parallel-local instances and report overlap honestly",
+  async () => {
+    const outDir = createOutDir("pd-load-harness-matrix-parallel-stub-");
+    let activeRuns = 0;
+    let observedPeakActiveRuns = 0;
+    const delayBySeed = {
+      "parallel-same-block-a": 140,
+      "parallel-adversarial-a": 180,
+      "parallel-winner-a": 120,
+    };
+
+    const { report, summaryPath } = await runLoadHarnessMatrix(
+      {
+        preset: "parallel-local",
+        instanceConcurrency: 2,
+        out: outDir,
+      },
+      {
+        runLoadHarness: async (options) => {
+          activeRuns += 1;
+          observedPeakActiveRuns = Math.max(
+            observedPeakActiveRuns,
+            activeRuns
+          );
+
+          const delayMs = delayBySeed[options.seed] ?? 100;
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          activeRuns -= 1;
+
+          mkdirSync(options.out, { recursive: true });
+          const reportPath = join(options.out, "report.json");
+          const txLogPath = join(options.out, "txs.jsonl");
+          const stubReport = {
+            status: "ok",
+            mode: "stubbed",
+            wallClockMs: delayMs,
+            environment: {
+              spawnedAnvil: true,
+              chainId: 31337,
+              rpcUrl: `http://127.0.0.1:${options.anvilPort}`,
+              anvilPort: options.anvilPort,
+            },
+            games: [{}],
+            scenarios: {
+              plan: [String(options.scenario)],
+            },
+            scenarioSummary: {
+              byTerminalOutcome: [{ key: "Winners", count: 1 }],
+              byTerminalPath: [{ key: "winner-claims", count: 1 }],
+            },
+            txSummary: {
+              attempted: 10,
+              succeeded: 10,
+              failed: 0,
+              failedExpected: 0,
+              failedUnexpected: 0,
+              unexpectedSuccesses: 0,
+            },
+            sameBlockSummary: {
+              enabled: Boolean(options.sameBlockProbes),
+              attemptedBatches: 0,
+              minedBatches: 0,
+              attemptedTxs: 0,
+              expectedFailures: 0,
+              unexpectedFailures: 0,
+              unexpectedSuccesses: 0,
+              skipped: 0,
+            },
+            localScaleReadiness: {
+              maxJoinedPlayersInSingleGame: Number(options.playerCount),
+              totalJoinedPlayersAcrossRun: Number(options.playerCount),
+              gamesHittingRequestedPlayerTarget: 1,
+              fullyDrainedGames: 1,
+              replayConsistentGames: 1,
+            },
+            breakageSummary: {
+              gamesChecked: 1,
+              gamesWithWedgedActiveSlot: 0,
+              gamesWithTerminalStateMismatch: 0,
+              gamesWithAccountingMismatch: 0,
+              gamesWithPreviewMismatch: 0,
+              gamesWithDrainMismatch: 0,
+              gamesWithReplayInconsistency: 0,
+              gamesWithUnexpectedFailures: 0,
+              totalUnexpectedFailures: 0,
+              probeSummary: {
+                attempted: 0,
+                failedAsExpected: 0,
+                unexpectedSuccesses: 0,
+                onchainReverts: 0,
+                localRejections: 0,
+              },
+              unexpectedFailureClusters: [],
+            },
+          };
+
+          writeFileSync(reportPath, `${JSON.stringify(stubReport, null, 2)}\n`);
+          writeFileSync(txLogPath, "", "utf8");
+
+          return {
+            report: stubReport,
+            reportPath,
+            txLogPath,
+          };
+        },
+      }
+    );
+
+    assert.ok(observedPeakActiveRuns >= 2);
+    assert.equal(report.status, "ok");
+    assert.equal(report.execution.mode, "parallel-local");
+    assert.equal(report.execution.requestedInstanceConcurrency, 2);
+    assert.equal(report.execution.instanceConcurrencyLimit, 2);
+    assert.ok(report.execution.peakActiveRuns >= 2);
+    assert.ok(report.execution.runsWithAnyOverlap >= 2);
+    assert.equal(report.execution.localParallelismConfirmed, true);
+    assert.ok(report.execution.overlappingRunPairs.length >= 1);
+    assert.equal(report.plan.executionMode, "parallel-local");
+    assert.equal(report.plan.requestedInstanceConcurrency, 2);
+    assert.equal(report.plan.instanceConcurrency, 2);
+    assert.deepEqual(report.plan.runIds, [
+      "parallel-same-block-a",
+      "parallel-adversarial-a",
+      "parallel-winner-a",
+    ]);
+    assert.equal(report.runs.length, 3);
+    assert.equal(
+      new Set(report.runs.map((run) => run.environment.anvilPort)).size,
+      3
+    );
+    assert.ok(report.runs.every((run) => run.execution.mode === "parallel-local"));
+    assert.ok(report.runs.every((run) => run.environment.spawnedAnvil));
+    assert.ok(existsSync(summaryPath));
+    const markdown = readFileSync(summaryPath, "utf8");
+    assert.match(markdown, /## Execution model/);
+    assert.match(markdown, /Parallel overlap confirmed: yes/);
+    assert.match(markdown, /parallel-same-block-a/);
+    assert.match(markdown, /parallel-adversarial-a/);
+    assert.match(markdown, /parallel-winner-a/);
+  }
+);
 
 test(
   "load harness matrix runs a medium local preset and emits aggregate artifacts",

@@ -268,6 +268,11 @@ Purpose:
 - not a production product requirement
 - useful for throughput realism and demo infrastructure hardening
 
+Current repo status:
+- the matrix runner now supports a bounded host-local version of Mode C via `packages/foundry/scripts-js/loadHarnessMatrixCli.js` + `--instance-concurrency`
+- the checked-in preserved proof at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` captures a real `parallel-local` run with requested instance concurrency 3, peak active runs observed 3, and 3 overlapping isolated harness + Anvil instances on one machine
+- the broader 5-10 deployment saturation envelope above is still aspirational and not yet proven locally
+
 ### Mode D — chaos profile
 Deliberately inject:
 - missed reveals
@@ -280,7 +285,7 @@ Deliberately inject:
 - many unique causes up to the cap
 
 ### Current repo-native foundation (implemented now)
-The current bounded local foundation lives in `packages/foundry/scripts-js/loadHarnessCli.js`.
+The current bounded local foundation lives in `packages/foundry/scripts-js/loadHarnessCli.js` plus `packages/foundry/scripts-js/loadHarnessMatrixCli.js`.
 
 What it covers today:
 - Mode A foundation: single deployment, single game, configurable multi-player winner-path runs
@@ -294,12 +299,13 @@ What it covers today:
   - phase-edge burst probes around late commit/reveal, `advancePhase`, and terminal settlement actions
   - optional same-block no-automine ordering probes for underfilled transition ordering, per-round last action vs `advancePhase`, and duplicate `claim` / `refund` / `withdraw` contention
   - broader matrix presets through `xlarge-local`, including deterministic 32-player mixed-family coverage and multi-seed started full-roster 32-player adversarial sweeps with explicit longer phase budgets
+  - bounded host-local multi-instance overlap through `parallel-local` / `--instance-concurrency`, with machine-readable execution timing, overlap-pair, and per-instance port reporting
 
 What it does **not** cover yet:
 - CI automation or broader multi-seed repetition of the 250-player target
-- Mode C multi-instance parallel stress
+- the broader 5-10 deployment Mode C saturation envelope; current checked-in coverage is bounded to 3 overlapping isolated host-local instances on one machine
 - auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
-- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
+- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus compact preserved matrix proof packs
 
 Purpose:
 - prove safety under ugly, non-demo behavior
@@ -328,7 +334,7 @@ Before Sepolia:
 - no unresolved critical/high severity issue from stress runs
 
 Current known gap against those gates:
-- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; the remaining broader local stress gaps are multi-instance coverage, auth-expiry chaos breadth, and preserving a full raw xlarge / multi-seed matrix bundle
+- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, but the remaining broader local stress gaps are heavier multi-instance saturation, auth-expiry chaos breadth, and preserving a full raw xlarge / multi-seed matrix bundle
 
 ---
 

@@ -47,6 +47,8 @@ A full preserved 250-player local proof bundle is now checked in at `packages/fo
 
 A separate compact matrix-level proof pack is also checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those specific xlarge / multi-seed runs and still has no live Sepolia proof bundle.
 
+A new compact parallel-local proof pack is also checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`. It preserves copied top-level artifacts from a real bounded 3-instance overlapping host-local matrix run and keeps the local-only boundary explicit.
+
 ## Current code state
 
 The repo now contains:
@@ -55,12 +57,13 @@ The repo now contains:
 - Foundry unit, fuzz, and invariant coverage for auth registration, join gating, gameplay/settlement rules, chat posting rules, plus a broader local integration smoke that stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
 - CLI-first gameplay/operator tooling for cause whitelisting plus create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
-- repo-native local load/chaos harness tooling for multi-player single-game and sequential-game local runs with machine-readable reports + evidence export
+- repo-native local load/chaos harness tooling for multi-player single-game, sequential-game, and bounded host-local multi-instance local runs with machine-readable reports + evidence export
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
 - judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
 - a checked-in full local proof bundle at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, preserving `report.json`, `txs.jsonl`, and per-game evidence from a clean 250-player single-game winner-path run
 - a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
+- a checked-in compact parallel-local proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, preserving copied matrix summaries from a real 3-instance overlapping host-local matrix run
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -232,7 +235,9 @@ Useful commands:
 - `yarn load:harness:matrix:medium`
 - `yarn load:harness:matrix:large`
 - `yarn load:harness:matrix:xlarge`
+- `yarn load:harness:matrix:parallel`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
+- `yarn load:harness:matrix -- --preset parallel-local --instance-concurrency 3`
 
 Current built-in presets:
 
@@ -246,22 +251,26 @@ Current built-in presets:
   - one deterministic 24-player `mixed` pass plus one seeded 28-player `adversarial-random` sweep across two sequential games on the scale profile, with explicit 56/64-block phase budgets for honest higher-join local stress
 - `xlarge-local`
   - one deterministic 32-player `mixed` pass plus three seeded started full-roster 32-player single-game `adversarial-random` sweeps on the scale profile, with explicit 72/80-block phase budgets; this stays an opt-in bounded bridge-to-bigger local proof rather than part of the default broader preset
+- `parallel-local`
+  - one same-block mixed-family pass, one seeded adversarial smoke sweep, and one larger scale-profile winner soak coordinated across isolated host-local harness + Anvil instances; defaults to instance concurrency 2 and can be raised explicitly when the machine can carry it
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
   - combines the same-block smoke, adversarial smoke, and winner-scale presets into one bounded default local soak preset
 
-The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only, still sequential, and still not a model of live mempool or multi-instance production behavior.
+The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only. By default it runs sequentially, but `--instance-concurrency > 1` now coordinates multiple isolated harness + Anvil instances in parallel on one host. That is useful for host-local infra breakage hunting only, not as a model of live mempool or distributed production behavior.
 
 What it adds:
 
 - one command that runs a small but broader set of local harness cases instead of a single seed/config
+- optional bounded host-local multi-instance coordination via `--instance-concurrency`, reusing the same repo-native harness for each isolated fresh deployment instead of inventing a second benchmark path
 - a top-level `matrix-report.json` plus `MATRIX_SUMMARY.md` that record:
   - the exact preset/runs/seeds exercised
   - aggregate tx / probe / same-block totals
   - aggregate unexpected failures
   - aggregate wedge / terminal / accounting / preview / drain / replay mismatch counts
-  - per-run report paths so the detailed `report.json` + `txs.jsonl` artifacts stay auditable
+  - execution mode, requested/effective instance concurrency, peak active runs observed, and explicit overlap pairs when runs actually overlap
+  - per-run report paths plus per-run execution timestamps / Anvil ports so the detailed `report.json` + `txs.jsonl` artifacts stay auditable
 - repeated local coverage over:
   - deterministic same-block ordering families
   - seeded adversarial-random breakage hunting
@@ -270,11 +279,13 @@ What it adds:
   - larger 24-player mixed-family and 28-player adversarial scale-profile sweeps with explicit higher local block budgets
   - bounded 32-player mixed-family plus multi-seed started full-roster 32-player adversarial scale-profile sweeps with explicit 72/80-block phase budgets
   - larger winner-path drain/replay rehearsals on the scale profile
+  - bounded host-local parallel overlap across isolated harness + Anvil instances when `--instance-concurrency` is raised above 1
 
 What this harness honestly proves today:
 
 - the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup
 - the repo can emit structured run reports including scenario type, terminal outcome/path, expected-vs-unexpected failure counts, probe counts, tx counts, gas totals, timing/block summaries, tx hotspots, resulting game state, and breakage-oriented summaries (`breakageSummary`, per-game `breakageChecks`)
+- the matrix runner can now coordinate multiple fresh harness + Anvil deployments in parallel on one host and record whether overlap really happened (`execution.peakActiveRuns`, `execution.overlappingRunPairs`, per-run start/finish timestamps, per-run Anvil ports)
 - the harness can now exercise three concrete local settlement families on the current codebase, plus a seeded adversarial-random mode that deliberately mixes valid and invalid local behavior aimed at surfacing wedge/state/accounting bugs:
   - winner claims plus creator-fee/cause withdrawals after those claims route funds
   - cancelled-game refunds
@@ -293,7 +304,7 @@ What it intentionally does **not** claim yet:
 - cross-wallet public mempool ordering games or fee-bid competition; the current same-block mode is intentionally deterministic and usually sequences one caller wallet inside one manually mined local block
 - full SIWA wrapper rehearsal inside the harness itself
 - proof of exploitable contract bugs just because adversarial local probes did not break a given run
-- exhaustive fuzzing or parallel multi-instance deployment stress inside the harness
+- exhaustive fuzzing, distributed-agent realism, or the full heavier 5-10 deployment host-saturation envelope just because the bounded `parallel-local` preset passed on one machine
 - that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
@@ -350,6 +361,7 @@ Useful commands:
 - `yarn judge:evidence -- --bundle load-harness/<actual-run-dir>`
 - `yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof`
 - `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack`
+- `yarn judge:evidence -- --bundle proof/local/20260316-parallel-local-proof-pack`
 - `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>`
 
 Current preserved local bundles:
@@ -361,6 +373,10 @@ Current preserved local bundles:
 - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
   - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
   - `local-proof-pack.json` manifest with source paths, byte counts, and SHA-256 hashes
+  - generated `JUDGE_README.md` + `judge-evidence-index.json`
+- `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`
+  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from a real bounded 3-instance overlapping host-local matrix run
+  - `local-proof-pack.json` manifest with source paths, byte counts, SHA-256 hashes, and explicit overlap metrics
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
 
 See `JUDGE_EVIDENCE.md` for the judge open-order, the current honest local-proof boundary, and the live canary packaging contract.

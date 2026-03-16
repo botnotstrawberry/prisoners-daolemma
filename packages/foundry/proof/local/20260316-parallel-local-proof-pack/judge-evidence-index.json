@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "prisoners-daollema/judge-evidence-v0",
+  "generatedAt": "2026-03-16T04:00:21.888Z",
+  "title": "Prisoners DAOllema Judge Evidence Pack",
+  "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
+  "bundleType": "local-proof-pack",
+  "bundleDir": "proof/local/20260316-parallel-local-proof-pack",
+  "outputDir": "proof/local/20260316-parallel-local-proof-pack",
+  "generatedArtifacts": {
+    "humanGuide": "JUDGE_README.md",
+    "machineIndex": "judge-evidence-index.json"
+  },
+  "localProof": {
+    "kind": "proof-pack",
+    "status": "present",
+    "reportPath": null,
+    "txLogPath": null,
+    "report": null,
+    "exports": [],
+    "outcomes": [],
+    "claims": [
+      "This compact local proof pack preserves 1 copied matrix artifact set(s) rooted in validated current local runs.",
+      "parallel-local validation (3 overlapping isolated local harness instances) records 9 completed game(s), max joined players 20, and 0 unexpected failed tx(s).",
+      "This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directory are intentionally omitted here to keep the checked-in bundle compact."
+    ],
+    "packManifestPath": "local-proof-pack.json",
+    "packReadmePath": "README.md",
+    "pack": {
+      "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
+      "title": "Prisoners DAOllema preserved parallel local proof pack",
+      "generatedAt": "2026-03-16T03:58:53.501Z",
+      "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from a real current bounded multi-instance local run. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directory, and does not claim live-chain proof.",
+      "notPreserved": [
+        "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directory are intentionally omitted here to keep the checked-in bundle compact.",
+        "The copied matrix-report.json file is preserved as captured, including path references back to the original source directory on the capture machine."
+      ],
+      "remainingLocalGaps": [
+        "Host-local parallel coverage is now real but still bounded to one machine and 3 overlapping harness instances; heavier 5-10 deployment saturation remains unproven.",
+        "Broad auth-expiry chaos inside the load harness is still thin.",
+        "The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.",
+        "No Base Sepolia canary artifact bundle is preserved yet."
+      ]
+    },
+    "matrixBundles": [
+      {
+        "index": 1,
+        "id": "20260316-parallel-local-validation",
+        "label": "parallel-local validation (3 overlapping isolated local harness instances)",
+        "description": "First checked-in bounded host-local parallel stress result on the current codebase: one same-block mixed-family pass, one seeded adversarial smoke sweep, and one scale winner soak overlapped across isolated harness + Anvil instances on one machine.",
+        "sourceDir": "packages/foundry/load-harness-matrix/20260316-parallel-local-validation",
+        "matrixReportPath": "20260316-parallel-local-validation/matrix-report.json",
+        "summaryPath": "20260316-parallel-local-validation/MATRIX_SUMMARY.md",
+        "status": "present",
+        "summary": {
+          "status": "ok",
+          "presetName": "parallel-local",
+          "presetLabel": "parallel-local",
+          "startedAt": "2026-03-16T03:58:12.811Z",
+          "finishedAt": "2026-03-16T03:58:53.501Z",
+          "wallClockMs": 40690,
+          "plannedRuns": 3,
+          "completedRuns": 3,
+          "totalCompletedGames": 9,
+          "requestedScenarios": [
+            "adversarial-random",
+            "mixed",
+            "winner-all-share"
+          ],
+          "seeds": [
+            "parallel-adversarial-a",
+            "parallel-same-block-a",
+            "parallel-winner-a"
+          ],
+          "profiles": [
+            "scale",
+            "smoke"
+          ],
+          "largestRequestedPlayerCount": 20,
+          "maxJoinedPlayersInSingleGame": 20,
+          "gamesHittingRequestedPlayerTarget": 4,
+          "fullyDrainedGames": 9,
+          "replayConsistentGames": 9,
+          "txSummary": {
+            "attempted": 735,
+            "succeeded": 578,
+            "failed": 157,
+            "failedExpected": 157,
+            "failedUnexpected": 0,
+            "unexpectedSuccesses": 0
+          },
+          "breakageSummary": {
+            "gamesChecked": 9,
+            "gamesWithWedgedActiveSlot": 0,
+            "gamesWithTerminalStateMismatch": 0,
+            "gamesWithAccountingMismatch": 0,
+            "gamesWithPreviewMismatch": 0,
+            "gamesWithDrainMismatch": 0,
+            "gamesWithReplayInconsistency": 0,
+            "gamesWithUnexpectedFailures": 0,
+            "totalUnexpectedFailures": 0,
+            "probeSummary": {
+              "attempted": 145,
+              "failedAsExpected": 145,
+              "unexpectedSuccesses": 0,
+              "onchainReverts": 145,
+              "localRejections": 0
+            }
+          },
+          "terminalOutcomes": [
+            {
+              "key": "Cancelled",
+              "count": 2
+            },
+            {
+              "key": "NoWinners",
+              "count": 1
+            },
+            {
+              "key": "Winners",
+              "count": 6
+            }
+          ],
+          "terminalPaths": [
+            {
+              "key": "cancelled-refunds",
+              "count": 2
+            },
+            {
+              "key": "no-winner-routing",
+              "count": 1
+            },
+            {
+              "key": "winner-claims",
+              "count": 6
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "liveSepoliaProof": {
+    "status": "pending",
+    "preflightPath": null,
+    "deploymentSummaryPath": null,
+    "deploymentFilePath": null,
+    "verifyLogPath": null,
+    "operatorNotesPath": null,
+    "createPath": null,
+    "querySummaryPath": null,
+    "preflight": null,
+    "deployment": null,
+    "querySummary": null,
+    "queryExport": null,
+    "auth": {
+      "authStatusCount": 0,
+      "authPermitCount": 0,
+      "authStatusPaths": [],
+      "authPermitPaths": []
+    },
+    "operatorNotes": {
+      "txHashCount": 0
+    },
+    "screenshots": [],
+    "claims": []
+  },
+  "recommendedOpenOrder": [
+    {
+      "path": "README.md",
+      "why": "Compact human summary of what this preserved local proof pack includes and intentionally omits."
+    },
+    {
+      "path": "local-proof-pack.json",
+      "why": "Machine-readable manifest tying each preserved file back to the original local matrix artifact directory."
+    },
+    {
+      "path": "20260316-parallel-local-validation/matrix-report.json",
+      "why": "parallel-local validation (3 overlapping isolated local harness instances) copied matrix report: preset, seeds, tx totals, and aggregate breakage signals."
+    },
+    {
+      "path": "20260316-parallel-local-validation/MATRIX_SUMMARY.md",
+      "why": "parallel-local validation (3 overlapping isolated local harness instances) compact human summary for the same preserved local run set."
+    }
+  ],
+  "missingImportantArtifacts": [
+    "No Base Sepolia canary artifact bundle is present here yet, so this bundle does not prove live network behavior."
+  ],
+  "unknowns": [
+    "Actual Base Sepolia timing and operator comfort for the selected join/commit/reveal windows remain unproven until a live canary bundle is captured.",
+    "Explorer verification is still open until verify.log and/or explorer links are packaged from a real Sepolia deployment.",
+    "The honest live auth flavor is still open until a canary bundle records whether the run used minimal permit/register or the full SIWA-backed path.",
+    "Whether a second Sepolia scenario (cancelled or no-winner) is immediately required stays open until after the first live canary result is reviewed."
+  ],
+  "nextCapturePriorities": [
+    "Run the first Base Sepolia canary and capture preflight.json, deployment-summary.json, operator-notes.md, query/game-summary-live.json, and query/export/export-manifest.json under packages/foundry/canary/base-sepolia/<run-id>/.",
+    "If deeper local auditability is needed beyond this compact pack, preserve a full load-harness or matrix bundle with raw tx logs and per-run exports beside the copied summaries.",
+    "Save tx hashes and explorer links in operator-notes.md instead of relying on shell history or memory.",
+    "Add any judge-facing screenshots under screenshots/ before regenerating the evidence pack."
+  ]
+}

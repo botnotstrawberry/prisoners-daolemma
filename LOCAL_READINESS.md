@@ -21,9 +21,10 @@
   - phase-edge burst probes around late commit/reveal, `advancePhase`, and settlement actions
   - optional same-block no-automine ordering probes for underfilled transition, per-round last action vs `advancePhase`, and duplicate `claim` / `refund` / `withdraw` contention
 - Local soak presets now reach beyond smoke:
-  - `broader-local`, `medium-local`, `large-local`, and `xlarge-local`
+  - `broader-local`, `medium-local`, `large-local`, `xlarge-local`, and `parallel-local`
   - deterministic 32-player mixed-family coverage
   - started full-roster 32-player adversarial sweeps across multiple seeds
+  - bounded host-local multi-instance overlap via isolated harness + Anvil instances on one machine
   - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
 - Harness artifacts are machine-readable:
   - per-run `report.json` / `txs.jsonl`
@@ -31,10 +32,11 @@
   - matrix `matrix-report.json` / `MATRIX_SUMMARY.md`
 - A full preserved 250-player single-game local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, rooted in a clean winner-path run with explicit 320/320/320 local timing budgets and preserving `report.json`, `txs.jsonl`, and per-game evidence export.
 - A compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, rooted in the latest validated xlarge-local and 32-player adversarial multi-seed matrix runs.
+- A compact preserved parallel-local proof pack is now checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, rooted in a real 3-instance overlapping host-local matrix run (`parallel-local`, requested instance concurrency 3, peak active runs observed 3).
 
 ## Still not proven locally
 
-- No multi-instance parallel local stress harness yet.
+- Host-local parallel coverage is now real but still bounded: the checked-in proof reaches 3 overlapping isolated harness + Anvil instances on one machine, not the full 5-10 deployment saturation envelope sketched in `TEST_PLAN.md`.
 - No broad auth-expiry chaos coverage inside the load harness yet.
 - Same-block probes are deterministic local no-automine batches; they add useful ordering coverage, but they are not public mempool realism.
 - The repo still does **not** preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo; that preservation gap is narrowed by the separate checked-in 250-player single-game raw bundle, but it is not yet closed for the latest matrix run set.
@@ -51,10 +53,12 @@
 1. `yarn test`
 2. `yarn smoke:integration`
 3. `yarn load:harness:matrix:broader`
-4. `yarn load:harness:matrix:xlarge`
-5. inspect `packages/foundry/proof/local/20260316-250-player-single-game-proof/` for the preserved full 250-player single-game local proof bundle, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof` if needed
-6. inspect `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved compact local matrix proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack` if needed
+4. `yarn load:harness:matrix:parallel -- --instance-concurrency 3`
+5. `yarn load:harness:matrix:xlarge`
+6. inspect `packages/foundry/proof/local/20260316-250-player-single-game-proof/` for the preserved full 250-player single-game local proof bundle, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof` if needed
+7. inspect `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved compact local matrix proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack` if needed
+8. inspect `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` for the preserved compact parallel-local proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-parallel-local-proof-pack` if needed
 
 ## Bottom line
 
-Locally, the repo has moved past simple smoke testing: the current proof envelope includes deterministic scenario families, seeded adversarial breakage hunting, same-block ordering probes, a checked-in full 250-player single-game proof bundle, and a checked-in compact matrix proof pack rooted in the latest xlarge / multi-seed artifacts. The biggest remaining local-only gaps are missing multi-instance stress, broader auth-expiry chaos, and the absence of a full raw tx/export bundle for the latest xlarge / multi-seed matrix run set.
+Locally, the repo has moved past simple smoke testing: the current proof envelope includes deterministic scenario families, seeded adversarial breakage hunting, same-block ordering probes, bounded host-local parallel overlap across isolated harness instances, a checked-in full 250-player single-game proof bundle, and checked-in compact proof packs rooted in the latest xlarge / multi-seed and parallel-local artifacts. The biggest remaining local-only gaps are heavier multi-instance saturation beyond the current 3-instance host-local proof, broader auth-expiry chaos, and the absence of a full raw tx/export bundle for the latest xlarge / multi-seed matrix run set.

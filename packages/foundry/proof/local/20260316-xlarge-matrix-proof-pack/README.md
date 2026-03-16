@@ -37,9 +37,9 @@ This bundle preserves compact copies of the latest validated local matrix summar
 
 ## Remaining local-only gaps after this pack
 
-- 250-player single-game local proof is still unmet.
-- Multi-instance parallel local stress is still not implemented.
+- Host-local parallel coverage is now real but still bounded to one machine and 3 overlapping harness instances; heavier 5-10 deployment saturation remains unproven.
 - Broad auth-expiry chaos inside the load harness is still thin.
+- The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - No Base Sepolia canary artifact bundle is preserved yet.
 
 ## Judge helper

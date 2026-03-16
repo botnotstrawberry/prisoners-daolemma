@@ -22,9 +22,12 @@ Options:
                                    LOAD_HARNESS_MATRIX_PRESETS
                                  ).join(", ")}
   --runs <id[,id...]>            Optional comma-separated subset of preset run ids.
+  --instance-concurrency <n>     How many isolated harness + Anvil instances to run at once.
+                                 1 = sequential. Defaults to the preset value (parallel-local defaults to 2; others to 1).
   --out <dir>                    Output directory root. Defaults to load-harness-matrix/<timestamp>.
                                  Writes matrix-report.json plus MATRIX_SUMMARY.md.
-  --stop-on-error                Stop the matrix after the first harness-level failure.
+  --stop-on-error                Stop dispatching new runs after the first harness-level failure.
+                                 In parallel mode, already-running instances are allowed to finish.
   --json                         Print the final matrix report JSON instead of the human summary.
   --help                         Show this help text.
 
@@ -34,13 +37,17 @@ ${Object.entries(LOAD_HARNESS_MATRIX_PRESETS)
     ([name, preset]) =>
       `  - ${name}: ${preset.description}\n      runs: ${preset.runs
         .map((run) => run.id)
-        .join(", ")}`
+        .join(", ")}\n      default instance concurrency: ${
+        preset.instanceConcurrency ?? 1
+      }`
   )
   .join("\n")}
 
 Examples:
   node scripts-js/loadHarnessMatrixCli.js --preset broader-local
-  node scripts-js/loadHarnessMatrixCli.js --preset medium-local
+  node scripts-js/loadHarnessMatrixCli.js --preset medium-local --instance-concurrency 2
+  node scripts-js/loadHarnessMatrixCli.js --preset parallel-local
+  node scripts-js/loadHarnessMatrixCli.js --preset parallel-local --instance-concurrency 3
   node scripts-js/loadHarnessMatrixCli.js --preset large-local
   node scripts-js/loadHarnessMatrixCli.js --preset xlarge-local
   node scripts-js/loadHarnessMatrixCli.js --preset adversarial-smoke --json

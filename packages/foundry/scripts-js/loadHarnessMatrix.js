@@ -6,7 +6,7 @@ import { LOAD_HARNESS_BOUNDARY_NOTE, runLoadHarness } from "./loadHarness.js";
 
 export const LOAD_HARNESS_MATRIX_SCHEMA_VERSION =
   "prisoners-daollema/load-harness-matrix-v1";
-export const LOAD_HARNESS_MATRIX_BOUNDARY_NOTE = `${LOAD_HARNESS_BOUNDARY_NOTE} This matrix runner only automates multiple local harness runs and aggregates their local-dev results; it does not add live-network realism, public mempool contention, or multi-instance parallel deployment stress.`;
+export const LOAD_HARNESS_MATRIX_BOUNDARY_NOTE = `${LOAD_HARNESS_BOUNDARY_NOTE} This matrix runner automates multiple local harness runs and aggregates their local-dev results. When instanceConcurrency is greater than 1, it coordinates multiple isolated harness + Anvil instances in parallel on one host. That is still synthetic host-local stress only: it does not add live-network realism, public mempool contention, or distributed-agent behavior.`;
 export const DEFAULT_LOAD_HARNESS_MATRIX_PRESET = "broader-local";
 
 export const LOAD_HARNESS_MATRIX_CASES = {
@@ -272,6 +272,29 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
       },
     ],
   },
+  "parallel-local": {
+    label: "parallel-local",
+    description:
+      "Bounded host-local multi-instance stress: one same-block family pass, one seeded adversarial smoke sweep, and one larger scale-profile winner soak coordinated across isolated local harness + Anvil instances on the same machine.",
+    instanceConcurrency: 2,
+    runs: [
+      {
+        id: "parallel-same-block-a",
+        caseId: "smoke-mixed-same-block",
+        seed: "parallel-same-block-a",
+      },
+      {
+        id: "parallel-adversarial-a",
+        caseId: "smoke-adversarial-sweep",
+        seed: "parallel-adversarial-a",
+      },
+      {
+        id: "parallel-winner-a",
+        caseId: "scale-winner-soak",
+        seed: "parallel-winner-a",
+      },
+    ],
+  },
   "winner-scale": {
     label: "winner-scale",
     description:
@@ -344,6 +367,18 @@ function writeJsonFile(filePath, value) {
 
 function readJsonFile(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
+}
+
+function parseIntegerOption(
+  rawValue,
+  label,
+  { min = 1, max = Number.MAX_SAFE_INTEGER } = {}
+) {
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value < min || value > max) {
+    throw new Error(`${label} must be an integer between ${min} and ${max}.`);
+  }
+  return value;
 }
 
 function parseCsvList(rawValue) {
@@ -511,6 +546,16 @@ export function buildLoadHarnessMatrixPlan(rawOptions = {}) {
     throw new Error("Load harness matrix selected zero runs.");
   }
 
+  const requestedInstanceConcurrency = parseIntegerOption(
+    rawOptions.instanceConcurrency ?? preset.instanceConcurrency ?? 1,
+    "instanceConcurrency",
+    { min: 1, max: 32 }
+  );
+  const instanceConcurrency = Math.min(
+    requestedInstanceConcurrency,
+    selectedPresetRuns.length
+  );
+
   const runDir = resolveMatrixRunDir(rawOptions.out);
   const planRuns = selectedPresetRuns.map((presetRun, index) => {
     const caseDef = LOAD_HARNESS_MATRIX_CASES[presetRun.caseId];
@@ -549,6 +594,9 @@ export function buildLoadHarnessMatrixPlan(rawOptions = {}) {
     preset,
     boundaryNote: LOAD_HARNESS_MATRIX_BOUNDARY_NOTE,
     stopOnError: Boolean(rawOptions.stopOnError),
+    requestedInstanceConcurrency,
+    instanceConcurrency,
+    executionMode: instanceConcurrency > 1 ? "parallel-local" : "sequential",
     runDir,
     reportPath: join(runDir, "matrix-report.json"),
     summaryPath: join(runDir, "MATRIX_SUMMARY.md"),
@@ -609,6 +657,30 @@ function buildRunResult(plannedRun, execution) {
       runDir: plannedRun.outDir,
       report: execution.reportPath ?? join(plannedRun.outDir, "report.json"),
       txLog: execution.txLogPath ?? join(plannedRun.outDir, "txs.jsonl"),
+    },
+    execution: {
+      mode: execution.mode ?? null,
+      workerSlot: execution.workerSlot ?? null,
+      startedAt: execution.startedAt ?? null,
+      finishedAt: execution.finishedAt ?? null,
+      wallClockMs: execution.wallClockMs ?? null,
+    },
+    environment: {
+      spawnedAnvil:
+        execution.report?.environment?.spawnedAnvil ??
+        execution.spawnedAnvil ??
+        !plannedRun.harnessOptions.rpcUrl,
+      chainId: execution.report?.environment?.chainId ?? null,
+      rpcUrl:
+        execution.report?.environment?.rpcUrl ??
+        execution.rpcUrl ??
+        plannedRun.harnessOptions.rpcUrl ??
+        null,
+      anvilPort:
+        execution.report?.environment?.anvilPort ??
+        execution.anvilPort ??
+        plannedRun.harnessOptions.anvilPort ??
+        null,
     },
     config: {
       profile: String(plannedRun.harnessOptions.profile),
@@ -803,6 +875,83 @@ function buildCaseSummary(runs) {
     }));
 }
 
+function parseRunExecutionTimestamp(value) {
+  if (typeof value !== "string" || value.length === 0) {
+    return null;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function buildExecutionSummary(plan, runs) {
+  const intervals = runs
+    .map((run) => ({
+      id: run.id,
+      startedAt: run.execution?.startedAt ?? null,
+      finishedAt: run.execution?.finishedAt ?? null,
+      startMs: parseRunExecutionTimestamp(run.execution?.startedAt ?? null),
+      endMs: parseRunExecutionTimestamp(run.execution?.finishedAt ?? null),
+    }))
+    .filter((interval) => interval.startMs !== null && interval.endMs !== null);
+
+  const events = [];
+  for (const interval of intervals) {
+    events.push({ time: interval.startMs, delta: 1, order: 1 });
+    events.push({ time: interval.endMs, delta: -1, order: 0 });
+  }
+  events.sort((a, b) => a.time - b.time || a.order - b.order);
+
+  let activeRuns = 0;
+  let peakActiveRuns = 0;
+  for (const event of events) {
+    activeRuns += event.delta;
+    peakActiveRuns = Math.max(peakActiveRuns, activeRuns);
+  }
+
+  const overlappingRunPairs = [];
+  const overlappedRunIds = new Set();
+  for (let leftIndex = 0; leftIndex < intervals.length; leftIndex += 1) {
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < intervals.length;
+      rightIndex += 1
+    ) {
+      const left = intervals[leftIndex];
+      const right = intervals[rightIndex];
+      const overlapMs = Math.max(
+        0,
+        Math.min(left.endMs, right.endMs) - Math.max(left.startMs, right.startMs)
+      );
+      if (overlapMs <= 0) {
+        continue;
+      }
+      overlappingRunPairs.push({
+        leftRunId: left.id,
+        rightRunId: right.id,
+        overlapMs,
+      });
+      overlappedRunIds.add(left.id);
+      overlappedRunIds.add(right.id);
+    }
+  }
+
+  return {
+    mode: plan.executionMode,
+    requestedInstanceConcurrency: plan.requestedInstanceConcurrency,
+    instanceConcurrencyLimit: plan.instanceConcurrency,
+    peakActiveRuns,
+    runsWithAnyOverlap: overlappedRunIds.size,
+    localParallelismConfirmed:
+      plan.executionMode === "parallel-local" && peakActiveRuns > 1,
+    stopOnError: plan.stopOnError,
+    dispatchStoppedEarly:
+      plan.stopOnError && runs.length < plan.plannedRunCount,
+    overlappingRunPairs: overlappingRunPairs.sort(
+      (a, b) => b.overlapMs - a.overlapMs
+    ),
+  };
+}
+
 export function buildLoadHarnessMatrixReport({
   plan,
   runs,
@@ -943,6 +1092,7 @@ export function buildLoadHarnessMatrixReport({
     startedAt,
     finishedAt,
     wallClockMs,
+    execution: buildExecutionSummary(plan, runs),
     preset: {
       name: plan.presetName,
       label: plan.preset.label,
@@ -957,6 +1107,9 @@ export function buildLoadHarnessMatrixReport({
       plannedRunCount: plan.plannedRunCount,
       completedRunCount: runs.length,
       stopOnError: plan.stopOnError,
+      requestedInstanceConcurrency: plan.requestedInstanceConcurrency,
+      instanceConcurrency: plan.instanceConcurrency,
+      executionMode: plan.executionMode,
       runIds: plan.runs.map((run) => run.id),
       caseIds: uniqueSorted(plan.runs.map((run) => run.caseId)),
     },
@@ -1025,51 +1178,133 @@ export function buildLoadHarnessMatrixReport({
   };
 }
 
+function isMatrixRunFailure(run) {
+  return run.status !== "ok" || run.result?.harnessStatus === "failed";
+}
+
+async function executePlannedMatrixRun({
+  plannedRun,
+  workerSlot,
+  executionMode,
+  executeHarness,
+  reservedPorts,
+}) {
+  const reportPath = join(plannedRun.outDir, "report.json");
+  const txLogPath = join(plannedRun.outDir, "txs.jsonl");
+  const harnessOptions = { ...plannedRun.harnessOptions };
+
+  if (!harnessOptions.rpcUrl && harnessOptions.anvilPort === undefined) {
+    let reservedPort = null;
+    do {
+      reservedPort = await reserveFreePort();
+    } while (reservedPorts.has(reservedPort));
+    reservedPorts.add(reservedPort);
+    harnessOptions.anvilPort = reservedPort;
+  }
+
+  const startedAt = new Date().toISOString();
+
+  try {
+    const result = await executeHarness(harnessOptions);
+    const finishedAt = new Date().toISOString();
+    return buildRunResult(plannedRun, {
+      status: "ok",
+      report: result.report,
+      reportPath: result.reportPath,
+      txLogPath: result.txLogPath,
+      mode: executionMode,
+      workerSlot,
+      startedAt,
+      finishedAt,
+      wallClockMs: Date.parse(finishedAt) - Date.parse(startedAt),
+      spawnedAnvil: !harnessOptions.rpcUrl,
+      rpcUrl: harnessOptions.rpcUrl ?? null,
+      anvilPort: harnessOptions.anvilPort ?? null,
+    });
+  } catch (error) {
+    const finishedAt = new Date().toISOString();
+    const report = existsSync(reportPath) ? readJsonFile(reportPath) : null;
+    return buildRunResult(plannedRun, {
+      status: report?.status ?? "failed",
+      report,
+      reportPath: existsSync(reportPath) ? reportPath : null,
+      txLogPath: existsSync(txLogPath) ? txLogPath : null,
+      error: error?.message ?? String(error),
+      mode: executionMode,
+      workerSlot,
+      startedAt,
+      finishedAt,
+      wallClockMs: Date.parse(finishedAt) - Date.parse(startedAt),
+      spawnedAnvil: !harnessOptions.rpcUrl,
+      rpcUrl: harnessOptions.rpcUrl ?? null,
+      anvilPort: harnessOptions.anvilPort ?? null,
+    });
+  }
+}
+
 export async function runLoadHarnessMatrix(rawOptions = {}, dependencies = {}) {
   const plan = buildLoadHarnessMatrixPlan(rawOptions);
   ensureDir(plan.runDir);
 
   const executeHarness = dependencies.runLoadHarness ?? runLoadHarness;
   const startedAt = new Date().toISOString();
-  const runs = [];
+  const reservedPorts = new Set();
+  const runResults = new Array(plan.runs.length);
 
-  for (const plannedRun of plan.runs) {
-    const reportPath = join(plannedRun.outDir, "report.json");
-    const txLogPath = join(plannedRun.outDir, "txs.jsonl");
-    const harnessOptions = { ...plannedRun.harnessOptions };
+  if (plan.executionMode === "parallel-local") {
+    let cursor = 0;
+    let stopDispatch = false;
 
-    if (!harnessOptions.rpcUrl && harnessOptions.anvilPort === undefined) {
-      harnessOptions.anvilPort = await reserveFreePort();
+    async function worker(workerSlot) {
+      while (true) {
+        if (stopDispatch) {
+          return;
+        }
+
+        const plannedRun = plan.runs[cursor];
+        cursor += 1;
+        if (!plannedRun) {
+          return;
+        }
+
+        const run = await executePlannedMatrixRun({
+          plannedRun,
+          workerSlot,
+          executionMode: plan.executionMode,
+          executeHarness,
+          reservedPorts,
+        });
+        runResults[plannedRun.index - 1] = run;
+
+        if (plan.stopOnError && isMatrixRunFailure(run)) {
+          stopDispatch = true;
+        }
+      }
     }
 
-    try {
-      const result = await executeHarness(harnessOptions);
-      runs.push(
-        buildRunResult(plannedRun, {
-          status: "ok",
-          report: result.report,
-          reportPath: result.reportPath,
-          txLogPath: result.txLogPath,
-        })
-      );
-    } catch (error) {
-      const report = existsSync(reportPath) ? readJsonFile(reportPath) : null;
-      runs.push(
-        buildRunResult(plannedRun, {
-          status: report?.status ?? "failed",
-          report,
-          reportPath: existsSync(reportPath) ? reportPath : null,
-          txLogPath: existsSync(txLogPath) ? txLogPath : null,
-          error: error?.message ?? String(error),
-        })
-      );
+    await Promise.all(
+      Array.from({ length: plan.instanceConcurrency }, (_, index) =>
+        worker(index + 1)
+      )
+    );
+  } else {
+    for (const plannedRun of plan.runs) {
+      const run = await executePlannedMatrixRun({
+        plannedRun,
+        workerSlot: 1,
+        executionMode: plan.executionMode,
+        executeHarness,
+        reservedPorts,
+      });
+      runResults[plannedRun.index - 1] = run;
 
-      if (plan.stopOnError) {
+      if (plan.stopOnError && isMatrixRunFailure(run)) {
         break;
       }
     }
   }
 
+  const runs = runResults.filter(Boolean);
   const finishedAt = new Date().toISOString();
   const report = buildLoadHarnessMatrixReport({
     plan,
@@ -1120,6 +1355,15 @@ function renderLoadHarnessMatrixRunMarkdown(run) {
     `- Profile: ${run.config.profile}`,
     `- Requested scenario: ${run.config.requestedScenario}`,
     `- Requested size: ${run.config.playerCount} players / ${run.config.games} games / ${run.config.causeCount} causes / concurrency ${run.config.concurrency}`,
+    `- Execution: mode=${run.execution?.mode ?? "unknown"}, workerSlot=${
+      run.execution?.workerSlot ?? "n/a"
+    }, wallClockMs=${run.execution?.wallClockMs ?? 0}`,
+    `- Started / finished: ${run.execution?.startedAt ?? "n/a"} -> ${
+      run.execution?.finishedAt ?? "n/a"
+    }`,
+    `- Local instance: spawnedAnvil=${run.environment?.spawnedAnvil ? "yes" : "no"}, anvilPort=${
+      run.environment?.anvilPort ?? "n/a"
+    }`,
     `- Phase budgets: commit=${
       run.config.commitDurationBlocks ?? "profile-default"
     }, reveal=${run.config.revealDurationBlocks ?? "profile-default"}`,
@@ -1186,6 +1430,17 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     `- Wall clock ms: ${report.wallClockMs}`,
     `- JSON report: ${report.paths.report}`,
     `- Summary markdown: ${report.paths.summary}`,
+    "",
+    "## Execution model",
+    "",
+    `- Mode: ${report.execution.mode}`,
+    `- Requested instance concurrency: ${report.execution.requestedInstanceConcurrency}`,
+    `- Effective instance concurrency limit: ${report.execution.instanceConcurrencyLimit}`,
+    `- Peak active runs observed: ${report.execution.peakActiveRuns}`,
+    `- Runs with any overlap: ${report.execution.runsWithAnyOverlap}`,
+    `- Parallel overlap confirmed: ${report.execution.localParallelismConfirmed ? "yes" : "no"}`,
+    `- stopOnError: ${report.execution.stopOnError}`,
+    `- Dispatch stopped early: ${report.execution.dispatchStoppedEarly ? "yes" : "no"}`,
     "",
     "## Coverage",
     "",
@@ -1268,6 +1523,18 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     lines.push("");
   }
 
+  lines.push("## Parallel overlap pairs");
+  lines.push("");
+  if (report.execution.overlappingRunPairs.length > 0) {
+    for (const pair of report.execution.overlappingRunPairs) {
+      lines.push(
+        `- ${pair.leftRunId} ↔ ${pair.rightRunId}: ${pair.overlapMs} ms overlap`
+      );
+    }
+  } else {
+    lines.push("- (none)");
+  }
+  lines.push("");
   lines.push("## Runs");
   lines.push("");
   for (const run of report.runs) {
@@ -1305,6 +1572,12 @@ export function printLoadHarnessMatrixSummary(report) {
   );
   console.log(`Games total:    ${report.coverage.totalCompletedGames}`);
   console.log(
+    `Execution:      ${report.execution.mode} / requested=${report.execution.requestedInstanceConcurrency} / limit=${report.execution.instanceConcurrencyLimit} / peak=${report.execution.peakActiveRuns}`
+  );
+  console.log(
+    `Overlap:        ${report.execution.runsWithAnyOverlap} runs / confirmed=${report.execution.localParallelismConfirmed ? "yes" : "no"}`
+  );
+  console.log(
     `Tx summary:     ${report.txSummary.attempted} attempted / ${report.txSummary.succeeded} succeeded / ${report.txSummary.failed} failed`
   );
   console.log(
@@ -1339,6 +1612,13 @@ export function printLoadHarnessMatrixSummary(report) {
     console.log(`  Seed:         ${run.seed}`);
     console.log(`  Status:       ${run.status}`);
     console.log(`  Profile:      ${run.config.profile}`);
+    console.log(
+      `  Execution:    ${run.execution?.mode ?? "unknown"} / worker=${
+        run.execution?.workerSlot ?? "n/a"
+      } / wall=${run.execution?.wallClockMs ?? 0} ms / port=${
+        run.environment?.anvilPort ?? "n/a"
+      }`
+    );
     console.log(
       `  Scenario:     ${run.config.requestedScenario} (${
         run.result?.gamesCompleted ?? 0

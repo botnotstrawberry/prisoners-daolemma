@@ -1,0 +1,673 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-matrix-v1",
+  "status": "ok",
+  "boundaryNote": "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation. This matrix runner automates multiple local harness runs and aggregates their local-dev results. When instanceConcurrency is greater than 1, it coordinates multiple isolated harness + Anvil instances in parallel on one host. That is still synthetic host-local stress only: it does not add live-network realism, public mempool contention, or distributed-agent behavior.",
+  "startedAt": "2026-03-16T03:58:12.811Z",
+  "finishedAt": "2026-03-16T03:58:53.501Z",
+  "wallClockMs": 40690,
+  "execution": {
+    "mode": "parallel-local",
+    "requestedInstanceConcurrency": 3,
+    "instanceConcurrencyLimit": 3,
+    "peakActiveRuns": 3,
+    "runsWithAnyOverlap": 3,
+    "localParallelismConfirmed": true,
+    "stopOnError": false,
+    "dispatchStoppedEarly": false,
+    "overlappingRunPairs": [
+      {
+        "leftRunId": "parallel-adversarial-a",
+        "rightRunId": "parallel-winner-a",
+        "overlapMs": 37124
+      },
+      {
+        "leftRunId": "parallel-same-block-a",
+        "rightRunId": "parallel-adversarial-a",
+        "overlapMs": 20909
+      },
+      {
+        "leftRunId": "parallel-same-block-a",
+        "rightRunId": "parallel-winner-a",
+        "overlapMs": 20905
+      }
+    ]
+  },
+  "preset": {
+    "name": "parallel-local",
+    "label": "parallel-local",
+    "description": "Bounded host-local multi-instance stress: one same-block family pass, one seeded adversarial smoke sweep, and one larger scale-profile winner soak coordinated across isolated local harness + Anvil instances on the same machine."
+  },
+  "paths": {
+    "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation",
+    "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/matrix-report.json",
+    "summary": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/MATRIX_SUMMARY.md"
+  },
+  "plan": {
+    "plannedRunCount": 3,
+    "completedRunCount": 3,
+    "stopOnError": false,
+    "requestedInstanceConcurrency": 3,
+    "instanceConcurrency": 3,
+    "executionMode": "parallel-local",
+    "runIds": [
+      "parallel-same-block-a",
+      "parallel-adversarial-a",
+      "parallel-winner-a"
+    ],
+    "caseIds": [
+      "scale-winner-soak",
+      "smoke-adversarial-sweep",
+      "smoke-mixed-same-block"
+    ]
+  },
+  "coverage": {
+    "seeds": [
+      "parallel-adversarial-a",
+      "parallel-same-block-a",
+      "parallel-winner-a"
+    ],
+    "profiles": [
+      "scale",
+      "smoke"
+    ],
+    "requestedScenarios": [
+      "adversarial-random",
+      "mixed",
+      "winner-all-share"
+    ],
+    "scenarioPlans": [
+      {
+        "key": "adversarial-random, adversarial-random, adversarial-random, adversarial-random",
+        "count": 1
+      },
+      {
+        "key": "winner-all-share, cancelled-underfilled, no-winner-all-catch",
+        "count": 1
+      },
+      {
+        "key": "winner-all-share, winner-all-share",
+        "count": 1
+      }
+    ],
+    "sameBlockEnabledRuns": 2,
+    "expectedFailuresEnabledRuns": 1,
+    "largestRequestedPlayerCount": 20,
+    "totalRequestedGames": 9,
+    "totalCompletedGames": 9
+  },
+  "runStatusSummary": [
+    {
+      "key": "ok",
+      "count": 3
+    }
+  ],
+  "txSummary": {
+    "attempted": 735,
+    "succeeded": 578,
+    "failed": 157,
+    "failedExpected": 157,
+    "failedUnexpected": 0,
+    "unexpectedSuccesses": 0
+  },
+  "sameBlockSummary": {
+    "attemptedBatches": 34,
+    "minedBatches": 34,
+    "attemptedTxs": 84,
+    "expectedFailures": 34,
+    "unexpectedFailures": 0,
+    "unexpectedSuccesses": 0,
+    "skipped": 16
+  },
+  "scenarioSummary": {
+    "byTerminalOutcome": [
+      {
+        "key": "Cancelled",
+        "count": 2
+      },
+      {
+        "key": "NoWinners",
+        "count": 1
+      },
+      {
+        "key": "Winners",
+        "count": 6
+      }
+    ],
+    "byTerminalPath": [
+      {
+        "key": "cancelled-refunds",
+        "count": 2
+      },
+      {
+        "key": "no-winner-routing",
+        "count": 1
+      },
+      {
+        "key": "winner-claims",
+        "count": 6
+      }
+    ]
+  },
+  "localScaleReadiness": {
+    "maxJoinedPlayersInSingleGame": 20,
+    "totalJoinedPlayersAcrossRun": 72,
+    "gamesHittingRequestedPlayerTarget": 4,
+    "fullyDrainedGames": 9,
+    "replayConsistentGames": 9
+  },
+  "breakageSummary": {
+    "gamesChecked": 9,
+    "gamesWithWedgedActiveSlot": 0,
+    "gamesWithTerminalStateMismatch": 0,
+    "gamesWithAccountingMismatch": 0,
+    "gamesWithPreviewMismatch": 0,
+    "gamesWithDrainMismatch": 0,
+    "gamesWithReplayInconsistency": 0,
+    "gamesWithUnexpectedFailures": 0,
+    "totalUnexpectedFailures": 0,
+    "probeSummary": {
+      "attempted": 145,
+      "failedAsExpected": 145,
+      "unexpectedSuccesses": 0,
+      "onchainReverts": 145,
+      "localRejections": 0
+    }
+  },
+  "unexpectedFailureClusters": [],
+  "caseSummary": [
+    {
+      "caseId": "scale-winner-soak",
+      "label": "scale-winner-soak",
+      "description": "Larger local winner-path drain rehearsal on the scale profile, still bounded and local-only, with enough phase budget to avoid accidentally timing out a fully populated round.",
+      "runs": 1,
+      "seeds": [
+        "parallel-winner-a"
+      ],
+      "profiles": [
+        "scale"
+      ],
+      "requestedScenarios": [
+        "winner-all-share"
+      ],
+      "totalGamesCompleted": 2,
+      "txAttempted": 330,
+      "txFailedExpected": 0,
+      "txFailedUnexpected": 0,
+      "unexpectedSuccesses": 0,
+      "maxJoinedPlayersInSingleGame": 20,
+      "totalJoinedPlayersAcrossRuns": 40,
+      "sameBlockBatches": 0,
+      "sameBlockExpectedFailures": 0,
+      "probeFailedAsExpected": 0,
+      "terminalOutcomes": [
+        {
+          "key": "Winners",
+          "count": 2
+        }
+      ],
+      "breakageSummary": {
+        "gamesWithWedgedActiveSlot": 0,
+        "gamesWithTerminalStateMismatch": 0,
+        "gamesWithAccountingMismatch": 0,
+        "gamesWithPreviewMismatch": 0,
+        "gamesWithDrainMismatch": 0,
+        "gamesWithReplayInconsistency": 0,
+        "totalUnexpectedFailures": 0
+      }
+    },
+    {
+      "caseId": "smoke-adversarial-sweep",
+      "label": "smoke-adversarial-sweep",
+      "description": "Seeded adversarial local breakage hunting across repeated games with mixed started-vs-underfilled outcomes, wrong-preimage probes, deadline pressure, and same-block edge batches.",
+      "runs": 1,
+      "seeds": [
+        "parallel-adversarial-a"
+      ],
+      "profiles": [
+        "smoke"
+      ],
+      "requestedScenarios": [
+        "adversarial-random"
+      ],
+      "totalGamesCompleted": 4,
+      "txAttempted": 274,
+      "txFailedExpected": 130,
+      "txFailedUnexpected": 0,
+      "unexpectedSuccesses": 0,
+      "maxJoinedPlayersInSingleGame": 8,
+      "totalJoinedPlayersAcrossRuns": 18,
+      "sameBlockBatches": 19,
+      "sameBlockExpectedFailures": 19,
+      "probeFailedAsExpected": 130,
+      "terminalOutcomes": [
+        {
+          "key": "Cancelled",
+          "count": 1
+        },
+        {
+          "key": "Winners",
+          "count": 3
+        }
+      ],
+      "breakageSummary": {
+        "gamesWithWedgedActiveSlot": 0,
+        "gamesWithTerminalStateMismatch": 0,
+        "gamesWithAccountingMismatch": 0,
+        "gamesWithPreviewMismatch": 0,
+        "gamesWithDrainMismatch": 0,
+        "gamesWithReplayInconsistency": 0,
+        "totalUnexpectedFailures": 0
+      }
+    },
+    {
+      "caseId": "smoke-mixed-same-block",
+      "label": "smoke-mixed-same-block",
+      "description": "Repeat the deterministic winner/cancelled/no-winner family with same-block ordering probes enabled so the full local settlement family gets one auditable repeated pass.",
+      "runs": 1,
+      "seeds": [
+        "parallel-same-block-a"
+      ],
+      "profiles": [
+        "smoke"
+      ],
+      "requestedScenarios": [
+        "mixed"
+      ],
+      "totalGamesCompleted": 3,
+      "txAttempted": 131,
+      "txFailedExpected": 27,
+      "txFailedUnexpected": 0,
+      "unexpectedSuccesses": 0,
+      "maxJoinedPlayersInSingleGame": 6,
+      "totalJoinedPlayersAcrossRuns": 14,
+      "sameBlockBatches": 15,
+      "sameBlockExpectedFailures": 15,
+      "probeFailedAsExpected": 15,
+      "terminalOutcomes": [
+        {
+          "key": "Cancelled",
+          "count": 1
+        },
+        {
+          "key": "NoWinners",
+          "count": 1
+        },
+        {
+          "key": "Winners",
+          "count": 1
+        }
+      ],
+      "breakageSummary": {
+        "gamesWithWedgedActiveSlot": 0,
+        "gamesWithTerminalStateMismatch": 0,
+        "gamesWithAccountingMismatch": 0,
+        "gamesWithPreviewMismatch": 0,
+        "gamesWithDrainMismatch": 0,
+        "gamesWithReplayInconsistency": 0,
+        "totalUnexpectedFailures": 0
+      }
+    }
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "id": "parallel-same-block-a",
+      "caseId": "smoke-mixed-same-block",
+      "label": "smoke-mixed-same-block",
+      "description": "Repeat the deterministic winner/cancelled/no-winner family with same-block ordering probes enabled so the full local settlement family gets one auditable repeated pass.",
+      "seed": "parallel-same-block-a",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/01-parallel-same-block-a",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/01-parallel-same-block-a/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/01-parallel-same-block-a/txs.jsonl"
+      },
+      "execution": {
+        "mode": "parallel-local",
+        "workerSlot": 1,
+        "startedAt": "2026-03-16T03:58:12.822Z",
+        "finishedAt": "2026-03-16T03:58:33.739Z",
+        "wallClockMs": 20917
+      },
+      "environment": {
+        "spawnedAnvil": true,
+        "chainId": 31337,
+        "rpcUrl": "http://127.0.0.1:41601",
+        "anvilPort": 41601
+      },
+      "config": {
+        "profile": "smoke",
+        "playerCount": 6,
+        "causeCount": 3,
+        "games": 3,
+        "concurrency": 3,
+        "requestedScenario": "mixed",
+        "sameBlockProbes": true,
+        "expectedFailures": true,
+        "commitDurationBlocks": null,
+        "revealDurationBlocks": null,
+        "skipCommitRate": 0,
+        "skipRevealRate": 0,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0,
+        "probeRate": 0
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "sequential",
+        "wallClockMs": 20895,
+        "gamesCompleted": 3,
+        "scenarioPlan": [
+          "winner-all-share",
+          "cancelled-underfilled",
+          "no-winner-all-catch"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Cancelled",
+            "count": 1
+          },
+          {
+            "key": "NoWinners",
+            "count": 1
+          },
+          {
+            "key": "Winners",
+            "count": 1
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "cancelled-refunds",
+            "count": 1
+          },
+          {
+            "key": "no-winner-routing",
+            "count": 1
+          },
+          {
+            "key": "winner-claims",
+            "count": 1
+          }
+        ],
+        "txSummary": {
+          "attempted": 131,
+          "succeeded": 104,
+          "failed": 27,
+          "failedExpected": 27,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": true,
+          "attemptedBatches": 15,
+          "minedBatches": 15,
+          "attemptedTxs": 38,
+          "expectedFailures": 15,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 6,
+          "totalJoinedPlayersAcrossRun": 14,
+          "gamesHittingRequestedPlayerTarget": 2,
+          "fullyDrainedGames": 3,
+          "replayConsistentGames": 3
+        },
+        "breakageSummary": {
+          "gamesChecked": 3,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 15,
+            "failedAsExpected": 15,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 15,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    },
+    {
+      "index": 2,
+      "id": "parallel-adversarial-a",
+      "caseId": "smoke-adversarial-sweep",
+      "label": "smoke-adversarial-sweep",
+      "description": "Seeded adversarial local breakage hunting across repeated games with mixed started-vs-underfilled outcomes, wrong-preimage probes, deadline pressure, and same-block edge batches.",
+      "seed": "parallel-adversarial-a",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/02-parallel-adversarial-a",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/02-parallel-adversarial-a/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/02-parallel-adversarial-a/txs.jsonl"
+      },
+      "execution": {
+        "mode": "parallel-local",
+        "workerSlot": 2,
+        "startedAt": "2026-03-16T03:58:12.830Z",
+        "finishedAt": "2026-03-16T03:58:49.958Z",
+        "wallClockMs": 37128
+      },
+      "environment": {
+        "spawnedAnvil": true,
+        "chainId": 31337,
+        "rpcUrl": "http://127.0.0.1:33755",
+        "anvilPort": 33755
+      },
+      "config": {
+        "profile": "smoke",
+        "playerCount": 12,
+        "causeCount": 4,
+        "games": 4,
+        "concurrency": 6,
+        "requestedScenario": "adversarial-random",
+        "sameBlockProbes": true,
+        "expectedFailures": false,
+        "commitDurationBlocks": 24,
+        "revealDurationBlocks": 24,
+        "skipCommitRate": 0.25,
+        "skipRevealRate": 0.25,
+        "underfilledRate": 0.2,
+        "invalidRevealRate": 0.15,
+        "probeRate": 0.6
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "sequential",
+        "wallClockMs": 37109,
+        "gamesCompleted": 4,
+        "scenarioPlan": [
+          "adversarial-random",
+          "adversarial-random",
+          "adversarial-random",
+          "adversarial-random"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Cancelled",
+            "count": 1
+          },
+          {
+            "key": "Winners",
+            "count": 3
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "cancelled-refunds",
+            "count": 1
+          },
+          {
+            "key": "winner-claims",
+            "count": 3
+          }
+        ],
+        "txSummary": {
+          "attempted": 274,
+          "succeeded": 144,
+          "failed": 130,
+          "failedExpected": 130,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": true,
+          "attemptedBatches": 19,
+          "minedBatches": 19,
+          "attemptedTxs": 46,
+          "expectedFailures": 19,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 16
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 8,
+          "totalJoinedPlayersAcrossRun": 18,
+          "gamesHittingRequestedPlayerTarget": 0,
+          "fullyDrainedGames": 4,
+          "replayConsistentGames": 4
+        },
+        "breakageSummary": {
+          "gamesChecked": 4,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 130,
+            "failedAsExpected": 130,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 130,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    },
+    {
+      "index": 3,
+      "id": "parallel-winner-a",
+      "caseId": "scale-winner-soak",
+      "label": "scale-winner-soak",
+      "description": "Larger local winner-path drain rehearsal on the scale profile, still bounded and local-only, with enough phase budget to avoid accidentally timing out a fully populated round.",
+      "seed": "parallel-winner-a",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/03-parallel-winner-a",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/03-parallel-winner-a/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-parallel-local-validation/runs/03-parallel-winner-a/txs.jsonl"
+      },
+      "execution": {
+        "mode": "parallel-local",
+        "workerSlot": 3,
+        "startedAt": "2026-03-16T03:58:12.834Z",
+        "finishedAt": "2026-03-16T03:58:53.501Z",
+        "wallClockMs": 40667
+      },
+      "environment": {
+        "spawnedAnvil": true,
+        "chainId": 31337,
+        "rpcUrl": "http://127.0.0.1:33429",
+        "anvilPort": 33429
+      },
+      "config": {
+        "profile": "scale",
+        "playerCount": 20,
+        "causeCount": 6,
+        "games": 2,
+        "concurrency": 8,
+        "requestedScenario": "winner-all-share",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "commitDurationBlocks": 40,
+        "revealDurationBlocks": 40,
+        "skipCommitRate": 0.1,
+        "skipRevealRate": 0.15,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0,
+        "probeRate": 0
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "sequential",
+        "wallClockMs": 40648,
+        "gamesCompleted": 2,
+        "scenarioPlan": [
+          "winner-all-share",
+          "winner-all-share"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 2
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 2
+          }
+        ],
+        "txSummary": {
+          "attempted": 330,
+          "succeeded": 330,
+          "failed": 0,
+          "failedExpected": 0,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 20,
+          "totalJoinedPlayersAcrossRun": 40,
+          "gamesHittingRequestedPlayerTarget": 2,
+          "fullyDrainedGames": 2,
+          "replayConsistentGames": 2
+        },
+        "breakageSummary": {
+          "gamesChecked": 2,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 0,
+            "failedAsExpected": 0,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 0,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    }
+  ]
+}
