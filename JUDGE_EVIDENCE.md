@@ -11,7 +11,7 @@ It is intentionally conservative:
 
 ## Current honest status
 
-Right now this repo has six evidence layers:
+Right now this repo has seven evidence layers:
 
 1. **Code + tests**
    - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth / game / query surface is wired together locally
@@ -26,10 +26,13 @@ Right now this repo has six evidence layers:
    - `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` is checked in now
    - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs
    - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
-5. **Operator-ready broader local artifact tooling**
+5. **Preserved raw 10-instance host-local saturation proof bundle**
+   - `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` is checked in now
+   - it preserves the raw `matrix-report.json`, `MATRIX_SUMMARY.md`, per-run `report.json` / `txs.jsonl`, and copied hash manifest from a clean bounded 10-instance host-local saturation attempt
+6. **Operator-ready broader local artifact tooling**
    - the repo can still generate fuller local harness and matrix artifacts plus judge-facing indexes for an existing bundle
-   - the latest status tracking says local validation now extends through the preserved 250-player proof plus bounded xlarge / multi-seed and bounded parallel-local runs
-6. **Sepolia packaging readiness**
+   - the latest status tracking says local validation now extends through the preserved 250-player proof, bounded xlarge / multi-seed coverage, the compact parallel-local pack, and the raw 10-instance host-local saturation bundle
+7. **Sepolia packaging readiness**
    - `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md` define the live artifact contract
    - they do **not** by themselves prove that the live run already happened
 
@@ -88,14 +91,28 @@ What they prove:
 - three started full-roster 32-player adversarial sweeps across multiple seeds
 - zero unexpected failures and zero recorded wedge/terminal/accounting/preview/drain/replay mismatches in those preserved matrix summaries
 
-### 6. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/JUDGE_README.md`
+### 6. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/README.md`
+
+What it proves:
+
+- the repo now also ships a preserved **raw** host-local saturation bundle, not just compact copied parallel-local summaries
+- the strongest preserved clean host-local overlap proof now reaches 10 isolated harness + Anvil instances on one machine
+
+### 7. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/matrix-report.json`
+
+What it proves:
+
+- requested instance concurrency 10, peak active runs observed 10, and overlap confirmed yes
+- 10/10 completed runs, 28 total games, 0 unexpected failures, and 0 recorded wedge/terminal/accounting/preview/drain/replay mismatches in the preserved raw matrix report
+
+### 8. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/JUDGE_README.md`
 
 What it proves:
 
 - the repo now also ships a compact preserved proof pack for bounded host-local multi-instance overlap
-- the compact bundle stays honest about being local-only and explicitly records that the strongest preserved run reached 6 overlapping isolated harness + Anvil instances on one machine
+- the compact bundle stays honest about being local-only and explicitly records copied overlap evidence through 6 isolated harness + Anvil instances on one machine
 
-### 7. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/local-proof-pack.json`
+### 9. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/local-proof-pack.json`
 
 What it proves:
 
@@ -103,14 +120,14 @@ What it proves:
 - byte counts and SHA-256 hashes for every copied artifact
 - the requested instance concurrency, peak active runs, and overlap pairs preserved from those real local runs
 
-### 8. `LOCAL_READINESS.md` and `TEST_PLAN.md`
+### 10. `LOCAL_READINESS.md` and `TEST_PLAN.md`
 
 What they prove:
 
 - the current done-locally vs not-yet-proven vs externally-blocked split
 - that the repo tracks the remaining local-only gaps explicitly instead of overselling the compact packs
 
-### 9. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
+### 11. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
 
 What they prove:
 

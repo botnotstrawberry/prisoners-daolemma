@@ -1,0 +1,167 @@
+Planned run dir: /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt
+- slot 1: adversarial-a (smoke-adversarial-sweep) seed=adversarial-a anvilPort=42619
+- slot 2: adversarial-b (smoke-adversarial-sweep) seed=adversarial-b anvilPort=44979
+- slot 3: adversarial-c (smoke-adversarial-sweep) seed=adversarial-c anvilPort=40941
+- slot 4: adversarial-d (smoke-adversarial-sweep) seed=adversarial-d anvilPort=42055
+- slot 5: scale-winner-a (scale-winner-soak) seed=scale-winner-a anvilPort=43275
+- slot 6: scale-winner-b (scale-winner-soak) seed=scale-winner-b anvilPort=34299
+- slot 7: scale-winner-c (scale-winner-soak) seed=scale-winner-c anvilPort=33543
+- slot 8: scale-winner-d (scale-winner-soak) seed=scale-winner-d anvilPort=38737
+- slot 9: scale-winner-e (scale-winner-soak) seed=scale-winner-e anvilPort=46233
+- slot 10: scale-winner-f (scale-winner-soak) seed=scale-winner-f anvilPort=37745
+
+
+
+🏋️ Prisoners DAOllema load harness matrix summary
+Status:         ok
+Preset:         host-local-saturation-c10-custom
+Run dir:        /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt
+Runs:           10/10
+Seeds:          adversarial-a, adversarial-b, adversarial-c, adversarial-d, scale-winner-a, scale-winner-b, scale-winner-c, scale-winner-d, scale-winner-e, scale-winner-f
+Profiles:       scale, smoke
+Req scenarios:  adversarial-random, winner-all-share
+Games total:    28
+Execution:      parallel-local / requested=10 / limit=10 / peak=10
+Overlap:        10 runs / confirmed=yes
+Tx summary:     3234 attempted / 2764 succeeded / 470 failed
+Tx unexpected:  0 failed / 0 unexpected success
+Same-block:     79 batches / 192 tx / 79 expected failures
+Exp failures:   tx=470, probes=470, onchain=470, same-block=79
+Probe summary:  470/470 expected failures, 0 unexpected success
+Breakage:       wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+Outcomes:       Cancelled=3, Winners=25
+Terminal paths: cancelled-refunds=3, winner-claims=25
+
+Run 01 — adversarial-a
+  Case:         smoke-adversarial-sweep
+  Seed:         adversarial-a
+  Status:       ok
+  Profile:      smoke
+  Execution:    parallel-local / worker=1 / wall=82752 ms / port=42619
+  Scenario:     adversarial-random (4 games)
+  Outcomes:     Cancelled=2, Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=75, probes=75, onchain=75, same-block=17
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/01-adversarial-a/report.json
+
+Run 02 — adversarial-b
+  Case:         smoke-adversarial-sweep
+  Seed:         adversarial-b
+  Status:       ok
+  Profile:      smoke
+  Execution:    parallel-local / worker=2 / wall=88713 ms / port=44979
+  Scenario:     adversarial-random (4 games)
+  Outcomes:     Cancelled=1, Winners=3
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=105, probes=105, onchain=105, same-block=16
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/02-adversarial-b/report.json
+
+Run 03 — adversarial-c
+  Case:         smoke-adversarial-sweep
+  Seed:         adversarial-c
+  Status:       ok
+  Profile:      smoke
+  Execution:    parallel-local / worker=3 / wall=108036 ms / port=40941
+  Scenario:     adversarial-random (4 games)
+  Outcomes:     Winners=4
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=143, probes=143, onchain=143, same-block=24
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/03-adversarial-c/report.json
+
+Run 04 — adversarial-d
+  Case:         smoke-adversarial-sweep
+  Seed:         adversarial-d
+  Status:       ok
+  Profile:      smoke
+  Execution:    parallel-local / worker=4 / wall=123356 ms / port=42055
+  Scenario:     adversarial-random (4 games)
+  Outcomes:     Winners=4
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=147, probes=147, onchain=147, same-block=22
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/04-adversarial-d/report.json
+
+Run 05 — scale-winner-a
+  Case:         scale-winner-soak
+  Seed:         scale-winner-a
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=5 / wall=90225 ms / port=43275
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/05-scale-winner-a/report.json
+
+Run 06 — scale-winner-b
+  Case:         scale-winner-soak
+  Seed:         scale-winner-b
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=6 / wall=87635 ms / port=34299
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/06-scale-winner-b/report.json
+
+Run 07 — scale-winner-c
+  Case:         scale-winner-soak
+  Seed:         scale-winner-c
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=7 / wall=88022 ms / port=33543
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/07-scale-winner-c/report.json
+
+Run 08 — scale-winner-d
+  Case:         scale-winner-soak
+  Seed:         scale-winner-d
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=8 / wall=86714 ms / port=38737
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/08-scale-winner-d/report.json
+
+Run 09 — scale-winner-e
+  Case:         scale-winner-soak
+  Seed:         scale-winner-e
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=9 / wall=87854 ms / port=46233
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/09-scale-winner-e/report.json
+
+Run 10 — scale-winner-f
+  Case:         scale-winner-soak
+  Seed:         scale-winner-f
+  Status:       ok
+  Profile:      scale
+  Execution:    parallel-local / worker=10 / wall=88303 ms / port=37745
+  Scenario:     winner-all-share (2 games)
+  Outcomes:     Winners=2
+  Tx unexpected:0 failed / 0 unexpected success
+  Exp failures: tx=0, probes=0, onchain=0, same-block=0
+  Breakage:     wedge=0, terminal=0, accounting=0, preview=0, drain=0, replay=0, unexpected=0
+  Report:       /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/runs/10-scale-winner-f/report.json
+
+Matrix report:  /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/matrix-report.json
+Summary MD:     /root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c10-attempt/MATRIX_SUMMARY.md
+Boundary note:  This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation. This matrix runner automates multiple local harness runs and aggregates their local-dev results. When instanceConcurrency is greater than 1, it coordinates multiple isolated harness + Anvil instances in parallel on one host. That is still synthetic host-local stress only: it does not add live-network realism, public mempool contention, or distributed-agent behavior.

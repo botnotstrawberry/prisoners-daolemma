@@ -1,0 +1,1382 @@
+{
+  "gameId": 1,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 289,
+      "timestamp": 1773642551
+    },
+    "logRange": {
+      "requestedFromBlock": 25,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 25,
+      "resolvedToBlock": 289,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "rounds": [
+    {
+      "gameId": 1,
+      "round": 1,
+      "phaseWindows": {
+        "commitStartBlock": 39,
+        "commitDeadlineBlock": null,
+        "revealStartBlock": 81,
+        "revealDeadlineBlock": null
+      },
+      "phaseAtExport": "Ended",
+      "activePlayers": [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+        "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+        "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+        "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+        "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+        "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+        "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+        "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+        "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+        "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+        "0xdD2FD4581271e230360230F9337D5c0430Bf44C0"
+      ],
+      "commits": [
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "commitment": "0x6e44b938c9b002ef4632f442c1ee542ef872943a2780b4f9e5c028e578b25660",
+          "txHash": "0x1d3d3a974f070b8c304f56ea285f2a6d0612e60cea362678049c0d4bfbf8fd81",
+          "blockNumber": 40
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "commitment": "0x6cbfb9a1424f4f1497a75cc4b36914b6bf5fb41f3580770e560e5f3a3e55a432",
+          "txHash": "0xb4a5ffe03721d14f109b899a3ed50a6817a909e55a4b456bc5b0146a5d6d94fb",
+          "blockNumber": 41
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "commitment": "0x2be01589ac72cdd833cac9bcd0c01505489ebd3cd1eb2ed04567f52c8abef0ea",
+          "txHash": "0xf68e0bb3982d3d975e9e05fad05b76d4617d4927afbad7c4dcbb3ac74cdb673c",
+          "blockNumber": 42
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "commitment": "0xd06ab2f4028bb3eb4aa4d5625b4b48c2637d25f83aa34f4439bd7205f6082f3c",
+          "txHash": "0x80ff3da7ff4890e54fd1ea74aa6cc47f3e00e1a9434de922828f2591390d82ca",
+          "blockNumber": 43
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "commitment": "0xafe0672883b862f5d5fd0de8c4e9190f4f78a3af001249b6ac9cf5cd66fefbb8",
+          "txHash": "0xb969084c58c393b1e720287a67f571d1c52c545c2314a16ab0a8e2cddcbd3c67",
+          "blockNumber": 44
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "commitment": "0x134be9cbf63234b3b716458e7febca26fda884002e0acb241698c8a3cef9d3b2",
+          "txHash": "0xb92ee765c5afc8e0461f1ed9b8bd4717f128acbe3fcc41634911c07f8f570811",
+          "blockNumber": 45
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "commitment": "0xc0997075b871f125539e783e0cd69dfad5d6d34a718bf3e9e6b2478cbc663f4f",
+          "txHash": "0x0f23152fe42cfae2d3a70d04d3ec84680b16a8c30e72d3884cb48a50042241fa",
+          "blockNumber": 46
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "commitment": "0x8019b66c5a7ed5d5283c6308fb4682734e31708e3228f1a1ba76f2024eb4206c",
+          "txHash": "0x400fe01f95bb2a3b6c265847a7574111e689c1979a0619d00dc03d1e24286238",
+          "blockNumber": 47
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "commitment": "0xf8d8e8bd8c96bc03777d2e5636a0efbf20690246066221178ebf7124103bca07",
+          "txHash": "0x0bc256a271c41cbb024c07101eef985c8a776580128ab86851cedf994c5fe172",
+          "blockNumber": 48
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "commitment": "0xebdf7d3411c392fae4874ea74402907868642f1bee27b023e0187ce860bd9b02",
+          "txHash": "0x3c983eaf52c9889b98ea324251fd1c95864de773002bcb99576caf70adfd2f83",
+          "blockNumber": 49
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "commitment": "0x86fd6aafd5d5e41491d7993147c8c56223fe4a10421f5c7dce8223e8042bd081",
+          "txHash": "0x45cf6a88cd756753b48c911cf34d909642cd9f978011c012b963e86033a22876",
+          "blockNumber": 50
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "commitment": "0x91aeda7c839f9b5e9fa6e37f5ce873a18040c4af98ba0b5b0b1e219918c27cf5",
+          "txHash": "0x1c877a27afb1fb475f60176f0e55bc721158a30947e74e5d70ad26cffacb056d",
+          "blockNumber": 51
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "commitment": "0x9f349bb622a3a3d339d3ff44c05cdd50910654f607da7bfcd93420b7d6039df2",
+          "txHash": "0x4b03cbb27fcd54246a0c91a7973e53687bc7478ced65f707e04b17e7f70952a3",
+          "blockNumber": 52
+        },
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "commitment": "0xe2c32309b0ff6069b8ec566b972969f042944493b419cfe4f8c56bed1da38f4a",
+          "txHash": "0x4625b561ca396d2b7230bfe80d4ee7220c4c41a0fabf9008ed40dddfdd2a0810",
+          "blockNumber": 53
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "commitment": "0x080848e817147909f8813137f8f44b18c39de7a3b26818c840a6154b912639e0",
+          "txHash": "0x4f284d7367c68f825c424b6c8d59ad1b7c79893af4cee33b8205ed21fd5aee87",
+          "blockNumber": 54
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "commitment": "0xe18066396954ca50e4abbcc4ac9bd642c32993e464cb0ced2aafcb61fd5c717a",
+          "txHash": "0x74d95af791e4955e32053b5263ffc774609e6841f6fd1e298d515b644eae0975",
+          "blockNumber": 55
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "commitment": "0xf053e586bb49d773e972dc281cdabe9e36ad0fd5b29537041ee91c6879413842",
+          "txHash": "0x51b24a7efb4ccf63a0c0d73b6b7836eb08dc0f1447837a5babc1942537be03f4",
+          "blockNumber": 56
+        }
+      ],
+      "reveals": [
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xc59e3ae4b82127d6e31ec845123f45166a79e8ea5334ecc78d2fb843fc290fa8",
+          "blockNumber": 82
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xfaa3f80ffa1bb762404b84a669a6079d0e00d3405e2718445a440b99f4744ea8",
+          "blockNumber": 82
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x83705b5bc9a8692dd6f23e874290e19872d3499da6b869413215de4f59cd2ab0",
+          "blockNumber": 82
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x72649f64b1b0bead367e4c3e4842fd2e05867837a121b401729cf7eeff8eca0e",
+          "blockNumber": 83
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x0362cd50bd12c75a702583a4b3a6b65db4fe9e342d98aacf321f19450a1b143a",
+          "blockNumber": 83
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x8080e1e37ea955999caeb57ec9f3e58cb4afe239232616a0ce9be7ce5d424bda",
+          "blockNumber": 83
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xd6194f0f23a74fdc6f494145bd3d7055b073b083a04db0e4dcc36e78a5e9f3ac",
+          "blockNumber": 83
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xc42f98b368d9df59ab61bc7e8f8c52cafda27ef4fab9c9a30d93acacceb2c5fa",
+          "blockNumber": 83
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x425191c7c150dad7d6e850a996326ec0974618e830ec7bb6eed5413f18d6d93a",
+          "blockNumber": 84
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x13221ec06bacb2b87909a695e644405f8e108161bd7c2f37804e9f7587b3f516",
+          "blockNumber": 84
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xf6ea2a127a7b9e8517d230b582403f17c673f2f0aca7d32c3c6eab220f7455d4",
+          "blockNumber": 85
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xe9becb9a4999b0db92ffabc6c132695ab150bb6f3397f2b324e28a8f956175c7",
+          "blockNumber": 86
+        },
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x7b3d4f6e3368127e978881f76b9838114876859e37cfb2fcb2fd695ef70a37e5",
+          "blockNumber": 86
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x771dca8e86d2bcc58862342b2ed3b58d470d6ecc606c08e99921fb6590f9745d",
+          "blockNumber": 86
+        }
+      ],
+      "effectiveChoices": [
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+          "blockNumber": 123
+        }
+      ],
+      "eliminated": [],
+      "resolution": {
+        "sharers": 20,
+        "catchers": 0,
+        "stealers": 0,
+        "eliminatedCount": 0,
+        "aliveCount": 20,
+        "shareStreak": 1,
+        "txHash": "0x0d32126a04513c7dc49aeca552f5200651961f73a64bcfa0c2a4c81aced8a1fb",
+        "blockNumber": 123
+      },
+      "terminalState": null,
+      "shareStreak": 1,
+      "resolutionAvailable": true,
+      "settlementAvailable": false,
+      "notes": [
+        "Only the current round carries onchain deadline counters in game snapshot state; earlier round deadlines are not backfilled."
+      ]
+    },
+    {
+      "gameId": 1,
+      "round": 2,
+      "phaseWindows": {
+        "commitStartBlock": 123,
+        "commitDeadlineBlock": null,
+        "revealStartBlock": 165,
+        "revealDeadlineBlock": null
+      },
+      "phaseAtExport": "Ended",
+      "activePlayers": [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+        "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+        "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+        "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+        "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+        "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+        "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+        "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+        "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+        "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+        "0xdD2FD4581271e230360230F9337D5c0430Bf44C0"
+      ],
+      "commits": [
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "commitment": "0x6aef65696d8555dd341a84e974df87293472b49f5eafc5af75966bd4bfe34094",
+          "txHash": "0x7e0e49320cd768061642d66334f3343ad684d0d8a2e2cbba960c50ba50db74a6",
+          "blockNumber": 124
+        },
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "commitment": "0x1d0b6e5d4a962544d2352ddbbfbb896a4c6ea52e0649b22cce588cfe79184a92",
+          "txHash": "0xf03ac342bfd7f8a28eae52156f1e47a50799a7373d26590bacb940477ced1326",
+          "blockNumber": 125
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "commitment": "0xf957c16deb22a925062edeb9212b9b156938a5fe98785031ae01c885182017cd",
+          "txHash": "0xaa5d7dcfb3bf30ebd5ef3151bdc9b908220c5f9f560f8c63c2d0039a11a0d860",
+          "blockNumber": 125
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "commitment": "0xab7c0c4175be80b78fd05eb376ff7cc4c18cd210a64bfcc2a36c0d12fc1cb059",
+          "txHash": "0xb0b2a162f6b398a399683acf1905367af03e49387a896e3ccec90adf93c702f3",
+          "blockNumber": 126
+        },
+        {
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "commitment": "0x1a2848abbfffb17be47d2fe10dc251c118999b6c7d4dc839d1630f16b4b0cc2e",
+          "txHash": "0xa88f672a1b6f2cfe5af893819493fffcd1e2db77986e34c86200b34462878042",
+          "blockNumber": 127
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "commitment": "0xbd933681bd671ca11d6fa915400f93f725ec8fce3d7df99127348c9f3487d332",
+          "txHash": "0xc39f7d086da7f153b00c53e88f84530a93f5bdeb38ba586deb00a02fedf9497d",
+          "blockNumber": 128
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "commitment": "0x8d38b3e994132a4ef8012a8728547c0a777fbbeb51ede82a04ff5e3e694bae61",
+          "txHash": "0x69dc07ce78af060d839eaa0921c9d9c1e0177c46c9aaca0c97ed1c75b1fa8458",
+          "blockNumber": 129
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "commitment": "0x70120af0d83d9dce1bafcd629dec10b36df8f1dff36711edcd84dbbdd90fa1ae",
+          "txHash": "0x2d1172fe7c18083012a3f6307e7b477eb2cfa3170eaff96fde1bcb3312ca485b",
+          "blockNumber": 130
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "commitment": "0xbbf14f168e3b3ccc6d74be04b66f1d3d39b15d764695cff4bf1932ccde1af4c2",
+          "txHash": "0x0b6bac27468977c27683f02455ee32a007c4da65b3de86ab1f3e359a7d50cf29",
+          "blockNumber": 131
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "commitment": "0x9eb660b44575aa45cc44c4fe143eee98f7a4fb605aad1ad4937b1321b1b9cc38",
+          "txHash": "0x9020693227156ea3547289d2e4b3f736033be25ac1fdcbbba3fcfbec2352b120",
+          "blockNumber": 132
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "commitment": "0x80480e219f6824926a3369466821f95108610697d37f0348b9a27ee0ec807540",
+          "txHash": "0x21b01ac28453740dc8fd05dd8866963cc27b134d5196086446fb8e73b4ba0f6f",
+          "blockNumber": 133
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "commitment": "0x162de6a3eb016c9e31851659a20b4c50562e55d6d6b5cfbc5e7c527b619d1034",
+          "txHash": "0x93458563c38149a1326b8ec1b9182c003994530e3e6363a51a6443f53f130c85",
+          "blockNumber": 134
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "commitment": "0xa5150ebc74eca4764a35ff50df5baa50a89dc706db9913e2655f20c3226a5a68",
+          "txHash": "0x1140c08e900fa934571dd069ea00d94456474fd0573402c58c86d62baeace6ad",
+          "blockNumber": 135
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "commitment": "0x437dcb9d4e348381cc46b05601caa2076f90b2dc546b98e19944366df1d2b259",
+          "txHash": "0xa1945ddeeed1c1f7db5c582aa4e7660ccf65fec2bde08513842be28e04082e65",
+          "blockNumber": 136
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "commitment": "0xdd1a4dafe8b21c2282f8c7c554963edf9c7f642f40cab027f459e984db7bf906",
+          "txHash": "0x526d5a7e289a6d75993d18b9beda0fd1fe83bf74502644b4dfa5f0e334e808e9",
+          "blockNumber": 137
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "commitment": "0x9cef509d4f10ddc8e62cb6508848203079a694afc9213d20c78b143d60b6e7e9",
+          "txHash": "0xfdf8b5329bd074af5758322bacef029989b0e014a85f8aa29b3f92f4a54925fc",
+          "blockNumber": 138
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "commitment": "0x326b925d5bd0952f7e1b18776d4727486bc2bb03f2489b44db868b32993ea158",
+          "txHash": "0x5d2db6a8aed00b270b2246676ff10551d9fa9e3c5ab66424d496cc4a640875f1",
+          "blockNumber": 139
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "commitment": "0xeb536234009342a103d282f67932d6e23ea697a9f3743a0385f7c2798560376e",
+          "txHash": "0xc0e0f64c0847682c4177810a80af331e8ddaa5a017d0703ec8da46ec603f1c7c",
+          "blockNumber": 140
+        }
+      ],
+      "reveals": [
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x2e8d0b277e4f4e7b5a068716dfcf6a01e0ade9bafd31eba8af5ca8989eb97b93",
+          "blockNumber": 166
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xbcecaa61cb7b08e3c2c67d89571d98129c7f7e4559c1a0a82123bc59d938d072",
+          "blockNumber": 167
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x316f4fc8602bf36dc057ffaba832ce7eee6a2b547790d126ea8df1ba3ab887b7",
+          "blockNumber": 168
+        },
+        {
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x92f7c144dfe888aee61fd985c44602df8c26e1f2407e1617583693cf68e67699",
+          "blockNumber": 169
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xf86bef53c12fd20c6f6323fcf2002c0883adae8406b819b098697a4959f9e232",
+          "blockNumber": 170
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xfc1df197427acd1ebcb432bda48c4c06ed188391f6a27ac66eaec1aaea8ee961",
+          "blockNumber": 171
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xf894b2733944f55a0491b2860e1a35b39c4eabac5202b4dedcbe44784049c6e9",
+          "blockNumber": 172
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x072c58c24c64c285acf06cca5a7ae41061bc659727b05dbf09ab505f8b20651c",
+          "blockNumber": 173
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x81ec5c11e1a959c80849610e61ad59eeb5199473e01eeaa588925f98a5d5b62c",
+          "blockNumber": 174
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xbe31e9246ea076bac6cf09a428469f357071df3c9ba7037e52bbcd8057992416",
+          "blockNumber": 175
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x273b557f2fb18f9ccd355adcdef4db2fe329427cee2e38497bf15638350600b7",
+          "blockNumber": 175
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x263731c05d173e0f47c13d2126da363635fba3bf455283cbee853fea627812b9",
+          "blockNumber": 175
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x7d35b3e03b558fed29471f2427aad93529ed626562edbd911eb6bddca119de15",
+          "blockNumber": 175
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x5eb87a00888e0d0a3d2a831f68904816cc59a19d758a508cf694520c845a7f4b",
+          "blockNumber": 176
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xa0f8d0e6b2cfa24897eae76b7cce6ef05a549de03fa4ba6ac55bb954e21689b5",
+          "blockNumber": 177
+        }
+      ],
+      "effectiveChoices": [
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": true,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+          "blockNumber": 207
+        }
+      ],
+      "eliminated": [],
+      "resolution": {
+        "sharers": 20,
+        "catchers": 0,
+        "stealers": 0,
+        "eliminatedCount": 0,
+        "aliveCount": 20,
+        "shareStreak": 2,
+        "txHash": "0xc3fc6931bef44671350086ba4d5e633794ee64bd40b9a40c72beecf0cf1405ef",
+        "blockNumber": 207
+      },
+      "terminalState": null,
+      "shareStreak": 2,
+      "resolutionAvailable": true,
+      "settlementAvailable": false,
+      "notes": [
+        "Only the current round carries onchain deadline counters in game snapshot state; earlier round deadlines are not backfilled."
+      ]
+    },
+    {
+      "gameId": 1,
+      "round": 3,
+      "phaseWindows": {
+        "commitStartBlock": 207,
+        "commitDeadlineBlock": 247,
+        "revealStartBlock": 249,
+        "revealDeadlineBlock": 289
+      },
+      "phaseAtExport": "Ended",
+      "activePlayers": [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+        "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+        "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+        "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+        "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+        "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+        "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+        "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+        "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+        "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+        "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+        "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+        "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+        "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+        "0xdD2FD4581271e230360230F9337D5c0430Bf44C0"
+      ],
+      "commits": [
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "commitment": "0x4db88a92b559af4c0d5ef6d028856a8c79499e74c0d8cffc7a99db189a3d2380",
+          "txHash": "0x885095d043d6226b389e5a42ce01a31141259883214f2ab5a7682a50c82f68e1",
+          "blockNumber": 208
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "commitment": "0xdd9fbc7efc2bf10d67dab42cf50a340701834d654854a823cf641c4cea78d99e",
+          "txHash": "0x3cca26808e6b33d1be8dc7ab76e9d3febb94ec8da2757085b0233b68961b52e6",
+          "blockNumber": 209
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "commitment": "0xafec727ecd522aed6b937b63b8b91ea4e167815b4851aaab33ebd2c61eeeedf1",
+          "txHash": "0x82addbda7faa2520a7f75f4d3bbcbbab85320a5dc9c3cd48800c2908cf00cc60",
+          "blockNumber": 210
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "commitment": "0x75a1c1f11204898b683038bf8f3139c5f9d353fb4dbe97ffa5e5baeb71560286",
+          "txHash": "0x55940530bed803c47a9ebe2f172054737b7999de63337bb228e73e65ff06c81b",
+          "blockNumber": 211
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "commitment": "0x4f5e7a69ec3d2bcaced3f4b42085ab3cb12d842d51f0bd017caafc4edc6ad5e2",
+          "txHash": "0xad06536b69e9fbd6fa8f336d22541797124b03ddf74cfc08615750cdfa3dd8bc",
+          "blockNumber": 212
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "commitment": "0xd9edadf2467f4aa3f8573238fb506a1dcdc9962bb4fe711494b8b677166ba7c4",
+          "txHash": "0xf4741790519db0579e4d77a23019ab0479e91da3e333ec8cb54a72ea05c73ad0",
+          "blockNumber": 213
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "commitment": "0x4882ea16a0a12cef3b291b7f14a7932a86d6579463d291ab83d49172fa4af942",
+          "txHash": "0xf415cf0ec4fbfa63112d7ada3bcd3173e4b583e9f100cd5b1579f07cf92f9870",
+          "blockNumber": 214
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "commitment": "0x018e5128c4f2259ca14ebba340abb57ed0cb322c443a204215f4ecd812eb7368",
+          "txHash": "0xbf8291684cbb87e12d09692c40ea19c9d4187a6e1b0eaacd7a6cd385bacfcdd8",
+          "blockNumber": 215
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "commitment": "0x3d4056ab970286d7918619b21273b712c28db66421cac5f1301085b65f353f3e",
+          "txHash": "0xee86c191cee9d739313ee24357a035ce7436d98c29403bd8cd2abdd3e8bee067",
+          "blockNumber": 216
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "commitment": "0xc3d93063531cf03e687e1a9c14907c3fba47cd42cffc62ea153a3a602503ecf5",
+          "txHash": "0xfadf26ba2d45e55874932d8e5dd5d345c8790dbac7ffcd04c99f7ec0fe96e73d",
+          "blockNumber": 217
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "commitment": "0xd0b7149c4628087b48560e4b5376101fd80127a84a8d16f816c5067ac6102b90",
+          "txHash": "0x644cd97dcbad8dc98066a2ec8eb83ecf63ab5be08d499bfbaaa458bf55070825",
+          "blockNumber": 218
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "commitment": "0xf7f7b01e263595395f4cca3701fb3d9f5482e8149b95b8c17c112d51cd3b7ef8",
+          "txHash": "0x83ccef7b192c9a05fe7fefe5c2ba69e4a9e2b24889151ca855accf68015eecaa",
+          "blockNumber": 219
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "commitment": "0x8fdb97623feed267742e298795f7aa9442db911ddf38af0e7a21527ae2153d95",
+          "txHash": "0x53d723aa2b26e6b718d4496695274bd98bcfd9dd571698c17edfc153a2996246",
+          "blockNumber": 220
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "commitment": "0x1cb2815875fd3be2711c2ae880ff21a886bca449eaf31b3e1f93575c665ad2bf",
+          "txHash": "0x4d7f8e4f84e416b3d6fcdcfbdfef59629d704111ba12ccfc1a837109af8ec026",
+          "blockNumber": 221
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "commitment": "0x6e6a8d1c6832c41dac7d395c836b3b91a1bc90b449d1e9134450ca549a31ae5b",
+          "txHash": "0x40556216e0d42b41b288f03dde329eeaf012f3dc73fe399c25705813b030e5cc",
+          "blockNumber": 222
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "commitment": "0xb0c125273636c9cb13bcdab70a42f2de0d8f5b2927d958a459cdba1aaa5a9b93",
+          "txHash": "0x08e61990def95397c06c257d74fd45bf2460874be2efd0218a1c416fd264aeb1",
+          "blockNumber": 223
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "commitment": "0x8fc9944d530d376a020a89a326f8a6088d06aa9d3c8b8f359602d3cd600bcf3f",
+          "txHash": "0x3f204dd1650380294d0672822bf841c12a7d16db5080c77436012f2ad4b857d8",
+          "blockNumber": 224
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "commitment": "0x259b0a9fec0beb7ceae7bcb1e0be3f730196095e74b197cf842e72962b33ab87",
+          "txHash": "0x5641b09b28687133caf14057c10a026b409c1159dc4b8a6dbcb58ba2d8da0f6f",
+          "blockNumber": 225
+        }
+      ],
+      "reveals": [
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x5b3ed3427cc038cfa1a0b522c67bccf7c297273ea44b6fdea853be1e886c6558",
+          "blockNumber": 250
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xc58ecf6cec991632b279ff4299ca64e31e2883fa7a70766ea0a1e355d210e546",
+          "blockNumber": 251
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x077b51a1be7867e830e2931dde34909671f0c531c68bfcf07a1ba0e7dcb3f1e7",
+          "blockNumber": 252
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x47806c1c1fec6a5695e33b3808c35314cfbf7484115a5a994a2eef561ce6a45d",
+          "blockNumber": 253
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xfc25822d017729afcb626f8eda20d9386a2ea94140692b31d2811fd6d9c1625c",
+          "blockNumber": 254
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x828653ab9088e2a1c08a74fbcb01eb0a31ff3784a31fd7884ed8aeddd854964e",
+          "blockNumber": 255
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x2df85a04bc44f4d597193b60318d2b23d9bcbfff9e609b80bdab38f7ec907edf",
+          "blockNumber": 256
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xf28c5b308f6fb220d5a84f14464bb1ea618d37511dfaa0840ff0d451731d58d1",
+          "blockNumber": 257
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xc118d3d36e2671a39c5949fd3ce47d4a47518bb7cbe6df5282cc0c3cfa549d27",
+          "blockNumber": 258
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x852658fd9522f381a15c839f522b96b6d7ea4d73777259dea1f1266777085433",
+          "blockNumber": 259
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x4ea92f28c3070d4c6930468e85f98c77ba0bf353bbe00e5eaa5c154c21e12439",
+          "blockNumber": 260
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xb839c9dd1eb4ea2b34b050f2e3b408c503d727d0dee2875bc4334f5fe8a74cd7",
+          "blockNumber": 261
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xe8f5c5b3d0dc42022461ce7676f9fadbabe8d7af01c0504e35f929f17e7b1dbc",
+          "blockNumber": 262
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x3869865fd60789744417d2519761a9453d412250a497a8311d560cbc8f02a50c",
+          "blockNumber": 263
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x686866eebb158ef1bcf8a9b1272170e566506d7e4073c95687c126e865ad375c",
+          "blockNumber": 264
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0xdfff2cbe1dd6657c3268417fc69ede4df64af49126a480680c0817d129a41b1f",
+          "blockNumber": 265
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x3b151a66e976a6e2c2d9e8d527333a061fedc750bd25e42f6adc871606b0cbcc",
+          "blockNumber": 266
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "choice": "Share",
+          "choiceCode": 1,
+          "txHash": "0x055f80b7e94db0f869586bd40670b6edefa7eddf4b5bc78f0241cf298108f460",
+          "blockNumber": 267
+        }
+      ],
+      "effectiveChoices": [
+        {
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": true,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        },
+        {
+          "wallet": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+          "choice": "Share",
+          "choiceCode": 1,
+          "defaultedCommit": false,
+          "defaultedReveal": false,
+          "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+          "blockNumber": 268
+        }
+      ],
+      "eliminated": [],
+      "resolution": {
+        "sharers": 20,
+        "catchers": 0,
+        "stealers": 0,
+        "eliminatedCount": 0,
+        "aliveCount": 20,
+        "shareStreak": 3,
+        "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+        "blockNumber": 268
+      },
+      "terminalState": {
+        "outcome": "Winners",
+        "outcomeCode": 1,
+        "winnerCount": 20,
+        "shareStreak": 3,
+        "txHash": "0x834507e944a7371348d3e621f326a1b7162b355854f89c79c59f73f605ae50df",
+        "blockNumber": 268
+      },
+      "shareStreak": 3,
+      "resolutionAvailable": true,
+      "settlementAvailable": true,
+      "notes": []
+    }
+  ]
+}

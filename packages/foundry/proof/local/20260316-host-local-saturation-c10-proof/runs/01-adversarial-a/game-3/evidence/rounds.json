@@ -1,0 +1,18 @@
+{
+  "gameId": 3,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 199,
+      "timestamp": 1773642675
+    },
+    "logRange": {
+      "requestedFromBlock": 193,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 193,
+      "resolvedToBlock": 199,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "rounds": []
+}

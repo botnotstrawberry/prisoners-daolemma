@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "gameId": 2,
+  "chainId": 31337,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 619,
+      "timestamp": 1773642647
+    },
+    "logRange": {
+      "requestedFromBlock": 325,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 325,
+      "resolvedToBlock": 619,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "addresses": {
+    "game": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "registry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "chat": null
+  },
+  "game": {
+    "currentGameId": 2,
+    "activeGameId": 0,
+    "createdAt": 1773642555,
+    "createdAtBlock": 325,
+    "parameterSnapshot": {
+      "entryFeeWei": "10000000000000000",
+      "creatorFeeBps": 100,
+      "causeFeeBps": 100,
+      "joinDurationSeconds": 60,
+      "commitDurationBlocks": 40,
+      "revealDurationBlocks": 40,
+      "minPlayers": 16,
+      "maxPlayers": 256,
+      "maxCauses": 16
+    },
+    "treasury": "0xA1196426b41627ae75Ea7f7409E074BE97367da2",
+    "phase": "Ended",
+    "phaseCode": 4,
+    "outcome": "Winners",
+    "outcomeCode": 1,
+    "settlement": {
+      "finalized": true,
+      "terminalPath": "winner-claims",
+      "totalPotWei": "200000000000000000",
+      "creatorFeeWei": "2000000000000000",
+      "treasuryAccruedWei": "2000000000000000",
+      "treasuryWithdrawnWei": "2000000000000000",
+      "treasuryClaimableWei": "0",
+      "winnerCount": 20,
+      "winnerShareWei": "9900000000000000",
+      "refundPerPlayerWei": "0",
+      "noWinnerCausePoolWei": "0",
+      "noWinnerCauseDistributedWei": "0"
+    },
+    "terminalOutcome": {
+      "terminal": true,
+      "terminalPath": "winner-claims",
+      "phase": "Ended",
+      "phaseCode": 4,
+      "outcome": "Winners",
+      "outcomeCode": 1,
+      "round": 3,
+      "shareStreak": 3,
+      "aliveCount": 20,
+      "winnerCount": 20,
+      "gameEndedEvent": {
+        "outcome": "Winners",
+        "outcomeCode": 1,
+        "round": 3,
+        "winnerCount": 20,
+        "shareStreak": 3,
+        "blockNumber": 594,
+        "txHash": "0x066d500c5e28a221983e47c41fde01105cc4205f27ae94bb02057e45c3533032",
+        "timestamp": 1773642643
+      },
+      "gameCancelledEvent": null,
+      "settlementFinalizedEvent": {
+        "outcome": "Winners",
+        "outcomeCode": 1,
+        "totalPotWei": "200000000000000000",
+        "creatorFeeWei": "2000000000000000",
+        "winnerCount": 20,
+        "winnerShareWei": "9900000000000000",
+        "refundPerPlayerWei": "0",
+        "noWinnerCausePoolWei": "0",
+        "treasuryAccruedWei": "2000000000000000",
+        "blockNumber": 594,
+        "txHash": "0x066d500c5e28a221983e47c41fde01105cc4205f27ae94bb02057e45c3533032",
+        "timestamp": 1773642643
+      },
+      "notes": []
+    },
+    "round": 3,
+    "shareStreak": 3,
+    "counts": {
+      "joined": 20,
+      "alive": 20,
+      "claimed": 20,
+      "refunded": 0,
+      "usedCauses": 6,
+      "committed": 18,
+      "revealed": 12,
+      "messages": 0
+    },
+    "phaseHistory": [
+      {
+        "phase": "Joining",
+        "phaseCode": 1,
+        "blockNumber": 325,
+        "txHash": "0x4a2febc86b6c697f593ad9f686020592dbab458dffb37f441fc55b1d3b8169dd",
+        "timestamp": 1773642555
+      },
+      {
+        "phase": "Commit",
+        "phaseCode": 2,
+        "blockNumber": 342,
+        "txHash": "0xa8e37276d71d26511f06c2726d121b35c3c36538423748bd610988f4a906b3b4",
+        "timestamp": 1773642619
+      },
+      {
+        "phase": "Reveal",
+        "phaseCode": 3,
+        "blockNumber": 384,
+        "txHash": "0xdeca6993c85b635e264722936718cba849477dbc3b5f1b50289c7540768d9a8b",
+        "timestamp": 1773642624
+      },
+      {
+        "phase": "Commit",
+        "phaseCode": 2,
+        "blockNumber": 426,
+        "txHash": "0xaf0061718aa46c1189a2eee3cad0d99297177c8dcc5854ab7b3203594bd3d923",
+        "timestamp": 1773642628
+      },
+      {
+        "phase": "Reveal",
+        "phaseCode": 3,
+        "blockNumber": 468,
+        "txHash": "0x673e3f5c1305da6be12f3d4df50dafa3c156ca3c315822cf30ba6c03a7b8d53e",
+        "timestamp": 1773642631
+      },
+      {
+        "phase": "Commit",
+        "phaseCode": 2,
+        "blockNumber": 510,
+        "txHash": "0xf5d348a319493a2d22a48fa790c81232df8474c25a43fa346bc4f958f9b6f53b",
+        "timestamp": 1773642635
+      },
+      {
+        "phase": "Reveal",
+        "phaseCode": 3,
+        "blockNumber": 552,
+        "txHash": "0x538726ca3a466e84cb940fe978c96c9092842b2d9d5f5a48af19575319937480",
+        "timestamp": 1773642640
+      },
+      {
+        "phase": "Ended",
+        "phaseCode": 4,
+        "blockNumber": 594,
+        "txHash": "0x066d500c5e28a221983e47c41fde01105cc4205f27ae94bb02057e45c3533032",
+        "timestamp": 1773642643
+      }
+    ]
+  },
+  "capabilities": {
+    "available": [
+      "game-parameter-snapshot",
+      "current-phase-and-round-context",
+      "player-roster-and-cause-selection",
+      "used-cause-team-state",
+      "auth-records-for-participants",
+      "commit-and-reveal-event-inspection",
+      "round-resolution-outcomes",
+      "elimination-history",
+      "winner-no-winner-terminal-state",
+      "claim-refund-settlement-data",
+      "payout-destination-audit"
+    ],
+    "unavailable": []
+  },
+  "notes": [
+    "Event-derived sections only cover logs from block 325 through 619. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+    "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+    "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+    "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state.",
+    "No GameChat address was provided or discovered for this chain, so message export was skipped rather than guessing that no chat exists."
+  ]
+}

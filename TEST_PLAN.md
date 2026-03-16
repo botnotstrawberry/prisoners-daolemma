@@ -88,9 +88,9 @@ This section is not a release waiver. It is the current honest state of local va
   - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
 - a full preserved 250-player single-game local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, carrying `report.json`, `txs.jsonl`, and per-game exports from a clean winner-path run with explicit 320/320/320 local timing budgets
 - a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
+- a preserved raw 10-instance host-local saturation proof bundle is now checked in at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`, carrying the full matrix report plus per-run raw reports/tx logs from a clean bounded custom 10-way overlap attempt
 
 ### Still not proven locally
-- heavier multi-instance parallel saturation beyond the current bounded 7-instance host-local proof
 - broader auth-expiry chaos beyond the current bounded pre-join stale-permit / expired-join rehearsal
 - a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
 
@@ -272,8 +272,8 @@ Purpose:
 Current repo status:
 - the matrix runner now supports a bounded host-local version of Mode C via `packages/foundry/scripts-js/loadHarnessMatrixCli.js` + `--instance-concurrency`
 - the checked-in preserved proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` now captures the original `parallel-local` run (requested instance concurrency 3, peak active runs observed 3) plus stronger `broader-local` host-saturation runs (requested instance concurrency 5 with peak 5, and requested instance concurrency 6 with peak 6), proving 6 overlapping isolated harness + Anvil instances on one machine
-- a separate preserved raw proof bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/` now records a one-off bounded custom run with requested instance concurrency 7 and peak active runs observed 7, proving 7 overlapping isolated harness + Anvil instances on one machine
-- the lower bound of that 7-10 deployment saturation envelope is now proven locally at 7 overlapping instances, but heavier 8-10 deployment saturation is still unproven
+- a separate preserved raw proof bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` now records a one-off bounded custom run with requested instance concurrency 10 and peak active runs observed 10, proving 10 overlapping isolated harness + Anvil instances on one machine
+- the original 5-10 deployment saturation envelope is now proven locally through its 10-instance upper edge
 
 ### Mode D — chaos profile
 Deliberately inject:
@@ -305,7 +305,7 @@ What it covers today:
 
 What it does **not** cover yet:
 - CI automation or broader multi-seed repetition of the 250-player target
-- the heavier 8-10 deployment Mode C saturation envelope beyond the current raw 7-instance host-local proof
+- heavier 11+ deployment saturation beyond the currently proven 10-instance Mode C envelope
 - auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
 - a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus compact preserved matrix proof packs
 
@@ -336,7 +336,7 @@ Before Sepolia:
 - no unresolved critical/high severity issue from stress runs
 
 Current known gap against those gates:
-- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, and bounded pre-join auth-expiry rehearsal is now covered locally, but the remaining broader local stress gaps are heavier multi-instance saturation, broader auth-expiry breadth, and preserving a full raw xlarge / multi-seed matrix bundle
+- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` plus the preserved raw `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` bundle, and bounded pre-join auth-expiry rehearsal is now covered locally, but the remaining broader local stress gaps are broader auth-expiry breadth and preserving a full raw xlarge / multi-seed matrix bundle
 
 ---
 
