@@ -1,6 +1,6 @@
 {
   "schemaVersion": "prisoners-daollema/judge-evidence-v0",
-  "generatedAt": "2026-03-16T05:26:46.808Z",
+  "generatedAt": "2026-03-16T05:37:03.666Z",
   "title": "Prisoners DAOllema Judge Evidence Pack",
   "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
   "bundleType": "local-proof-pack",
@@ -19,9 +19,10 @@
     "exports": [],
     "outcomes": [],
     "claims": [
-      "This compact local proof pack preserves 2 copied matrix artifact set(s) rooted in validated current local runs.",
+      "This compact local proof pack preserves 3 copied matrix artifact set(s) rooted in validated current local runs.",
       "parallel-local validation (3 overlapping isolated local harness instances) records 9 completed game(s), max joined players 20, and 0 unexpected failed tx(s).",
       "broader-local host saturation (5 overlapping isolated local harness instances) records 16 completed game(s), max joined players 20, and 0 unexpected failed tx(s).",
+      "broader-local host saturation (6 overlapping isolated local harness instances) records 19 completed game(s), max joined players 20, and 0 unexpected failed tx(s).",
       "This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact."
     ],
     "packManifestPath": "local-proof-pack.json",
@@ -29,14 +30,14 @@
     "pack": {
       "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
       "title": "Prisoners DAOllema preserved parallel local proof pack",
-      "generatedAt": "2026-03-16T05:25:16.135Z",
+      "generatedAt": "2026-03-16T05:36:20.955Z",
       "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from real current bounded multi-instance local runs. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directories, and does not claim live-chain proof.",
       "notPreserved": [
         "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.",
         "The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine."
       ],
       "remainingLocalGaps": [
-        "Host-local parallel coverage is now real and preserved through 5 overlapping harness instances on one machine; heavier 6-10 deployment saturation remains unproven.",
+        "Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.",
         "Broad auth-expiry chaos inside the load harness is still thin.",
         "The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.",
         "No Base Sepolia canary artifact bundle is preserved yet."
@@ -223,6 +224,103 @@
             }
           ]
         }
+      },
+      {
+        "index": 3,
+        "id": "20260316-host-local-saturation-c6",
+        "label": "broader-local host saturation (6 overlapping isolated local harness instances)",
+        "description": "Stronger bounded host-local saturation result on the current codebase: one same-block mixed-family pass, three seeded adversarial smoke sweeps, and two scale winner soaks overlapped across six isolated harness + Anvil instances on one machine.",
+        "sourceDir": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c6-attempt",
+        "matrixReportPath": "20260316-host-local-saturation-c6/matrix-report.json",
+        "summaryPath": "20260316-host-local-saturation-c6/MATRIX_SUMMARY.md",
+        "status": "present",
+        "summary": {
+          "status": "ok",
+          "presetName": "broader-local",
+          "presetLabel": "broader-local",
+          "startedAt": "2026-03-16T05:31:29.712Z",
+          "finishedAt": "2026-03-16T05:32:25.433Z",
+          "wallClockMs": 55721,
+          "plannedRuns": 6,
+          "completedRuns": 6,
+          "totalCompletedGames": 19,
+          "requestedScenarios": [
+            "adversarial-random",
+            "mixed",
+            "winner-all-share"
+          ],
+          "seeds": [
+            "adversarial-a",
+            "adversarial-b",
+            "adversarial-c",
+            "same-block-family-a",
+            "scale-winner-a",
+            "scale-winner-b"
+          ],
+          "profiles": [
+            "scale",
+            "smoke"
+          ],
+          "largestRequestedPlayerCount": 20,
+          "maxJoinedPlayersInSingleGame": 20,
+          "gamesHittingRequestedPlayerTarget": 7,
+          "fullyDrainedGames": 19,
+          "replayConsistentGames": 19,
+          "txSummary": {
+            "attempted": 1643,
+            "succeeded": 1293,
+            "failed": 350,
+            "failedExpected": 350,
+            "failedUnexpected": 0,
+            "unexpectedSuccesses": 0
+          },
+          "breakageSummary": {
+            "gamesChecked": 19,
+            "gamesWithWedgedActiveSlot": 0,
+            "gamesWithTerminalStateMismatch": 0,
+            "gamesWithAccountingMismatch": 0,
+            "gamesWithPreviewMismatch": 0,
+            "gamesWithDrainMismatch": 0,
+            "gamesWithReplayInconsistency": 0,
+            "gamesWithUnexpectedFailures": 0,
+            "totalUnexpectedFailures": 0,
+            "probeSummary": {
+              "attempted": 338,
+              "failedAsExpected": 338,
+              "unexpectedSuccesses": 0,
+              "onchainReverts": 338,
+              "localRejections": 0
+            }
+          },
+          "terminalOutcomes": [
+            {
+              "key": "Cancelled",
+              "count": 4
+            },
+            {
+              "key": "NoWinners",
+              "count": 1
+            },
+            {
+              "key": "Winners",
+              "count": 14
+            }
+          ],
+          "terminalPaths": [
+            {
+              "key": "cancelled-refunds",
+              "count": 4
+            },
+            {
+              "key": "no-winner-routing",
+              "count": 1
+            },
+            {
+              "key": "winner-claims",
+              "count": 14
+            }
+          ]
+        }
       }
     ]
   },
@@ -275,6 +373,14 @@
     {
       "path": "20260316-host-local-saturation-c5/MATRIX_SUMMARY.md",
       "why": "broader-local host saturation (5 overlapping isolated local harness instances) compact human summary for the same preserved local run set."
+    },
+    {
+      "path": "20260316-host-local-saturation-c6/matrix-report.json",
+      "why": "broader-local host saturation (6 overlapping isolated local harness instances) copied matrix report: preset, seeds, tx totals, and aggregate breakage signals."
+    },
+    {
+      "path": "20260316-host-local-saturation-c6/MATRIX_SUMMARY.md",
+      "why": "broader-local host saturation (6 overlapping isolated local harness instances) compact human summary for the same preserved local run set."
     }
   ],
   "missingImportantArtifacts": [

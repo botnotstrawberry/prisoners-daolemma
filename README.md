@@ -47,7 +47,7 @@ A full preserved 250-player local proof bundle is now checked in at `packages/fo
 
 A separate compact matrix-level proof pack is also checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those specific xlarge / multi-seed runs and still has no live Sepolia proof bundle.
 
-A new compact parallel-local proof pack is also checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`. It preserves copied top-level artifacts from both the original bounded 3-instance `parallel-local` validation and a stronger bounded 5-instance host-local saturation run, while keeping the local-only boundary explicit.
+A compact parallel-local proof pack is also checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`. It preserves copied top-level artifacts from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs, while keeping the local-only boundary explicit.
 
 ## Current code state
 
@@ -63,7 +63,7 @@ The repo now contains:
 - judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
 - a checked-in full local proof bundle at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, preserving `report.json`, `txs.jsonl`, and per-game evidence from a clean 250-player single-game winner-path run
 - a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
-- a checked-in compact parallel-local proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, preserving copied matrix summaries from the original 3-instance `parallel-local` validation plus a stronger 5-instance host-local saturation run
+- a checked-in compact parallel-local proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, preserving copied matrix summaries from the original 3-instance `parallel-local` validation plus stronger 5-instance and 6-instance host-local saturation runs
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -243,7 +243,7 @@ Useful commands:
 - `yarn load:harness:matrix:parallel`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 - `yarn load:harness:matrix -- --preset parallel-local --instance-concurrency 3`
-- `yarn load:harness:matrix -- --preset broader-local --runs adversarial-a,adversarial-b,adversarial-c,scale-winner-a,scale-winner-b --instance-concurrency 5`
+- `yarn load:harness:matrix -- --preset broader-local --instance-concurrency 6`
 
 Current built-in presets:
 
@@ -315,7 +315,7 @@ What it intentionally does **not** claim yet:
 - full SIWA wrapper rehearsal inside the harness itself
 - broad auth-expiry chaos across many wallets/games, mid-game auth expiry, or expiry behavior that depends on the full SIWA wrapper instead of direct verifier permit/register
 - proof of exploitable contract bugs just because adversarial local probes did not break a given run
-- exhaustive fuzzing, distributed-agent realism, or heavier 6-10 deployment host-saturation just because bounded host-local runs reached 5 overlapping isolated instances on one machine
+- exhaustive fuzzing, distributed-agent realism, or heavier 7-10 deployment host-saturation just because bounded host-local runs reached 6 overlapping isolated instances on one machine
 - that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
@@ -386,7 +386,7 @@ Current preserved local bundles:
   - `local-proof-pack.json` manifest with source paths, byte counts, and SHA-256 hashes
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
 - `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`
-  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the original bounded 3-instance `parallel-local` validation plus a stronger bounded 5-instance host-local saturation run
+  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs
   - `local-proof-pack.json` manifest with source paths, byte counts, SHA-256 hashes, and explicit overlap metrics
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
 

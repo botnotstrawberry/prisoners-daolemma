@@ -37,7 +37,7 @@ This bundle preserves compact copies of the latest validated local matrix summar
 
 ## Remaining local-only gaps after this pack
 
-- Host-local parallel coverage is now real and preserved through 5 overlapping harness instances on one machine; heavier 6-10 deployment saturation remains unproven.
+- Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.
 - Broad auth-expiry chaos inside the load harness is still thin.
 - The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - No Base Sepolia canary artifact bundle is preserved yet.
