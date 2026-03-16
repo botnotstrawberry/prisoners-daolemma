@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "prisoners-daollema/artifact-manifest-v1",
+  "label": "250-player single-game local proof",
+  "generatedAt": "2026-03-16T03:30:25.777Z",
+  "source": {
+    "type": "load-harness-single-run",
+    "rawRunDir": "packages/foundry/load-harness/250-player-single-game-attempt-20260316T032159Z",
+    "command": "node scripts-js/loadHarnessCli.js --profile scale --player-count 250 --cause-count 16 --games 1 --scenario winner-all-share --concurrency 16 --join-duration-seconds 320 --commit-duration-blocks 320 --reveal-duration-blocks 320 --out load-harness/250-player-single-game-attempt-20260316T032159Z"
+  },
+  "summary": {
+    "status": "ok",
+    "mode": "single-game",
+    "playerCount": 250,
+    "causeCount": 16,
+    "games": 1,
+    "scenario": "winner-all-share",
+    "concurrency": 16,
+    "joinDurationSeconds": 320,
+    "commitDurationBlocks": 320,
+    "revealDurationBlocks": 320,
+    "txAttempted": 2293,
+    "txSucceeded": 2293,
+    "txFailed": 0,
+    "lastObservedBlock": 1867,
+    "blocksMinedForGame": 1656,
+    "wallClockMs": 505222,
+    "targetHitGames": 1,
+    "maxJoinedPlayersInSingleGame": 250,
+    "fullyDrainedGames": 1,
+    "replayConsistentGames": 1,
+    "gamesWithoutUnexpectedFailures": 1,
+    "winnerClaimsExecuted": 250,
+    "treasuryWithdrawalsExecuted": 1,
+    "causeWithdrawalsExecuted": 16,
+    "gameOutcome": "Winners",
+    "gameTerminalPath": "winner-claims",
+    "gameRound": 3,
+    "gameShareStreak": 3,
+    "gameJoinedPlayers": 250,
+    "gameClaimedPlayers": 250,
+    "deadlineMisses": {
+      "commitRounds": 0,
+      "revealRounds": 0,
+      "skippedCommits": 0,
+      "skippedReveals": 0
+    },
+    "breakageSummary": {
+      "gamesChecked": 1,
+      "gamesWithWedgedActiveSlot": 0,
+      "gamesWithTerminalStateMismatch": 0,
+      "gamesWithAccountingMismatch": 0,
+      "gamesWithPreviewMismatch": 0,
+      "gamesWithDrainMismatch": 0,
+      "gamesWithReplayInconsistency": 0,
+      "gamesWithUnexpectedFailures": 0,
+      "totalUnexpectedFailures": 0,
+      "probeSummary": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0
+      },
+      "unexpectedFailureClusters": [],
+      "probeFailureClusters": []
+    }
+  },
+  "files": [
+    {
+      "path": "report.json",
+      "bytes": 317688,
+      "sha256": "9c4845089171fceffbd9f183b4e91f16371bd9f257a138bdd1cfb651cb64a2a0"
+    },
+    {
+      "path": "txs.jsonl",
+      "bytes": 1581955,
+      "sha256": "2abdb69baada5507baaaeb03fb535ad46ae185b9a53880219f7e5505df638cd2"
+    },
+    {
+      "path": "game-1/evidence/export-manifest.json",
+      "bytes": 2731,
+      "sha256": "db7d818fcbe6bb0504aefc83b419cb69a0be4d101ec4618b672bfb20d3d6bcf6"
+    },
+    {
+      "path": "game-1/evidence/game-summary.json",
+      "bytes": 6744,
+      "sha256": "235125f8a166ed5aaba1435392425043d0da94a23c5786b0f99811187acaefce"
+    },
+    {
+      "path": "game-1/evidence/payouts.json",
+      "bytes": 254654,
+      "sha256": "dc1cebdee6495352679bcddd9fe7404adff30b896c14d9fd345036276c626ce6"
+    },
+    {
+      "path": "game-1/evidence/roster.json",
+      "bytes": 331762,
+      "sha256": "110374599c385a4ab595787aefea5ef76c48cff4b3758f3152c113805e3335d4"
+    },
+    {
+      "path": "game-1/evidence/rounds.json",
+      "bytes": 717233,
+      "sha256": "fffd5f9632c8da826ba0b6db3d255013ddc29830a8a39b6ee38df18bde80269d"
+    },
+    {
+      "path": "game-1/evidence/causes.json",
+      "bytes": 23618,
+      "sha256": "781d7d513e5f2112fa8c62637b98488674761e94c247e3396f0858831c1212dc"
+    },
+    {
+      "path": "game-1/evidence/auth.json",
+      "bytes": 149775,
+      "sha256": "53c1fa468f5d75e1c76e40f17fa7a9a77145314203159feddb8b2039b5418919"
+    }
+  ]
+}

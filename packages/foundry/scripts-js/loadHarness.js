@@ -923,11 +923,28 @@ function buildResolvedConfig(rawOptions = {}) {
     );
   }
 
+  const maxPlannedJoinParticipants = scenarioPlan.reduce(
+    (maxParticipants, scenario) => {
+      if (scenario.type === "cancelled-underfilled") {
+        return Math.max(maxParticipants, Math.max(1, minPlayers - 1));
+      }
+      return Math.max(maxParticipants, playerCount);
+    },
+    0
+  );
   const maxFullRoundParticipants = scenarioPlan.some(
     (scenario) => scenario.type !== "cancelled-underfilled"
   )
     ? playerCount
     : 0;
+  if (
+    maxPlannedJoinParticipants > 0 &&
+    joinDurationSeconds < maxPlannedJoinParticipants
+  ) {
+    notes.push(
+      `For auto-mined local Anvil runs, joinDurationSeconds=${joinDurationSeconds} is smaller than the max planned joined-player count ${maxPlannedJoinParticipants}. Full-roster joins can time out unless you raise joinDurationSeconds or intentionally keep the game underfilled.`
+    );
+  }
   if (
     maxFullRoundParticipants > 0 &&
     commitDurationBlocks < maxFullRoundParticipants

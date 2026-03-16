@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "prisoners-daollema/judge-evidence-v0",
+  "generatedAt": "2026-03-16T03:41:37.682Z",
+  "title": "Prisoners DAOllema Judge Evidence Pack",
+  "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
+  "bundleType": "local-load-harness",
+  "bundleDir": "proof/local/20260316-250-player-single-game-proof",
+  "outputDir": "proof/local/20260316-250-player-single-game-proof",
+  "generatedArtifacts": {
+    "humanGuide": "JUDGE_README.md",
+    "machineIndex": "judge-evidence-index.json"
+  },
+  "localProof": {
+    "kind": "load-harness",
+    "status": "present",
+    "reportPath": "report.json",
+    "txLogPath": "txs.jsonl",
+    "report": {
+      "status": "ok",
+      "mode": "single-game",
+      "profileName": "scale",
+      "playerCount": 250,
+      "gamesRequested": 1,
+      "selectedScenarioTypes": [
+        "winner-all-share"
+      ],
+      "replayConsistentGames": 1,
+      "startedAt": "2026-03-16T03:22:00.555Z",
+      "finishedAt": "2026-03-16T03:30:25.777Z",
+      "wallClockMs": 505222,
+      "limitations": [
+        "This harness currently drives verifier-approved permit/register directly for speed; it does not rehearse the full SIWA nonce/sign/verify wrapper.",
+        "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
+        "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
+        "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
+        "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding."
+      ]
+    },
+    "exports": [
+      {
+        "manifestPath": "game-1/evidence/export-manifest.json",
+        "files": {
+          "gameSummary": "game-1/evidence/game-summary.json",
+          "roster": "game-1/evidence/roster.json",
+          "causes": "game-1/evidence/causes.json",
+          "rounds": "game-1/evidence/rounds.json",
+          "auth": "game-1/evidence/auth.json",
+          "payouts": "game-1/evidence/payouts.json",
+          "messages": null
+        },
+        "gameId": 1,
+        "chainId": 31337,
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "counts": {
+          "joined": 250,
+          "alive": 250,
+          "claimed": 250,
+          "refunded": 0,
+          "usedCauses": 16,
+          "committed": 250,
+          "revealed": 250,
+          "messages": 0
+        },
+        "notes": [
+          "Event-derived sections only cover logs from block 212 through 1867. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+          "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+          "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+          "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state.",
+          "No GameChat address was provided or discovered for this chain, so message export was skipped rather than guessing that no chat exists."
+        ],
+        "addresses": {
+          "game": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+          "registry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "chat": null
+        },
+        "evidenceWindow": {
+          "stateSnapshot": {
+            "blockNumber": 1867,
+            "timestamp": 1773632132
+          },
+          "logRange": {
+            "requestedFromBlock": 212,
+            "requestedToBlock": "latest",
+            "resolvedFromBlock": 212,
+            "resolvedToBlock": 1867,
+            "coversFullHistoryToStateSnapshot": false,
+            "isHybridAgainstStateSnapshot": false
+          }
+        },
+        "produced": [
+          "game-summary.json",
+          "roster.json",
+          "causes.json",
+          "rounds.json",
+          "auth.json",
+          "payouts.json",
+          "export-manifest.json"
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      "Winners"
+    ],
+    "claims": [
+      "This bundle includes a local load-harness report for 250 synthetic players across 1 game(s).",
+      "Replay consistency is recorded for 1/1 completed game(s) in this bundle.",
+      "The exported local evidence covers terminal paths present in this bundle: winner-claims.",
+      "A raw local transaction log is present alongside the report and per-game evidence exports."
+    ],
+    "packManifestPath": null,
+    "packReadmePath": null,
+    "pack": null,
+    "matrixBundles": []
+  },
+  "liveSepoliaProof": {
+    "status": "pending",
+    "preflightPath": null,
+    "deploymentSummaryPath": null,
+    "deploymentFilePath": null,
+    "verifyLogPath": null,
+    "operatorNotesPath": null,
+    "createPath": null,
+    "querySummaryPath": null,
+    "preflight": null,
+    "deployment": null,
+    "querySummary": null,
+    "queryExport": null,
+    "auth": {
+      "authStatusCount": 0,
+      "authPermitCount": 0,
+      "authStatusPaths": [],
+      "authPermitPaths": []
+    },
+    "operatorNotes": {
+      "txHashCount": 0
+    },
+    "screenshots": [],
+    "claims": []
+  },
+  "recommendedOpenOrder": [
+    {
+      "path": "report.json",
+      "why": "Run-level local proof summary: scale, scenario mix, limitations, and overall status."
+    },
+    {
+      "path": "txs.jsonl",
+      "why": "Raw local transaction log for the load-harness run."
+    },
+    {
+      "path": "game-1/evidence/game-summary.json",
+      "why": "Game 1 final snapshot (Winners / winner-claims)."
+    },
+    {
+      "path": "game-1/evidence/rounds.json",
+      "why": "Game 1 round-by-round replay context."
+    },
+    {
+      "path": "game-1/evidence/payouts.json",
+      "why": "Game 1 settlement and payout routing."
+    },
+    {
+      "path": "game-1/evidence/export-manifest.json",
+      "why": "Game 1 export manifest, including anything intentionally skipped."
+    }
+  ],
+  "missingImportantArtifacts": [
+    "No Base Sepolia canary artifact bundle is present here yet, so this bundle does not prove live network behavior."
+  ],
+  "unknowns": [
+    "Actual Base Sepolia timing and operator comfort for the selected join/commit/reveal windows remain unproven until a live canary bundle is captured.",
+    "Explorer verification is still open until verify.log and/or explorer links are packaged from a real Sepolia deployment.",
+    "The honest live auth flavor is still open until a canary bundle records whether the run used minimal permit/register or the full SIWA-backed path.",
+    "Whether a second Sepolia scenario (cancelled or no-winner) is immediately required stays open until after the first live canary result is reviewed."
+  ],
+  "nextCapturePriorities": [
+    "Run the first Base Sepolia canary and capture preflight.json, deployment-summary.json, operator-notes.md, query/game-summary-live.json, and query/export/export-manifest.json under packages/foundry/canary/base-sepolia/<run-id>/.",
+    "Save tx hashes and explorer links in operator-notes.md instead of relying on shell history or memory.",
+    "Add any judge-facing screenshots under screenshots/ before regenerating the evidence pack."
+  ]
+}

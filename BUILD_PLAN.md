@@ -35,11 +35,11 @@ If a question is not answered here, ask the human instead of inventing product b
 - local load/chaos harness tooling exists, including adversarial and same-block ordering probes
 - broader local soak presets now extend through `xlarge-local`
 - Base Sepolia preflight/deployment inspection helpers and judge-evidence packaging helpers exist
+- a full repo-shipped 250-player single-game local proof bundle now exists at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
+- a compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
 
 ### Still incomplete or unproven
-- a compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
-- the repo still does not preserve the full raw tx/export bundle from those latest larger local runs
-- the 250-player single-game local proof target is still unmet
+- the repo still does not preserve the full raw tx/export bundle from those latest xlarge / multi-seed matrix runs
 - multi-instance parallel local stress is still not implemented
 - the first real Base Sepolia canary has not been executed and preserved in-repo
 - mainnet canary/pilot work has not started
@@ -139,9 +139,9 @@ Still optional/not prioritized yet:
 In order:
 1. keep `LOCAL_READINESS.md`, `TEST_PLAN.md`, `README.md`, and `JUDGE_EVIDENCE.md` honest as local coverage changes
 2. if more local-only time is available, close the biggest remaining local gaps:
-   - 250-player single-game proof
    - multi-instance local stress
    - broader auth-expiry chaos in the harness
+   - preserve a full raw in-repo tx/export bundle for the latest xlarge / multi-seed matrix run set
 3. when wallet/operator availability exists, execute the Base Sepolia canary and preserve the full artifact bundle
 4. only after live proof exists, spend more time on replay/judge polish
 

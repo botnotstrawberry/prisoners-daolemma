@@ -94,7 +94,7 @@ Before implementing, use:
 ---
 
 ## P0 — Anvil load harness
-- [ ] Build single-game 250-player stress harness
+- [x] Build single-game 250-player stress harness
 - [ ] Build sequential-game soak harness
 - [ ] Build multi-instance local stress harness
 - [ ] Add chaos profile (missed reveals / invalid attempts / auth expiry)

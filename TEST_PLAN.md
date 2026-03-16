@@ -85,13 +85,13 @@ This section is not a release waiver. It is the current honest state of local va
   - deterministic 32-player mixed-family coverage
   - started full-roster 32-player adversarial sweeps across multiple seeds
   - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
+- a full preserved 250-player single-game local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, carrying `report.json`, `txs.jsonl`, and per-game exports from a clean winner-path run with explicit 320/320/320 local timing budgets
 - a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 
 ### Still not proven locally
-- the automated 250-player single-game proof target
 - multi-instance parallel local stress
 - broad auth-expiry chaos inside the load harness
-- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships only a compact preserved matrix proof pack
+- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
 
 ### Blocked on external execution
 - Base Sepolia canary deployment + preserved live artifact bundle
@@ -296,10 +296,10 @@ What it covers today:
   - broader matrix presets through `xlarge-local`, including deterministic 32-player mixed-family coverage and multi-seed started full-roster 32-player adversarial sweeps with explicit longer phase budgets
 
 What it does **not** cover yet:
-- the full 250-player proof target as an automated test
+- CI automation or broader multi-seed repetition of the 250-player target
 - Mode C multi-instance parallel stress
 - auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
-- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships only a compact preserved matrix proof pack
+- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
 
 Purpose:
 - prove safety under ugly, non-demo behavior
@@ -328,7 +328,7 @@ Before Sepolia:
 - no unresolved critical/high severity issue from stress runs
 
 Current known gap against those gates:
-- the serious local soak surface is much broader now, but the explicit 250-player single-game target is still not closed
+- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; the remaining broader local stress gaps are multi-instance coverage, auth-expiry chaos breadth, and preserving a full raw xlarge / multi-seed matrix bundle
 
 ---
 

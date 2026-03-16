@@ -43,7 +43,9 @@ For the current done-locally vs still-unproven vs external-blocked split, start 
 
 That file is intentionally short and should be kept in sync whenever local validation meaningfully advances.
 
-A compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those runs and still has no live Sepolia proof bundle.
+A full preserved 250-player local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`. It carries the raw `report.json`, `txs.jsonl`, per-game evidence export, and generated judge-facing index from a clean scale-profile single-game winner-path run that joined and claimed through all 250 players with explicit 320/320/320 local timing budgets.
+
+A separate compact matrix-level proof pack is also checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those specific xlarge / multi-seed runs and still has no live Sepolia proof bundle.
 
 ## Current code state
 
@@ -57,6 +59,7 @@ The repo now contains:
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
 - judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
+- a checked-in full local proof bundle at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, preserving `report.json`, `txs.jsonl`, and per-game evidence from a clean 250-player single-game winner-path run
 - a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 - project-local skill routing for auth, comms/replay, and Solidity security
 
@@ -345,11 +348,16 @@ Useful commands:
 
 - `yarn judge:evidence -- --help`
 - `yarn judge:evidence -- --bundle load-harness/<actual-run-dir>`
+- `yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof`
 - `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack`
 - `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>`
 
-Current preserved compact local bundle:
+Current preserved local bundles:
 
+- `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
+  - copied full single-run `report.json` + `txs.jsonl` + per-game evidence export from a clean 250-player single-game winner-path run
+  - generated `JUDGE_README.md` + `judge-evidence-index.json`
+  - `artifact-manifest.json` copied-file hash manifest for the preserved bundle
 - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
   - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
   - `local-proof-pack.json` manifest with source paths, byte counts, and SHA-256 hashes

@@ -11,24 +11,27 @@ It is intentionally conservative:
 
 ## Current honest status
 
-Right now this repo has four evidence layers:
+Right now this repo has five evidence layers:
 
 1. **Code + tests**
    - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth / game / query surface is wired together locally
-2. **Preserved compact local proof pack**
+2. **Preserved full 250-player local proof bundle**
+   - `packages/foundry/proof/local/20260316-250-player-single-game-proof/` is checked in now
+   - it preserves the raw `report.json`, `txs.jsonl`, and per-game evidence export from a clean 250-player single-game winner-path run
+3. **Preserved compact local matrix proof pack**
    - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` is checked in now
    - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
-   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle
-3. **Operator-ready broader local artifact tooling**
+   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
+4. **Operator-ready broader local artifact tooling**
    - the repo can still generate fuller local harness and matrix artifacts plus judge-facing indexes for an existing bundle
-   - the latest status tracking says local validation now extends through bounded xlarge / multi-seed runs
-4. **Sepolia packaging readiness**
+   - the latest status tracking says local validation now extends through the preserved 250-player proof plus bounded xlarge / multi-seed runs
+5. **Sepolia packaging readiness**
    - `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md` define the live artifact contract
    - they do **not** by themselves prove that the live run already happened
 
 What is still honestly pending until fuller bundles exist:
 
-- a full raw local tx/export bundle from a meaningful current run if we want deeper in-repo replay/audit depth beyond the compact matrix pack
+- a full raw local tx/export bundle from the latest xlarge / multi-seed matrix run set if we want deeper in-repo replay/audit depth beyond the compact matrix pack
 - the first Base Sepolia canary bundle
 - explorer verification evidence from the real deployment
 - live replay/export artifacts from an actual Sepolia game
@@ -37,15 +40,28 @@ What is still honestly pending until fuller bundles exist:
 
 If a judge only has a few minutes, use this order.
 
-### 1. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+### 1. `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
 
 What it proves:
 
-- the repo now ships a real preserved local proof bundle, not just packaging-ready tooling
-- the compact bundle stays honest about being local-only and matrix-level
-- the recommended open order is already generated beside the preserved files
+- the repo now ships a real preserved **full raw** local load-harness bundle, not just compact matrix summaries
+- the recommended open order for the 250-player proof is already generated beside the preserved files
 
-### 2. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/local-proof-pack.json`
+### 2. `packages/foundry/proof/local/20260316-250-player-single-game-proof/report.json`
+
+What it proves:
+
+- one clean single-game local winner-path run reached 250 joined players, 250 claims, 0 unexpected failures, 1/1 replay-consistent games, and 1/1 fully drained games
+- the exact explicit larger local budgets used for that proof (`joinDurationSeconds=320`, `commitDurationBlocks=320`, `revealDurationBlocks=320`)
+
+### 3. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+
+What it proves:
+
+- the repo also ships a compact preserved matrix proof pack for broader xlarge / multi-seed local coverage
+- the compact bundle stays honest about being local-only and matrix-level
+
+### 4. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/local-proof-pack.json`
 
 What it proves:
 
@@ -53,7 +69,7 @@ What it proves:
 - byte counts and SHA-256 hashes for every copied artifact
 - which local gaps remain open after this compact preservation step
 
-### 3. The copied matrix artifacts inside that bundle
+### 5. The copied matrix artifacts inside that bundle
 
 Open in this order:
 
@@ -68,14 +84,14 @@ What they prove:
 - three started full-roster 32-player adversarial sweeps across multiple seeds
 - zero unexpected failures and zero recorded wedge/terminal/accounting/preview/drain/replay mismatches in those preserved matrix summaries
 
-### 4. `LOCAL_READINESS.md` and `TEST_PLAN.md`
+### 6. `LOCAL_READINESS.md` and `TEST_PLAN.md`
 
 What they prove:
 
 - the current done-locally vs not-yet-proven vs externally-blocked split
 - that the repo tracks the remaining local-only gaps explicitly instead of overselling the compact pack
 
-### 5. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
+### 7. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
 
 What they prove:
 
@@ -135,11 +151,15 @@ Packaging rule of thumb:
 The repo includes a helper that turns an existing artifact directory into a judge-facing mini-pack:
 
 ```bash
-# checked-in compact local proof pack
+# checked-in full 250-player local proof bundle
+
+yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof
+
+# checked-in compact local matrix proof pack
 
 yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack
 
-# fuller local proof bundle
+# fuller ad hoc local proof bundle
 
 yarn judge:evidence -- --bundle load-harness/<actual-run-dir>
 
@@ -170,7 +190,8 @@ What it does **not** do:
 
 The honest judge path today is:
 
-- open `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` first for the preserved compact current local proof
+- open `packages/foundry/proof/local/20260316-250-player-single-game-proof/` first for the preserved full 250-player current local proof
+- then open `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved broader xlarge / multi-seed matrix coverage
 - use `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` to understand the surrounding status boundary and remaining local-only gaps
 - use the canary runbook/checklist for the live proof contract
 - regenerate `JUDGE_README.md` + `judge-evidence-index.json` beside any **real** local or Sepolia bundle so judges know exactly what to inspect first

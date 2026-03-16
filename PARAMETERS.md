@@ -128,7 +128,7 @@ Use for the serious local stress harness.
 - `causeFeeBps`: **100**
 
 Notes:
-- supports the required 250-player single-game stress case
+- supports the required 250-player single-game stress case, but full-roster local proofs should raise join / commit / reveal budgets high enough to avoid fake auto-mined deadline failures (the preserved 250-player proof bundle used 320 / 320 / 320)
 - can be reused for sequential and multi-instance stress
 
 ## 5.3 Base Sepolia canary profile
