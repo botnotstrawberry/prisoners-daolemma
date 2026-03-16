@@ -37,11 +37,11 @@ If a question is not answered here, ask the human instead of inventing product b
 - Base Sepolia preflight/deployment inspection helpers and judge-evidence packaging helpers exist
 - a full repo-shipped 250-player single-game local proof bundle now exists at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
 - a compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
-- a compact repo-shipped parallel local proof pack now captures a real 3-instance overlapping host-local matrix run at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`
+- a compact repo-shipped parallel local proof pack now captures both the original 3-instance `parallel-local` validation and a stronger 5-instance host-local saturation run at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`
 
 ### Still incomplete or unproven
 - the repo still does not preserve the full raw tx/export bundle from those latest xlarge / multi-seed matrix runs
-- bounded host-local parallel local stress now exists, but heavier 5-10 deployment saturation on one machine is still unproven
+- bounded host-local parallel local stress now exists through 5 overlapping isolated instances on one machine, but heavier 6-10 deployment saturation is still unproven
 - the first real Base Sepolia canary has not been executed and preserved in-repo
 - mainnet canary/pilot work has not started
 - richer replay/judge polish is still secondary to preserving truthful JSON/export evidence
@@ -140,7 +140,7 @@ Still optional/not prioritized yet:
 In order:
 1. keep `LOCAL_READINESS.md`, `TEST_PLAN.md`, `README.md`, and `JUDGE_EVIDENCE.md` honest as local coverage changes
 2. if more local-only time is available, close the biggest remaining local gaps:
-   - extend the new host-local parallel matrix coverage toward the heavier 5-10 deployment saturation envelope
+   - extend the new host-local parallel matrix coverage beyond the now-proven 5-instance lower bound toward heavier 6-10 deployment saturation
    - broader auth-expiry chaos in the harness
    - preserve a full raw in-repo tx/export bundle for the latest xlarge / multi-seed matrix run set
 3. when wallet/operator availability exists, execute the Base Sepolia canary and preserve the full artifact bundle

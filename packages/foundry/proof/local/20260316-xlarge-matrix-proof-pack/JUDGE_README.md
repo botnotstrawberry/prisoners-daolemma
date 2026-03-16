@@ -60,7 +60,7 @@
   - seeds: xlarge-seed-19, xlarge-seed-211, xlarge-seed-73
 - Not preserved here: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
 - Not preserved here: The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine.
-- Remaining local gap: Host-local parallel coverage is now real but still bounded to one machine and 3 overlapping harness instances; heavier 5-10 deployment saturation remains unproven.
+- Remaining local gap: Host-local parallel coverage is now real and preserved through 5 overlapping harness instances on one machine; heavier 6-10 deployment saturation remains unproven.
 - Remaining local gap: Broad auth-expiry chaos inside the load harness is still thin.
 - Remaining local gap: The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - Remaining local gap: No Base Sepolia canary artifact bundle is preserved yet.

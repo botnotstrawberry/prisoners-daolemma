@@ -15,13 +15,16 @@
 2. `local-proof-pack.json` — Machine-readable manifest tying each preserved file back to the original local matrix artifact directory.
 3. `20260316-parallel-local-validation/matrix-report.json` — parallel-local validation (3 overlapping isolated local harness instances) copied matrix report: preset, seeds, tx totals, and aggregate breakage signals.
 4. `20260316-parallel-local-validation/MATRIX_SUMMARY.md` — parallel-local validation (3 overlapping isolated local harness instances) compact human summary for the same preserved local run set.
+5. `20260316-host-local-saturation-c5/matrix-report.json` — broader-local host saturation (5 overlapping isolated local harness instances) copied matrix report: preset, seeds, tx totals, and aggregate breakage signals.
+6. `20260316-host-local-saturation-c5/MATRIX_SUMMARY.md` — broader-local host saturation (5 overlapping isolated local harness instances) compact human summary for the same preserved local run set.
 
 ## What this bundle proves
 
 ### Local proof
-- This compact local proof pack preserves 1 copied matrix artifact set(s) rooted in validated current local runs.
+- This compact local proof pack preserves 2 copied matrix artifact set(s) rooted in validated current local runs.
 - parallel-local validation (3 overlapping isolated local harness instances) records 9 completed game(s), max joined players 20, and 0 unexpected failed tx(s).
-- This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directory are intentionally omitted here to keep the checked-in bundle compact.
+- broader-local host saturation (5 overlapping isolated local harness instances) records 16 completed game(s), max joined players 20, and 0 unexpected failed tx(s).
+- This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
 
 ### Live Base Sepolia proof
 - No recognizable live Base Sepolia canary artifacts are packaged here yet.
@@ -44,15 +47,20 @@
 - local-proof-pack.json: `local-proof-pack.json`
 - README.md: `README.md`
 - Schema: prisoners-daollema/local-proof-pack-v1
-- Generated at: 2026-03-16T03:58:53.501Z
+- Generated at: 2026-03-16T05:25:16.135Z
 - parallel-local validation (3 overlapping isolated local harness instances): 9 game(s), max joined players 20, unexpected failed txs 0
   - matrix report: `20260316-parallel-local-validation/matrix-report.json`
   - summary: `20260316-parallel-local-validation/MATRIX_SUMMARY.md`
   - scenarios: adversarial-random, mixed, winner-all-share
   - seeds: parallel-adversarial-a, parallel-same-block-a, parallel-winner-a
-- Not preserved here: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directory are intentionally omitted here to keep the checked-in bundle compact.
-- Not preserved here: The copied matrix-report.json file is preserved as captured, including path references back to the original source directory on the capture machine.
-- Remaining local gap: Host-local parallel coverage is now real but still bounded to one machine and 3 overlapping harness instances; heavier 5-10 deployment saturation remains unproven.
+- broader-local host saturation (5 overlapping isolated local harness instances): 16 game(s), max joined players 20, unexpected failed txs 0
+  - matrix report: `20260316-host-local-saturation-c5/matrix-report.json`
+  - summary: `20260316-host-local-saturation-c5/MATRIX_SUMMARY.md`
+  - scenarios: adversarial-random, winner-all-share
+  - seeds: adversarial-a, adversarial-b, adversarial-c, scale-winner-a, scale-winner-b
+- Not preserved here: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
+- Not preserved here: The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine.
+- Remaining local gap: Host-local parallel coverage is now real and preserved through 5 overlapping harness instances on one machine; heavier 6-10 deployment saturation remains unproven.
 - Remaining local gap: Broad auth-expiry chaos inside the load harness is still thin.
 - Remaining local gap: The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - Remaining local gap: No Base Sepolia canary artifact bundle is preserved yet.

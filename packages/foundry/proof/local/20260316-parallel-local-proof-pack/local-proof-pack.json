@@ -1,8 +1,8 @@
 {
   "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
   "title": "Prisoners DAOllema preserved parallel local proof pack",
-  "generatedAt": "2026-03-16T03:58:53.501Z",
-  "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from a real current bounded multi-instance local run. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directory, and does not claim live-chain proof.",
+  "generatedAt": "2026-03-16T05:25:16.135Z",
+  "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from real current bounded multi-instance local runs. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directories, and does not claim live-chain proof.",
   "preservedRuns": [
     {
       "id": "20260316-parallel-local-validation",
@@ -145,14 +145,184 @@
           }
         ]
       }
+    },
+    {
+      "id": "20260316-host-local-saturation-c5",
+      "label": "broader-local host saturation (5 overlapping isolated local harness instances)",
+      "description": "Stronger bounded host-local saturation result on the current codebase: three seeded adversarial smoke sweeps plus two scale winner soaks overlapped across five isolated harness + Anvil instances on one machine.",
+      "sourceDir": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c5",
+      "preservedFiles": {
+        "matrixReport": {
+          "path": "20260316-host-local-saturation-c5/matrix-report.json",
+          "sourcePath": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c5/matrix-report.json",
+          "bytes": 27686,
+          "sha256": "9b78893e6c5f54d9a93b55334cbd12eb83f4e514e9f8f7794efe11a1e36f91f6"
+        },
+        "summary": {
+          "path": "20260316-host-local-saturation-c5/MATRIX_SUMMARY.md",
+          "sourcePath": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c5/MATRIX_SUMMARY.md",
+          "bytes": 10070,
+          "sha256": "835014d2af6ab57d1ed1204a2ca5e62333398f4440e9541b532a03c2569f349b"
+        }
+      },
+      "summary": {
+        "status": "ok",
+        "presetName": "broader-local",
+        "presetLabel": "broader-local",
+        "presetDescription": "Bounded broader local soak: one deterministic same-block family pass, three seeded adversarial smoke sweeps, and two larger scale-profile winner-path drain rehearsals.",
+        "startedAt": "2026-03-16T05:21:06.422Z",
+        "finishedAt": "2026-03-16T05:22:29.087Z",
+        "wallClockMs": 82665,
+        "plannedRuns": 5,
+        "completedRuns": 5,
+        "totalCompletedGames": 16,
+        "requestedScenarios": [
+          "adversarial-random",
+          "winner-all-share"
+        ],
+        "seeds": [
+          "adversarial-a",
+          "adversarial-b",
+          "adversarial-c",
+          "scale-winner-a",
+          "scale-winner-b"
+        ],
+        "profiles": [
+          "scale",
+          "smoke"
+        ],
+        "largestRequestedPlayerCount": 20,
+        "maxJoinedPlayersInSingleGame": 20,
+        "totalJoinedPlayersAcrossRun": 159,
+        "gamesHittingRequestedPlayerTarget": 5,
+        "fullyDrainedGames": 16,
+        "replayConsistentGames": 16,
+        "execution": {
+          "mode": "parallel-local",
+          "requestedInstanceConcurrency": 5,
+          "instanceConcurrencyLimit": 5,
+          "peakActiveRuns": 5,
+          "runsWithAnyOverlap": 5,
+          "localParallelismConfirmed": true,
+          "stopOnError": false,
+          "dispatchStoppedEarly": false,
+          "overlappingRunPairs": [
+            {
+              "leftRunId": "adversarial-c",
+              "rightRunId": "scale-winner-b",
+              "overlapMs": 59346
+            },
+            {
+              "leftRunId": "adversarial-c",
+              "rightRunId": "scale-winner-a",
+              "overlapMs": 57654
+            },
+            {
+              "leftRunId": "scale-winner-a",
+              "rightRunId": "scale-winner-b",
+              "overlapMs": 57641
+            },
+            {
+              "leftRunId": "adversarial-b",
+              "rightRunId": "adversarial-c",
+              "overlapMs": 53418
+            },
+            {
+              "leftRunId": "adversarial-b",
+              "rightRunId": "scale-winner-a",
+              "overlapMs": 53410
+            },
+            {
+              "leftRunId": "adversarial-b",
+              "rightRunId": "scale-winner-b",
+              "overlapMs": 53397
+            },
+            {
+              "leftRunId": "adversarial-a",
+              "rightRunId": "adversarial-b",
+              "overlapMs": 50874
+            },
+            {
+              "leftRunId": "adversarial-a",
+              "rightRunId": "adversarial-c",
+              "overlapMs": 50870
+            },
+            {
+              "leftRunId": "adversarial-a",
+              "rightRunId": "scale-winner-a",
+              "overlapMs": 50862
+            },
+            {
+              "leftRunId": "adversarial-a",
+              "rightRunId": "scale-winner-b",
+              "overlapMs": 50849
+            }
+          ]
+        },
+        "txSummary": {
+          "attempted": 1510,
+          "succeeded": 1187,
+          "failed": 323,
+          "failedExpected": 323,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "attemptedBatches": 57,
+          "minedBatches": 57,
+          "attemptedTxs": 138,
+          "expectedFailures": 57,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 48
+        },
+        "breakageSummary": {
+          "gamesChecked": 16,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 323,
+            "failedAsExpected": 323,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 323,
+            "localRejections": 0
+          }
+        },
+        "terminalOutcomes": [
+          {
+            "key": "Cancelled",
+            "count": 3
+          },
+          {
+            "key": "Winners",
+            "count": 13
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "cancelled-refunds",
+            "count": 3
+          },
+          {
+            "key": "winner-claims",
+            "count": 13
+          }
+        ]
+      }
     }
   ],
   "notPreserved": [
-    "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directory are intentionally omitted here to keep the checked-in bundle compact.",
-    "The copied matrix-report.json file is preserved as captured, including path references back to the original source directory on the capture machine."
+    "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.",
+    "The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine."
   ],
   "remainingLocalGaps": [
-    "Host-local parallel coverage is now real but still bounded to one machine and 3 overlapping harness instances; heavier 5-10 deployment saturation remains unproven.",
+    "Host-local parallel coverage is now real and preserved through 5 overlapping harness instances on one machine; heavier 6-10 deployment saturation remains unproven.",
     "Broad auth-expiry chaos inside the load harness is still thin.",
     "The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.",
     "No Base Sepolia canary artifact bundle is preserved yet."

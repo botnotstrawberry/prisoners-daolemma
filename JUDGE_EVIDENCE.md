@@ -24,8 +24,8 @@ Right now this repo has six evidence layers:
    - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
 4. **Preserved compact parallel-local proof pack**
    - `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` is checked in now
-   - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from a real bounded 3-instance overlapping host-local matrix run
-   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for that matrix run
+   - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from both the original bounded 3-instance `parallel-local` validation and a stronger bounded 5-instance host-local saturation run
+   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
 5. **Operator-ready broader local artifact tooling**
    - the repo can still generate fuller local harness and matrix artifacts plus judge-facing indexes for an existing bundle
    - the latest status tracking says local validation now extends through the preserved 250-player proof plus bounded xlarge / multi-seed and bounded parallel-local runs
@@ -93,7 +93,7 @@ What they prove:
 What it proves:
 
 - the repo now also ships a compact preserved proof pack for bounded host-local multi-instance overlap
-- the compact bundle stays honest about being local-only and explicitly records that the preserved run reached 3 overlapping isolated harness + Anvil instances on one machine
+- the compact bundle stays honest about being local-only and explicitly records that the strongest preserved run reached 5 overlapping isolated harness + Anvil instances on one machine
 
 ### 7. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/local-proof-pack.json`
 
@@ -101,7 +101,7 @@ What it proves:
 
 - which copied matrix artifacts back the preserved parallel-local proof pack
 - byte counts and SHA-256 hashes for every copied artifact
-- the requested instance concurrency, peak active runs, and overlap pairs preserved from that real local run
+- the requested instance concurrency, peak active runs, and overlap pairs preserved from those real local runs
 
 ### 8. `LOCAL_READINESS.md` and `TEST_PLAN.md`
 
