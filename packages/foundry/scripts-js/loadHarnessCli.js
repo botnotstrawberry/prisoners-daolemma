@@ -35,6 +35,7 @@ Core options:
   --catch-weight <n>             In adversarial-random mode, relative weight for CATCH choices. Defaults to 1.
   --steal-weight <n>             In adversarial-random mode, relative weight for STEAL choices. Defaults to 1.
   --expected-failures            Intentionally submit deterministic duplicate/invalid follow-up operations and count them as expected failures.
+  --same-block-probes            On supported local dev RPCs, temporarily disable automine and mine short ordered same-block batches for per-round edge-ordering and duplicate-settlement contention probes.
   --skip-claims                  Stop after winner-path games resolve; do not submit winner claims.
   --seed <text>                  Deterministic sampling seed for chaos decisions.
 
@@ -54,7 +55,8 @@ Examples:
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --scenario winner-all-share
   node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --scenario mixed --concurrency 16 --commit-duration-blocks 96 --reveal-duration-blocks 96
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --scenario no-winner-all-catch --expected-failures --json
-  node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6
+  node scripts-js/loadHarnessCli.js --profile smoke --player-count 6 --scenario winner-all-share --same-block-probes --expected-failures
+  node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6 --same-block-probes
 `);
 }
 

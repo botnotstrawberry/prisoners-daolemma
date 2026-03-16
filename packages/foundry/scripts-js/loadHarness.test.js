@@ -269,6 +269,224 @@ test(
 
 
 test(
+  "load harness same-block probes cover winner edge ordering and duplicate settlement contention on local Anvil",
+  { timeout: 180_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-same-block-winner-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "winner-all-share",
+      playerCount: 6,
+      causeCount: 3,
+      games: 1,
+      concurrency: 3,
+      sameBlockProbes: true,
+      seed: "load-harness-same-block-winner-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    const game = report.games[0];
+    const expectedSameBlockBatches = game.rounds.length * 2 + 3;
+    const expectedSameBlockTxs = game.rounds.length * 6 + 6;
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.options.sameBlockProbes, true);
+    assert.equal(report.sameBlockSummary.attemptedBatches, expectedSameBlockBatches);
+    assert.equal(
+      report.sameBlockSummary.minedBatches,
+      report.sameBlockSummary.attemptedBatches
+    );
+    assert.equal(report.sameBlockSummary.attemptedTxs, expectedSameBlockTxs);
+    assert.equal(
+      report.sameBlockSummary.expectedFailures,
+      report.sameBlockSummary.attemptedBatches
+    );
+    assert.equal(report.sameBlockSummary.unexpectedFailures, 0);
+    assert.equal(report.sameBlockSummary.unexpectedSuccesses, 0);
+    assert.equal(
+      countForKey(report.sameBlockSummary.byLabel, "advanceFromCommit"),
+      game.rounds.length
+    );
+    assert.equal(
+      countForKey(report.sameBlockSummary.byLabel, "advanceFromReveal"),
+      game.rounds.length
+    );
+    assert.equal(
+      countForKey(report.sameBlockSummary.byLabel, "duplicate-claim-same-block"),
+      1
+    );
+    assert.equal(
+      countForKey(
+        report.sameBlockSummary.byLabel,
+        "duplicate-withdraw-treasury-same-block"
+      ),
+      1
+    );
+    assert.equal(
+      countForKey(
+        report.sameBlockSummary.byLabel,
+        "duplicate-withdraw-cause-same-block"
+      ),
+      1
+    );
+    assert.equal(report.txSummary.failedUnexpected, 0);
+
+    assert.equal(game.resultState.outcome, "Winners");
+    assert.equal(game.resultState.phase, "Ended");
+    assert.equal(game.claims.succeeded, 6);
+    assert.equal(game.refunds.succeeded, 0);
+    assert.equal(game.withdrawals.treasury.executed, true);
+    assert.ok(game.withdrawals.causes.succeeded >= 3);
+    assert.equal(game.sameBlock.enabled, true);
+    assert.equal(game.sameBlock.attemptedBatches, expectedSameBlockBatches);
+    assert.equal(game.sameBlock.minedBatches, expectedSameBlockBatches);
+    assert.equal(game.sameBlock.attemptedTxs, expectedSameBlockTxs);
+    assert.equal(game.sameBlock.expectedFailures, expectedSameBlockBatches);
+    assert.equal(game.sameBlock.skipped, 0);
+    assert.ok(game.rounds[0].commit.sameBlockAdvanceBatchId > 0);
+    assert.ok(game.rounds[0].reveal.sameBlockAdvanceBatchId > 0);
+    assert.equal(game.breakageChecks.ok, true);
+    assert.equal(game.postRunOutstanding.treasuryClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.totalCauseClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.unclaimedWinnerCount, 0);
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
+    assert.equal(game.replayConsistency.ok, true);
+  }
+);
+
+test(
+  "load harness same-block probes cover underfilled transition ordering and duplicate refunds",
+  { timeout: 180_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-same-block-cancelled-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "cancelled-underfilled",
+      playerCount: 6,
+      causeCount: 3,
+      games: 1,
+      concurrency: 3,
+      sameBlockProbes: true,
+      seed: "load-harness-same-block-cancelled-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    const game = report.games[0];
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.options.sameBlockProbes, true);
+    assert.equal(report.sameBlockSummary.attemptedBatches, 2);
+    assert.equal(report.sameBlockSummary.minedBatches, 2);
+    assert.equal(report.sameBlockSummary.attemptedTxs, 4);
+    assert.equal(report.sameBlockSummary.expectedFailures, 2);
+    assert.equal(report.sameBlockSummary.unexpectedFailures, 0);
+    assert.equal(report.sameBlockSummary.unexpectedSuccesses, 0);
+    assert.equal(
+      countForKey(report.sameBlockSummary.byLabel, "underfilled-transition-same-block"),
+      1
+    );
+    assert.equal(
+      countForKey(report.sameBlockSummary.byLabel, "duplicate-refund-same-block"),
+      1
+    );
+    assert.equal(report.txSummary.failed, 2);
+    assert.equal(report.txSummary.failedExpected, 2);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+
+    assert.equal(game.resultState.outcome, "Cancelled");
+    assert.equal(game.resultState.phase, "Cancelled");
+    assert.equal(game.refunds.succeeded, 2);
+    assert.equal(game.claims.succeeded, 0);
+    assert.equal(game.sameBlock.enabled, true);
+    assert.equal(game.sameBlock.attemptedBatches, 2);
+    assert.equal(game.sameBlock.expectedFailures, 2);
+    assert.equal(game.sameBlock.skipped, 0);
+    assert.equal(game.breakageChecks.ok, true);
+    assert.equal(game.postRunOutstanding.pendingRefundCount, 0);
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
+    assert.equal(game.replayConsistency.ok, true);
+  }
+);
+
+test(
+  "load harness same-block probes cover no-winner round edge ordering plus duplicate treasury/cause withdrawals",
+  { timeout: 180_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-same-block-nowinner-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "no-winner-all-catch",
+      playerCount: 6,
+      causeCount: 3,
+      games: 1,
+      concurrency: 3,
+      sameBlockProbes: true,
+      seed: "load-harness-same-block-no-winner-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    const game = report.games[0];
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.options.sameBlockProbes, true);
+    assert.equal(report.sameBlockSummary.attemptedBatches, 4);
+    assert.equal(report.sameBlockSummary.minedBatches, 4);
+    assert.equal(report.sameBlockSummary.attemptedTxs, 10);
+    assert.equal(report.sameBlockSummary.expectedFailures, 4);
+    assert.equal(report.sameBlockSummary.unexpectedFailures, 0);
+    assert.equal(report.sameBlockSummary.unexpectedSuccesses, 0);
+    assert.equal(countForKey(report.sameBlockSummary.byLabel, "advanceFromCommit"), 1);
+    assert.equal(countForKey(report.sameBlockSummary.byLabel, "advanceFromReveal"), 1);
+    assert.equal(
+      countForKey(
+        report.sameBlockSummary.byLabel,
+        "duplicate-withdraw-treasury-same-block"
+      ),
+      1
+    );
+    assert.equal(
+      countForKey(
+        report.sameBlockSummary.byLabel,
+        "duplicate-withdraw-cause-same-block"
+      ),
+      1
+    );
+    assert.equal(report.txSummary.failed, 4);
+    assert.equal(report.txSummary.failedExpected, 4);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+
+    assert.equal(game.resultState.outcome, "NoWinners");
+    assert.equal(game.resultState.phase, "Ended");
+    assert.equal(game.rounds.length, 1);
+    assert.equal(game.claims.succeeded, 0);
+    assert.equal(game.refunds.succeeded, 0);
+    assert.equal(game.withdrawals.treasury.executed, true);
+    assert.equal(game.withdrawals.causes.succeeded, 3);
+    assert.equal(game.sameBlock.enabled, true);
+    assert.equal(game.sameBlock.attemptedBatches, 4);
+    assert.equal(game.sameBlock.attemptedTxs, 10);
+    assert.equal(game.sameBlock.expectedFailures, 4);
+    assert.equal(game.sameBlock.skipped, 0);
+    assert.ok(game.rounds[0].commit.sameBlockAdvanceBatchId > 0);
+    assert.ok(game.rounds[0].reveal.sameBlockAdvanceBatchId > 0);
+    assert.equal(game.breakageChecks.ok, true);
+    assert.equal(game.postRunOutstanding.treasuryClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.totalCauseClaimableWei, "0");
+    assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
+    assert.equal(game.replayConsistency.ok, true);
+  }
+);
+
+test(
   "load harness adversarial-random mode hunts for weird local state without leaving wedges or drain inconsistencies",
   { timeout: 180_000, concurrency: false },
   async () => {

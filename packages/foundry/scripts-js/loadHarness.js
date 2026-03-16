@@ -888,6 +888,11 @@ function buildResolvedConfig(rawOptions = {}) {
       `Adversarial scenario enabled with underfilledRate=${underfilledRate}, invalidRevealRate=${invalidRevealRate}, probeRate=${probeRate}, and choiceWeights share/catch/steal=${choiceWeights.share}/${choiceWeights.catch}/${choiceWeights.steal}.`
     );
   }
+  if (rawOptions.sameBlockProbes) {
+    notes.push(
+      "sameBlockProbes enabled: the harness will attempt short manual no-automine single-block batches on the local dev RPC for underfilled transitions, per-round last-commit/last-reveal vs advancePhase ordering in started games, and duplicate claim/refund/withdraw contention."
+    );
+  }
 
   if (joinDurationSeconds !== profile.joinDurationSeconds) {
     notes.push(
@@ -948,6 +953,7 @@ function buildResolvedConfig(rawOptions = {}) {
     spawnAnvil: !rawOptions.rpcUrl,
     claimWinners: rawOptions.skipClaims ? false : true,
     expectedFailures: Boolean(rawOptions.expectedFailures),
+    sameBlockProbes: Boolean(rawOptions.sameBlockProbes),
     requestedScenario,
     selectedScenarioTypes,
     scenarioPlan,
@@ -971,6 +977,7 @@ function createEmptyTxTracker() {
   return {
     entries: [],
     nextIndex: 1,
+    nextSameBlockBatchId: 1,
   };
 }
 
@@ -984,13 +991,14 @@ function pushTrackedEntry(
     durationMs,
     txHash = null,
     blockNumber = null,
+    transactionIndex = null,
     gasUsed = null,
     error = null,
     failureClass = null,
     failureTransport = null,
   }
 ) {
-  tracker.entries.push({
+  const entry = {
     index: tracker.nextIndex++,
     status,
     action: meta.action,
@@ -1011,9 +1019,17 @@ function pushTrackedEntry(
     durationMs,
     txHash,
     blockNumber,
+    transactionIndex,
     gasUsed,
+    sameBlockBatchId: meta.sameBlockBatchId ?? null,
+    sameBlockBatchLabel: meta.sameBlockBatchLabel ?? null,
+    sameBlockAttemptIndex: meta.sameBlockAttemptIndex ?? null,
+    sameBlockAttemptCount: meta.sameBlockAttemptCount ?? null,
+    sameBlockMode: meta.sameBlockMode ?? null,
     error,
-  });
+  };
+  tracker.entries.push(entry);
+  return entry;
 }
 
 function extractFailureReceipt(error) {
@@ -1022,6 +1038,7 @@ function extractFailureReceipt(error) {
     return {
       transactionHash: receipt.transactionHash,
       blockNumber: receipt.blockNumber ?? null,
+      transactionIndex: receipt.transactionIndex ?? null,
       gasUsed:
         receipt.gasUsed !== undefined && receipt.gasUsed !== null
           ? bigintFrom(receipt.gasUsed, "failureReceipt.gasUsed").toString()
@@ -1037,6 +1054,7 @@ async function extractReceipt(provider, outcome) {
     return {
       transactionHash: outcome.transactionHash,
       blockNumber: outcome.blockNumber,
+      transactionIndex: outcome.transactionIndex ?? null,
       gasUsed: bigintFrom(outcome.gasUsed, "receipt.gasUsed").toString(),
     };
   }
@@ -1046,6 +1064,7 @@ async function extractReceipt(provider, outcome) {
     return {
       transactionHash: receipt.transactionHash,
       blockNumber: receipt.blockNumber,
+      transactionIndex: receipt.transactionIndex ?? null,
       gasUsed: bigintFrom(receipt.gasUsed, "receipt.gasUsed").toString(),
     };
   }
@@ -1055,6 +1074,7 @@ async function extractReceipt(provider, outcome) {
       return {
         transactionHash: outcome.txHash,
         blockNumber: outcome.blockNumber,
+        transactionIndex: outcome.transactionIndex ?? null,
         gasUsed: bigintFrom(outcome.gasUsed, "receipt.gasUsed").toString(),
       };
     }
@@ -1066,6 +1086,7 @@ async function extractReceipt(provider, outcome) {
     return {
       transactionHash: receipt.transactionHash,
       blockNumber: receipt.blockNumber,
+      transactionIndex: receipt.transactionIndex ?? null,
       gasUsed: bigintFrom(receipt.gasUsed, "receipt.gasUsed").toString(),
     };
   }
@@ -1078,6 +1099,7 @@ async function extractReceipt(provider, outcome) {
     return {
       transactionHash: receipt.transactionHash,
       blockNumber: receipt.blockNumber,
+      transactionIndex: receipt.transactionIndex ?? null,
       gasUsed: bigintFrom(receipt.gasUsed, "receipt.gasUsed").toString(),
     };
   }
@@ -1100,6 +1122,7 @@ async function trackedTx(tracker, provider, meta, operation) {
       durationMs: Date.now() - startedMs,
       txHash: receipt.transactionHash,
       blockNumber: receipt.blockNumber,
+      transactionIndex: receipt.transactionIndex ?? null,
       gasUsed: receipt.gasUsed,
     });
     return outcome;
@@ -1112,6 +1135,7 @@ async function trackedTx(tracker, provider, meta, operation) {
       durationMs: Date.now() - startedMs,
       txHash: failureReceipt?.transactionHash ?? null,
       blockNumber: failureReceipt?.blockNumber ?? null,
+      transactionIndex: failureReceipt?.transactionIndex ?? null,
       gasUsed: failureReceipt?.gasUsed ?? null,
       error: describeError(error),
       failureClass: "unexpected",
@@ -1140,6 +1164,7 @@ async function trackedExpectedFailure(tracker, provider, meta, operation) {
         durationMs: Date.now() - startedMs,
         txHash: receipt.transactionHash,
         blockNumber: receipt.blockNumber,
+        transactionIndex: receipt.transactionIndex ?? null,
         gasUsed: receipt.gasUsed,
         failureClass: "unexpected-success",
       }
@@ -1170,6 +1195,7 @@ async function trackedExpectedFailure(tracker, provider, meta, operation) {
         durationMs: Date.now() - startedMs,
         txHash: extractFailureReceipt(error)?.transactionHash ?? null,
         blockNumber: extractFailureReceipt(error)?.blockNumber ?? null,
+        transactionIndex: extractFailureReceipt(error)?.transactionIndex ?? null,
         gasUsed: extractFailureReceipt(error)?.gasUsed ?? null,
         error: describeError(error),
         failureClass: "expected",
@@ -2439,6 +2465,805 @@ async function runWalletBurstExpectedFailureProbe({
   });
 }
 
+
+function normalizeWinnerClaimPreviewForHarness(preview) {
+  return {
+    grossPrizeWei: decimalString(preview.grossPrizeWei),
+    causeCutWei: decimalString(preview.causeCutWei),
+    netPrizeWei: decimalString(preview.netPrizeWei),
+    availableNow: Boolean(preview.availableNow),
+  };
+}
+
+function normalizeRefundPreviewForHarness(preview) {
+  return {
+    refundWei: decimalString(preview.refundWei),
+    availableNow: Boolean(preview.availableNow),
+  };
+}
+
+function normalizePlayerStateForHarness(player) {
+  return {
+    causeId: toNumber(player.causeId, "player.causeId"),
+    claimed: Boolean(player.claimed),
+    refunded: Boolean(player.refunded),
+  };
+}
+
+function normalizeGameCauseStateForHarness(causeState, causeId) {
+  return {
+    causeId,
+    used: Boolean(causeState.used),
+    recipient: causeState.recipient,
+  };
+}
+
+async function runSameWalletSameBlockSequence({
+  enabled,
+  provider,
+  tracker,
+  wallet,
+  batchLabel,
+  attempts,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const normalizedAttempts = (attempts ?? []).filter(
+    (attempt) => typeof attempt?.buildOperation === "function"
+  );
+
+  if (!enabled || !wallet?.address || normalizedAttempts.length === 0) {
+    if (skippedSameBlockProbes && skipReason) {
+      skippedSameBlockProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      reason: skipReason ?? "same-block batch disabled or empty",
+      attempts: [],
+    };
+  }
+
+  const batchId = tracker.nextSameBlockBatchId++;
+  const baseNonce = await provider.getTransactionCount(wallet.address, "pending");
+  const attemptRecords = [];
+  const pendingAttempts = [];
+  let automineDisabled = false;
+
+  try {
+    try {
+      await provider.send("evm_setAutomine", [false]);
+      automineDisabled = true;
+    } catch (error) {
+      const reason = `${skipReason ?? batchLabel} (automine control unavailable: ${describeError(error)})`;
+      if (skippedSameBlockProbes) {
+        skippedSameBlockProbes.push(reason);
+      }
+      return {
+        skipped: true,
+        reason,
+        attempts: [],
+      };
+    }
+
+    for (let attemptIndex = 0; attemptIndex < normalizedAttempts.length; attemptIndex += 1) {
+      const attempt = normalizedAttempts[attemptIndex];
+      const meta = {
+        ...(attempt.meta ?? {}),
+        wallet: attempt.meta?.wallet ?? wallet.address,
+        sameBlockBatchId: batchId,
+        sameBlockBatchLabel: batchLabel,
+        sameBlockAttemptIndex: attemptIndex + 1,
+        sameBlockAttemptCount: normalizedAttempts.length,
+        sameBlockMode: "manual-no-automine-single-block",
+      };
+      const startedAt = new Date().toISOString();
+      const startedMs = Date.now();
+
+      try {
+        const outcome = await attempt.buildOperation({
+          wallet,
+          nonce: baseNonce + attemptIndex,
+          attemptIndex,
+        });
+        pendingAttempts.push({
+          attemptIndex,
+          meta,
+          startedAt,
+          startedMs,
+          outcome,
+        });
+      } catch (error) {
+        const failureReceipt = extractFailureReceipt(error);
+        const expectation = meta.expectation ?? "success";
+        attemptRecords.push(
+          pushTrackedEntry(tracker, meta, {
+            status: "failed",
+            startedAt,
+            finishedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedMs,
+            txHash: failureReceipt?.transactionHash ?? null,
+            blockNumber: failureReceipt?.blockNumber ?? null,
+            transactionIndex: failureReceipt?.transactionIndex ?? null,
+            gasUsed: failureReceipt?.gasUsed ?? null,
+            error: describeError(error),
+            failureClass: expectation === "success" ? "unexpected" : "expected",
+            failureTransport: failureReceipt ? "onchain-revert" : "local-rejection",
+          })
+        );
+      }
+    }
+
+    if (pendingAttempts.length > 0) {
+      await provider.send("evm_mine", []);
+    }
+
+    for (const pending of pendingAttempts) {
+      const { meta, startedAt, startedMs, outcome } = pending;
+      const expectation = meta.expectation ?? "success";
+      try {
+        const receipt = await extractReceipt(provider, outcome);
+        attemptRecords.push(
+          pushTrackedEntry(tracker, meta, {
+            status: "succeeded",
+            startedAt,
+            finishedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedMs,
+            txHash: receipt.transactionHash,
+            blockNumber: receipt.blockNumber,
+            transactionIndex: receipt.transactionIndex ?? null,
+            gasUsed: receipt.gasUsed,
+            failureClass:
+              expectation === "success" ? null : "unexpected-success",
+          })
+        );
+      } catch (error) {
+        const failureReceipt = extractFailureReceipt(error);
+        attemptRecords.push(
+          pushTrackedEntry(tracker, meta, {
+            status: "failed",
+            startedAt,
+            finishedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedMs,
+            txHash: failureReceipt?.transactionHash ?? null,
+            blockNumber: failureReceipt?.blockNumber ?? null,
+            transactionIndex: failureReceipt?.transactionIndex ?? null,
+            gasUsed: failureReceipt?.gasUsed ?? null,
+            error: describeError(error),
+            failureClass: expectation === "success" ? "unexpected" : "expected",
+            failureTransport: failureReceipt ? "onchain-revert" : "local-rejection",
+          })
+        );
+      }
+    }
+  } finally {
+    if (automineDisabled) {
+      await provider.send("evm_setAutomine", [true]).catch(() => {});
+    }
+  }
+
+  const sortedAttempts = attemptRecords.sort(
+    (a, b) =>
+      (a.sameBlockAttemptIndex ?? 0) - (b.sameBlockAttemptIndex ?? 0) ||
+      (a.transactionIndex ?? Number.MAX_SAFE_INTEGER) -
+        (b.transactionIndex ?? Number.MAX_SAFE_INTEGER)
+  );
+  const blockNumbers = [...new Set(
+    sortedAttempts
+      .map((attempt) => attempt.blockNumber)
+      .filter((value) => value !== null && value !== undefined)
+  )];
+  const batch = {
+    skipped: false,
+    batchId,
+    label: batchLabel,
+    wallet: wallet.address,
+    mode: "manual-no-automine-single-block",
+    attempted: normalizedAttempts.length,
+    sent: pendingAttempts.length,
+    minedTogether: blockNumbers.length === 1 && pendingAttempts.length > 0,
+    blockNumber: blockNumbers.length === 1 ? blockNumbers[0] : null,
+    attempts: sortedAttempts,
+  };
+
+  const unexpectedEntries = sortedAttempts.filter(
+    (entry) =>
+      entry.failureClass === "unexpected" ||
+      entry.failureClass === "unexpected-success"
+  );
+  if (unexpectedEntries.length > 0) {
+    throw new Error(
+      `${batchLabel} same-block batch saw ${unexpectedEntries.length} unexpected outcome(s). First issue: ${unexpectedEntries[0].error ?? unexpectedEntries[0].failureLabel ?? unexpectedEntries[0].action}`
+    );
+  }
+
+  return batch;
+}
+
+async function runSameBlockAdvanceEdgeSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  round,
+  wallet,
+  action,
+  phase,
+  scenarioType,
+  gameOperation,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet,
+    batchLabel: action,
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action,
+          phase,
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-ordering",
+          failureLabel: `${action}-before-final-${phase}`,
+          gameIndex,
+          gameId,
+          round,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "advancePhase",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: gameOperation.action,
+          phase,
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+        },
+        buildOperation: ({ nonce }) => gameOperation.buildOperation({ nonce }),
+      },
+      {
+        meta: {
+          action,
+          phase,
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "advancePhase",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      snapshotAfter: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    snapshotAfter: normalizeSnapshot(await gameReader.getGame(gameId)),
+  };
+}
+
+async function runSameBlockUnderfilledTransitionSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  wallet,
+  scenarioType,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet,
+    batchLabel: "underfilled-transition-same-block",
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action: "advanceFromJoining",
+          phase: "joining",
+          scenarioType,
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "advancePhase",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: "cancelIfInsufficientPlayers",
+          phase: "joining",
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-ordering",
+          failureLabel: "cancel-after-underfilled-transition",
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "cancelIfInsufficientPlayers",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      snapshotAfter: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    snapshotAfter: normalizeSnapshot(await gameReader.getGame(gameId)),
+  };
+}
+
+async function runSameBlockDuplicateClaimSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  player,
+  scenarioType,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const previewBefore = normalizeWinnerClaimPreviewForHarness(
+    await gameReader.previewWinnerClaim(gameId, player.wallet.address)
+  );
+  if (!previewBefore.availableNow) {
+    if (skippedSameBlockProbes && skipReason) {
+      skippedSameBlockProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      reason: skipReason,
+      batch: null,
+      claimResult: null,
+    };
+  }
+
+  const playerState = normalizePlayerStateForHarness(
+    await gameReader.getPlayer(gameId, player.wallet.address)
+  );
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet: player.wallet,
+    batchLabel: "duplicate-claim-same-block",
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action: "claim",
+          phase: "settlement",
+          scenarioType,
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: player.wallet,
+            method: "claim",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: "claim",
+          phase: "settlement",
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-duplicate",
+          failureLabel: "duplicate-claim-after-same-block-success",
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: player.wallet,
+            method: "claim",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      claimResult: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    claimResult: {
+      causeId: playerState.causeId,
+      grossPrizeWei: previewBefore.grossPrizeWei,
+      causeCutWei: previewBefore.causeCutWei,
+      netPrizeWei: previewBefore.netPrizeWei,
+      txHash: batch.attempts[0]?.txHash ?? null,
+      blockNumber: batch.blockNumber,
+    },
+  };
+}
+
+async function runSameBlockDuplicateRefundSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  player,
+  scenarioType,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const previewBefore = normalizeRefundPreviewForHarness(
+    await gameReader.previewRefund(gameId, player.wallet.address)
+  );
+  if (!previewBefore.availableNow) {
+    if (skippedSameBlockProbes && skipReason) {
+      skippedSameBlockProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      reason: skipReason,
+      batch: null,
+      refundResult: null,
+    };
+  }
+
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet: player.wallet,
+    batchLabel: "duplicate-refund-same-block",
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action: "refund",
+          phase: "settlement",
+          scenarioType,
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: player.wallet,
+            method: "claimRefund",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: "refund",
+          phase: "settlement",
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-duplicate",
+          failureLabel: "duplicate-refund-after-same-block-success",
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: player.wallet,
+            method: "claimRefund",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      refundResult: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    refundResult: {
+      refundWei: previewBefore.refundWei,
+      txHash: batch.attempts[0]?.txHash ?? null,
+      blockNumber: batch.blockNumber,
+    },
+  };
+}
+
+async function runSameBlockDuplicateTreasuryWithdrawalSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  wallet,
+  scenarioType,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const amountWei = decimalString(
+    await gameReader.treasuryClaimableAmount(gameId)
+  );
+  if (amountWei === "0") {
+    if (skippedSameBlockProbes && skipReason) {
+      skippedSameBlockProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      reason: skipReason,
+      batch: null,
+      withdrawalResult: null,
+    };
+  }
+
+  const snapshotBefore = normalizeSnapshot(await gameReader.getGame(gameId));
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet,
+    batchLabel: "duplicate-withdraw-treasury-same-block",
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType,
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "withdrawTreasury",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: "withdrawTreasury",
+          phase: "settlement",
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-duplicate",
+          failureLabel: "duplicate-withdraw-treasury-after-same-block-success",
+          gameIndex,
+          gameId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "withdrawTreasury",
+            args: [gameId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      withdrawalResult: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    withdrawalResult: {
+      amountWei,
+      recipient: snapshotBefore.treasury,
+      txHash: batch.attempts[0]?.txHash ?? null,
+      blockNumber: batch.blockNumber,
+    },
+  };
+}
+
+async function runSameBlockDuplicateCauseWithdrawalSequence({
+  enabled,
+  provider,
+  tracker,
+  gameReader,
+  gameAddress,
+  gameIndex,
+  gameId,
+  wallet,
+  causeId,
+  scenarioType,
+  skippedSameBlockProbes,
+  skipReason,
+}) {
+  const amountWei = decimalString(
+    await gameReader.gameCauseClaimableAmount(gameId, causeId)
+  );
+  if (amountWei === "0") {
+    if (skippedSameBlockProbes && skipReason) {
+      skippedSameBlockProbes.push(skipReason);
+    }
+    return {
+      skipped: true,
+      reason: skipReason,
+      batch: null,
+      withdrawalResult: null,
+    };
+  }
+
+  const causeBefore = normalizeGameCauseStateForHarness(
+    await gameReader.getGameCause(gameId, causeId),
+    causeId
+  );
+  const batch = await runSameWalletSameBlockSequence({
+    enabled,
+    provider,
+    tracker,
+    wallet,
+    batchLabel: "duplicate-withdraw-cause-same-block",
+    skippedSameBlockProbes,
+    skipReason,
+    attempts: [
+      {
+        meta: {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType,
+          gameIndex,
+          gameId,
+          causeId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "withdrawCause",
+            args: [gameId, causeId],
+            overrides: { nonce },
+          }),
+      },
+      {
+        meta: {
+          action: "withdrawCause",
+          phase: "settlement",
+          scenarioType,
+          expectation: "probe",
+          probeKind: "same-block-duplicate",
+          failureLabel: `duplicate-withdraw-cause-${causeId}-after-same-block-success`,
+          gameIndex,
+          gameId,
+          causeId,
+        },
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet,
+            method: "withdrawCause",
+            args: [gameId, causeId],
+            overrides: { nonce },
+          }),
+      },
+    ],
+  });
+
+  if (batch.skipped) {
+    return {
+      skipped: true,
+      batch,
+      withdrawalResult: null,
+    };
+  }
+
+  return {
+    skipped: false,
+    batch,
+    withdrawalResult: {
+      causeId,
+      amountWei,
+      recipient: causeBefore.recipient,
+      txHash: batch.attempts[0]?.txHash ?? null,
+      blockNumber: batch.blockNumber,
+    },
+  };
+}
+
+async function findFirstClaimableCauseId({ gameReader, gameId, causeIds }) {
+  for (const causeId of [...new Set(causeIds)].sort((a, b) => a - b)) {
+    const amountWei = decimalString(
+      await gameReader.gameCauseClaimableAmount(gameId, causeId)
+    );
+    if (amountWei !== "0") {
+      return causeId;
+    }
+  }
+
+  return null;
+}
+
 function buildGameExecutionPlan({
   players,
   scenarioType,
@@ -2627,6 +3452,9 @@ async function runPlannedRound({
   enableAdversarialProbes = false,
   probeRate = 0,
   skippedProbes = [],
+  sameBlockProbes = false,
+  sameBlockBatches = [],
+  skippedSameBlockProbes = [],
 }) {
   const snapshotBeforeRound = normalizeSnapshot(
     await gameReader.getGame(gameId)
@@ -2664,38 +3492,61 @@ async function runPlannedRound({
     preparedBundles.map((bundle) => [bundle.wallet.toLowerCase(), bundle])
   );
 
+  const sameBlockCommitPlan =
+    sameBlockProbes &&
+    committedPlans.length > 0 &&
+    skippedCommitPlans.length === 0
+      ? committedPlans[committedPlans.length - 1]
+      : null;
+  if (sameBlockProbes) {
+    if (committedPlans.length === 0) {
+      skippedSameBlockProbes.push(
+        `round-${round}:commit edge same-block batch skipped(no committing player)`
+      );
+    } else if (skippedCommitPlans.length > 0) {
+      skippedSameBlockProbes.push(
+        `round-${round}:commit edge same-block batch skipped(commit phase intentionally left deadline-driven)`
+      );
+    }
+  }
+  const directCommitPlans = sameBlockCommitPlan
+    ? committedPlans.slice(0, -1)
+    : committedPlans;
+
   const commitStartedMs = Date.now();
-  await runGameBatch({
-    items: committedPlans,
-    concurrency,
-    actionName: "commit",
-    provider,
-    tracker,
-    buildMeta: (plan) => ({
-      action: "commit",
-      phase: "commit",
-      scenarioType,
-      gameIndex,
-      gameId,
-      round,
-      wallet: plan.player.wallet.address,
-    }),
-    operation: (plan) =>
-      commitAction({
-        provider,
-        game: gameAddress,
+  if (directCommitPlans.length > 0) {
+    await runGameBatch({
+      items: directCommitPlans,
+      concurrency,
+      actionName: "commit",
+      provider,
+      tracker,
+      buildMeta: (plan) => ({
+        action: "commit",
+        phase: "commit",
+        scenarioType,
+        gameIndex,
         gameId,
-        commitment: bundleByWallet.get(plan.player.wallet.address.toLowerCase())
-          .commitment,
+        round,
         wallet: plan.player.wallet.address,
-        walletPrivateKey: plan.player.wallet.privateKey,
-        allowUnsafePrivateKey: true,
       }),
-  });
+      operation: (plan) =>
+        commitAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          commitment: bundleByWallet.get(plan.player.wallet.address.toLowerCase())
+            .commitment,
+          wallet: plan.player.wallet.address,
+          walletPrivateKey: plan.player.wallet.privateKey,
+          allowUnsafePrivateKey: true,
+        }),
+    });
+  }
 
   if (expectedFailures) {
-    if (committedPlans.length > 0) {
-      const duplicateCommitPlan = committedPlans[0];
+    if (directCommitPlans.length > 0) {
+      const duplicateCommitPlan = directCommitPlans[0];
       const bundle = bundleByWallet.get(
         duplicateCommitPlan.player.wallet.address.toLowerCase()
       );
@@ -2719,6 +3570,10 @@ async function runPlannedRound({
             method: "commit",
             args: [gameId, bundle.commitment],
           })
+      );
+    } else if (sameBlockCommitPlan) {
+      skippedExpectedFailures.push(
+        `round-${round}:duplicate-commit(only committing player reserved for same-block edge batch)`
       );
     } else {
       skippedExpectedFailures.push(
@@ -2826,28 +3681,120 @@ async function runPlannedRound({
     });
   }
 
-  const commitAdvanceResult = await trackedTx(
-    tracker,
-    provider,
-    {
-      action: "advanceFromCommit",
-      phase: "commit",
-      scenarioType,
+  let commitAdvanceResult;
+  let commitSameBlockBatchId = null;
+  if (sameBlockCommitPlan) {
+    const bundle = bundleByWallet.get(
+      sameBlockCommitPlan.player.wallet.address.toLowerCase()
+    );
+    const sameBlockCommitBatch = await runSameBlockAdvanceEdgeSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
       gameIndex,
       gameId,
       round,
-      wallet: owner.address,
-    },
-    async () =>
-      advancePhaseAction({
+      wallet: sameBlockCommitPlan.player.wallet,
+      action: "advanceFromCommit",
+      phase: "commit",
+      scenarioType,
+      gameOperation: {
+        action: "commit",
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: sameBlockCommitPlan.player.wallet,
+            method: "commit",
+            args: [gameId, bundle.commitment],
+            overrides: { nonce },
+          }),
+      },
+      skippedSameBlockProbes,
+      skipReason: `round-${round}:commit edge same-block batch skipped`,
+    });
+
+    if (!sameBlockCommitBatch.skipped) {
+      sameBlockBatches.push(sameBlockCommitBatch.batch);
+      commitSameBlockBatchId = sameBlockCommitBatch.batch.batchId;
+      commitAdvanceResult = {
+        phase: sameBlockCommitBatch.snapshotAfter.phase,
+        outcome: sameBlockCommitBatch.snapshotAfter.outcome,
+        round: sameBlockCommitBatch.snapshotAfter.round,
+      };
+    } else {
+      await trackedTx(
+        tracker,
         provider,
-        game: gameAddress,
+        {
+          action: "commit",
+          phase: "commit",
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+          wallet: sameBlockCommitPlan.player.wallet.address,
+        },
+        async () =>
+          commitAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            commitment: bundle.commitment,
+            wallet: sameBlockCommitPlan.player.wallet.address,
+            walletPrivateKey: sameBlockCommitPlan.player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+
+      commitAdvanceResult = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "advanceFromCommit",
+          phase: "commit",
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+          wallet: owner.address,
+        },
+        async () =>
+          advancePhaseAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    }
+  } else {
+    commitAdvanceResult = await trackedTx(
+      tracker,
+      provider,
+      {
+        action: "advanceFromCommit",
+        phase: "commit",
+        scenarioType,
+        gameIndex,
         gameId,
+        round,
         wallet: owner.address,
-        walletPrivateKey: owner.privateKey,
-        allowUnsafePrivateKey: true,
-      })
-  );
+      },
+      async () =>
+        advancePhaseAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          wallet: owner.address,
+          walletPrivateKey: owner.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+  }
 
   await runWalletBurstExpectedFailureProbe({
     enabled:
@@ -2934,40 +3881,63 @@ async function runPlannedRound({
     });
   }
 
+  const sameBlockRevealPlan =
+    sameBlockProbes &&
+    revealPlans.length > 0 &&
+    skippedRevealPlans.length === 0
+      ? revealPlans[revealPlans.length - 1]
+      : null;
+  if (sameBlockProbes) {
+    if (revealPlans.length === 0) {
+      skippedSameBlockProbes.push(
+        `round-${round}:reveal edge same-block batch skipped(no revealing player)`
+      );
+    } else if (skippedRevealPlans.length > 0) {
+      skippedSameBlockProbes.push(
+        `round-${round}:reveal edge same-block batch skipped(reveal phase intentionally left deadline-driven)`
+      );
+    }
+  }
+  const directRevealPlans = sameBlockRevealPlan
+    ? revealPlans.slice(0, -1)
+    : revealPlans;
+
   const revealStartedMs = Date.now();
-  await runGameBatch({
-    items: revealPlans,
-    concurrency,
-    actionName: "reveal",
-    provider,
-    tracker,
-    buildMeta: (plan) => ({
-      action: "reveal",
-      phase: "reveal",
-      scenarioType,
-      gameIndex,
-      gameId,
-      round,
-      wallet: plan.player.wallet.address,
-    }),
-    operation: (plan) => {
-      const bundle = bundleByWallet.get(plan.player.wallet.address.toLowerCase());
-      return revealAction({
-        provider,
-        game: gameAddress,
+  if (directRevealPlans.length > 0) {
+    await runGameBatch({
+      items: directRevealPlans,
+      concurrency,
+      actionName: "reveal",
+      provider,
+      tracker,
+      buildMeta: (plan) => ({
+        action: "reveal",
+        phase: "reveal",
+        scenarioType,
+        gameIndex,
         gameId,
+        round,
         wallet: plan.player.wallet.address,
-        walletPrivateKey: plan.player.wallet.privateKey,
-        allowUnsafePrivateKey: true,
-        choice: bundle.choice,
-        salt: bundle.salt,
-      });
-    },
-  });
+      }),
+      operation: (plan) => {
+        const bundle = bundleByWallet.get(plan.player.wallet.address.toLowerCase());
+        return revealAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          wallet: plan.player.wallet.address,
+          walletPrivateKey: plan.player.wallet.privateKey,
+          allowUnsafePrivateKey: true,
+          choice: bundle.choice,
+          salt: bundle.salt,
+        });
+      },
+    });
+  }
 
   if (expectedFailures) {
-    if (revealPlans.length > 0) {
-      const duplicateRevealPlan = revealPlans[0];
+    if (directRevealPlans.length > 0) {
+      const duplicateRevealPlan = directRevealPlans[0];
       const bundle = bundleByWallet.get(
         duplicateRevealPlan.player.wallet.address.toLowerCase()
       );
@@ -2991,6 +3961,10 @@ async function runPlannedRound({
             method: "reveal",
             args: [gameId, bundle.choiceCode, bundle.salt],
           })
+      );
+    } else if (sameBlockRevealPlan) {
+      skippedExpectedFailures.push(
+        `round-${round}:duplicate-reveal(only revealing player reserved for same-block edge batch)`
       );
     } else {
       skippedExpectedFailures.push(
@@ -3055,28 +4029,122 @@ async function runPlannedRound({
     });
   }
 
-  const revealAdvanceResult = await trackedTx(
-    tracker,
-    provider,
-    {
-      action: "advanceFromReveal",
-      phase: "reveal",
-      scenarioType,
+  let revealAdvanceResult;
+  let revealSameBlockBatchId = null;
+  if (sameBlockRevealPlan) {
+    const bundle = bundleByWallet.get(
+      sameBlockRevealPlan.player.wallet.address.toLowerCase()
+    );
+    const sameBlockRevealBatch = await runSameBlockAdvanceEdgeSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
       gameIndex,
       gameId,
       round,
-      wallet: owner.address,
-    },
-    async () =>
-      advancePhaseAction({
+      wallet: sameBlockRevealPlan.player.wallet,
+      action: "advanceFromReveal",
+      phase: "reveal",
+      scenarioType,
+      gameOperation: {
+        action: "reveal",
+        buildOperation: ({ nonce }) =>
+          sendRawGameTx({
+            gameAddress,
+            wallet: sameBlockRevealPlan.player.wallet,
+            method: "reveal",
+            args: [gameId, bundle.choiceCode, bundle.salt],
+            overrides: { nonce },
+          }),
+      },
+      skippedSameBlockProbes,
+      skipReason: `round-${round}:reveal edge same-block batch skipped`,
+    });
+
+    if (!sameBlockRevealBatch.skipped) {
+      sameBlockBatches.push(sameBlockRevealBatch.batch);
+      revealSameBlockBatchId = sameBlockRevealBatch.batch.batchId;
+      revealAdvanceResult = {
+        phase: sameBlockRevealBatch.snapshotAfter.phase,
+        outcome: sameBlockRevealBatch.snapshotAfter.outcome,
+        round: sameBlockRevealBatch.snapshotAfter.round,
+        shareStreak: sameBlockRevealBatch.snapshotAfter.shareStreak,
+      };
+    } else {
+      await trackedTx(
+        tracker,
         provider,
-        game: gameAddress,
+        {
+          action: "reveal",
+          phase: "reveal",
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+          wallet: sameBlockRevealPlan.player.wallet.address,
+        },
+        async () =>
+          revealAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: sameBlockRevealPlan.player.wallet.address,
+            walletPrivateKey: sameBlockRevealPlan.player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+            choice: bundle.choice,
+            salt: bundle.salt,
+          })
+      );
+
+      revealAdvanceResult = await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "advanceFromReveal",
+          phase: "reveal",
+          scenarioType,
+          gameIndex,
+          gameId,
+          round,
+          wallet: owner.address,
+        },
+        async () =>
+          advancePhaseAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    }
+  } else {
+    revealAdvanceResult = await trackedTx(
+      tracker,
+      provider,
+      {
+        action: "advanceFromReveal",
+        phase: "reveal",
+        scenarioType,
+        gameIndex,
         gameId,
+        round,
         wallet: owner.address,
-        walletPrivateKey: owner.privateKey,
-        allowUnsafePrivateKey: true,
-      })
-  );
+      },
+      async () =>
+        advancePhaseAction({
+          provider,
+          game: gameAddress,
+          gameId,
+          wallet: owner.address,
+          walletPrivateKey: owner.privateKey,
+          allowUnsafePrivateKey: true,
+        })
+    );
+  }
 
   await runWalletBurstExpectedFailureProbe({
     enabled:
@@ -3146,6 +4214,7 @@ async function runPlannedRound({
         skippedWallets: skippedCommitWallets,
         deadlineHit: commitDeadlineHit,
         durationMs: commitDurationMs,
+        sameBlockAdvanceBatchId: commitSameBlockBatchId,
         advanceResult: {
           phase: commitAdvanceResult.phase,
           outcome: commitAdvanceResult.outcome,
@@ -3159,6 +4228,7 @@ async function runPlannedRound({
         invalidRevealAttempts: invalidRevealPlans.length,
         deadlineHit: revealDeadlineHit,
         durationMs: revealDurationMs,
+        sameBlockAdvanceBatchId: revealSameBlockBatchId,
         advanceResult: {
           phase: revealAdvanceResult.phase,
           outcome: revealAdvanceResult.outcome,
@@ -3207,6 +4277,83 @@ function buildProbeSummary(entries) {
   };
 }
 
+
+function buildSameBlockGameSummary({ enabled, batches, skippedReasons = [] }) {
+  const attemptEntries = (batches ?? []).flatMap((batch) => batch.attempts ?? []);
+
+  return {
+    enabled,
+    attemptedBatches: (batches ?? []).length,
+    minedBatches: (batches ?? []).filter((batch) => batch.minedTogether).length,
+    attemptedTxs: attemptEntries.length,
+    succeeded: attemptEntries.filter((entry) => entry.status === "succeeded")
+      .length,
+    expectedFailures: attemptEntries.filter(
+      (entry) => entry.status === "failed" && entry.failureClass === "expected"
+    ).length,
+    unexpectedFailures: attemptEntries.filter(
+      (entry) => entry.status === "failed" && entry.failureClass === "unexpected"
+    ).length,
+    unexpectedSuccesses: attemptEntries.filter(
+      (entry) => entry.failureClass === "unexpected-success"
+    ).length,
+    onchainReverts: attemptEntries.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "onchain-revert"
+    ).length,
+    localRejections: attemptEntries.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "local-rejection"
+    ).length,
+    byLabel: groupCount(batches ?? [], (batch) => batch.label),
+    byAction: groupCount(attemptEntries, (entry) => entry.action),
+    skipped: skippedReasons.length,
+    skippedReasons,
+    batches,
+  };
+}
+
+function buildSameBlockSummary({ enabled, games }) {
+  const batches = games.flatMap((game) => game.sameBlock?.batches ?? []);
+  const attempts = batches.flatMap((batch) => batch.attempts ?? []);
+
+  return {
+    enabled,
+    attemptedBatches: batches.length,
+    minedBatches: batches.filter((batch) => batch.minedTogether).length,
+    attemptedTxs: attempts.length,
+    succeeded: attempts.filter((entry) => entry.status === "succeeded").length,
+    expectedFailures: attempts.filter(
+      (entry) => entry.status === "failed" && entry.failureClass === "expected"
+    ).length,
+    unexpectedFailures: attempts.filter(
+      (entry) => entry.status === "failed" && entry.failureClass === "unexpected"
+    ).length,
+    unexpectedSuccesses: attempts.filter(
+      (entry) => entry.failureClass === "unexpected-success"
+    ).length,
+    onchainReverts: attempts.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "onchain-revert"
+    ).length,
+    localRejections: attempts.filter(
+      (entry) =>
+        entry.status === "failed" && entry.failureTransport === "local-rejection"
+    ).length,
+    skipped: games.reduce(
+      (sum, game) => sum + (game.sameBlock?.skipped ?? 0),
+      0
+    ),
+    byLabel: groupCount(batches, (batch) => batch.label),
+    byAction: groupCount(attempts, (entry) => entry.action),
+    byGame: games.map((game) => ({
+      gameId: game.gameId,
+      attemptedBatches: game.sameBlock?.attemptedBatches ?? 0,
+      skipped: game.sameBlock?.skipped ?? 0,
+    })),
+  };
+}
+
 async function runWinnerSettlement({
   provider,
   owner,
@@ -3224,6 +4371,11 @@ async function runWinnerSettlement({
   enableAdversarialProbes = false,
   probeRate = 0,
   skippedProbes = [],
+  scenarioType = enableAdversarialProbes ? "adversarial-random" : "winner-all-share",
+  claimDrainIntended = true,
+  sameBlockProbes = false,
+  sameBlockBatches = [],
+  skippedSameBlockProbes = [],
 }) {
   const winnerPlayers = await loadAlivePlayers(gameReader, gameId, joinedPlayers);
   const claimResults = [];
@@ -3249,7 +4401,7 @@ async function runWinnerSettlement({
     meta: {
       action: "refund",
       phase: "settlement",
-      scenarioType: "adversarial-random",
+      scenarioType,
       gameIndex,
       gameId,
       wallet: winnerPlayers[0]?.wallet.address ?? null,
@@ -3285,7 +4437,7 @@ async function runWinnerSettlement({
     meta: {
       action: "withdrawCause",
       phase: "settlement",
-      scenarioType: "adversarial-random",
+      scenarioType,
       gameIndex,
       gameId,
       wallet: owner.address,
@@ -3304,15 +4456,76 @@ async function runWinnerSettlement({
     skipReason: "winner-settlement:early cause withdraw probe skipped",
   });
 
+  if (sameBlockProbes && claimDrainIntended && winnerPlayers.length > 0) {
+    const sameBlockClaim = await runSameBlockDuplicateClaimSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
+      gameIndex,
+      gameId,
+      player: winnerPlayers[0],
+      scenarioType,
+      skippedSameBlockProbes,
+      skipReason: "winner-settlement:claim same-block batch skipped",
+    });
+    if (!sameBlockClaim.skipped) {
+      sameBlockBatches.push(sameBlockClaim.batch);
+      claimResults.push(sameBlockClaim.claimResult);
+
+      const sameBlockCause = await runSameBlockDuplicateCauseWithdrawalSequence({
+        enabled: true,
+        provider,
+        tracker,
+        gameReader,
+        gameAddress,
+        gameIndex,
+        gameId,
+        wallet: owner,
+        causeId: sameBlockClaim.claimResult.causeId,
+        scenarioType,
+        skippedSameBlockProbes,
+        skipReason: "winner-settlement:cause same-block batch skipped",
+      });
+      if (!sameBlockCause.skipped) {
+        sameBlockBatches.push(sameBlockCause.batch);
+        causeWithdrawalResults.push(sameBlockCause.withdrawalResult);
+      }
+    }
+  }
+
+  if (sameBlockProbes) {
+    const sameBlockTreasury = await runSameBlockDuplicateTreasuryWithdrawalSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
+      gameIndex,
+      gameId,
+      wallet: owner,
+      scenarioType,
+      skippedSameBlockProbes,
+      skipReason: "winner-settlement:treasury same-block batch skipped",
+    });
+    if (!sameBlockTreasury.skipped) {
+      sameBlockBatches.push(sameBlockTreasury.batch);
+      treasuryWithdrawal = sameBlockTreasury.withdrawalResult;
+    }
+  }
+
   while (true) {
     const candidates = [];
-    for (const player of winnerPlayers) {
-      const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
-      if (preview.availableNow) {
-        candidates.push({
-          type: "claim",
-          player,
-        });
+    if (claimDrainIntended) {
+      for (const player of winnerPlayers) {
+        const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
+        if (preview.availableNow) {
+          candidates.push({
+            type: "claim",
+            player,
+          });
+        }
       }
     }
 
@@ -3351,7 +4564,7 @@ async function runWinnerSettlement({
         {
           action: "claim",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           gameIndex,
           gameId,
           wallet: selected.player.wallet.address,
@@ -3385,7 +4598,7 @@ async function runWinnerSettlement({
         meta: {
           action: "claim",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           expectation: "probe",
           gameIndex,
           gameId,
@@ -3415,7 +4628,7 @@ async function runWinnerSettlement({
         {
           action: "withdrawTreasury",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           gameIndex,
           gameId,
           wallet: owner.address,
@@ -3448,7 +4661,7 @@ async function runWinnerSettlement({
         meta: {
           action: "withdrawTreasury",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           expectation: "probe",
           gameIndex,
           gameId,
@@ -3478,7 +4691,7 @@ async function runWinnerSettlement({
         {
           action: "withdrawCause",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           gameIndex,
           gameId,
           wallet: owner.address,
@@ -3515,7 +4728,7 @@ async function runWinnerSettlement({
         meta: {
           action: "withdrawCause",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           expectation: "probe",
           gameIndex,
           gameId,
@@ -3544,40 +4757,42 @@ async function runWinnerSettlement({
     step += 1;
   }
 
-  const remainingWinnerPlayers = [];
-  for (const player of winnerPlayers) {
-    const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
-    if (preview.availableNow) {
-      remainingWinnerPlayers.push(player);
+  if (claimDrainIntended) {
+    const remainingWinnerPlayers = [];
+    for (const player of winnerPlayers) {
+      const preview = await gameReader.previewWinnerClaim(gameId, player.wallet.address);
+      if (preview.availableNow) {
+        remainingWinnerPlayers.push(player);
+      }
     }
-  }
-  if (remainingWinnerPlayers.length > 0) {
-    claimResults.push(
-      ...(await runGameBatch({
-        items: remainingWinnerPlayers,
-        concurrency,
-        actionName: "claim",
-        provider,
-        tracker,
-        buildMeta: (player) => ({
-          action: "claim",
-          phase: "settlement",
-          scenarioType: "adversarial-random",
-          gameIndex,
-          gameId,
-          wallet: player.wallet.address,
-        }),
-        operation: (player) =>
-          claimAction({
-            provider,
-            game: gameAddress,
+    if (remainingWinnerPlayers.length > 0) {
+      claimResults.push(
+        ...(await runGameBatch({
+          items: remainingWinnerPlayers,
+          concurrency,
+          actionName: "claim",
+          provider,
+          tracker,
+          buildMeta: (player) => ({
+            action: "claim",
+            phase: "settlement",
+            scenarioType,
+            gameIndex,
             gameId,
             wallet: player.wallet.address,
-            walletPrivateKey: player.wallet.privateKey,
-            allowUnsafePrivateKey: true,
           }),
-      }))
-    );
+          operation: (player) =>
+            claimAction({
+              provider,
+              game: gameAddress,
+              gameId,
+              wallet: player.wallet.address,
+              walletPrivateKey: player.wallet.privateKey,
+              allowUnsafePrivateKey: true,
+            }),
+        }))
+      );
+    }
   }
 
   const remainingWithdrawals = await runAvailableWithdrawals({
@@ -3587,7 +4802,7 @@ async function runWinnerSettlement({
     gameAddress,
     gameIndex,
     gameId,
-    scenarioType: "adversarial-random",
+    scenarioType,
     causeIds,
     concurrency,
     tracker,
@@ -3608,6 +4823,7 @@ async function runWinnerSettlement({
 async function runCancelledSettlement({
   provider,
   owner,
+  gameReader,
   gameAddress,
   gameIndex,
   gameId,
@@ -3620,6 +4836,10 @@ async function runCancelledSettlement({
   enableAdversarialProbes = false,
   probeRate = 0,
   skippedProbes = [],
+  scenarioType = enableAdversarialProbes ? "adversarial-random" : "cancelled-underfilled",
+  sameBlockProbes = false,
+  sameBlockBatches = [],
+  skippedSameBlockProbes = [],
 }) {
   await maybeTrackProbe({
     enabled:
@@ -3639,7 +4859,7 @@ async function runCancelledSettlement({
     meta: {
       action: "claim",
       phase: "settlement",
-      scenarioType: "adversarial-random",
+      scenarioType,
       gameIndex,
       gameId,
       wallet: joinedPlayers[0]?.wallet.address ?? null,
@@ -3663,30 +4883,58 @@ async function runCancelledSettlement({
     gameIndex,
     keyFn: (player) => player.wallet.address.toLowerCase(),
   });
-  const refundResults = await runGameBatch({
-    items: orderedRefundPlayers,
-    concurrency,
-    actionName: "refund",
-    provider,
-    tracker,
-    buildMeta: (player) => ({
-      action: "refund",
-      phase: "settlement",
-      scenarioType: enableAdversarialProbes ? "adversarial-random" : "cancelled-underfilled",
+  const refundResults = [];
+  let remainingRefundPlayers = orderedRefundPlayers;
+
+  if (sameBlockProbes && orderedRefundPlayers.length > 0) {
+    const sameBlockRefund = await runSameBlockDuplicateRefundSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
       gameIndex,
       gameId,
-      wallet: player.wallet.address,
-    }),
-    operation: (player) =>
-      refundAction({
+      player: orderedRefundPlayers[0],
+      scenarioType,
+      skippedSameBlockProbes,
+      skipReason: "cancelled-settlement:refund same-block batch skipped",
+    });
+    if (!sameBlockRefund.skipped) {
+      sameBlockBatches.push(sameBlockRefund.batch);
+      refundResults.push(sameBlockRefund.refundResult);
+      remainingRefundPlayers = orderedRefundPlayers.slice(1);
+    }
+  }
+
+  if (remainingRefundPlayers.length > 0) {
+    refundResults.push(
+      ...(await runGameBatch({
+        items: remainingRefundPlayers,
+        concurrency,
+        actionName: "refund",
         provider,
-        game: gameAddress,
-        gameId,
-        wallet: player.wallet.address,
-        walletPrivateKey: player.wallet.privateKey,
-        allowUnsafePrivateKey: true,
-      }),
-  });
+        tracker,
+        buildMeta: (player) => ({
+          action: "refund",
+          phase: "settlement",
+          scenarioType,
+          gameIndex,
+          gameId,
+          wallet: player.wallet.address,
+        }),
+        operation: (player) =>
+          refundAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: player.wallet.address,
+            walletPrivateKey: player.wallet.privateKey,
+            allowUnsafePrivateKey: true,
+          }),
+      }))
+    );
+  }
 
   await runSameWalletExpectedFailureBurst({
     enabled:
@@ -3706,7 +4954,7 @@ async function runCancelledSettlement({
     meta: {
       action: "refund",
       phase: "settlement",
-      scenarioType: "adversarial-random",
+      scenarioType,
       expectation: "probe",
       gameIndex,
       gameId,
@@ -3739,7 +4987,7 @@ async function runCancelledSettlement({
         {
           action: "refund",
           phase: "settlement",
-          scenarioType: enableAdversarialProbes ? "adversarial-random" : "cancelled-underfilled",
+          scenarioType,
           failureLabel: "duplicate-refund",
           gameIndex,
           gameId,
@@ -3783,6 +5031,10 @@ async function runNoWinnerSettlement({
   enableAdversarialProbes = false,
   probeRate = 0,
   skippedProbes = [],
+  scenarioType = enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+  sameBlockProbes = false,
+  sameBlockBatches = [],
+  skippedSameBlockProbes = [],
 }) {
   await maybeTrackProbe({
     enabled:
@@ -3802,7 +5054,7 @@ async function runNoWinnerSettlement({
     meta: {
       action: "claim",
       phase: "settlement",
-      scenarioType: "adversarial-random",
+      scenarioType,
       gameIndex,
       gameId,
       wallet: joinedPlayers[0]?.wallet.address ?? null,
@@ -3823,6 +5075,57 @@ async function runNoWinnerSettlement({
   let treasuryWithdrawal = null;
   const causeWithdrawalResults = [];
   let step = 0;
+
+  if (sameBlockProbes) {
+    const sameBlockTreasury = await runSameBlockDuplicateTreasuryWithdrawalSequence({
+      enabled: true,
+      provider,
+      tracker,
+      gameReader,
+      gameAddress,
+      gameIndex,
+      gameId,
+      wallet: owner,
+      scenarioType,
+      skippedSameBlockProbes,
+      skipReason: "no-winner-settlement:treasury same-block batch skipped",
+    });
+    if (!sameBlockTreasury.skipped) {
+      sameBlockBatches.push(sameBlockTreasury.batch);
+      treasuryWithdrawal = sameBlockTreasury.withdrawalResult;
+    }
+
+    const sameBlockCauseId = await findFirstClaimableCauseId({
+      gameReader,
+      gameId,
+      causeIds,
+    });
+    if (sameBlockCauseId === null) {
+      skippedSameBlockProbes.push(
+        "no-winner-settlement:cause same-block batch skipped(no claimable cause)"
+      );
+    } else {
+      const sameBlockCause = await runSameBlockDuplicateCauseWithdrawalSequence({
+        enabled: true,
+        provider,
+        tracker,
+        gameReader,
+        gameAddress,
+        gameIndex,
+        gameId,
+        wallet: owner,
+        causeId: sameBlockCauseId,
+        scenarioType,
+        skippedSameBlockProbes,
+        skipReason: "no-winner-settlement:cause same-block batch skipped",
+      });
+      if (!sameBlockCause.skipped) {
+        sameBlockBatches.push(sameBlockCause.batch);
+        causeWithdrawalResults.push(sameBlockCause.withdrawalResult);
+      }
+    }
+  }
+
   while (true) {
     const candidates = [];
     const treasuryClaimableWei = bigintFrom(
@@ -3860,7 +5163,7 @@ async function runNoWinnerSettlement({
         {
           action: "withdrawTreasury",
           phase: "settlement",
-          scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+          scenarioType,
           gameIndex,
           gameId,
           wallet: owner.address,
@@ -3893,7 +5196,7 @@ async function runNoWinnerSettlement({
         meta: {
           action: "withdrawTreasury",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           expectation: "probe",
           gameIndex,
           gameId,
@@ -3924,7 +5227,7 @@ async function runNoWinnerSettlement({
           {
             action: "withdrawCause",
             phase: "settlement",
-            scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+            scenarioType,
             gameIndex,
             gameId,
             wallet: owner.address,
@@ -3961,7 +5264,7 @@ async function runNoWinnerSettlement({
         meta: {
           action: "withdrawCause",
           phase: "settlement",
-          scenarioType: "adversarial-random",
+          scenarioType,
           expectation: "probe",
           gameIndex,
           gameId,
@@ -3997,7 +5300,7 @@ async function runNoWinnerSettlement({
     gameAddress,
     gameIndex,
     gameId,
-    scenarioType: enableAdversarialProbes ? "adversarial-random" : "no-winner-all-catch",
+    scenarioType,
     causeIds,
     concurrency,
     tracker,
@@ -4184,6 +5487,7 @@ async function runSingleGame({
   choiceWeights,
   claimWinners,
   expectedFailures,
+  sameBlockProbes,
   tracker,
   runDir,
 }) {
@@ -4192,6 +5496,8 @@ async function runSingleGame({
   const scenarioType = scenario.type;
   const skippedExpectedFailures = [];
   const skippedProbes = [];
+  const skippedSameBlockProbes = [];
+  const sameBlockBatches = [];
   const notes = [scenario.description];
   const enableAdversarialProbes = scenarioType === "adversarial-random";
   const claimDrainIntended = enableAdversarialProbes ? true : claimWinners;
@@ -4407,27 +5713,45 @@ async function runSingleGame({
     (enableAdversarialProbes && gamePlan.plan.underfilledIntent);
 
   if (shouldCancel) {
-    await trackedTx(
-      tracker,
+    const sameBlockUnderfilledTransition = await runSameBlockUnderfilledTransitionSequence({
+      enabled: sameBlockProbes,
       provider,
-      {
-        action: "cancelIfInsufficientPlayers",
-        phase: "joining",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: owner.address,
-      },
-      async () =>
-        cancelIfInsufficientPlayersAction({
-          provider,
-          game: gameAddress,
+      tracker,
+      gameReader,
+      gameAddress,
+      gameIndex,
+      gameId,
+      wallet: owner,
+      scenarioType,
+      skippedSameBlockProbes,
+      skipReason: "joining:underfilled same-block batch skipped",
+    });
+
+    if (!sameBlockUnderfilledTransition.skipped) {
+      sameBlockBatches.push(sameBlockUnderfilledTransition.batch);
+    } else {
+      await trackedTx(
+        tracker,
+        provider,
+        {
+          action: "cancelIfInsufficientPlayers",
+          phase: "joining",
+          scenarioType,
+          gameIndex,
           gameId,
           wallet: owner.address,
-          walletPrivateKey: owner.privateKey,
-          allowUnsafePrivateKey: true,
-        })
-    );
+        },
+        async () =>
+          cancelIfInsufficientPlayersAction({
+            provider,
+            game: gameAddress,
+            gameId,
+            wallet: owner.address,
+            walletPrivateKey: owner.privateKey,
+            allowUnsafePrivateKey: true,
+          })
+      );
+    }
     joinDurationMs = Date.now() - joinStartedMs;
   } else {
     await trackedTx(
@@ -4530,6 +5854,9 @@ async function runSingleGame({
           scenarioType,
           expectedFailures,
           skippedExpectedFailures,
+          sameBlockProbes,
+          sameBlockBatches,
+          skippedSameBlockProbes,
         });
         roundReports.push(roundResult.roundReport);
         manualBlocksMined += roundResult.manualBlocksMined;
@@ -4572,6 +5899,9 @@ async function runSingleGame({
         scenarioType,
         expectedFailures,
         skippedExpectedFailures,
+        sameBlockProbes,
+        sameBlockBatches,
+        skippedSameBlockProbes,
       });
       roundReports.push(roundResult.roundReport);
       manualBlocksMined += roundResult.manualBlocksMined;
@@ -4628,6 +5958,9 @@ async function runSingleGame({
           scenarioType,
           expectedFailures,
           skippedExpectedFailures,
+          sameBlockProbes,
+          sameBlockBatches,
+          skippedSameBlockProbes,
           enableAdversarialProbes: true,
           probeRate,
           skippedProbes,
@@ -4661,7 +5994,7 @@ async function runSingleGame({
   const causeIds = causeAssignments.map((entry) => entry.causeId);
 
   if (terminalSnapshot.phase === "Cancelled") {
-    if (enableAdversarialProbes) {
+    if (enableAdversarialProbes || sameBlockProbes) {
       ({
         claimResults,
         refundResults,
@@ -4670,6 +6003,7 @@ async function runSingleGame({
       } = await runCancelledSettlement({
         provider,
         owner,
+        gameReader,
         gameAddress,
         gameIndex,
         gameId,
@@ -4682,6 +6016,10 @@ async function runSingleGame({
         enableAdversarialProbes,
         probeRate,
         skippedProbes,
+        scenarioType,
+        sameBlockProbes,
+        sameBlockBatches,
+        skippedSameBlockProbes,
       }));
     } else {
       refundResults = await runGameBatch({
@@ -4738,7 +6076,7 @@ async function runSingleGame({
       }
     }
   } else if (terminalSnapshot.outcome === "Winners") {
-    if (enableAdversarialProbes) {
+    if (enableAdversarialProbes || sameBlockProbes) {
       ({
         claimResults,
         refundResults,
@@ -4761,6 +6099,11 @@ async function runSingleGame({
         enableAdversarialProbes,
         probeRate,
         skippedProbes,
+        scenarioType,
+        claimDrainIntended,
+        sameBlockProbes,
+        sameBlockBatches,
+        skippedSameBlockProbes,
       }));
     } else {
       if (claimDrainIntended) {
@@ -4839,7 +6182,7 @@ async function runSingleGame({
         }));
     }
   } else if (terminalSnapshot.outcome === "NoWinners") {
-    if (enableAdversarialProbes) {
+    if (enableAdversarialProbes || sameBlockProbes) {
       ({
         claimResults,
         refundResults,
@@ -4862,6 +6205,10 @@ async function runSingleGame({
         enableAdversarialProbes,
         probeRate,
         skippedProbes,
+        scenarioType,
+        sameBlockProbes,
+        sameBlockBatches,
+        skippedSameBlockProbes,
       }));
     } else {
       ({ treasuryWithdrawal, causeWithdrawalResults } =
@@ -4940,6 +6287,11 @@ async function runSingleGame({
   );
   const gameTxSummary = buildTxSummary(gameEntries);
   const probeSummary = buildProbeSummary(gameEntries);
+  const sameBlockSummary = buildSameBlockGameSummary({
+    enabled: sameBlockProbes,
+    batches: sameBlockBatches,
+    skippedReasons: skippedSameBlockProbes,
+  });
 
   if (
     scenarioType !== "winner-all-share" &&
@@ -4981,6 +6333,18 @@ async function runSingleGame({
   if (skippedProbes.length > 0) {
     notes.push(
       `Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: ${skippedProbes.join(
+        ", "
+      )}.`
+    );
+  }
+  if (sameBlockProbes) {
+    notes.push(
+      "Same-block probes, when they ran, used temporary evm_setAutomine(false) plus a single manual evm_mine block on the local dev RPC; see sameBlock batches for the exact block numbers and per-tx order."
+    );
+  }
+  if (skippedSameBlockProbes.length > 0) {
+    notes.push(
+      `Some same-block probes were skipped because automine control or a prerequisite action was unavailable: ${skippedSameBlockProbes.join(
         ", "
       )}.`
     );
@@ -5064,6 +6428,7 @@ async function runSingleGame({
       ).length,
     },
     probes: probeSummary,
+    sameBlock: sameBlockSummary,
     txSummary: gameTxSummary,
     resultState: {
       phase: exported.evidence.summary.game.phase,
@@ -5324,6 +6689,7 @@ export async function runLoadHarness(rawOptions = {}) {
       choiceWeights: options.choiceWeights,
       claimWinners: options.claimWinners,
       expectedFailures: options.expectedFailures,
+      sameBlockProbes: options.sameBlockProbes,
       requestedScenario: options.requestedScenario,
       selectedScenarioTypes: options.selectedScenarioTypes,
       seed: options.seed,
@@ -5344,6 +6710,7 @@ export async function runLoadHarness(rawOptions = {}) {
       "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
       "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
       "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
+      "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
     ],
   };
 
@@ -5441,6 +6808,7 @@ export async function runLoadHarness(rawOptions = {}) {
           choiceWeights: options.choiceWeights,
           claimWinners: options.claimWinners,
           expectedFailures: options.expectedFailures,
+          sameBlockProbes: options.sameBlockProbes,
           tracker,
           runDir: options.runDir,
         })
@@ -5452,6 +6820,10 @@ export async function runLoadHarness(rawOptions = {}) {
     const finishedAt = new Date().toISOString();
     const wallClockMs = Date.parse(finishedAt) - Date.parse(startedAt);
     const txSummary = buildTxSummary(tracker.entries);
+    const sameBlockSummary = buildSameBlockSummary({
+      enabled: options.sameBlockProbes,
+      games,
+    });
 
     const report = {
       ...baseReport,
@@ -5534,6 +6906,9 @@ export async function runLoadHarness(rawOptions = {}) {
           (sum, game) => sum + (game.probes?.unexpectedSuccesses ?? 0),
           0
         ),
+        sameBlockBatches: sameBlockSummary.attemptedBatches,
+        sameBlockTxs: sameBlockSummary.attemptedTxs,
+        sameBlockExpectedFailures: sameBlockSummary.expectedFailures,
       },
       scenarioSummary: {
         byType: groupCount(games, (game) => game.scenario.type),
@@ -5547,6 +6922,7 @@ export async function runLoadHarness(rawOptions = {}) {
         ),
       },
       txSummary,
+      sameBlockSummary,
       localScaleReadiness: buildLocalScaleReadiness({
         games,
         txEntries: tracker.entries,
@@ -5618,6 +6994,11 @@ export function printLoadHarnessSummary(report) {
       report.options.expectedFailures ? "enabled" : "disabled"
     }`
   );
+  console.log(
+    `Same-block:     ${
+      report.options.sameBlockProbes ? "enabled" : "disabled"
+    }`
+  );
   if (report.environment) {
     console.log(`RPC URL:        ${report.environment.rpcUrl}`);
     console.log(`Chain ID:       ${report.environment.chainId}`);
@@ -5630,6 +7011,14 @@ export function printLoadHarnessSummary(report) {
   console.log(`  unexpected:   ${report.txSummary.failedUnexpected ?? 0}`);
   console.log(`  unexp succ:   ${report.txSummary.unexpectedSuccesses ?? 0}`);
   console.log(`Gas total:      ${report.txSummary.gasUsed.total}`);
+  if (report.sameBlockSummary) {
+    console.log(
+      `SB batches:     ${report.sameBlockSummary.attemptedBatches}/${report.sameBlockSummary.minedBatches}`
+    );
+    console.log(
+      `SB exp fails:   ${report.sameBlockSummary.expectedFailures}/${report.sameBlockSummary.attemptedTxs}`
+    );
+  }
   console.log(`Wall clock ms:  ${report.wallClockMs}`);
   if (Array.isArray(report.profile?.notes) && report.profile.notes.length > 0) {
     console.log("Notes:");
@@ -5687,6 +7076,9 @@ export function printLoadHarnessSummary(report) {
       );
       console.log(
         `  Probes:       ${game.probes?.failedAsExpected ?? 0}/${game.probes?.attempted ?? 0}`
+      );
+      console.log(
+        `  Same-block:   ${game.sameBlock?.expectedFailures ?? 0}/${game.sameBlock?.attemptedTxs ?? 0} tx across ${game.sameBlock?.attemptedBatches ?? 0} batches`
       );
       console.log(`  Unexp fails:  ${game.txSummary.failedUnexpected ?? 0}`);
       console.log(`  Manual blocks:${game.blocks.manualMined}`);
