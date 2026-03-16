@@ -45,7 +45,9 @@ That file is intentionally short and should be kept in sync whenever local valid
 
 A full preserved 250-player local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`. It carries the raw `report.json`, `txs.jsonl`, per-game evidence export, and generated judge-facing index from a clean scale-profile single-game winner-path run that joined and claimed through all 250 players with explicit 320/320/320 local timing budgets.
 
-A separate compact matrix-level proof pack is also checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those specific xlarge / multi-seed runs and still has no live Sepolia proof bundle.
+A full preserved raw xlarge / multi-seed matrix bundle is now also checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`. It copies the latest validated `xlarge-local-validation-20260316T021200Z` and `20260316-xlarge-adversarial-multiseed-fullroster` matrix directories in full, including top-level matrix reports, per-run `report.json` / `txs.jsonl`, and per-game evidence exports; the bounded copied payload is ~3.3 MB across 63 artifact files.
+
+A separate compact matrix-level proof pack remains checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the same latest validated xlarge-local and 32-player adversarial multi-seed runs for quicker review, while pointing at the separate raw bundle for deeper replay/audit.
 
 A compact parallel-local proof pack is also checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`. It preserves copied top-level artifacts from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs, while keeping the local-only boundary explicit.
 
@@ -64,7 +66,8 @@ The repo now contains:
 - Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
 - judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
 - a checked-in full local proof bundle at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, preserving `report.json`, `txs.jsonl`, and per-game evidence from a clean 250-player single-game winner-path run
-- a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
+- a preserved raw xlarge / multi-seed matrix proof bundle at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`, carrying the full matrix reports, per-run raw `report.json` / `txs.jsonl`, and per-game evidence exports from the latest validated xlarge-local + multi-seed matrix run set
+- a checked-in companion compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the same latest xlarge-local and 32-player adversarial multi-seed runs for quick review
 - a checked-in compact parallel-local proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, preserving copied matrix summaries from the original 3-instance `parallel-local` validation plus stronger 5-instance and 6-instance host-local saturation runs
 - a preserved raw repo-local 10-instance host-local saturation proof bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`, carrying the full matrix report plus per-run raw reports/tx logs from a one-off bounded custom 10-way overlap attempt (requested concurrency 10, peak active runs observed 10)
 - project-local skill routing for auth, comms/replay, and Solidity security
@@ -384,8 +387,12 @@ Current preserved local bundles:
   - copied full single-run `report.json` + `txs.jsonl` + per-game evidence export from a clean 250-player single-game winner-path run
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
   - `artifact-manifest.json` copied-file hash manifest for the preserved bundle
+- `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`
+  - copied full raw matrix directories from the latest validated xlarge-local and 32-player adversarial multi-seed run set
+  - includes top-level `matrix-report.json` + `MATRIX_SUMMARY.md`, per-run `report.json` / `txs.jsonl`, and per-game evidence exports for all 7 completed games
+  - `artifact-manifest.json` copied-file manifest with source-path mapping, byte counts, and SHA-256 hashes
 - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
-  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
+  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the same latest validated xlarge-local and 32-player adversarial multi-seed runs for quick review
   - `local-proof-pack.json` manifest with source paths, byte counts, and SHA-256 hashes
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
 - `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`

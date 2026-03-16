@@ -36,12 +36,13 @@ If a question is not answered here, ask the human instead of inventing product b
 - broader local soak presets now extend through `xlarge-local` and `parallel-local`
 - Base Sepolia preflight/deployment inspection helpers and judge-evidence packaging helpers exist
 - a full repo-shipped 250-player single-game local proof bundle now exists at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
-- a compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
+- a full raw repo-shipped xlarge / multi-seed matrix proof bundle now exists at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`
+- a companion compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
 - a compact repo-shipped parallel local proof pack now captures the original 3-instance `parallel-local` validation plus stronger 5-instance and 6-instance host-local saturation runs at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`
 - a preserved raw repo-local 10-instance host-local saturation proof bundle now exists at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`
 
 ### Still incomplete or unproven
-- the repo still does not preserve the full raw tx/export bundle from those latest xlarge / multi-seed matrix runs
+- broader auth-expiry chaos inside the load harness is still thin
 - bounded host-local parallel local stress now exists through 10 overlapping isolated instances on one machine; anything heavier remains optional and unproven
 - the first real Base Sepolia canary has not been executed and preserved in-repo
 - mainnet canary/pilot work has not started

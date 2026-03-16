@@ -1,0 +1,588 @@
+{
+  "type": "local-load-harness-matrix-bundle",
+  "title": "Prisoners DAOllema xlarge matrix raw proof bundle",
+  "generatedAt": "2026-03-16T06:44:37Z",
+  "copiedProofDir": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof",
+  "bundleBoundaryNote": "This directory preserves the full raw in-repo copy of the latest validated xlarge / multi-seed local matrix run set because the combined payload stays reasonably small. It remains local Anvil proof only and does not claim live-chain behavior.",
+  "sourceRuns": [
+    {
+      "id": "xlarge-local-validation-20260316T021200Z",
+      "label": "xlarge-local validation (mixed + one adversarial seed)",
+      "description": "Latest preserved compact summary of the xlarge-local preset: one deterministic 32-player mixed-family pass plus one seeded 32-player adversarial sweep.",
+      "sourceRunDir": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z",
+      "copiedDir": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z",
+      "filesCopied": 34,
+      "sizeBytes": 1598667,
+      "summary": {
+        "status": "ok",
+        "presetName": "xlarge-local",
+        "presetLabel": "xlarge-local",
+        "presetDescription": "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus one seeded 32-player adversarial sweep, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure.",
+        "startedAt": "2026-03-16T02:19:29.964Z",
+        "finishedAt": "2026-03-16T02:21:44.134Z",
+        "wallClockMs": 134170,
+        "plannedRuns": 2,
+        "completedRuns": 2,
+        "totalCompletedGames": 4,
+        "requestedScenarios": [
+          "adversarial-random",
+          "mixed"
+        ],
+        "seeds": [
+          "xlarge-mixed-a",
+          "xlarge-seed-19"
+        ],
+        "profiles": [
+          "scale"
+        ],
+        "largestRequestedPlayerCount": 32,
+        "maxJoinedPlayersInSingleGame": 32,
+        "gamesHittingRequestedPlayerTarget": 3,
+        "fullyDrainedGames": 4,
+        "replayConsistentGames": 4,
+        "txSummary": {
+          "attempted": 845,
+          "succeeded": 769,
+          "failed": 76,
+          "failedExpected": 76,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "breakageSummary": {
+          "gamesChecked": 4,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 76,
+            "failedAsExpected": 76,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 76,
+            "localRejections": 0
+          }
+        },
+        "terminalOutcomes": [
+          {
+            "key": "Cancelled",
+            "count": 1
+          },
+          {
+            "key": "NoWinners",
+            "count": 1
+          },
+          {
+            "key": "Winners",
+            "count": 2
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "cancelled-refunds",
+            "count": 1
+          },
+          {
+            "key": "no-winner-routing",
+            "count": 1
+          },
+          {
+            "key": "winner-claims",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "20260316-xlarge-adversarial-multiseed-fullroster",
+      "label": "32-player adversarial multi-seed full-roster validation",
+      "description": "Latest preserved compact summary of the three-seed started full-roster 32-player adversarial local run set.",
+      "sourceRunDir": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster",
+      "copiedDir": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster",
+      "filesCopied": 29,
+      "sizeBytes": 1675260,
+      "summary": {
+        "status": "ok",
+        "presetName": "xlarge-local",
+        "presetLabel": "xlarge-local",
+        "presetDescription": "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus three seeded 32-player single-game adversarial sweeps, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure while broadening 32-player adversarial coverage beyond one seed.",
+        "startedAt": "2026-03-16T02:38:49.419Z",
+        "finishedAt": "2026-03-16T02:41:15.263Z",
+        "wallClockMs": 145844,
+        "plannedRuns": 3,
+        "completedRuns": 3,
+        "totalCompletedGames": 3,
+        "requestedScenarios": [
+          "adversarial-random"
+        ],
+        "seeds": [
+          "xlarge-seed-19",
+          "xlarge-seed-211",
+          "xlarge-seed-73"
+        ],
+        "profiles": [
+          "scale"
+        ],
+        "largestRequestedPlayerCount": 32,
+        "maxJoinedPlayersInSingleGame": 32,
+        "gamesHittingRequestedPlayerTarget": 3,
+        "fullyDrainedGames": 3,
+        "replayConsistentGames": 3,
+        "txSummary": {
+          "attempted": 958,
+          "succeeded": 795,
+          "failed": 163,
+          "failedExpected": 163,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "breakageSummary": {
+          "gamesChecked": 3,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 163,
+            "failedAsExpected": 163,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 163,
+            "localRejections": 0
+          }
+        },
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 3
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 3
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "runSetCount": 2,
+    "constituentCompletedRunCount": 5,
+    "completedGameCount": 7,
+    "copiedArtifactFileCount": 63,
+    "copiedArtifactBytes": 3273927,
+    "maxJoinedPlayersInSingleGame": 32,
+    "txSummary": {
+      "attempted": 1803,
+      "succeeded": 1564,
+      "failed": 239,
+      "failedExpected": 239,
+      "failedUnexpected": 0,
+      "unexpectedSuccesses": 0
+    },
+    "breakageSummary": {
+      "gamesChecked": 7,
+      "gamesWithWedgedActiveSlot": 0,
+      "gamesWithTerminalStateMismatch": 0,
+      "gamesWithAccountingMismatch": 0,
+      "gamesWithPreviewMismatch": 0,
+      "gamesWithDrainMismatch": 0,
+      "gamesWithReplayInconsistency": 0,
+      "gamesWithUnexpectedFailures": 0,
+      "totalUnexpectedFailures": 0
+    }
+  },
+  "files": [
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md",
+      "sizeBytes": 5572,
+      "sha256": "f27f168a5f149eb221355932f3cec9338ca17a7fb93cfa8e8f6a278482c1588c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json",
+      "sizeBytes": 16128,
+      "sha256": "46291b24a99195251963781a7d17ef2f9315f1d9693a3ecf6a12096eab58e03d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/auth.json",
+      "sizeBytes": 19627,
+      "sha256": "84a6259a3f7ec4ff382285bfb1525012dc26b25d3c210b5c812c14fa73c4129e"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/causes.json",
+      "sizeBytes": 6772,
+      "sha256": "b10ea0b7f1698eccac6a7eb6b7bdaa8a8ba2b11f65167916f6205b08f503cb7d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/export-manifest.json",
+      "sizeBytes": 3025,
+      "sha256": "d91a5add3b783e6bf3e7410115f1011e1ab64d3e48f475cc1a2fa0582b9678f4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/game-summary.json",
+      "sizeBytes": 10175,
+      "sha256": "06874b1ddc871fdc96e818fa323c14f69064fa9da47c0fd36214fd6ad7d3e2c6"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/payouts.json",
+      "sizeBytes": 24031,
+      "sha256": "838d92f7b3be532dc00dbcdeec243dda6dea442794e0570efbe08e179d99eb85"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/roster.json",
+      "sizeBytes": 41542,
+      "sha256": "b12e96ee682cc37242b4339e6be3c072d8f73d276c46341675b90dbe586d7513"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/rounds.json",
+      "sizeBytes": 133252,
+      "sha256": "64fdd52b59881479474813a49efa231cd526e463d0f2f0fc621f726cfef6f893"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/report.json",
+      "sizeBytes": 124014,
+      "sha256": "521d093486de827493e49e90a2178db2372f1e317314cb82083fa879edecf7b0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/txs.jsonl",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/txs.jsonl",
+      "sizeBytes": 274179,
+      "sha256": "373e5f6618d5972a364913cf4396de24fe8359f793ef703821603c5f36111cd5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/auth.json",
+      "sizeBytes": 19625,
+      "sha256": "711f9512dc0b1ece8736ae2ba589fbc468fa0df2c7391b86d8212fa98b33df27"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/causes.json",
+      "sizeBytes": 6770,
+      "sha256": "c46364eb3f48a454e536cfd3d30a0a651df88917c476e1fe034d6a281ac57d67"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/export-manifest.json",
+      "sizeBytes": 3023,
+      "sha256": "4a2e3b907224c8b31ea10bd407c3c1c6cfb38f560209650e07db61dc42275368"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/game-summary.json",
+      "sizeBytes": 7999,
+      "sha256": "c217ada57fff036a8ad3a44541994096a9955a7b7c92f07867ac348cfb6f74b9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/payouts.json",
+      "sizeBytes": 24020,
+      "sha256": "6ebea672a2aa6a8bdfdb02ed9f7c9731e72cf4556f0f7f342e600c90de6270c9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/roster.json",
+      "sizeBytes": 41536,
+      "sha256": "4b8efb24125dc2a0b37a1a73c3b50631e81c48eb7db29943372fbb44a95dc5a2"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/game-1/evidence/rounds.json",
+      "sizeBytes": 100936,
+      "sha256": "8bb1b7c1ea283b991e69a61be80ef974372d6a491c8a3f2962645ab4f49090ab"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/report.json",
+      "sizeBytes": 114045,
+      "sha256": "b98f42fe2eec36c9d03220311bda344af05e5fd91d6b71bc8b3429c7191bad85"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/txs.jsonl",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/txs.jsonl",
+      "sizeBytes": 209183,
+      "sha256": "db7b617d45c3efc0a5932b323a9a2efdf090c4b87600a85c3dc80ab12f310718"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/auth.json",
+      "sizeBytes": 19625,
+      "sha256": "5253cfb5857b3e7b6f815281ec598c2d4dac6f5a4db82e7489030fbcc54ba5f9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/causes.json",
+      "sizeBytes": 6830,
+      "sha256": "fa26942aeb60dacb0c655d4a28ada826f46751220e2fc28e2b20e47d6c1b35fd"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/export-manifest.json",
+      "sizeBytes": 3023,
+      "sha256": "0ac05c270dfa25bdd86fa6b4950d5ab1e7f29e5de414df3c0af07ee029a0dca6"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/game-summary.json",
+      "sizeBytes": 7567,
+      "sha256": "897bd821bd708e15dee62b23b58f96bf1f523ad962bce9c10e005d42c2c03832"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/payouts.json",
+      "sizeBytes": 25718,
+      "sha256": "ac17b17c39541d11b99251f4f41195499fcf41159778451928f50f449adcf1c7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/roster.json",
+      "sizeBytes": 41633,
+      "sha256": "470b6b5122f1a2ccbe2179b49c6b056b2a3b7228d84ac3d1b7253cf4bdafab07"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/game-1/evidence/rounds.json",
+      "sizeBytes": 81196,
+      "sha256": "898d689cf6a0c1d6c0cd21e98a89c5bf53f251bb93ac35cbe4fab85c95091569"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/report.json",
+      "sizeBytes": 114367,
+      "sha256": "7eceb65ba3eb137495f83bcbe23eabff869fa5325dc863486bd2e6ea22fb1069"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/txs.jsonl",
+      "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/txs.jsonl",
+      "sizeBytes": 189847,
+      "sha256": "f05c60c7c885e85d9d2c25d47c8a2d933a08d6757eee45a20ad6cf302529697d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/README.md",
+      "sourcePath": null,
+      "sizeBytes": 3245,
+      "sha256": "b113a8ab6f33e8f9f5c62d252ac8cd270f6eb38283d820e6ed715226c706d7ab"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md",
+      "sizeBytes": 5143,
+      "sha256": "bba960443842aeefb8c9c60fc22d5378366125b21660f0d5eea735dcc4330676"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/matrix-report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/matrix-report.json",
+      "sizeBytes": 14410,
+      "sha256": "eef1568ed1987ef614e52262e622be5ab18fb171112b85285fb8964121529d8c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/auth.json",
+      "sizeBytes": 19625,
+      "sha256": "446bf4d9c35867ec74b1f476231b9f8b21355d65a5e31525237e87d7e1d867ff"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/causes.json",
+      "sizeBytes": 6964,
+      "sha256": "df8a8d2755f701e7198d1587fb4b871ab662aa95ce62869370321d4cd9ad1542"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2911,
+      "sha256": "df0cc61d2800c361421c8b8422adaf74a5c643bc6ad76c08757a765e65e63a8c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/game-summary.json",
+      "sizeBytes": 6707,
+      "sha256": "231316786e4057a5ccc204be90c2a88bbe8470ede32442088a96eda8053097cb"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/payouts.json",
+      "sizeBytes": 41759,
+      "sha256": "64f89be8d920ede5254c1bc4d41f1b1b6af1fc4abbefee2e13a080404f317256"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/roster.json",
+      "sizeBytes": 42801,
+      "sha256": "9eb5c9818f33ac034744854c4489a7c2176a3ede99d7a017bb2e73922fccb1bc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/rounds.json",
+      "sizeBytes": 94584,
+      "sha256": "af396a221386e84320b737ae751c497c9cbe395b2a5b4d38615039e2e83d8106"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/auth.json",
+      "sizeBytes": 9478,
+      "sha256": "b7983ec1679a2f2a48d9d6afa48aac9f8752b5f102df9c79a8330428d5a9deea"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/causes.json",
+      "sizeBytes": 5824,
+      "sha256": "84f355afbd7b0e9f7d635d79a1ad331f1a13852a2b38fbd03e592f652a2eec19"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "da898fd6527f51efde038de1e5b607e8c988f3b002c9337a1e2df13938de0fbb"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/game-summary.json",
+      "sizeBytes": 5609,
+      "sha256": "01b9e73a1dcb1fdd900874d26b70497b53a6bb4051c2f74cdbbf1fa5bcd9a578"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/payouts.json",
+      "sizeBytes": 19279,
+      "sha256": "8cd9709d3ac2c565d36e31b1916f98b2bd57f5074b25267c42fd28f10d47c1bf"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/roster.json",
+      "sizeBytes": 19903,
+      "sha256": "eb0d4cfe6493ab208ae5d02031b397997fa306b198d70c18ee36ff0b115466bc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-2/evidence/rounds.json",
+      "sizeBytes": 395,
+      "sha256": "2a06644db6ba3567351e8a786df25bc646b40188cc5ad490b31dcb191df956d1"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/auth.json",
+      "sizeBytes": 19627,
+      "sha256": "6520313f2bcd789d59dd06ad56c481cf0db5e7c22d41978724e70a25a5e27d82"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/causes.json",
+      "sizeBytes": 6998,
+      "sha256": "5a52fcc894fe818e20879fc5db1681bdc621337e740a4cbe8a1b9d412c44b812"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "bbdfd814a19958620f15d4db443237af9b09e6f9be56794a212eda9caef3396e"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/game-summary.json",
+      "sizeBytes": 5883,
+      "sha256": "d73f99da36fe6e8a195318d5854ed331d87ddc9359bc38b6eb8bc8ff1f4f20c4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/payouts.json",
+      "sizeBytes": 28526,
+      "sha256": "129b67babf7da520b6e8003bc1877de96ad7019d08ec2a7d768a3146a3bfe8f6"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/roster.json",
+      "sizeBytes": 41491,
+      "sha256": "d83925e2b9f439ee70a8e07d65d555955e1dabdb1b1ade273c0afad29c2906ec"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-3/evidence/rounds.json",
+      "sizeBytes": 40254,
+      "sha256": "fd88c06598b4a129d935f6ec1bf5d19e365f1080d406c66fddd6089fb9c4a4a7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/report.json",
+      "sizeBytes": 204129,
+      "sha256": "4f1cacd5b6257edf74bcdc323a192a5d89381828979b1ed1e59cc61d97984243"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/txs.jsonl",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/txs.jsonl",
+      "sizeBytes": 314112,
+      "sha256": "5ce3b1b00e44970ea7644d83ebc42a8ce79715f2170a4d46f6dcb3307d91b171"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/auth.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/auth.json",
+      "sizeBytes": 19627,
+      "sha256": "1fe9b0a20fb53bbca269eca7793727293b2331490b0b416e113825d229085a56"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/causes.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/causes.json",
+      "sizeBytes": 6772,
+      "sha256": "0fe8937282dd2bbe9d7190374488905990f2c25e29d9c52b06ad33592a865ae5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/export-manifest.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2961,
+      "sha256": "f3a8b07366bdbb989291a7bf4a31479dc38c0b6e1dccf9a34a2aef7fda0d689a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/game-summary.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/game-summary.json",
+      "sizeBytes": 10175,
+      "sha256": "dc9598abbe775639be5cc5b41e912385a39ed6670f141edcc5d0bacd71bc6873"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/payouts.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/payouts.json",
+      "sizeBytes": 24031,
+      "sha256": "891d492870172bc542085ca0bd2fa138350df1ca14cbc60f16fee7f22025203a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/roster.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/roster.json",
+      "sizeBytes": 41542,
+      "sha256": "e675ad9c0eb6c8f433ffd72babf41dbb9fea8a3446459b31efed73c0fbeea644"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/rounds.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/rounds.json",
+      "sizeBytes": 133253,
+      "sha256": "e09bd6e3b50edc966f1dba9faab60efba5447bbfe4793085221d04dac59342ed"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/report.json",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/report.json",
+      "sizeBytes": 123884,
+      "sha256": "3b5e07aa52d81278395d09f223cfbdc4ac3e44c08623617222524214ac7a2243"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/txs.jsonl",
+      "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/txs.jsonl",
+      "sizeBytes": 274184,
+      "sha256": "603659a526a8b8e76360ba240e8f0ab1a43c7ecabbd8e186fe01d8fe91c01799"
+    }
+  ]
+}

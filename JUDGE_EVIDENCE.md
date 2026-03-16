@@ -11,7 +11,7 @@ It is intentionally conservative:
 
 ## Current honest status
 
-Right now this repo has seven evidence layers:
+Right now this repo has eight evidence layers:
 
 1. **Code + tests**
    - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth / game / query surface is wired together locally
@@ -21,24 +21,26 @@ Right now this repo has seven evidence layers:
 3. **Preserved compact local matrix proof pack**
    - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` is checked in now
    - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
-   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
-4. **Preserved compact parallel-local proof pack**
+   - it stays intentionally compact for quick review
+4. **Preserved full raw xlarge / multi-seed matrix bundle**
+   - `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/` is checked in now
+   - it preserves the full copied matrix directories for the latest validated xlarge-local and 32-player adversarial multi-seed run set, including top-level matrix reports, per-run `report.json` / `txs.jsonl`, and per-game evidence exports
+5. **Preserved compact parallel-local proof pack**
    - `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` is checked in now
    - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs
-   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those matrix runs
-5. **Preserved raw 10-instance host-local saturation proof bundle**
+   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle for those source runs
+6. **Preserved raw 10-instance host-local saturation proof bundle**
    - `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` is checked in now
    - it preserves the raw `matrix-report.json`, `MATRIX_SUMMARY.md`, per-run `report.json` / `txs.jsonl`, and copied hash manifest from a clean bounded 10-instance host-local saturation attempt
-6. **Operator-ready broader local artifact tooling**
+7. **Operator-ready broader local artifact tooling**
    - the repo can still generate fuller local harness and matrix artifacts plus judge-facing indexes for an existing bundle
-   - the latest status tracking says local validation now extends through the preserved 250-player proof, bounded xlarge / multi-seed coverage, the compact parallel-local pack, and the raw 10-instance host-local saturation bundle
-7. **Sepolia packaging readiness**
+   - the latest status tracking says local validation now extends through the preserved 250-player proof, the compact and raw xlarge / multi-seed bundles, the compact parallel-local pack, and the raw 10-instance host-local saturation bundle
+8. **Sepolia packaging readiness**
    - `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md` define the live artifact contract
    - they do **not** by themselves prove that the live run already happened
 
 What is still honestly pending until fuller bundles exist:
 
-- a full raw local tx/export bundle from the latest xlarge / multi-seed matrix run set if we want deeper in-repo replay/audit depth beyond the compact matrix pack
 - the first Base Sepolia canary bundle
 - explorer verification evidence from the real deployment
 - live replay/export artifacts from an actual Sepolia game
@@ -65,54 +67,63 @@ What it proves:
 
 What it proves:
 
-- the repo also ships a compact preserved matrix proof pack for broader xlarge / multi-seed local coverage
-- the compact bundle stays honest about being local-only and matrix-level
+- the repo ships a compact preserved matrix proof pack for quick broader xlarge / multi-seed local coverage review
+- the compact bundle stays honest about being local-only and matrix-level, while pointing at the separate raw companion bundle
 
-### 4. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/local-proof-pack.json`
+### 4. `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/README.md`
 
 What it proves:
 
-- which source matrix directories the preserved files came from
-- byte counts and SHA-256 hashes for every copied artifact
-- which local gaps remain open after this compact preservation step
+- the prior repo-level packaging gap for the latest xlarge / multi-seed matrix run set is now closed in-repo
+- the full copied raw matrix bundle stays bounded enough to audit directly (~3.3 MB across 63 copied artifact files)
 
-### 5. The copied matrix artifacts inside that bundle
+### 5. `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/artifact-manifest.json`
+
+What it proves:
+
+- exactly which latest matrix directories were copied into the raw bundle
+- byte counts and SHA-256 hashes for every copied file
+- the per-run summary metadata tied to the preserved raw payload
+
+### 6. The copied raw matrix artifacts inside that bundle
 
 Open in this order:
 
 1. `xlarge-local-validation-20260316T021200Z/matrix-report.json`
-2. `xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md`
-3. `20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json`
-4. `20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md`
+2. `xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/report.json`
+3. `xlarge-local-validation-20260316T021200Z/runs/01-xlarge-mixed-a/game-1/evidence/game-summary.json`
+4. `20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json`
+5. `20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/report.json`
+6. `20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/game-1/evidence/game-summary.json`
 
 What they prove:
 
 - deterministic 32-player mixed-family coverage plus a seeded 32-player adversarial sweep in the xlarge-local preset
 - three started full-roster 32-player adversarial sweeps across multiple seeds
-- zero unexpected failures and zero recorded wedge/terminal/accounting/preview/drain/replay mismatches in those preserved matrix summaries
+- the repo now preserves the underlying per-run raw reports, tx logs, and per-game evidence exports instead of only the compact matrix summaries
 
-### 6. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/README.md`
+### 7. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/README.md`
 
 What it proves:
 
-- the repo now also ships a preserved **raw** host-local saturation bundle, not just compact copied parallel-local summaries
+- the repo also ships a preserved **raw** host-local saturation bundle, not just compact copied parallel-local summaries
 - the strongest preserved clean host-local overlap proof now reaches 10 isolated harness + Anvil instances on one machine
 
-### 7. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/matrix-report.json`
+### 8. `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/matrix-report.json`
 
 What it proves:
 
 - requested instance concurrency 10, peak active runs observed 10, and overlap confirmed yes
 - 10/10 completed runs, 28 total games, 0 unexpected failures, and 0 recorded wedge/terminal/accounting/preview/drain/replay mismatches in the preserved raw matrix report
 
-### 8. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/JUDGE_README.md`
+### 9. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/JUDGE_README.md`
 
 What it proves:
 
-- the repo now also ships a compact preserved proof pack for bounded host-local multi-instance overlap
+- the repo also ships a compact preserved proof pack for bounded host-local multi-instance overlap
 - the compact bundle stays honest about being local-only and explicitly records copied overlap evidence through 6 isolated harness + Anvil instances on one machine
 
-### 9. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/local-proof-pack.json`
+### 10. `packages/foundry/proof/local/20260316-parallel-local-proof-pack/local-proof-pack.json`
 
 What it proves:
 
@@ -120,14 +131,14 @@ What it proves:
 - byte counts and SHA-256 hashes for every copied artifact
 - the requested instance concurrency, peak active runs, and overlap pairs preserved from those real local runs
 
-### 10. `LOCAL_READINESS.md` and `TEST_PLAN.md`
+### 11. `LOCAL_READINESS.md` and `TEST_PLAN.md`
 
 What they prove:
 
 - the current done-locally vs not-yet-proven vs externally-blocked split
-- that the repo tracks the remaining local-only gaps explicitly instead of overselling the compact packs
+- that the repo tracks the remaining local-only gap explicitly instead of overselling the compact packs
 
-### 11. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
+### 12. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
 
 What they prove:
 
@@ -231,8 +242,9 @@ What it does **not** do:
 The honest judge path today is:
 
 - open `packages/foundry/proof/local/20260316-250-player-single-game-proof/` first for the preserved full 250-player current local proof
-- then open `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved broader xlarge / multi-seed matrix coverage
+- then open `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved quick-summary xlarge / multi-seed coverage
+- then open `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/` for the preserved full raw xlarge / multi-seed matrix payload
 - then open `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` for the preserved bounded host-local multi-instance coverage
-- use `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` to understand the surrounding status boundary and remaining local-only gaps
+- use `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` to understand the surrounding status boundary and remaining local-only gap
 - use the canary runbook/checklist for the live proof contract
 - regenerate `JUDGE_README.md` + `judge-evidence-index.json` beside any **real** local or Sepolia bundle so judges know exactly what to inspect first

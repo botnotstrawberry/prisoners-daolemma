@@ -2,7 +2,7 @@
 
 This bundle preserves compact copies of the latest validated local matrix summaries that matter most for the current honest local proof boundary.
 
-> This is preserved **local Anvil proof only**. It is not a live-chain bundle, and it intentionally does not copy the full raw tx/export payload from the source runs.
+> This is preserved **local Anvil proof only**. It is not a live-chain bundle. This compact pack intentionally does not copy the full raw tx/export payload from the source runs, but the repo now preserves that full raw companion bundle separately at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`.
 
 ## Included proof sets
 
@@ -32,14 +32,12 @@ This bundle preserves compact copies of the latest validated local matrix summar
 
 ## Intentionally not preserved here
 
-- Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
+- Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact; the repo now preserves the full raw in-repo copy separately at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`.
 - The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine.
 
-## Remaining local-only gaps after this pack
+## Remaining repo-level gaps after this pack
 
-- Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.
 - Broad auth-expiry chaos inside the load harness is still thin.
-- The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - No Base Sepolia canary artifact bundle is preserved yet.
 
 ## Judge helper

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "prisoners-daollema/judge-evidence-v0",
-  "generatedAt": "2026-03-16T05:37:03.666Z",
+  "generatedAt": "2026-03-16T06:49:32.853Z",
   "title": "Prisoners DAOllema Judge Evidence Pack",
   "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
   "bundleType": "local-proof-pack",
@@ -30,16 +30,14 @@
     "pack": {
       "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
       "title": "Prisoners DAOllema preserved parallel local proof pack",
-      "generatedAt": "2026-03-16T05:36:20.955Z",
+      "generatedAt": "2026-03-16T06:44:37Z",
       "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from real current bounded multi-instance local runs. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directories, and does not claim live-chain proof.",
       "notPreserved": [
         "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.",
         "The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine."
       ],
       "remainingLocalGaps": [
-        "Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.",
         "Broad auth-expiry chaos inside the load harness is still thin.",
-        "The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.",
         "No Base Sepolia canary artifact bundle is preserved yet."
       ]
     },

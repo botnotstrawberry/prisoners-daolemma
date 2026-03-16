@@ -1,7 +1,7 @@
 {
   "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
   "title": "Prisoners DAOllema preserved parallel local proof pack",
-  "generatedAt": "2026-03-16T05:36:20.955Z",
+  "generatedAt": "2026-03-16T06:44:37Z",
   "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from real current bounded multi-instance local runs. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source matrix directories, and does not claim live-chain proof.",
   "preservedRuns": [
     {
@@ -527,9 +527,7 @@
     "The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine."
   ],
   "remainingLocalGaps": [
-    "Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.",
     "Broad auth-expiry chaos inside the load harness is still thin.",
-    "The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.",
     "No Base Sepolia canary artifact bundle is preserved yet."
   ]
 }

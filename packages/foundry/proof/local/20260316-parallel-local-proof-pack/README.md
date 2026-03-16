@@ -72,9 +72,9 @@ This bundle preserves compact copies of the repo's checked-in **bounded host-loc
 This is still **local synthetic stress only**:
 
 - it does **not** claim public mempool realism, fee-bid competition, or distributed independent agents
-- it proves bounded host-local overlap through 6 isolated instances on one machine, but it does **not** prove heavier 7-10 deployment saturation
+- inside this compact pack, it proves bounded host-local overlap through 6 isolated instances on one machine; the repo preserves the stronger separate raw 10-instance companion bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`
 - it does **not** close the separate auth-expiry chaos gap
-- it does **not** preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix run set
+- it does **not** preserve raw per-run payloads for these copied matrix runs, and it is separate from the raw xlarge / multi-seed matrix bundle at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`
 
 ## Files here
 

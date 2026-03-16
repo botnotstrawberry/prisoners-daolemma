@@ -24,7 +24,7 @@
 - This compact local proof pack preserves 2 copied matrix artifact set(s) rooted in validated current local runs.
 - xlarge-local validation (mixed + one adversarial seed) records 4 completed game(s), max joined players 32, and 0 unexpected failed tx(s).
 - 32-player adversarial multi-seed full-roster validation records 3 completed game(s), max joined players 32, and 0 unexpected failed tx(s).
-- This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
+- This pack stays compact on purpose: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact; the repo now preserves the full raw in-repo copy separately at packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/.
 
 ### Live Base Sepolia proof
 - No recognizable live Base Sepolia canary artifacts are packaged here yet.
@@ -47,7 +47,7 @@
 - local-proof-pack.json: `local-proof-pack.json`
 - README.md: `README.md`
 - Schema: prisoners-daollema/local-proof-pack-v1
-- Generated at: 2026-03-16T03:08:41.528Z
+- Generated at: 2026-03-16T06:44:37Z
 - xlarge-local validation (mixed + one adversarial seed): 4 game(s), max joined players 32, unexpected failed txs 0
   - matrix report: `xlarge-local-validation-20260316T021200Z/matrix-report.json`
   - summary: `xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md`
@@ -58,11 +58,9 @@
   - summary: `20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md`
   - scenarios: adversarial-random
   - seeds: xlarge-seed-19, xlarge-seed-211, xlarge-seed-73
-- Not preserved here: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.
+- Not preserved here: Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact; the repo now preserves the full raw in-repo copy separately at packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/.
 - Not preserved here: The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine.
-- Remaining local gap: Host-local parallel coverage is now real and preserved through 6 overlapping harness instances on one machine; heavier 7-10 deployment saturation remains unproven.
 - Remaining local gap: Broad auth-expiry chaos inside the load harness is still thin.
-- Remaining local gap: The repo still does not preserve the full raw tx/export bundle from the latest xlarge / multi-seed matrix runs in-repo.
 - Remaining local gap: No Base Sepolia canary artifact bundle is preserved yet.
 
 ### Base Sepolia canary proof
@@ -82,6 +80,6 @@
 ## Next capture priorities
 
 - Run the first Base Sepolia canary and capture preflight.json, deployment-summary.json, operator-notes.md, query/game-summary-live.json, and query/export/export-manifest.json under packages/foundry/canary/base-sepolia/<run-id>/.
-- If deeper local auditability is needed beyond this compact pack, preserve a full load-harness or matrix bundle with raw tx logs and per-run exports beside the copied summaries.
+- For deeper local auditability beyond this compact pack, open the already-preserved raw companion bundle at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`.
 - Save tx hashes and explorer links in operator-notes.md instead of relying on shell history or memory.
 - Add any judge-facing screenshots under screenshots/ before regenerating the evidence pack.

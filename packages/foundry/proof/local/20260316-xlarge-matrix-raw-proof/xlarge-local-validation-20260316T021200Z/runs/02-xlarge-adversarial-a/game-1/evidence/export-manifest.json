@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 1432,
+      "timestamp": 1773627764
+    },
+    "logRange": {
+      "requestedFromBlock": 26,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 26,
+      "resolvedToBlock": 1432,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "outputDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence",
+  "gameId": 1,
+  "chainId": 31337,
+  "produced": [
+    {
+      "artifact": "game-summary.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/game-summary.json"
+    },
+    {
+      "artifact": "roster.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/roster.json"
+    },
+    {
+      "artifact": "causes.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/causes.json"
+    },
+    {
+      "artifact": "rounds.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/rounds.json"
+    },
+    {
+      "artifact": "auth.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/auth.json"
+    },
+    {
+      "artifact": "payouts.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/payouts.json"
+    },
+    {
+      "artifact": "export-manifest.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/runs/02-xlarge-adversarial-a/game-1/evidence/export-manifest.json"
+    }
+  ],
+  "skipped": [
+    {
+      "artifact": "messages.jsonl",
+      "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+    }
+  ]
+}

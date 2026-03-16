@@ -1,0 +1,455 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-matrix-v1",
+  "status": "ok",
+  "boundaryNote": "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation. This matrix runner only automates multiple local harness runs and aggregates their local-dev results; it does not add live-network realism, public mempool contention, or multi-instance parallel deployment stress.",
+  "startedAt": "2026-03-16T02:38:49.419Z",
+  "finishedAt": "2026-03-16T02:41:15.263Z",
+  "wallClockMs": 145844,
+  "preset": {
+    "name": "xlarge-local",
+    "label": "xlarge-local",
+    "description": "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus three seeded 32-player single-game adversarial sweeps, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure while broadening 32-player adversarial coverage beyond one seed."
+  },
+  "paths": {
+    "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster",
+    "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json",
+    "summary": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md"
+  },
+  "plan": {
+    "plannedRunCount": 3,
+    "completedRunCount": 3,
+    "stopOnError": false,
+    "runIds": [
+      "xlarge-adversarial-a",
+      "xlarge-adversarial-b",
+      "xlarge-adversarial-c"
+    ],
+    "caseIds": [
+      "xlarge-adversarial-scale"
+    ]
+  },
+  "coverage": {
+    "seeds": [
+      "xlarge-seed-19",
+      "xlarge-seed-211",
+      "xlarge-seed-73"
+    ],
+    "profiles": [
+      "scale"
+    ],
+    "requestedScenarios": [
+      "adversarial-random"
+    ],
+    "scenarioPlans": [
+      {
+        "key": "adversarial-random",
+        "count": 3
+      }
+    ],
+    "sameBlockEnabledRuns": 0,
+    "expectedFailuresEnabledRuns": 0,
+    "largestRequestedPlayerCount": 32,
+    "totalRequestedGames": 3,
+    "totalCompletedGames": 3
+  },
+  "runStatusSummary": [
+    {
+      "key": "ok",
+      "count": 3
+    }
+  ],
+  "txSummary": {
+    "attempted": 958,
+    "succeeded": 795,
+    "failed": 163,
+    "failedExpected": 163,
+    "failedUnexpected": 0,
+    "unexpectedSuccesses": 0
+  },
+  "sameBlockSummary": {
+    "attemptedBatches": 0,
+    "minedBatches": 0,
+    "attemptedTxs": 0,
+    "expectedFailures": 0,
+    "unexpectedFailures": 0,
+    "unexpectedSuccesses": 0,
+    "skipped": 0
+  },
+  "scenarioSummary": {
+    "byTerminalOutcome": [
+      {
+        "key": "Winners",
+        "count": 3
+      }
+    ],
+    "byTerminalPath": [
+      {
+        "key": "winner-claims",
+        "count": 3
+      }
+    ]
+  },
+  "localScaleReadiness": {
+    "maxJoinedPlayersInSingleGame": 32,
+    "totalJoinedPlayersAcrossRun": 96,
+    "gamesHittingRequestedPlayerTarget": 3,
+    "fullyDrainedGames": 3,
+    "replayConsistentGames": 3
+  },
+  "breakageSummary": {
+    "gamesChecked": 3,
+    "gamesWithWedgedActiveSlot": 0,
+    "gamesWithTerminalStateMismatch": 0,
+    "gamesWithAccountingMismatch": 0,
+    "gamesWithPreviewMismatch": 0,
+    "gamesWithDrainMismatch": 0,
+    "gamesWithReplayInconsistency": 0,
+    "gamesWithUnexpectedFailures": 0,
+    "totalUnexpectedFailures": 0,
+    "probeSummary": {
+      "attempted": 163,
+      "failedAsExpected": 163,
+      "unexpectedSuccesses": 0,
+      "onchainReverts": 163,
+      "localRejections": 0
+    }
+  },
+  "unexpectedFailureClusters": [],
+  "caseSummary": [
+    {
+      "caseId": "xlarge-adversarial-scale",
+      "label": "xlarge-adversarial-scale",
+      "description": "Seeded xlarge adversarial soak on the scale profile: one started full-roster 32-player local game envelope per seed with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can repeat honest 32-player breakage hunting across multiple seeds without pretending one run proves exhaustive coverage.",
+      "runs": 3,
+      "seeds": [
+        "xlarge-seed-19",
+        "xlarge-seed-211",
+        "xlarge-seed-73"
+      ],
+      "profiles": [
+        "scale"
+      ],
+      "requestedScenarios": [
+        "adversarial-random"
+      ],
+      "totalGamesCompleted": 3,
+      "txAttempted": 958,
+      "txFailedExpected": 163,
+      "txFailedUnexpected": 0,
+      "unexpectedSuccesses": 0,
+      "maxJoinedPlayersInSingleGame": 32,
+      "totalJoinedPlayersAcrossRuns": 96,
+      "sameBlockBatches": 0,
+      "sameBlockExpectedFailures": 0,
+      "probeFailedAsExpected": 163,
+      "terminalOutcomes": [
+        {
+          "key": "Winners",
+          "count": 3
+        }
+      ],
+      "breakageSummary": {
+        "gamesWithWedgedActiveSlot": 0,
+        "gamesWithTerminalStateMismatch": 0,
+        "gamesWithAccountingMismatch": 0,
+        "gamesWithPreviewMismatch": 0,
+        "gamesWithDrainMismatch": 0,
+        "gamesWithReplayInconsistency": 0,
+        "totalUnexpectedFailures": 0
+      }
+    }
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "id": "xlarge-adversarial-a",
+      "caseId": "xlarge-adversarial-scale",
+      "label": "xlarge-adversarial-scale",
+      "description": "Seeded xlarge adversarial soak on the scale profile: one started full-roster 32-player local game envelope per seed with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can repeat honest 32-player breakage hunting across multiple seeds without pretending one run proves exhaustive coverage.",
+      "seed": "xlarge-seed-19",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/01-xlarge-adversarial-a/txs.jsonl"
+      },
+      "config": {
+        "profile": "scale",
+        "playerCount": 32,
+        "causeCount": 8,
+        "games": 1,
+        "concurrency": 16,
+        "requestedScenario": "adversarial-random",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "commitDurationBlocks": 80,
+        "revealDurationBlocks": 80,
+        "skipCommitRate": 0.16,
+        "skipRevealRate": 0.16,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0.08,
+        "probeRate": 0.55
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "single-game",
+        "wallClockMs": 63928,
+        "gamesCompleted": 1,
+        "scenarioPlan": [
+          "adversarial-random"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 1
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 1
+          }
+        ],
+        "txSummary": {
+          "attempted": 389,
+          "succeeded": 313,
+          "failed": 76,
+          "failedExpected": 76,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 32,
+          "totalJoinedPlayersAcrossRun": 32,
+          "gamesHittingRequestedPlayerTarget": 1,
+          "fullyDrainedGames": 1,
+          "replayConsistentGames": 1
+        },
+        "breakageSummary": {
+          "gamesChecked": 1,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 76,
+            "failedAsExpected": 76,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 76,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    },
+    {
+      "index": 2,
+      "id": "xlarge-adversarial-b",
+      "caseId": "xlarge-adversarial-scale",
+      "label": "xlarge-adversarial-scale",
+      "description": "Seeded xlarge adversarial soak on the scale profile: one started full-roster 32-player local game envelope per seed with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can repeat honest 32-player breakage hunting across multiple seeds without pretending one run proves exhaustive coverage.",
+      "seed": "xlarge-seed-73",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/02-xlarge-adversarial-b/txs.jsonl"
+      },
+      "config": {
+        "profile": "scale",
+        "playerCount": 32,
+        "causeCount": 8,
+        "games": 1,
+        "concurrency": 16,
+        "requestedScenario": "adversarial-random",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "commitDurationBlocks": 80,
+        "revealDurationBlocks": 80,
+        "skipCommitRate": 0.16,
+        "skipRevealRate": 0.16,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0.08,
+        "probeRate": 0.55
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "single-game",
+        "wallClockMs": 45525,
+        "gamesCompleted": 1,
+        "scenarioPlan": [
+          "adversarial-random"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 1
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 1
+          }
+        ],
+        "txSummary": {
+          "attempted": 299,
+          "succeeded": 260,
+          "failed": 39,
+          "failedExpected": 39,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 32,
+          "totalJoinedPlayersAcrossRun": 32,
+          "gamesHittingRequestedPlayerTarget": 1,
+          "fullyDrainedGames": 1,
+          "replayConsistentGames": 1
+        },
+        "breakageSummary": {
+          "gamesChecked": 1,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 39,
+            "failedAsExpected": 39,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 39,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    },
+    {
+      "index": 3,
+      "id": "xlarge-adversarial-c",
+      "caseId": "xlarge-adversarial-scale",
+      "label": "xlarge-adversarial-scale",
+      "description": "Seeded xlarge adversarial soak on the scale profile: one started full-roster 32-player local game envelope per seed with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can repeat honest 32-player breakage hunting across multiple seeds without pretending one run proves exhaustive coverage.",
+      "seed": "xlarge-seed-211",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/runs/03-xlarge-adversarial-c/txs.jsonl"
+      },
+      "config": {
+        "profile": "scale",
+        "playerCount": 32,
+        "causeCount": 8,
+        "games": 1,
+        "concurrency": 16,
+        "requestedScenario": "adversarial-random",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "commitDurationBlocks": 80,
+        "revealDurationBlocks": 80,
+        "skipCommitRate": 0.16,
+        "skipRevealRate": 0.16,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0.08,
+        "probeRate": 0.55
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "single-game",
+        "wallClockMs": 36307,
+        "gamesCompleted": 1,
+        "scenarioPlan": [
+          "adversarial-random"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 1
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 1
+          }
+        ],
+        "txSummary": {
+          "attempted": 270,
+          "succeeded": 222,
+          "failed": 48,
+          "failedExpected": 48,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 32,
+          "totalJoinedPlayersAcrossRun": 32,
+          "gamesHittingRequestedPlayerTarget": 1,
+          "fullyDrainedGames": 1,
+          "replayConsistentGames": 1
+        },
+        "breakageSummary": {
+          "gamesChecked": 1,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 48,
+            "failedAsExpected": 48,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 48,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    }
+  ]
+}
