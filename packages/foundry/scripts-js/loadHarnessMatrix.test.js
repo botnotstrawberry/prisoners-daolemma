@@ -5,6 +5,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import {
   DEFAULT_LOAD_HARNESS_MATRIX_PRESET,
+  buildLoadHarnessMatrixPlan,
   runLoadHarnessMatrix,
 } from "./loadHarnessMatrix.js";
 
@@ -15,6 +16,53 @@ function createOutDir(prefix) {
 function countForKey(entries, key) {
   return (entries ?? []).find((entry) => entry.key === key)?.count ?? 0;
 }
+
+test("load harness matrix exposes a bounded large local preset", () => {
+  const outDir = createOutDir("pd-load-harness-matrix-large-plan-");
+  const plan = buildLoadHarnessMatrixPlan({
+    preset: "large-local",
+    out: outDir,
+  });
+
+  assert.equal(plan.presetName, "large-local");
+  assert.equal(plan.plannedRunCount, 2);
+  assert.deepEqual(
+    plan.runs.map((run) => ({
+      id: run.id,
+      caseId: run.caseId,
+      playerCount: run.harnessOptions.playerCount,
+      games: run.harnessOptions.games,
+      commitDurationBlocks: run.harnessOptions.commitDurationBlocks,
+      revealDurationBlocks: run.harnessOptions.revealDurationBlocks,
+    })),
+    [
+      {
+        id: "large-mixed-a",
+        caseId: "large-mixed-scale",
+        playerCount: 24,
+        games: 3,
+        commitDurationBlocks: 56,
+        revealDurationBlocks: 56,
+      },
+      {
+        id: "large-adversarial-a",
+        caseId: "large-adversarial-scale",
+        playerCount: 28,
+        games: 2,
+        commitDurationBlocks: 64,
+        revealDurationBlocks: 64,
+      },
+    ]
+  );
+  assert.equal(
+    Math.max(...plan.runs.map((run) => run.harnessOptions.playerCount)),
+    28
+  );
+  assert.equal(
+    plan.runs.reduce((sum, run) => sum + run.harnessOptions.games, 0),
+    5
+  );
+});
 
 test(
   "load harness matrix runs a medium local preset and emits aggregate artifacts",

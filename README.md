@@ -217,6 +217,7 @@ Useful commands:
 - `yarn load:harness:matrix -- --help`
 - `yarn load:harness:matrix:broader`
 - `yarn load:harness:matrix:medium`
+- `yarn load:harness:matrix:large`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 
 Current built-in presets:
@@ -227,6 +228,8 @@ Current built-in presets:
   - three seeded `adversarial-random` sweeps on the smoke profile
 - `medium-local`
   - one deterministic 16-player `mixed` pass on the scale profile plus two seeded 20-player `adversarial-random` sweeps, all with explicit 40/48-block phase budgets so larger local rounds do not fake-timeout
+- `large-local`
+  - one deterministic 24-player `mixed` pass plus one seeded 28-player `adversarial-random` sweep across two sequential games on the scale profile, with explicit 56/64-block phase budgets for honest higher-join local stress
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
@@ -248,6 +251,7 @@ What it adds:
   - seeded adversarial-random breakage hunting
   - deterministic medium-scale mixed families on the scale profile
   - medium-scale seeded adversarial sweeps on the scale profile with longer phase budgets
+  - larger 24-player mixed-family and 28-player adversarial scale-profile sweeps with explicit higher local block budgets
   - larger winner-path drain/replay rehearsals on the scale profile
 
 What this harness honestly proves today:

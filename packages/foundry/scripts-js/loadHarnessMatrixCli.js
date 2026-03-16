@@ -41,6 +41,7 @@ ${Object.entries(LOAD_HARNESS_MATRIX_PRESETS)
 Examples:
   node scripts-js/loadHarnessMatrixCli.js --preset broader-local
   node scripts-js/loadHarnessMatrixCli.js --preset medium-local
+  node scripts-js/loadHarnessMatrixCli.js --preset large-local
   node scripts-js/loadHarnessMatrixCli.js --preset adversarial-smoke --json
   node scripts-js/loadHarnessMatrixCli.js --preset broader-local --runs adversarial-a,adversarial-b
 `);

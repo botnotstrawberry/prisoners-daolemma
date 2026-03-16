@@ -98,6 +98,41 @@ export const LOAD_HARNESS_MATRIX_CASES = {
       probeRate: 0.5,
     },
   },
+  "large-mixed-scale": {
+    label: "large-mixed-scale",
+    description:
+      "Deterministic larger local mixed-family soak on the scale profile: 24 requested players across winner, cancelled, and no-winner paths with explicit 56-block phase budgets so larger local rounds stay honest instead of fake-timing out.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 24,
+      causeCount: 8,
+      games: 3,
+      scenario: "mixed",
+      concurrency: 12,
+      commitDurationBlocks: 56,
+      revealDurationBlocks: 56,
+    },
+  },
+  "large-adversarial-scale": {
+    label: "large-adversarial-scale",
+    description:
+      "Larger seeded adversarial soak on the scale profile: 28 requested players across two sequential local games with bounded skip/underfill/probe pressure and explicit 64-block phase budgets for honest higher-join breakage hunting.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 28,
+      causeCount: 8,
+      games: 2,
+      scenario: "adversarial-random",
+      concurrency: 12,
+      commitDurationBlocks: 64,
+      revealDurationBlocks: 64,
+      skipCommitRate: 0.18,
+      skipRevealRate: 0.18,
+      underfilledRate: 0.1,
+      invalidRevealRate: 0.08,
+      probeRate: 0.55,
+    },
+  },
 };
 
 export const LOAD_HARNESS_MATRIX_PRESETS = {
@@ -154,6 +189,23 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
         id: "medium-adversarial-b",
         caseId: "medium-adversarial-scale",
         seed: "medium-adversarial-b",
+      },
+    ],
+  },
+  "large-local": {
+    label: "large-local",
+    description:
+      "Bounded larger local soak: one deterministic 24-player mixed-family pass plus one seeded 28-player adversarial sweep across two sequential games, all with explicit 56/64-block phase budgets for honest higher-join local stress.",
+    runs: [
+      {
+        id: "large-mixed-a",
+        caseId: "large-mixed-scale",
+        seed: "large-mixed-a",
+      },
+      {
+        id: "large-adversarial-a",
+        caseId: "large-adversarial-scale",
+        seed: "large-adversarial-32",
       },
     ],
   },
