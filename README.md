@@ -208,6 +208,43 @@ Example runs:
 7. adversarial many-game local breakage hunt:
    - `yarn load:harness -- --profile smoke --player-count 12 --cause-count 4 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6 --same-block-probes`
 
+## Broader local soak matrix
+
+For broader local breakage hunting across multiple seeds / profiles / scenario mixes, the repo now also includes `packages/foundry/scripts-js/loadHarnessMatrixCli.js`.
+
+Useful commands:
+
+- `yarn load:harness:matrix -- --help`
+- `yarn load:harness:matrix:broader`
+- `yarn load:harness:matrix -- --preset adversarial-smoke`
+
+Current built-in presets:
+
+- `same-block-smoke`
+  - one deterministic `mixed` pass (`winner-all-share`, `cancelled-underfilled`, `no-winner-all-catch`) with same-block probes enabled
+- `adversarial-smoke`
+  - three seeded `adversarial-random` sweeps on the smoke profile
+- `winner-scale`
+  - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
+- `broader-local`
+  - combines all of the above into one bounded local soak preset
+
+The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only, still sequential, and still not a model of live mempool or multi-instance production behavior.
+
+What it adds:
+
+- one command that runs a small but broader set of local harness cases instead of a single seed/config
+- a top-level `matrix-report.json` that records:
+  - the exact preset/runs/seeds exercised
+  - aggregate tx / probe / same-block totals
+  - aggregate unexpected failures
+  - aggregate wedge / terminal / accounting / preview / drain / replay mismatch counts
+  - per-run report paths so the detailed `report.json` + `txs.jsonl` artifacts stay auditable
+- repeated local coverage over:
+  - deterministic same-block ordering families
+  - seeded adversarial-random breakage hunting
+  - larger winner-path drain/replay rehearsals on the scale profile
+
 What this harness honestly proves today:
 
 - the current contracts + auth/game/query helpers can drive repeated local multi-wallet flows without manual keystore setup

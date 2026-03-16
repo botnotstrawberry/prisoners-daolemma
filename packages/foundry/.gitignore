@@ -11,6 +11,7 @@ docs/
 
 # Generated local harness outputs
 load-harness/
+load-harness-matrix/
 
 # Dotenv file
 .env
