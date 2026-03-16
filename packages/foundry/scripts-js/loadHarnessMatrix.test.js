@@ -72,7 +72,7 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
   });
 
   assert.equal(plan.presetName, "xlarge-local");
-  assert.equal(plan.plannedRunCount, 2);
+  assert.equal(plan.plannedRunCount, 4);
   assert.deepEqual(
     plan.runs.map((run) => ({
       id: run.id,
@@ -80,6 +80,7 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
       seed: run.seed,
       playerCount: run.harnessOptions.playerCount,
       games: run.harnessOptions.games,
+      minPlayers: run.harnessOptions.minPlayers,
       commitDurationBlocks: run.harnessOptions.commitDurationBlocks,
       revealDurationBlocks: run.harnessOptions.revealDurationBlocks,
       underfilledRate: run.harnessOptions.underfilledRate,
@@ -92,6 +93,7 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
         seed: "xlarge-mixed-a",
         playerCount: 32,
         games: 3,
+        minPlayers: undefined,
         commitDurationBlocks: 72,
         revealDurationBlocks: 72,
         underfilledRate: undefined,
@@ -103,6 +105,31 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
         seed: "xlarge-seed-19",
         playerCount: 32,
         games: 1,
+        minPlayers: 32,
+        commitDurationBlocks: 80,
+        revealDurationBlocks: 80,
+        underfilledRate: 0,
+        probeRate: 0.55,
+      },
+      {
+        id: "xlarge-adversarial-b",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-73",
+        playerCount: 32,
+        games: 1,
+        minPlayers: 32,
+        commitDurationBlocks: 80,
+        revealDurationBlocks: 80,
+        underfilledRate: 0,
+        probeRate: 0.55,
+      },
+      {
+        id: "xlarge-adversarial-c",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-211",
+        playerCount: 32,
+        games: 1,
+        minPlayers: 32,
         commitDurationBlocks: 80,
         revealDurationBlocks: 80,
         underfilledRate: 0,
@@ -116,7 +143,7 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
   );
   assert.equal(
     plan.runs.reduce((sum, run) => sum + run.harnessOptions.games, 0),
-    4
+    6
   );
 });
 

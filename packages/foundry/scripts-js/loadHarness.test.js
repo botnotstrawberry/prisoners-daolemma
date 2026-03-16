@@ -555,3 +555,51 @@ test(
     }
   }
 );
+
+test(
+  "load harness adversarial-random can force full-roster started games via minPlayers override",
+  { timeout: 180_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-adversarial-full-roster-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "adversarial-random",
+      playerCount: 7,
+      minPlayers: 7,
+      causeCount: 3,
+      games: 2,
+      concurrency: 3,
+      skipCommitRate: 0,
+      skipRevealRate: 0,
+      underfilledRate: 0,
+      invalidRevealRate: 0,
+      probeRate: 0,
+      seed: "load-harness-adversarial-full-roster-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.config.minPlayers, 7);
+    assert.equal(report.localScaleReadiness.maxJoinedPlayersInSingleGame, 7);
+    assert.equal(report.localScaleReadiness.gamesHittingRequestedPlayerTarget, 2);
+    assert.equal(report.localScaleReadiness.totalJoinedPlayersAcrossRun, 14);
+    assert.equal(report.breakageSummary.gamesWithUnexpectedFailures, 0);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+
+    for (const game of report.games) {
+      assert.equal(game.scenario.type, "adversarial-random");
+      assert.equal(game.joinedPlayerCount, 7);
+      assert.equal(game.scenario.plannedJoinedPlayers, 7);
+      assert.equal(game.scenario.nonJoiningRegisteredPlayers, 0);
+      assert.equal(game.adversarialPlan?.underfilledIntent, false);
+      assert.equal(game.adversarialPlan?.nonJoinedPlayerCount, 0);
+      assert.equal(game.breakageChecks.ok, true);
+      assert.equal(game.replayConsistency.ok, true);
+      assert.ok(existsSync(game.evidence.outputDir));
+      assert.ok(existsSync(game.evidence.manifestPath));
+    }
+  }
+);

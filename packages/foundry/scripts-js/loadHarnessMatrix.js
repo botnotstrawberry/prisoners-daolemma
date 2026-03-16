@@ -151,13 +151,14 @@ export const LOAD_HARNESS_MATRIX_CASES = {
   "xlarge-adversarial-scale": {
     label: "xlarge-adversarial-scale",
     description:
-      "Seeded xlarge adversarial soak on the scale profile: 32 requested players in one started local game envelope with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can bridge to honest 32-player breakage hunting without pretending to prove more than one seeded sweep.",
+      "Seeded xlarge adversarial soak on the scale profile: one started full-roster 32-player local game envelope per seed with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can repeat honest 32-player breakage hunting across multiple seeds without pretending one run proves exhaustive coverage.",
     harnessOptions: {
       profile: "scale",
       playerCount: 32,
       causeCount: 8,
       games: 1,
       scenario: "adversarial-random",
+      minPlayers: 32,
       concurrency: 16,
       commitDurationBlocks: 80,
       revealDurationBlocks: 80,
@@ -247,7 +248,7 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
   "xlarge-local": {
     label: "xlarge-local",
     description:
-      "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus one seeded 32-player single-game adversarial sweep, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure.",
+      "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus three seeded started full-roster 32-player single-game adversarial sweeps, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure while broadening 32-player adversarial coverage beyond one seed.",
     runs: [
       {
         id: "xlarge-mixed-a",
@@ -258,6 +259,16 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
         id: "xlarge-adversarial-a",
         caseId: "xlarge-adversarial-scale",
         seed: "xlarge-seed-19",
+      },
+      {
+        id: "xlarge-adversarial-b",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-73",
+      },
+      {
+        id: "xlarge-adversarial-c",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-211",
       },
     ],
   },

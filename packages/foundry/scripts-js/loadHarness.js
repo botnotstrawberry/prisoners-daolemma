@@ -818,12 +818,25 @@ function buildResolvedConfig(rawOptions = {}) {
         })
       : profile.revealDurationBlocks;
 
-  let minPlayers = profile.minPlayers;
-  if (playerCount < minPlayers) {
-    minPlayers = playerCount;
-    notes.push(
-      `Lowered minPlayers from profile default ${profile.minPlayers} to ${playerCount} so the requested local run can start.`
-    );
+  let minPlayers;
+  if (rawOptions.minPlayers !== undefined) {
+    minPlayers = parseInteger(rawOptions.minPlayers, "minPlayers", {
+      min: 2,
+      max: playerCount,
+    });
+    if (minPlayers !== profile.minPlayers) {
+      notes.push(
+        `Overrode minPlayers from profile default ${profile.minPlayers} to ${minPlayers}.`
+      );
+    }
+  } else {
+    minPlayers = profile.minPlayers;
+    if (playerCount < minPlayers) {
+      minPlayers = playerCount;
+      notes.push(
+        `Lowered minPlayers from profile default ${profile.minPlayers} to ${playerCount} so the requested local run can start.`
+      );
+    }
   }
 
   let maxPlayers = profile.maxPlayers;

@@ -232,7 +232,7 @@ Current built-in presets:
 - `large-local`
   - one deterministic 24-player `mixed` pass plus one seeded 28-player `adversarial-random` sweep across two sequential games on the scale profile, with explicit 56/64-block phase budgets for honest higher-join local stress
 - `xlarge-local`
-  - one deterministic 32-player `mixed` pass plus one seeded 32-player single-game `adversarial-random` sweep on the scale profile, with explicit 72/80-block phase budgets; this is the current opt-in bridge-to-bigger local proof rather than part of the default broader preset
+  - one deterministic 32-player `mixed` pass plus three seeded started full-roster 32-player single-game `adversarial-random` sweeps on the scale profile, with explicit 72/80-block phase budgets; this stays an opt-in bounded bridge-to-bigger local proof rather than part of the default broader preset
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
@@ -255,6 +255,7 @@ What it adds:
   - deterministic medium-scale mixed families on the scale profile
   - medium-scale seeded adversarial sweeps on the scale profile with longer phase budgets
   - larger 24-player mixed-family and 28-player adversarial scale-profile sweeps with explicit higher local block budgets
+  - bounded 32-player mixed-family plus multi-seed started full-roster 32-player adversarial scale-profile sweeps with explicit 72/80-block phase budgets
   - larger winner-path drain/replay rehearsals on the scale profile
 
 What this harness honestly proves today:
