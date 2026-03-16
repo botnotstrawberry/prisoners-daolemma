@@ -29,7 +29,7 @@
   - per-run `report.json` / `txs.jsonl`
   - per-game export directories
   - matrix `matrix-report.json` / `MATRIX_SUMMARY.md`
-- Current status tracking now includes xlarge adversarial multi-seed local coverage, but the repo does **not** currently ship a preserved artifact bundle from that latest run set.
+- A compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, rooted in the latest validated xlarge-local and 32-player adversarial multi-seed matrix runs.
 
 ## Still not proven locally
 
@@ -37,7 +37,7 @@
 - No multi-instance parallel local stress harness yet.
 - No broad auth-expiry chaos coverage inside the load harness yet.
 - Same-block probes are deterministic local no-automine batches; they add useful ordering coverage, but they are not public mempool realism.
-- The repo does not currently check in a fresh artifact bundle for the latest xlarge / multi-seed runs; if operator-facing proof is needed, it still has to be captured deliberately.
+- The repo now checks in a compact matrix-level proof pack for the latest xlarge / multi-seed runs, but it still does **not** preserve the full raw tx/export bundle from those runs in-repo.
 
 ## Blocked on external execution
 
@@ -52,8 +52,8 @@
 2. `yarn smoke:integration`
 3. `yarn load:harness:matrix:broader`
 4. `yarn load:harness:matrix:xlarge`
-5. once a real local or Sepolia artifact directory exists, run `yarn judge:evidence -- --bundle <actual-bundle-dir>`
+5. inspect `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved compact local proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack` if needed
 
 ## Bottom line
 
-Locally, the repo has moved past simple smoke testing: the current proof envelope includes deterministic scenario families, seeded adversarial breakage hunting, same-block ordering probes, and bounded soak presets up through 32-player multi-seed xlarge runs. The biggest remaining local-only gaps are the still-unmet 250-player single-game target, missing multi-instance stress, and preserving a fresh artifact bundle from the latest larger runs.
+Locally, the repo has moved past simple smoke testing: the current proof envelope includes deterministic scenario families, seeded adversarial breakage hunting, same-block ordering probes, bounded soak presets up through 32-player multi-seed xlarge runs, and a checked-in compact proof pack rooted in those latest matrix artifacts. The biggest remaining local-only gaps are the still-unmet 250-player single-game target, missing multi-instance stress, broader auth-expiry chaos, and the absence of a full raw tx/export bundle for the latest larger runs.

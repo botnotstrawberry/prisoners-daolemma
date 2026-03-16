@@ -16,8 +16,10 @@ import {
 
 export const JUDGE_EVIDENCE_SCHEMA =
   "prisoners-daollema/judge-evidence-v0";
+export const LOCAL_PROOF_PACK_SCHEMA =
+  "prisoners-daollema/local-proof-pack-v1";
 export const JUDGE_EVIDENCE_BOUNDARY_NOTE =
-  "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.";
+  "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.";
 
 const __filename = fileURLToPath(import.meta.url);
 const PACKAGE_ROOT = resolveFromPackageRoot(".");
@@ -100,6 +102,23 @@ function pushOpenOrder(entries, path, why) {
     path,
     why,
   });
+}
+
+function emptyLocalProof({ status = "missing", kind = null } = {}) {
+  return {
+    kind,
+    status,
+    reportPath: null,
+    txLogPath: null,
+    report: null,
+    exports: [],
+    outcomes: [],
+    claims: [],
+    packManifestPath: null,
+    packReadmePath: null,
+    pack: null,
+    matrixBundles: [],
+  };
 }
 
 function summarizeGameSummary(summary) {
@@ -258,7 +277,7 @@ function discoverLocalLoadHarness(bundleDir, linkRootDir) {
   const status = reportPath && exports.length > 0 ? "present" : reportPath || exports.length > 0 ? "partial" : "missing";
 
   return {
-    status,
+    ...emptyLocalProof({ status, kind: "load-harness" }),
     reportPath: reportPath ? displayPath(linkRootDir, reportPath) : null,
     txLogPath: txLogPath ? displayPath(linkRootDir, txLogPath) : null,
     report: report
@@ -284,6 +303,142 @@ function discoverLocalLoadHarness(bundleDir, linkRootDir) {
       : null,
     exports,
     outcomes: Array.from(new Set(outcomes)),
+    claims,
+  };
+}
+
+function discoverLocalProofPack(bundleDir, linkRootDir) {
+  const manifestPath = fileIfExists(join(bundleDir, "local-proof-pack.json"));
+  if (!manifestPath) {
+    return emptyLocalProof();
+  }
+
+  const packReadmePath = fileIfExists(join(bundleDir, "README.md"));
+  const manifest = readJson(manifestPath, "local proof pack manifest");
+  const preservedRuns = Array.isArray(manifest.preservedRuns)
+    ? manifest.preservedRuns
+    : [];
+
+  const matrixBundles = preservedRuns.map((entry, index) => {
+    const matrixReportSource =
+      entry?.preservedFiles?.matrixReport?.path ?? null;
+    const summarySource = entry?.preservedFiles?.summary?.path ?? null;
+    const matrixReportPath =
+      typeof matrixReportSource === "string"
+        ? fileIfExists(join(bundleDir, matrixReportSource))
+        : null;
+    const summaryPath =
+      typeof summarySource === "string"
+        ? fileIfExists(join(bundleDir, summarySource))
+        : null;
+    const summary = entry?.summary ?? {};
+
+    return {
+      index: index + 1,
+      id: entry?.id ?? `proof-run-${index + 1}`,
+      label: entry?.label ?? entry?.id ?? `proof-run-${index + 1}`,
+      description: entry?.description ?? null,
+      sourceDir: entry?.sourceDir ?? null,
+      matrixReportPath: matrixReportPath
+        ? displayPath(linkRootDir, matrixReportPath)
+        : typeof matrixReportSource === "string"
+          ? toPosixPath(matrixReportSource)
+          : null,
+      summaryPath: summaryPath
+        ? displayPath(linkRootDir, summaryPath)
+        : typeof summarySource === "string"
+          ? toPosixPath(summarySource)
+          : null,
+      status:
+        matrixReportPath && summaryPath
+          ? "present"
+          : matrixReportPath || summaryPath
+            ? "partial"
+            : "missing",
+      summary: {
+        status: summary.status ?? null,
+        presetName: summary.presetName ?? null,
+        presetLabel: summary.presetLabel ?? null,
+        startedAt: summary.startedAt ?? null,
+        finishedAt: summary.finishedAt ?? null,
+        wallClockMs: summary.wallClockMs ?? null,
+        plannedRuns: summary.plannedRuns ?? null,
+        completedRuns: summary.completedRuns ?? null,
+        totalCompletedGames: summary.totalCompletedGames ?? null,
+        requestedScenarios: Array.isArray(summary.requestedScenarios)
+          ? summary.requestedScenarios
+          : [],
+        seeds: Array.isArray(summary.seeds) ? summary.seeds : [],
+        profiles: Array.isArray(summary.profiles) ? summary.profiles : [],
+        largestRequestedPlayerCount:
+          summary.largestRequestedPlayerCount ?? null,
+        maxJoinedPlayersInSingleGame:
+          summary.maxJoinedPlayersInSingleGame ?? null,
+        gamesHittingRequestedPlayerTarget:
+          summary.gamesHittingRequestedPlayerTarget ?? null,
+        fullyDrainedGames: summary.fullyDrainedGames ?? null,
+        replayConsistentGames: summary.replayConsistentGames ?? null,
+        txSummary: summary.txSummary ?? null,
+        breakageSummary: summary.breakageSummary ?? null,
+        terminalOutcomes: Array.isArray(summary.terminalOutcomes)
+          ? summary.terminalOutcomes
+          : [],
+        terminalPaths: Array.isArray(summary.terminalPaths)
+          ? summary.terminalPaths
+          : [],
+      },
+    };
+  });
+
+  const claims = [];
+  if (matrixBundles.length > 0) {
+    claims.push(
+      `This compact local proof pack preserves ${matrixBundles.length} copied matrix artifact set(s) rooted in validated current local runs.`
+    );
+  }
+  for (const bundle of matrixBundles) {
+    const maxPlayers = bundle.summary.maxJoinedPlayersInSingleGame ?? "?";
+    const totalGames = bundle.summary.totalCompletedGames ?? "?";
+    const failedUnexpected =
+      bundle.summary.txSummary?.failedUnexpected ?? "?";
+    claims.push(
+      `${bundle.label} records ${totalGames} completed game(s), max joined players ${maxPlayers}, and ${failedUnexpected} unexpected failed tx(s).`
+    );
+  }
+  if (Array.isArray(manifest.notPreserved) && manifest.notPreserved.length > 0) {
+    claims.push(
+      `This pack stays compact on purpose: ${manifest.notPreserved[0]}`
+    );
+  }
+
+  const hasAllArtifacts =
+    matrixBundles.length > 0 &&
+    matrixBundles.every((entry) => entry.status === "present");
+  const status = hasAllArtifacts
+    ? "present"
+    : matrixBundles.length > 0 || packReadmePath
+      ? "partial"
+      : "missing";
+
+  return {
+    ...emptyLocalProof({ status, kind: "proof-pack" }),
+    packManifestPath: displayPath(linkRootDir, manifestPath),
+    packReadmePath: packReadmePath
+      ? displayPath(linkRootDir, packReadmePath)
+      : null,
+    pack: {
+      schemaVersion: manifest.schemaVersion ?? null,
+      title: manifest.title ?? null,
+      generatedAt: manifest.generatedAt ?? null,
+      bundleBoundaryNote: manifest.bundleBoundaryNote ?? null,
+      notPreserved: Array.isArray(manifest.notPreserved)
+        ? manifest.notPreserved
+        : [],
+      remainingLocalGaps: Array.isArray(manifest.remainingLocalGaps)
+        ? manifest.remainingLocalGaps
+        : [],
+    },
+    matrixBundles,
     claims,
   };
 }
@@ -444,9 +599,15 @@ function discoverCanaryBundle(bundleDir, linkRootDir) {
   };
 }
 
+function classifyLocalBundleType(localProof) {
+  return localProof.kind === "proof-pack"
+    ? "local-proof-pack"
+    : "local-load-harness";
+}
+
 function buildBundleType(mode, localProof, liveSepoliaProof) {
   if (mode === "local") {
-    return "local-load-harness";
+    return classifyLocalBundleType(localProof);
   }
   if (mode === "sepolia") {
     return "base-sepolia-canary";
@@ -461,7 +622,7 @@ function buildBundleType(mode, localProof, liveSepoliaProof) {
     return "base-sepolia-canary";
   }
   if (localProof.status !== "missing") {
-    return "local-load-harness";
+    return classifyLocalBundleType(localProof);
   }
   return "generic-artifact-bundle";
 }
@@ -472,7 +633,9 @@ function buildOpenOrder(bundleType, localProof, liveSepoliaProof) {
   const includeCanary =
     bundleType === "base-sepolia-canary" || bundleType === "mixed";
   const includeLocal =
-    bundleType === "local-load-harness" || bundleType === "mixed";
+    bundleType === "local-load-harness" ||
+    bundleType === "local-proof-pack" ||
+    bundleType === "mixed";
 
   if (includeCanary) {
     pushOpenOrder(
@@ -537,38 +700,63 @@ function buildOpenOrder(bundleType, localProof, liveSepoliaProof) {
   }
 
   if (includeLocal) {
-    pushOpenOrder(
-      entries,
-      localProof.reportPath,
-      "Run-level local proof summary: scale, scenario mix, limitations, and overall status."
-    );
-    pushOpenOrder(
-      entries,
-      localProof.txLogPath,
-      "Raw local transaction log for the load-harness run."
-    );
-    for (const gameExport of localProof.exports) {
-      const label = `Game ${gameExport.gameId ?? "?"}`;
+    if (localProof.kind === "proof-pack") {
       pushOpenOrder(
         entries,
-        gameExport.files.gameSummary,
-        `${label} final snapshot (${gameExport.outcome ?? "unknown outcome"} / ${gameExport.terminalPath ?? "unknown terminal path"}).`
+        localProof.packReadmePath,
+        "Compact human summary of what this preserved local proof pack includes and intentionally omits."
       );
       pushOpenOrder(
         entries,
-        gameExport.files.rounds,
-        `${label} round-by-round replay context.`
+        localProof.packManifestPath,
+        "Machine-readable manifest tying each preserved file back to the original local matrix artifact directory."
+      );
+      for (const matrixBundle of localProof.matrixBundles) {
+        pushOpenOrder(
+          entries,
+          matrixBundle.matrixReportPath,
+          `${matrixBundle.label} copied matrix report: preset, seeds, tx totals, and aggregate breakage signals.`
+        );
+        pushOpenOrder(
+          entries,
+          matrixBundle.summaryPath,
+          `${matrixBundle.label} compact human summary for the same preserved local run set.`
+        );
+      }
+    } else {
+      pushOpenOrder(
+        entries,
+        localProof.reportPath,
+        "Run-level local proof summary: scale, scenario mix, limitations, and overall status."
       );
       pushOpenOrder(
         entries,
-        gameExport.files.payouts,
-        `${label} settlement and payout routing.`
+        localProof.txLogPath,
+        "Raw local transaction log for the load-harness run."
       );
-      pushOpenOrder(
-        entries,
-        gameExport.manifestPath,
-        `${label} export manifest, including anything intentionally skipped.`
-      );
+      for (const gameExport of localProof.exports) {
+        const label = `Game ${gameExport.gameId ?? "?"}`;
+        pushOpenOrder(
+          entries,
+          gameExport.files.gameSummary,
+          `${label} final snapshot (${gameExport.outcome ?? "unknown outcome"} / ${gameExport.terminalPath ?? "unknown terminal path"}).`
+        );
+        pushOpenOrder(
+          entries,
+          gameExport.files.rounds,
+          `${label} round-by-round replay context.`
+        );
+        pushOpenOrder(
+          entries,
+          gameExport.files.payouts,
+          `${label} settlement and payout routing.`
+        );
+        pushOpenOrder(
+          entries,
+          gameExport.manifestPath,
+          `${label} export manifest, including anything intentionally skipped.`
+        );
+      }
     }
   }
 
@@ -580,6 +768,7 @@ function buildMissingArtifacts(bundleType, localProof, liveSepoliaProof) {
 
   if (
     bundleType === "local-load-harness" ||
+    bundleType === "local-proof-pack" ||
     bundleType === "generic-artifact-bundle"
   ) {
     missing.push(
@@ -588,15 +777,35 @@ function buildMissingArtifacts(bundleType, localProof, liveSepoliaProof) {
   }
 
   if (localProof.status === "partial") {
-    if (!localProof.reportPath) {
-      missing.push(
-        "Local bundle is missing report.json, so the top-level scenario/scale summary is incomplete."
-      );
-    }
-    if (localProof.exports.length === 0) {
-      missing.push(
-        "Local bundle is missing per-game export-manifest.json files, so replay/export coverage cannot be inspected cleanly."
-      );
+    if (localProof.kind === "proof-pack") {
+      if (!localProof.packManifestPath) {
+        missing.push(
+          "Local proof pack is missing local-proof-pack.json, so the copied matrix artifacts cannot be traced back to their source runs cleanly."
+        );
+      }
+      for (const matrixBundle of localProof.matrixBundles) {
+        if (!matrixBundle.matrixReportPath) {
+          missing.push(
+            `${matrixBundle.label} is missing its copied matrix-report.json.`
+          );
+        }
+        if (!matrixBundle.summaryPath) {
+          missing.push(
+            `${matrixBundle.label} is missing its copied MATRIX_SUMMARY.md.`
+          );
+        }
+      }
+    } else {
+      if (!localProof.reportPath) {
+        missing.push(
+          "Local bundle is missing report.json, so the top-level scenario/scale summary is incomplete."
+        );
+      }
+      if (localProof.exports.length === 0) {
+        missing.push(
+          "Local bundle is missing per-game export-manifest.json files, so replay/export coverage cannot be inspected cleanly."
+        );
+      }
     }
   }
 
@@ -641,6 +850,7 @@ function buildUnknowns(bundleType, liveSepoliaProof) {
 
   if (
     bundleType === "local-load-harness" ||
+    bundleType === "local-proof-pack" ||
     liveSepoliaProof.status === "pending"
   ) {
     pushUnique(
@@ -674,10 +884,15 @@ function buildUnknowns(bundleType, liveSepoliaProof) {
 function buildNextCapturePriorities(bundleType, localProof, liveSepoliaProof) {
   const priorities = [];
 
-  if (bundleType === "local-load-harness") {
+  if (bundleType === "local-load-harness" || bundleType === "local-proof-pack") {
     priorities.push(
       "Run the first Base Sepolia canary and capture preflight.json, deployment-summary.json, operator-notes.md, query/game-summary-live.json, and query/export/export-manifest.json under packages/foundry/canary/base-sepolia/<run-id>/."
     );
+    if (bundleType === "local-proof-pack") {
+      priorities.push(
+        "If deeper local auditability is needed beyond this compact pack, preserve a full load-harness or matrix bundle with raw tx logs and per-run exports beside the copied summaries."
+      );
+    }
     priorities.push(
       "Save tx hashes and explorer links in operator-notes.md instead of relying on shell history or memory."
     );
@@ -731,7 +946,12 @@ export function buildJudgeEvidenceIndex({
     throw new Error(`Output directory not found: ${outputDir}`);
   }
 
-  const localProof = discoverLocalLoadHarness(bundleDir, outputDir);
+  const localProofPack = discoverLocalProofPack(bundleDir, outputDir);
+  const localLoadHarnessProof = discoverLocalLoadHarness(bundleDir, outputDir);
+  const localProof =
+    localProofPack.status !== "missing"
+      ? localProofPack
+      : localLoadHarnessProof;
   const liveSepoliaProof = discoverCanaryBundle(bundleDir, outputDir);
   const bundleType = buildBundleType(mode, localProof, liveSepoliaProof);
   const recommendedOpenOrder = buildOpenOrder(
@@ -804,15 +1024,57 @@ function formatMissing(items = [], fallback) {
 function renderLocalInventory(localProof) {
   if (localProof.status === "missing") {
     return [
-      "### Local load-harness proof",
+      "### Local proof",
       "- Not present in this bundle.",
     ].join("\n");
   }
 
-  const lines = [
-    "### Local load-harness proof",
-    `- Status: ${localProof.status}`,
-  ];
+  const heading =
+    localProof.kind === "proof-pack"
+      ? "### Local proof pack"
+      : "### Local load-harness proof";
+  const lines = [heading, `- Status: ${localProof.status}`];
+
+  if (localProof.kind === "proof-pack") {
+    if (localProof.packManifestPath) {
+      lines.push(`- local-proof-pack.json: \`${localProof.packManifestPath}\``);
+    }
+    if (localProof.packReadmePath) {
+      lines.push(`- README.md: \`${localProof.packReadmePath}\``);
+    }
+    if (localProof.pack?.schemaVersion) {
+      lines.push(`- Schema: ${localProof.pack.schemaVersion}`);
+    }
+    if (localProof.pack?.generatedAt) {
+      lines.push(`- Generated at: ${localProof.pack.generatedAt}`);
+    }
+    for (const matrixBundle of localProof.matrixBundles) {
+      lines.push(
+        `- ${matrixBundle.label}: ${matrixBundle.summary.totalCompletedGames ?? "?"} game(s), max joined players ${matrixBundle.summary.maxJoinedPlayersInSingleGame ?? "?"}, unexpected failed txs ${matrixBundle.summary.txSummary?.failedUnexpected ?? "?"}`
+      );
+      if (matrixBundle.matrixReportPath) {
+        lines.push(`  - matrix report: \`${matrixBundle.matrixReportPath}\``);
+      }
+      if (matrixBundle.summaryPath) {
+        lines.push(`  - summary: \`${matrixBundle.summaryPath}\``);
+      }
+      if (matrixBundle.summary.requestedScenarios.length > 0) {
+        lines.push(
+          `  - scenarios: ${matrixBundle.summary.requestedScenarios.join(", ")}`
+        );
+      }
+      if (matrixBundle.summary.seeds.length > 0) {
+        lines.push(`  - seeds: ${matrixBundle.summary.seeds.join(", ")}`);
+      }
+    }
+    for (const note of localProof.pack?.notPreserved ?? []) {
+      lines.push(`- Not preserved here: ${note}`);
+    }
+    for (const gap of localProof.pack?.remainingLocalGaps ?? []) {
+      lines.push(`- Remaining local gap: ${gap}`);
+    }
+    return lines.join("\n");
+  }
 
   if (localProof.reportPath) {
     lines.push(`- report.json: \`${localProof.reportPath}\``);
@@ -972,7 +1234,7 @@ ${formatOpenOrder(index.recommendedOpenOrder)}
 ### Local proof
 ${formatClaims(
   index.localProof.claims,
-  "No recognizable local load-harness proof artifacts are packaged here."
+  "No recognizable local proof artifacts are packaged here."
 )}
 
 ### Live Base Sepolia proof
@@ -1082,12 +1344,14 @@ Generated files:
 
 What the helper looks for:
   - local load-harness bundles: report.json, txs.jsonl, game-*/evidence/export-manifest.json
+  - compact local proof packs: local-proof-pack.json plus copied matrix-report.json / MATRIX_SUMMARY.md files
   - Base Sepolia canary bundles: preflight.json, deployment-summary.json, deployments-84532.json,
     operator-notes.md, query/game-summary-live.json, query/export/export-manifest.json,
     auth/**/auth-status.json, and screenshots/*
 
 Examples:
   node scripts-js/judgeEvidenceCli.js --bundle load-harness/manual-scale-proof-2026-03-15-64x3
+  node scripts-js/judgeEvidenceCli.js --bundle proof/local/20260316-xlarge-matrix-proof-pack
   node scripts-js/judgeEvidenceCli.js --bundle canary/base-sepolia/20260315-220000-base-sepolia-canary
   node scripts-js/judgeEvidenceCli.js --bundle canary/base-sepolia/20260315-220000-base-sepolia-canary --out canary/base-sepolia/20260315-220000-base-sepolia-canary/judge-pack --json
 `);

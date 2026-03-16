@@ -37,7 +37,8 @@ If a question is not answered here, ask the human instead of inventing product b
 - Base Sepolia preflight/deployment inspection helpers and judge-evidence packaging helpers exist
 
 ### Still incomplete or unproven
-- no preserved repo-shipped artifact bundle currently captures the latest xlarge / multi-seed local runs
+- a compact repo-shipped local proof pack now captures the latest xlarge / multi-seed matrix summaries at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
+- the repo still does not preserve the full raw tx/export bundle from those latest larger local runs
 - the 250-player single-game local proof target is still unmet
 - multi-instance parallel local stress is still not implemented
 - the first real Base Sepolia canary has not been executed and preserved in-repo

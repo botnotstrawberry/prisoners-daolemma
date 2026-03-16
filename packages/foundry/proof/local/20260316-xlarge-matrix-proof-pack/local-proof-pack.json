@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "prisoners-daollema/local-proof-pack-v1",
+  "title": "Prisoners DAOllema preserved local matrix proof pack",
+  "generatedAt": "2026-03-16T03:08:41.528Z",
+  "bundleBoundaryNote": "This directory preserves compact copies of top-level matrix artifacts from current validated local runs. It keeps the shipped repo small and auditable, does not preserve the full raw tx/export bundle from the source runs, and does not claim live-chain proof.",
+  "preservedRuns": [
+    {
+      "id": "xlarge-local-validation-20260316T021200Z",
+      "label": "xlarge-local validation (mixed + one adversarial seed)",
+      "description": "Latest preserved compact summary of the xlarge-local preset: one deterministic 32-player mixed-family pass plus one seeded 32-player adversarial sweep.",
+      "sourceDir": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z",
+      "preservedFiles": {
+        "matrixReport": {
+          "path": "xlarge-local-validation-20260316T021200Z/matrix-report.json",
+          "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/matrix-report.json",
+          "bytes": 14410,
+          "sha256": "eef1568ed1987ef614e52262e622be5ab18fb171112b85285fb8964121529d8c"
+        },
+        "summary": {
+          "path": "xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md",
+          "sourcePath": "packages/foundry/load-harness-matrix/xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md",
+          "bytes": 5143,
+          "sha256": "bba960443842aeefb8c9c60fc22d5378366125b21660f0d5eea735dcc4330676"
+        }
+      },
+      "summary": {
+        "status": "ok",
+        "presetName": "xlarge-local",
+        "presetLabel": "xlarge-local",
+        "presetDescription": "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus one seeded 32-player adversarial sweep, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure.",
+        "startedAt": "2026-03-16T02:19:29.964Z",
+        "finishedAt": "2026-03-16T02:21:44.134Z",
+        "wallClockMs": 134170,
+        "plannedRuns": 2,
+        "completedRuns": 2,
+        "totalCompletedGames": 4,
+        "requestedScenarios": [
+          "adversarial-random",
+          "mixed"
+        ],
+        "seeds": [
+          "xlarge-mixed-a",
+          "xlarge-seed-19"
+        ],
+        "profiles": [
+          "scale"
+        ],
+        "largestRequestedPlayerCount": 32,
+        "maxJoinedPlayersInSingleGame": 32,
+        "gamesHittingRequestedPlayerTarget": 3,
+        "fullyDrainedGames": 4,
+        "replayConsistentGames": 4,
+        "txSummary": {
+          "attempted": 845,
+          "succeeded": 769,
+          "failed": 76,
+          "failedExpected": 76,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "breakageSummary": {
+          "gamesChecked": 4,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 76,
+            "failedAsExpected": 76,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 76,
+            "localRejections": 0
+          }
+        },
+        "terminalOutcomes": [
+          {
+            "key": "Cancelled",
+            "count": 1
+          },
+          {
+            "key": "NoWinners",
+            "count": 1
+          },
+          {
+            "key": "Winners",
+            "count": 2
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "cancelled-refunds",
+            "count": 1
+          },
+          {
+            "key": "no-winner-routing",
+            "count": 1
+          },
+          {
+            "key": "winner-claims",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "20260316-xlarge-adversarial-multiseed-fullroster",
+      "label": "32-player adversarial multi-seed full-roster validation",
+      "description": "Latest preserved compact summary of the three-seed started full-roster 32-player adversarial local run set.",
+      "sourceDir": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster",
+      "preservedFiles": {
+        "matrixReport": {
+          "path": "20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json",
+          "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json",
+          "bytes": 16128,
+          "sha256": "46291b24a99195251963781a7d17ef2f9315f1d9693a3ecf6a12096eab58e03d"
+        },
+        "summary": {
+          "path": "20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md",
+          "sourcePath": "packages/foundry/load-harness-matrix/20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md",
+          "bytes": 5572,
+          "sha256": "f27f168a5f149eb221355932f3cec9338ca17a7fb93cfa8e8f6a278482c1588c"
+        }
+      },
+      "summary": {
+        "status": "ok",
+        "presetName": "xlarge-local",
+        "presetLabel": "xlarge-local",
+        "presetDescription": "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus three seeded 32-player single-game adversarial sweeps, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure while broadening 32-player adversarial coverage beyond one seed.",
+        "startedAt": "2026-03-16T02:38:49.419Z",
+        "finishedAt": "2026-03-16T02:41:15.263Z",
+        "wallClockMs": 145844,
+        "plannedRuns": 3,
+        "completedRuns": 3,
+        "totalCompletedGames": 3,
+        "requestedScenarios": [
+          "adversarial-random"
+        ],
+        "seeds": [
+          "xlarge-seed-19",
+          "xlarge-seed-211",
+          "xlarge-seed-73"
+        ],
+        "profiles": [
+          "scale"
+        ],
+        "largestRequestedPlayerCount": 32,
+        "maxJoinedPlayersInSingleGame": 32,
+        "gamesHittingRequestedPlayerTarget": 3,
+        "fullyDrainedGames": 3,
+        "replayConsistentGames": 3,
+        "txSummary": {
+          "attempted": 958,
+          "succeeded": 795,
+          "failed": 163,
+          "failedExpected": 163,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "breakageSummary": {
+          "gamesChecked": 3,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 163,
+            "failedAsExpected": 163,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 163,
+            "localRejections": 0
+          }
+        },
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 3
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 3
+          }
+        ]
+      }
+    }
+  ],
+  "notPreserved": [
+    "Raw tx logs, per-run report.json files, and per-game exports from the source matrix directories are intentionally omitted here to keep the checked-in bundle compact.",
+    "The copied matrix-report.json files are preserved as captured, including path references back to the original source directories on the capture machine."
+  ],
+  "remainingLocalGaps": [
+    "250-player single-game local proof is still unmet.",
+    "Multi-instance parallel local stress is still not implemented.",
+    "Broad auth-expiry chaos inside the load harness is still thin.",
+    "No Base Sepolia canary artifact bundle is preserved yet."
+  ]
+}

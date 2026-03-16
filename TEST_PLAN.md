@@ -85,12 +85,13 @@ This section is not a release waiver. It is the current honest state of local va
   - deterministic 32-player mixed-family coverage
   - started full-roster 32-player adversarial sweeps across multiple seeds
   - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
+- a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 
 ### Still not proven locally
 - the automated 250-player single-game proof target
 - multi-instance parallel local stress
 - broad auth-expiry chaos inside the load harness
-- a preserved in-repo artifact bundle for the latest xlarge / multi-seed run set
+- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships only a compact preserved matrix proof pack
 
 ### Blocked on external execution
 - Base Sepolia canary deployment + preserved live artifact bundle
@@ -298,7 +299,7 @@ What it does **not** cover yet:
 - the full 250-player proof target as an automated test
 - Mode C multi-instance parallel stress
 - auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
-- a preserved in-repo artifact bundle for the latest xlarge / multi-seed run set
+- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships only a compact preserved matrix proof pack
 
 Purpose:
 - prove safety under ugly, non-demo behavior

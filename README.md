@@ -43,6 +43,8 @@ For the current done-locally vs still-unproven vs external-blocked split, start 
 
 That file is intentionally short and should be kept in sync whenever local validation meaningfully advances.
 
+A compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`. It preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs, while staying honest that the repo still does **not** ship the full raw tx/export bundle from those runs and still has no live Sepolia proof bundle.
+
 ## Current code state
 
 The repo now contains:
@@ -55,6 +57,7 @@ The repo now contains:
 - CLI-first evidence/query tooling for game/auth/chat exports
 - Base-focused deployment config plus Base Sepolia canary preflight/deployment inspection helpers
 - judge-facing evidence-pack helper that writes `JUDGE_README.md` + `judge-evidence-index.json` from an existing local or Sepolia artifact bundle
+- a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -332,7 +335,7 @@ The repo also includes a small judge-facing packaging helper under `packages/fou
 Current boundary:
 
 - it does **not** create new proof; it only indexes an artifact bundle that already exists
-- it supports both local load-harness bundles and future Base Sepolia canary bundles
+- it supports local load-harness bundles, compact local proof packs, and future Base Sepolia canary bundles
 - it writes a compact human guide plus a machine-readable index:
   - `JUDGE_README.md`
   - `judge-evidence-index.json`
@@ -342,7 +345,15 @@ Useful commands:
 
 - `yarn judge:evidence -- --help`
 - `yarn judge:evidence -- --bundle load-harness/<actual-run-dir>`
+- `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack`
 - `yarn judge:evidence -- --bundle canary/base-sepolia/<run-id>`
+
+Current preserved compact local bundle:
+
+- `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
+  - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
+  - `local-proof-pack.json` manifest with source paths, byte counts, and SHA-256 hashes
+  - generated `JUDGE_README.md` + `judge-evidence-index.json`
 
 See `JUDGE_EVIDENCE.md` for the judge open-order, the current honest local-proof boundary, and the live canary packaging contract.
 

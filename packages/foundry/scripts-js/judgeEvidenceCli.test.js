@@ -46,6 +46,127 @@ test("buildJudgeEvidenceIndex summarizes the tracked local load-harness bundle h
   assert.match(readme, /game-2\/evidence\/payouts\.json/);
 });
 
+test("buildJudgeEvidenceIndex summarizes compact local proof packs honestly", () => {
+  const bundleDir = mkdtempSync(join(tmpdir(), "pd-local-proof-pack-"));
+  mkdirSync(join(bundleDir, "pack-a"), { recursive: true });
+  mkdirSync(join(bundleDir, "pack-b"), { recursive: true });
+
+  writeFileSync(
+    join(bundleDir, "README.md"),
+    "# Compact local proof pack\n\nThis pack preserves copied matrix summaries only.\n",
+    "utf8"
+  );
+  writeFileSync(
+    join(bundleDir, "pack-a", "matrix-report.json"),
+    JSON.stringify({ status: "ok" }, null, 2),
+    "utf8"
+  );
+  writeFileSync(
+    join(bundleDir, "pack-a", "MATRIX_SUMMARY.md"),
+    "# Pack A\n",
+    "utf8"
+  );
+  writeFileSync(
+    join(bundleDir, "pack-b", "matrix-report.json"),
+    JSON.stringify({ status: "ok" }, null, 2),
+    "utf8"
+  );
+  writeFileSync(
+    join(bundleDir, "pack-b", "MATRIX_SUMMARY.md"),
+    "# Pack B\n",
+    "utf8"
+  );
+  writeFileSync(
+    join(bundleDir, "local-proof-pack.json"),
+    JSON.stringify(
+      {
+        schemaVersion: "prisoners-daollema/local-proof-pack-v1",
+        title: "Compact local proof pack",
+        generatedAt: "2026-03-16T02:55:00.000Z",
+        bundleBoundaryNote:
+          "Compact copied matrix artifacts only; not a live-chain proof bundle.",
+        preservedRuns: [
+          {
+            id: "pack-a",
+            label: "Pack A",
+            sourceDir: "packages/foundry/load-harness-matrix/pack-a",
+            preservedFiles: {
+              matrixReport: { path: "pack-a/matrix-report.json" },
+              summary: { path: "pack-a/MATRIX_SUMMARY.md" },
+            },
+            summary: {
+              status: "ok",
+              presetName: "xlarge-local",
+              completedRuns: 1,
+              totalCompletedGames: 3,
+              requestedScenarios: ["mixed"],
+              seeds: ["xlarge-mixed-a"],
+              profiles: ["scale"],
+              maxJoinedPlayersInSingleGame: 32,
+              txSummary: { failedUnexpected: 0 },
+            },
+          },
+          {
+            id: "pack-b",
+            label: "Pack B",
+            sourceDir: "packages/foundry/load-harness-matrix/pack-b",
+            preservedFiles: {
+              matrixReport: { path: "pack-b/matrix-report.json" },
+              summary: { path: "pack-b/MATRIX_SUMMARY.md" },
+            },
+            summary: {
+              status: "ok",
+              presetName: "xlarge-local",
+              completedRuns: 3,
+              totalCompletedGames: 3,
+              requestedScenarios: ["adversarial-random"],
+              seeds: ["xlarge-seed-19", "xlarge-seed-73", "xlarge-seed-211"],
+              profiles: ["scale"],
+              maxJoinedPlayersInSingleGame: 32,
+              txSummary: { failedUnexpected: 0 },
+            },
+          },
+        ],
+        notPreserved: [
+          "Raw tx logs and per-run exports from the source directories are intentionally omitted to keep the repo compact.",
+        ],
+        remainingLocalGaps: [
+          "250-player single-game proof remains open.",
+        ],
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
+
+  const index = buildJudgeEvidenceIndex({
+    bundleDir,
+    outputDir: bundleDir,
+  });
+
+  assert.equal(index.bundleType, "local-proof-pack");
+  assert.equal(index.localProof.kind, "proof-pack");
+  assert.equal(index.localProof.status, "present");
+  assert.equal(index.liveSepoliaProof.status, "pending");
+  assert.equal(index.localProof.matrixBundles.length, 2);
+  assert.ok(
+    index.recommendedOpenOrder.some(
+      (entry) => entry.path === "local-proof-pack.json"
+    )
+  );
+  assert.ok(
+    index.recommendedOpenOrder.some(
+      (entry) => entry.path === "pack-a/matrix-report.json"
+    )
+  );
+
+  const readme = renderJudgeEvidenceReadme(index);
+  assert.match(readme, /Bundle type: local-proof-pack/);
+  assert.match(readme, /local-proof-pack\.json/);
+  assert.match(readme, /Remaining local gap: 250-player single-game proof remains open\./);
+});
+
 test("writeJudgeEvidencePack emits judge-facing files for a live canary-style bundle", () => {
   const bundleDir = mkdtempSync(join(tmpdir(), "pd-judge-evidence-"));
   mkdirSync(join(bundleDir, "query", "export"), { recursive: true });

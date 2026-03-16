@@ -11,62 +11,80 @@ It is intentionally conservative:
 
 ## Current honest status
 
-Right now this repo has three evidence layers:
+Right now this repo has four evidence layers:
 
 1. **Code + tests**
    - contracts, Foundry tests, JS tooling tests, and the broader integration smoke prove the implemented auth / game / query surface is wired together locally
-2. **Operator-ready local artifact tooling**
-   - the repo can generate local harness and matrix artifacts plus judge-facing indexes for an existing bundle
+2. **Preserved compact local proof pack**
+   - `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` is checked in now
+   - it preserves copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the latest validated xlarge-local and 32-player adversarial multi-seed runs
+   - it is intentionally compact and does **not** pretend to be a full raw tx/export replay bundle
+3. **Operator-ready broader local artifact tooling**
+   - the repo can still generate fuller local harness and matrix artifacts plus judge-facing indexes for an existing bundle
    - the latest status tracking says local validation now extends through bounded xlarge / multi-seed runs
-   - however, the repo does **not** currently check in a preserved artifact bundle from that latest run set
-3. **Sepolia packaging readiness**
+4. **Sepolia packaging readiness**
    - `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md` define the live artifact contract
    - they do **not** by themselves prove that the live run already happened
 
-What is still honestly pending until real bundles exist:
+What is still honestly pending until fuller bundles exist:
 
-- a preserved local bundle from a meaningful current run if we want repo-shipped local proof artifacts
+- a full raw local tx/export bundle from a meaningful current run if we want deeper in-repo replay/audit depth beyond the compact matrix pack
 - the first Base Sepolia canary bundle
 - explorer verification evidence from the real deployment
 - live replay/export artifacts from an actual Sepolia game
 
 ## What judges should open first right now
 
-If a judge only has a few minutes and no bundle directory was shipped alongside the repo, use this order.
+If a judge only has a few minutes, use this order.
 
-### 1. `README.md`
+### 1. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+
+What it proves:
+
+- the repo now ships a real preserved local proof bundle, not just packaging-ready tooling
+- the compact bundle stays honest about being local-only and matrix-level
+- the recommended open order is already generated beside the preserved files
+
+### 2. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/local-proof-pack.json`
 
 What it proves:
 
-- what is implemented now
-- where auth, gameplay, query/export, load harness, and canary tooling live
-- what the repo currently does **not** claim yet
+- which source matrix directories the preserved files came from
+- byte counts and SHA-256 hashes for every copied artifact
+- which local gaps remain open after this compact preservation step
 
-### 2. `LOCAL_READINESS.md`
+### 3. The copied matrix artifacts inside that bundle
 
-What it proves:
+Open in this order:
+
+1. `xlarge-local-validation-20260316T021200Z/matrix-report.json`
+2. `xlarge-local-validation-20260316T021200Z/MATRIX_SUMMARY.md`
+3. `20260316-xlarge-adversarial-multiseed-fullroster/matrix-report.json`
+4. `20260316-xlarge-adversarial-multiseed-fullroster/MATRIX_SUMMARY.md`
+
+What they prove:
+
+- deterministic 32-player mixed-family coverage plus a seeded 32-player adversarial sweep in the xlarge-local preset
+- three started full-roster 32-player adversarial sweeps across multiple seeds
+- zero unexpected failures and zero recorded wedge/terminal/accounting/preview/drain/replay mismatches in those preserved matrix summaries
+
+### 4. `LOCAL_READINESS.md` and `TEST_PLAN.md`
+
+What they prove:
 
 - the current done-locally vs not-yet-proven vs externally-blocked split
-- that the repo tracks the latest local validation envelope explicitly instead of implying every planned layer is complete
-- that xlarge / multi-seed local status is acknowledged without pretending a matching artifact bundle is already checked in
+- that the repo tracks the remaining local-only gaps explicitly instead of overselling the compact pack
 
-### 3. `TEST_PLAN.md`
-
-What it proves:
-
-- the required validation ladder from deterministic tests through Anvil stress and live-chain gates
-- which local gates are already covered in practice and which still remain open
-
-### 4. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
+### 5. `SEPOLIA_CANARY_RUNBOOK.md` and `SEPOLIA_CANARY_CHECKLIST.md`
 
 What they prove:
 
 - the live proof path is already packaged as a repeatable operator workflow
-- the remaining gap is **execution and artifact capture**, not “figure out what proof should look like later”
+- the remaining live gap is **execution and artifact capture**, not “figure out what proof should look like later”
 
-## If a real local bundle exists
+## If a fuller local bundle exists
 
-Once a real local bundle has been captured, the fastest useful open order is:
+For a fuller local replay bundle with per-game exports and/or tx logs, the fastest useful open order is:
 
 1. `<bundle>/report.json` or `<bundle>/matrix-report.json`
    - top-level scale, scenario mix, limitations, and overall status
@@ -117,7 +135,11 @@ Packaging rule of thumb:
 The repo includes a helper that turns an existing artifact directory into a judge-facing mini-pack:
 
 ```bash
-# local proof bundle
+# checked-in compact local proof pack
+
+yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack
+
+# fuller local proof bundle
 
 yarn judge:evidence -- --bundle load-harness/<actual-run-dir>
 
@@ -148,6 +170,7 @@ What it does **not** do:
 
 The honest judge path today is:
 
-- open `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` for the current status boundary
+- open `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` first for the preserved compact current local proof
+- use `README.md`, `LOCAL_READINESS.md`, and `TEST_PLAN.md` to understand the surrounding status boundary and remaining local-only gaps
 - use the canary runbook/checklist for the live proof contract
-- generate `JUDGE_README.md` + `judge-evidence-index.json` beside any **real** local or Sepolia bundle so judges know exactly what to inspect first
+- regenerate `JUDGE_README.md` + `judge-evidence-index.json` beside any **real** local or Sepolia bundle so judges know exactly what to inspect first
