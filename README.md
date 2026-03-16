@@ -218,6 +218,7 @@ Useful commands:
 - `yarn load:harness:matrix:broader`
 - `yarn load:harness:matrix:medium`
 - `yarn load:harness:matrix:large`
+- `yarn load:harness:matrix:xlarge`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 
 Current built-in presets:
@@ -230,6 +231,8 @@ Current built-in presets:
   - one deterministic 16-player `mixed` pass on the scale profile plus two seeded 20-player `adversarial-random` sweeps, all with explicit 40/48-block phase budgets so larger local rounds do not fake-timeout
 - `large-local`
   - one deterministic 24-player `mixed` pass plus one seeded 28-player `adversarial-random` sweep across two sequential games on the scale profile, with explicit 56/64-block phase budgets for honest higher-join local stress
+- `xlarge-local`
+  - one deterministic 32-player `mixed` pass plus one seeded 32-player single-game `adversarial-random` sweep on the scale profile, with explicit 72/80-block phase budgets; this is the current opt-in bridge-to-bigger local proof rather than part of the default broader preset
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`

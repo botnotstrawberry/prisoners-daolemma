@@ -64,6 +64,62 @@ test("load harness matrix exposes a bounded large local preset", () => {
   );
 });
 
+test("load harness matrix exposes a bounded xlarge local preset", () => {
+  const outDir = createOutDir("pd-load-harness-matrix-xlarge-plan-");
+  const plan = buildLoadHarnessMatrixPlan({
+    preset: "xlarge-local",
+    out: outDir,
+  });
+
+  assert.equal(plan.presetName, "xlarge-local");
+  assert.equal(plan.plannedRunCount, 2);
+  assert.deepEqual(
+    plan.runs.map((run) => ({
+      id: run.id,
+      caseId: run.caseId,
+      seed: run.seed,
+      playerCount: run.harnessOptions.playerCount,
+      games: run.harnessOptions.games,
+      commitDurationBlocks: run.harnessOptions.commitDurationBlocks,
+      revealDurationBlocks: run.harnessOptions.revealDurationBlocks,
+      underfilledRate: run.harnessOptions.underfilledRate,
+      probeRate: run.harnessOptions.probeRate,
+    })),
+    [
+      {
+        id: "xlarge-mixed-a",
+        caseId: "xlarge-mixed-scale",
+        seed: "xlarge-mixed-a",
+        playerCount: 32,
+        games: 3,
+        commitDurationBlocks: 72,
+        revealDurationBlocks: 72,
+        underfilledRate: undefined,
+        probeRate: undefined,
+      },
+      {
+        id: "xlarge-adversarial-a",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-19",
+        playerCount: 32,
+        games: 1,
+        commitDurationBlocks: 80,
+        revealDurationBlocks: 80,
+        underfilledRate: 0,
+        probeRate: 0.55,
+      },
+    ]
+  );
+  assert.equal(
+    Math.max(...plan.runs.map((run) => run.harnessOptions.playerCount)),
+    32
+  );
+  assert.equal(
+    plan.runs.reduce((sum, run) => sum + run.harnessOptions.games, 0),
+    4
+  );
+});
+
 test(
   "load harness matrix runs a medium local preset and emits aggregate artifacts",
   { timeout: 720_000, concurrency: false },

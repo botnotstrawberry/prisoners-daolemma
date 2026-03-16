@@ -133,6 +133,41 @@ export const LOAD_HARNESS_MATRIX_CASES = {
       probeRate: 0.55,
     },
   },
+  "xlarge-mixed-scale": {
+    label: "xlarge-mixed-scale",
+    description:
+      "Deterministic xlarge local mixed-family soak on the scale profile: 32 requested players across winner, cancelled, and no-winner paths with explicit 72-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 32,
+      causeCount: 8,
+      games: 3,
+      scenario: "mixed",
+      concurrency: 16,
+      commitDurationBlocks: 72,
+      revealDurationBlocks: 72,
+    },
+  },
+  "xlarge-adversarial-scale": {
+    label: "xlarge-adversarial-scale",
+    description:
+      "Seeded xlarge adversarial soak on the scale profile: 32 requested players in one started local game envelope with underfill disabled, bounded omission/probe chaos, and explicit 80-block phase budgets so the matrix can bridge to honest 32-player breakage hunting without pretending to prove more than one seeded sweep.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 32,
+      causeCount: 8,
+      games: 1,
+      scenario: "adversarial-random",
+      concurrency: 16,
+      commitDurationBlocks: 80,
+      revealDurationBlocks: 80,
+      skipCommitRate: 0.16,
+      skipRevealRate: 0.16,
+      underfilledRate: 0,
+      invalidRevealRate: 0.08,
+      probeRate: 0.55,
+    },
+  },
 };
 
 export const LOAD_HARNESS_MATRIX_PRESETS = {
@@ -206,6 +241,23 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
         id: "large-adversarial-a",
         caseId: "large-adversarial-scale",
         seed: "large-adversarial-32",
+      },
+    ],
+  },
+  "xlarge-local": {
+    label: "xlarge-local",
+    description:
+      "Bounded xlarge local soak: one deterministic 32-player mixed-family pass plus one seeded 32-player single-game adversarial sweep, with explicit 72/80-block phase budgets so bigger local rounds fail for real reasons instead of fake auto-mined deadline pressure.",
+    runs: [
+      {
+        id: "xlarge-mixed-a",
+        caseId: "xlarge-mixed-scale",
+        seed: "xlarge-mixed-a",
+      },
+      {
+        id: "xlarge-adversarial-a",
+        caseId: "xlarge-adversarial-scale",
+        seed: "xlarge-seed-19",
       },
     ],
   },
