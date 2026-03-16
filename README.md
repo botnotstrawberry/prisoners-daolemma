@@ -216,6 +216,7 @@ Useful commands:
 
 - `yarn load:harness:matrix -- --help`
 - `yarn load:harness:matrix:broader`
+- `yarn load:harness:matrix:medium`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 
 Current built-in presets:
@@ -224,17 +225,19 @@ Current built-in presets:
   - one deterministic `mixed` pass (`winner-all-share`, `cancelled-underfilled`, `no-winner-all-catch`) with same-block probes enabled
 - `adversarial-smoke`
   - three seeded `adversarial-random` sweeps on the smoke profile
+- `medium-local`
+  - one deterministic 16-player `mixed` pass on the scale profile plus two seeded 20-player `adversarial-random` sweeps, all with explicit 40/48-block phase budgets so larger local rounds do not fake-timeout
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
-  - combines all of the above into one bounded local soak preset
+  - combines the same-block smoke, adversarial smoke, and winner-scale presets into one bounded default local soak preset
 
 The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only, still sequential, and still not a model of live mempool or multi-instance production behavior.
 
 What it adds:
 
 - one command that runs a small but broader set of local harness cases instead of a single seed/config
-- a top-level `matrix-report.json` that records:
+- a top-level `matrix-report.json` plus `MATRIX_SUMMARY.md` that record:
   - the exact preset/runs/seeds exercised
   - aggregate tx / probe / same-block totals
   - aggregate unexpected failures
@@ -243,6 +246,8 @@ What it adds:
 - repeated local coverage over:
   - deterministic same-block ordering families
   - seeded adversarial-random breakage hunting
+  - deterministic medium-scale mixed families on the scale profile
+  - medium-scale seeded adversarial sweeps on the scale profile with longer phase budgets
   - larger winner-path drain/replay rehearsals on the scale profile
 
 What this harness honestly proves today:

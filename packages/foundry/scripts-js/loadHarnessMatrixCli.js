@@ -9,7 +9,7 @@ import {
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema broader local soak matrix runner
+Prisoners DAOllema load harness matrix runner
 
 ${LOAD_HARNESS_MATRIX_BOUNDARY_NOTE}
 
@@ -39,7 +39,8 @@ ${Object.entries(LOAD_HARNESS_MATRIX_PRESETS)
   .join("\n")}
 
 Examples:
-  node scripts-js/loadHarnessMatrixCli.js --preset broader-local-smoke
+  node scripts-js/loadHarnessMatrixCli.js --preset broader-local
+  node scripts-js/loadHarnessMatrixCli.js --preset medium-local
   node scripts-js/loadHarnessMatrixCli.js --preset adversarial-smoke --json
   node scripts-js/loadHarnessMatrixCli.js --preset broader-local --runs adversarial-a,adversarial-b
 `);

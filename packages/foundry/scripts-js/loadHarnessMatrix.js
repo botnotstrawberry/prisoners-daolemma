@@ -6,9 +6,8 @@ import { LOAD_HARNESS_BOUNDARY_NOTE, runLoadHarness } from "./loadHarness.js";
 
 export const LOAD_HARNESS_MATRIX_SCHEMA_VERSION =
   "prisoners-daollema/load-harness-matrix-v1";
-export const LOAD_HARNESS_MATRIX_BOUNDARY_NOTE =
-  `${LOAD_HARNESS_BOUNDARY_NOTE} This matrix runner only automates multiple local harness runs and aggregates their local-dev results; it does not add live-network realism, public mempool contention, or multi-instance parallel deployment stress.`;
-export const DEFAULT_LOAD_HARNESS_MATRIX_PRESET = "broader-local-smoke";
+export const LOAD_HARNESS_MATRIX_BOUNDARY_NOTE = `${LOAD_HARNESS_BOUNDARY_NOTE} This matrix runner only automates multiple local harness runs and aggregates their local-dev results; it does not add live-network realism, public mempool contention, or multi-instance parallel deployment stress.`;
+export const DEFAULT_LOAD_HARNESS_MATRIX_PRESET = "broader-local";
 
 export const LOAD_HARNESS_MATRIX_CASES = {
   "smoke-mixed-same-block": {
@@ -29,19 +28,22 @@ export const LOAD_HARNESS_MATRIX_CASES = {
   "smoke-adversarial-sweep": {
     label: "smoke-adversarial-sweep",
     description:
-      "Seeded adversarial local breakage hunting across repeated games with mixed started-vs-underfilled outcomes, wrong-preimage probes, deadline pressure, and replay/drain checks, while leaving same-block contention to the dedicated mixed-family case.",
+      "Seeded adversarial local breakage hunting across repeated games with mixed started-vs-underfilled outcomes, wrong-preimage probes, deadline pressure, and same-block edge batches.",
     harnessOptions: {
       profile: "smoke",
-      playerCount: 7,
-      causeCount: 3,
+      playerCount: 12,
+      causeCount: 4,
       games: 4,
       scenario: "adversarial-random",
-      concurrency: 3,
+      concurrency: 6,
+      commitDurationBlocks: 24,
+      revealDurationBlocks: 24,
       skipCommitRate: 0.25,
       skipRevealRate: 0.25,
-      underfilledRate: 0.5,
-      invalidRevealRate: 0.2,
-      probeRate: 1,
+      underfilledRate: 0.2,
+      invalidRevealRate: 0.15,
+      probeRate: 0.6,
+      sameBlockProbes: true,
     },
   },
   "scale-winner-soak": {
@@ -59,6 +61,41 @@ export const LOAD_HARNESS_MATRIX_CASES = {
       revealDurationBlocks: 40,
       skipCommitRate: 0.1,
       skipRevealRate: 0.15,
+    },
+  },
+  "medium-mixed-scale": {
+    label: "medium-mixed-scale",
+    description:
+      "Deterministic medium-scale mixed-family soak on the scale profile: winner, cancelled, and no-winner paths at 16 requested players with explicit 40-block phase budgets so full local participation does not fake-deadline out.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 16,
+      causeCount: 6,
+      games: 3,
+      scenario: "mixed",
+      concurrency: 8,
+      commitDurationBlocks: 40,
+      revealDurationBlocks: 40,
+    },
+  },
+  "medium-adversarial-scale": {
+    label: "medium-adversarial-scale",
+    description:
+      "Medium-scale seeded adversarial soak on the scale profile: 20 requested players across repeated local games with explicit 48-block phase budgets, bounded underfill/skip chaos, and probe-heavy breakage hunting.",
+    harnessOptions: {
+      profile: "scale",
+      playerCount: 20,
+      causeCount: 6,
+      games: 3,
+      scenario: "adversarial-random",
+      concurrency: 10,
+      commitDurationBlocks: 48,
+      revealDurationBlocks: 48,
+      skipCommitRate: 0.2,
+      skipRevealRate: 0.2,
+      underfilledRate: 0.15,
+      invalidRevealRate: 0.1,
+      probeRate: 0.5,
     },
   },
 };
@@ -98,25 +135,25 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
       },
     ],
   },
-  "broader-local-smoke": {
-    label: "broader-local-smoke",
+  "medium-local": {
+    label: "medium-local",
     description:
-      "Small but real local soak matrix: one deterministic same-block mixed-family pass plus two seeded adversarial sweeps.",
+      "Bounded medium-scale local soak: one deterministic 16-player mixed-family pass plus two seeded 20-player adversarial sweeps, all with explicit longer phase budgets to avoid fake local deadline failures.",
     runs: [
       {
-        id: "same-block-family-a",
-        caseId: "smoke-mixed-same-block",
-        seed: "same-block-family-a",
+        id: "medium-mixed-a",
+        caseId: "medium-mixed-scale",
+        seed: "medium-mixed-a",
       },
       {
-        id: "adversarial-a",
-        caseId: "smoke-adversarial-sweep",
-        seed: "adversarial-a",
+        id: "medium-adversarial-a",
+        caseId: "medium-adversarial-scale",
+        seed: "medium-adversarial-a",
       },
       {
-        id: "adversarial-b",
-        caseId: "smoke-adversarial-sweep",
-        seed: "adversarial-b",
+        id: "medium-adversarial-b",
+        caseId: "medium-adversarial-scale",
+        seed: "medium-adversarial-b",
       },
     ],
   },
@@ -428,37 +465,6 @@ async function reserveFreePort() {
   });
 }
 
-function buildExpectedFailureSnapshot({
-  txSummary = null,
-  sameBlockSummary = null,
-  breakageSummary = null,
-}) {
-  return {
-    txFailedExpected: Number(txSummary?.failedExpected ?? 0),
-    txFailedUnexpected: Number(txSummary?.failedUnexpected ?? 0),
-    unexpectedSuccesses: Number(txSummary?.unexpectedSuccesses ?? 0),
-    sameBlockExpectedFailures: Number(sameBlockSummary?.expectedFailures ?? 0),
-    sameBlockUnexpectedFailures: Number(
-      sameBlockSummary?.unexpectedFailures ?? 0
-    ),
-    sameBlockUnexpectedSuccesses: Number(
-      sameBlockSummary?.unexpectedSuccesses ?? 0
-    ),
-    probeFailedAsExpected: Number(
-      breakageSummary?.probeSummary?.failedAsExpected ?? 0
-    ),
-    probeUnexpectedSuccesses: Number(
-      breakageSummary?.probeSummary?.unexpectedSuccesses ?? 0
-    ),
-    probeOnchainReverts: Number(
-      breakageSummary?.probeSummary?.onchainReverts ?? 0
-    ),
-    probeLocalRejections: Number(
-      breakageSummary?.probeSummary?.localRejections ?? 0
-    ),
-  };
-}
-
 function buildRunResult(plannedRun, execution) {
   const report = execution.report;
   const terminalOutcomes = report?.scenarioSummary?.byTerminalOutcome ?? [];
@@ -565,8 +571,7 @@ function buildRunResult(plannedRun, execution) {
                   breakageSummary.gamesWithAccountingMismatch,
                 gamesWithPreviewMismatch:
                   breakageSummary.gamesWithPreviewMismatch,
-                gamesWithDrainMismatch:
-                  breakageSummary.gamesWithDrainMismatch,
+                gamesWithDrainMismatch: breakageSummary.gamesWithDrainMismatch,
                 gamesWithReplayInconsistency:
                   breakageSummary.gamesWithReplayInconsistency,
                 gamesWithUnexpectedFailures:
@@ -576,11 +581,6 @@ function buildRunResult(plannedRun, execution) {
                 probeSummary: breakageSummary.probeSummary,
               }
             : null,
-          expectedFailureSummary: buildExpectedFailureSnapshot({
-            txSummary,
-            sameBlockSummary,
-            breakageSummary,
-          }),
           unexpectedFailureClusters,
         }
       : null,
@@ -611,7 +611,14 @@ function buildCaseSummary(runs) {
         caseRuns,
         (run) => run.result?.gamesCompleted ?? 0
       ),
-      txAttempted: sumBy(caseRuns, (run) => run.result?.txSummary?.attempted ?? 0),
+      txAttempted: sumBy(
+        caseRuns,
+        (run) => run.result?.txSummary?.attempted ?? 0
+      ),
+      txFailedExpected: sumBy(
+        caseRuns,
+        (run) => run.result?.txSummary?.failedExpected ?? 0
+      ),
       txFailedUnexpected: sumBy(
         caseRuns,
         (run) => run.result?.txSummary?.failedUnexpected ?? 0
@@ -634,34 +641,22 @@ function buildCaseSummary(runs) {
         caseRuns,
         (run) => run.result?.sameBlockSummary?.attemptedBatches ?? 0
       ),
+      sameBlockExpectedFailures: sumBy(
+        caseRuns,
+        (run) => run.result?.sameBlockSummary?.expectedFailures ?? 0
+      ),
+      probeFailedAsExpected: sumBy(
+        caseRuns,
+        (run) =>
+          run.result?.breakageSummary?.probeSummary?.failedAsExpected ?? 0
+      ),
       terminalOutcomes: mergeCountEntries(
         caseRuns.map((run) => run.result?.terminalOutcomes ?? [])
       ),
-      expectedFailureSummary: {
-        txFailedExpected: sumBy(
-          caseRuns,
-          (run) => run.result?.expectedFailureSummary?.txFailedExpected ?? 0
-        ),
-        probeFailedAsExpected: sumBy(
-          caseRuns,
-          (run) =>
-            run.result?.expectedFailureSummary?.probeFailedAsExpected ?? 0
-        ),
-        probeOnchainReverts: sumBy(
-          caseRuns,
-          (run) => run.result?.expectedFailureSummary?.probeOnchainReverts ?? 0
-        ),
-        sameBlockExpectedFailures: sumBy(
-          caseRuns,
-          (run) =>
-            run.result?.expectedFailureSummary?.sameBlockExpectedFailures ?? 0
-        ),
-      },
       breakageSummary: {
         gamesWithWedgedActiveSlot: sumBy(
           caseRuns,
-          (run) =>
-            run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0
+          (run) => run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0
         ),
         gamesWithTerminalStateMismatch: sumBy(
           caseRuns,
@@ -670,13 +665,11 @@ function buildCaseSummary(runs) {
         ),
         gamesWithAccountingMismatch: sumBy(
           caseRuns,
-          (run) =>
-            run.result?.breakageSummary?.gamesWithAccountingMismatch ?? 0
+          (run) => run.result?.breakageSummary?.gamesWithAccountingMismatch ?? 0
         ),
         gamesWithPreviewMismatch: sumBy(
           caseRuns,
-          (run) =>
-            run.result?.breakageSummary?.gamesWithPreviewMismatch ?? 0
+          (run) => run.result?.breakageSummary?.gamesWithPreviewMismatch ?? 0
         ),
         gamesWithDrainMismatch: sumBy(
           caseRuns,
@@ -748,15 +741,17 @@ export function buildLoadHarnessMatrixReport({
     skipped: sumBy(runs, (run) => run.result?.sameBlockSummary?.skipped ?? 0),
   };
   const aggregateBreakageSummary = {
-    gamesChecked: sumBy(runs, (run) => run.result?.breakageSummary?.gamesChecked ?? 0),
+    gamesChecked: sumBy(
+      runs,
+      (run) => run.result?.breakageSummary?.gamesChecked ?? 0
+    ),
     gamesWithWedgedActiveSlot: sumBy(
       runs,
       (run) => run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0
     ),
     gamesWithTerminalStateMismatch: sumBy(
       runs,
-      (run) =>
-        run.result?.breakageSummary?.gamesWithTerminalStateMismatch ?? 0
+      (run) => run.result?.breakageSummary?.gamesWithTerminalStateMismatch ?? 0
     ),
     gamesWithAccountingMismatch: sumBy(
       runs,
@@ -808,70 +803,23 @@ export function buildLoadHarnessMatrixReport({
     },
   };
 
-  const aggregateExpectedFailureSummary = {
-    txFailedExpected: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.txFailedExpected ?? 0
-    ),
-    txFailedUnexpected: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.txFailedUnexpected ?? 0
-    ),
-    unexpectedSuccesses: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.unexpectedSuccesses ?? 0
-    ),
-    sameBlockExpectedFailures: sumBy(
-      runs,
-      (run) =>
-        run.result?.expectedFailureSummary?.sameBlockExpectedFailures ?? 0
-    ),
-    sameBlockUnexpectedFailures: sumBy(
-      runs,
-      (run) =>
-        run.result?.expectedFailureSummary?.sameBlockUnexpectedFailures ?? 0
-    ),
-    sameBlockUnexpectedSuccesses: sumBy(
-      runs,
-      (run) =>
-        run.result?.expectedFailureSummary?.sameBlockUnexpectedSuccesses ?? 0
-    ),
-    probeFailedAsExpected: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.probeFailedAsExpected ?? 0
-    ),
-    probeUnexpectedSuccesses: sumBy(
-      runs,
-      (run) =>
-        run.result?.expectedFailureSummary?.probeUnexpectedSuccesses ?? 0
-    ),
-    probeOnchainReverts: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.probeOnchainReverts ?? 0
-    ),
-    probeLocalRejections: sumBy(
-      runs,
-      (run) => run.result?.expectedFailureSummary?.probeLocalRejections ?? 0
-    ),
-  };
-
   const status = runs.some(
     (run) => run.status !== "ok" || run.result?.harnessStatus === "failed"
   )
     ? "failed"
     : aggregateBreakageSummary.totalUnexpectedFailures > 0 ||
-        aggregateBreakageSummary.gamesWithWedgedActiveSlot > 0 ||
-        aggregateBreakageSummary.gamesWithTerminalStateMismatch > 0 ||
-        aggregateBreakageSummary.gamesWithAccountingMismatch > 0 ||
-        aggregateBreakageSummary.gamesWithPreviewMismatch > 0 ||
-        aggregateBreakageSummary.gamesWithDrainMismatch > 0 ||
-        aggregateBreakageSummary.gamesWithReplayInconsistency > 0 ||
-        aggregateTxSummary.failedUnexpected > 0 ||
-        aggregateTxSummary.unexpectedSuccesses > 0 ||
-        aggregateSameBlockSummary.unexpectedFailures > 0 ||
-        aggregateSameBlockSummary.unexpectedSuccesses > 0
-      ? "issues-detected"
-      : "ok";
+      aggregateBreakageSummary.gamesWithWedgedActiveSlot > 0 ||
+      aggregateBreakageSummary.gamesWithTerminalStateMismatch > 0 ||
+      aggregateBreakageSummary.gamesWithAccountingMismatch > 0 ||
+      aggregateBreakageSummary.gamesWithPreviewMismatch > 0 ||
+      aggregateBreakageSummary.gamesWithDrainMismatch > 0 ||
+      aggregateBreakageSummary.gamesWithReplayInconsistency > 0 ||
+      aggregateTxSummary.failedUnexpected > 0 ||
+      aggregateTxSummary.unexpectedSuccesses > 0 ||
+      aggregateSameBlockSummary.unexpectedFailures > 0 ||
+      aggregateSameBlockSummary.unexpectedSuccesses > 0
+    ? "issues-detected"
+    : "ok";
 
   return {
     schemaVersion: LOAD_HARNESS_MATRIX_SCHEMA_VERSION,
@@ -909,10 +857,7 @@ export function buildLoadHarnessMatrixReport({
       expectedFailuresEnabledRuns: runs.filter(
         (run) => run.config.expectedFailures
       ).length,
-      largestRequestedPlayerCount: maxBy(
-        runs,
-        (run) => run.config.playerCount
-      ),
+      largestRequestedPlayerCount: maxBy(runs, (run) => run.config.playerCount),
       totalRequestedGames: sumBy(runs, (run) => run.config.games),
       totalCompletedGames: sumBy(
         runs,
@@ -921,7 +866,6 @@ export function buildLoadHarnessMatrixReport({
     },
     runStatusSummary,
     txSummary: aggregateTxSummary,
-    expectedFailureSummary: aggregateExpectedFailureSummary,
     sameBlockSummary: aggregateSameBlockSummary,
     scenarioSummary: {
       byTerminalOutcome: mergeCountEntries(
@@ -954,8 +898,7 @@ export function buildLoadHarnessMatrixReport({
       ),
       replayConsistentGames: sumBy(
         runs,
-        (run) =>
-          run.result?.localScaleReadiness?.replayConsistentGames ?? 0
+        (run) => run.result?.localScaleReadiness?.replayConsistentGames ?? 0
       ),
     },
     breakageSummary: aggregateBreakageSummary,
@@ -1021,7 +964,11 @@ export async function runLoadHarnessMatrix(rawOptions = {}, dependencies = {}) {
     wallClockMs: Date.parse(finishedAt) - Date.parse(startedAt),
   });
   writeJsonFile(plan.reportPath, report);
-  writeFileSync(plan.summaryPath, renderLoadHarnessMatrixMarkdown(report), "utf8");
+  writeFileSync(
+    plan.summaryPath,
+    renderLoadHarnessMatrixMarkdown(report),
+    "utf8"
+  );
 
   return {
     report,
@@ -1042,7 +989,13 @@ function renderMarkdownCountEntries(entries) {
     : "- (none)";
 }
 
-function renderMarkdownRunSummary(run) {
+function renderLoadHarnessMatrixRunMarkdown(run) {
+  const txSummary = run.result?.txSummary ?? {};
+  const sameBlockSummary = run.result?.sameBlockSummary ?? {};
+  const breakageSummary = run.result?.breakageSummary ?? {};
+  const probeSummary = breakageSummary.probeSummary ?? {};
+  const localScaleReadiness = run.result?.localScaleReadiness ?? {};
+
   return [
     `### Run ${String(run.index).padStart(2, "0")} — ${run.id}`,
     "",
@@ -1051,12 +1004,50 @@ function renderMarkdownRunSummary(run) {
     `- Status: ${run.status}`,
     `- Profile: ${run.config.profile}`,
     `- Requested scenario: ${run.config.requestedScenario}`,
+    `- Requested size: ${run.config.playerCount} players / ${run.config.games} games / ${run.config.causeCount} causes / concurrency ${run.config.concurrency}`,
+    `- Phase budgets: commit=${
+      run.config.commitDurationBlocks ?? "profile-default"
+    }, reveal=${run.config.revealDurationBlocks ?? "profile-default"}`,
     `- Games completed: ${run.result?.gamesCompleted ?? 0}`,
-    `- Scenario plan: ${(run.result?.scenarioPlan ?? []).join(", ") || "(none)"}`,
-    `- Terminal outcomes: ${formatCountEntries(run.result?.terminalOutcomes ?? [])}`,
-    `- Tx unexpected: ${run.result?.txSummary?.failedUnexpected ?? 0} failed / ${run.result?.txSummary?.unexpectedSuccesses ?? 0} unexpected success`,
-    `- Expected failures: tx=${run.result?.expectedFailureSummary?.txFailedExpected ?? 0}, probes=${run.result?.expectedFailureSummary?.probeFailedAsExpected ?? 0}, onchain reverts=${run.result?.expectedFailureSummary?.probeOnchainReverts ?? 0}, same-block=${run.result?.expectedFailureSummary?.sameBlockExpectedFailures ?? 0}`,
-    `- Breakage: wedge=${run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0}, terminal=${run.result?.breakageSummary?.gamesWithTerminalStateMismatch ?? 0}, accounting=${run.result?.breakageSummary?.gamesWithAccountingMismatch ?? 0}, preview=${run.result?.breakageSummary?.gamesWithPreviewMismatch ?? 0}, drain=${run.result?.breakageSummary?.gamesWithDrainMismatch ?? 0}, replay=${run.result?.breakageSummary?.gamesWithReplayInconsistency ?? 0}, unexpected=${run.result?.breakageSummary?.totalUnexpectedFailures ?? 0}`,
+    `- Scenario plan: ${
+      (run.result?.scenarioPlan ?? []).join(", ") || "(none)"
+    }`,
+    `- Joined players: max single game=${
+      localScaleReadiness.maxJoinedPlayersInSingleGame ?? 0
+    }, total across run=${
+      localScaleReadiness.totalJoinedPlayersAcrossRun ?? 0
+    }`,
+    `- Terminal outcomes: ${formatCountEntries(
+      run.result?.terminalOutcomes ?? []
+    )}`,
+    `- Tx summary: attempted=${txSummary.attempted ?? 0}, succeeded=${
+      txSummary.succeeded ?? 0
+    }, failedExpected=${txSummary.failedExpected ?? 0}, failedUnexpected=${
+      txSummary.failedUnexpected ?? 0
+    }, unexpectedSuccesses=${txSummary.unexpectedSuccesses ?? 0}`,
+    `- Probe summary: expected=${probeSummary.failedAsExpected ?? 0}/${
+      probeSummary.attempted ?? 0
+    }, unexpectedSuccesses=${
+      probeSummary.unexpectedSuccesses ?? 0
+    }, onchainReverts=${probeSummary.onchainReverts ?? 0}, localRejections=${
+      probeSummary.localRejections ?? 0
+    }`,
+    `- Same-block summary: batches=${
+      sameBlockSummary.attemptedBatches ?? 0
+    }, tx=${sameBlockSummary.attemptedTxs ?? 0}, expectedFailures=${
+      sameBlockSummary.expectedFailures ?? 0
+    }, unexpectedFailures=${sameBlockSummary.unexpectedFailures ?? 0}`,
+    `- Breakage: wedge=${
+      breakageSummary.gamesWithWedgedActiveSlot ?? 0
+    }, terminal=${
+      breakageSummary.gamesWithTerminalStateMismatch ?? 0
+    }, accounting=${
+      breakageSummary.gamesWithAccountingMismatch ?? 0
+    }, preview=${breakageSummary.gamesWithPreviewMismatch ?? 0}, drain=${
+      breakageSummary.gamesWithDrainMismatch ?? 0
+    }, replay=${
+      breakageSummary.gamesWithReplayInconsistency ?? 0
+    }, unexpected=${breakageSummary.totalUnexpectedFailures ?? 0}`,
     `- Report: ${run.paths.report}`,
     run.error ? `- Error: ${run.error}` : null,
     "",
@@ -1079,6 +1070,7 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     `- Games completed: ${report.coverage.totalCompletedGames}`,
     `- Wall clock ms: ${report.wallClockMs}`,
     `- JSON report: ${report.paths.report}`,
+    `- Summary markdown: ${report.paths.summary}`,
     "",
     "## Coverage",
     "",
@@ -1086,6 +1078,8 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     `- Profiles: ${report.coverage.profiles.join(", ")}`,
     `- Requested scenarios: ${report.coverage.requestedScenarios.join(", ")}`,
     `- Largest requested player count: ${report.coverage.largestRequestedPlayerCount}`,
+    `- Max joined players in a single game: ${report.localScaleReadiness.maxJoinedPlayersInSingleGame}`,
+    `- Games hitting requested player target: ${report.localScaleReadiness.gamesHittingRequestedPlayerTarget}`,
     `- Same-block-enabled runs: ${report.coverage.sameBlockEnabledRuns}`,
     `- Expected-failure-enabled runs: ${report.coverage.expectedFailuresEnabledRuns}`,
     `- Total requested games: ${report.coverage.totalRequestedGames}`,
@@ -1099,11 +1093,11 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     `- Preview mismatches: ${report.breakageSummary.gamesWithPreviewMismatch}`,
     `- Drain mismatches: ${report.breakageSummary.gamesWithDrainMismatch}`,
     `- Replay inconsistencies: ${report.breakageSummary.gamesWithReplayInconsistency}`,
-    `- Expected failed txs: ${report.expectedFailureSummary.txFailedExpected}`,
-    `- Probe failures as expected: ${report.expectedFailureSummary.probeFailedAsExpected}`,
-    `- Probe onchain reverts: ${report.expectedFailureSummary.probeOnchainReverts}`,
-    `- Probe local rejections: ${report.expectedFailureSummary.probeLocalRejections}`,
-    `- Same-block expected failures: ${report.expectedFailureSummary.sameBlockExpectedFailures}`,
+    `- Expected failed txs: ${report.txSummary.failedExpected}`,
+    `- Probe failures as expected: ${report.breakageSummary.probeSummary.failedAsExpected}`,
+    `- Probe onchain reverts: ${report.breakageSummary.probeSummary.onchainReverts}`,
+    `- Probe local rejections: ${report.breakageSummary.probeSummary.localRejections}`,
+    `- Same-block expected failures: ${report.sameBlockSummary.expectedFailures}`,
     "",
     "## Transaction summary",
     "",
@@ -1122,9 +1116,6 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     "",
     renderMarkdownCountEntries(report.scenarioSummary.byTerminalPath),
     "",
-    "## Runs",
-    "",
-    ...report.runs.flatMap((run) => [renderMarkdownRunSummary(run)]),
     "## Case summary",
     "",
   ];
@@ -1134,14 +1125,38 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     lines.push("");
     lines.push(`- Runs: ${caseSummary.runs}`);
     lines.push(`- Seeds: ${caseSummary.seeds.join(", ")}`);
-    lines.push(`- Requested scenarios: ${caseSummary.requestedScenarios.join(", ")}`);
+    lines.push(
+      `- Requested scenarios: ${caseSummary.requestedScenarios.join(", ")}`
+    );
     lines.push(`- Total games completed: ${caseSummary.totalGamesCompleted}`);
-    lines.push(`- Total joined players across runs: ${caseSummary.totalJoinedPlayersAcrossRuns}`);
-    lines.push(`- Max joined players in a single game: ${caseSummary.maxJoinedPlayersInSingleGame}`);
-    lines.push(`- Expected failures: tx=${caseSummary.expectedFailureSummary.txFailedExpected}, probes=${caseSummary.expectedFailureSummary.probeFailedAsExpected}, onchain reverts=${caseSummary.expectedFailureSummary.probeOnchainReverts}, same-block=${caseSummary.expectedFailureSummary.sameBlockExpectedFailures}`);
-    lines.push(`- Breakage: wedge=${caseSummary.breakageSummary.gamesWithWedgedActiveSlot}, terminal=${caseSummary.breakageSummary.gamesWithTerminalStateMismatch}, accounting=${caseSummary.breakageSummary.gamesWithAccountingMismatch}, preview=${caseSummary.breakageSummary.gamesWithPreviewMismatch}, drain=${caseSummary.breakageSummary.gamesWithDrainMismatch}, replay=${caseSummary.breakageSummary.gamesWithReplayInconsistency}, unexpected=${caseSummary.breakageSummary.totalUnexpectedFailures}`);
-    lines.push(`- Terminal outcomes: ${formatCountEntries(caseSummary.terminalOutcomes)}`);
+    lines.push(
+      `- Max joined players in a single game: ${caseSummary.maxJoinedPlayersInSingleGame}`
+    );
+    lines.push(
+      `- Total joined players across runs: ${caseSummary.totalJoinedPlayersAcrossRuns}`
+    );
+    lines.push(
+      `- Tx summary: attempted=${caseSummary.txAttempted}, failedExpected=${caseSummary.txFailedExpected}, failedUnexpected=${caseSummary.txFailedUnexpected}, unexpectedSuccesses=${caseSummary.unexpectedSuccesses}`
+    );
+    lines.push(
+      `- Probe failures as expected: ${caseSummary.probeFailedAsExpected}`
+    );
+    lines.push(
+      `- Same-block expected failures: ${caseSummary.sameBlockExpectedFailures}`
+    );
+    lines.push(
+      `- Breakage: wedge=${caseSummary.breakageSummary.gamesWithWedgedActiveSlot}, terminal=${caseSummary.breakageSummary.gamesWithTerminalStateMismatch}, accounting=${caseSummary.breakageSummary.gamesWithAccountingMismatch}, preview=${caseSummary.breakageSummary.gamesWithPreviewMismatch}, drain=${caseSummary.breakageSummary.gamesWithDrainMismatch}, replay=${caseSummary.breakageSummary.gamesWithReplayInconsistency}, unexpected=${caseSummary.breakageSummary.totalUnexpectedFailures}`
+    );
+    lines.push(
+      `- Terminal outcomes: ${formatCountEntries(caseSummary.terminalOutcomes)}`
+    );
     lines.push("");
+  }
+
+  lines.push("## Runs");
+  lines.push("");
+  for (const run of report.runs) {
+    lines.push(renderLoadHarnessMatrixRunMarkdown(run));
   }
 
   if (report.unexpectedFailureClusters.length > 0) {
@@ -1149,14 +1164,15 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     lines.push("");
     for (const cluster of report.unexpectedFailureClusters.slice(0, 10)) {
       lines.push(
-        `- ${cluster.action} @ ${cluster.phase}: ${cluster.errorFingerprint} (${cluster.count}) | runs=${cluster.runIds.join(", ")}`
+        `- ${cluster.action} @ ${cluster.phase}: ${cluster.errorFingerprint} (${
+          cluster.count
+        }) | runs=${cluster.runIds.join(", ")}`
       );
     }
     lines.push("");
   }
 
-  return `${lines.join("\n").trim()}
-`;
+  return `${lines.join("\n").trim()}\n`;
 }
 
 export function printLoadHarnessMatrixSummary(report) {
@@ -1180,10 +1196,10 @@ export function printLoadHarnessMatrixSummary(report) {
     `Tx unexpected:  ${report.txSummary.failedUnexpected} failed / ${report.txSummary.unexpectedSuccesses} unexpected success`
   );
   console.log(
-    `Exp failures:   tx=${report.expectedFailureSummary.txFailedExpected}, probes=${report.expectedFailureSummary.probeFailedAsExpected}, onchain=${report.expectedFailureSummary.probeOnchainReverts}, same-block=${report.expectedFailureSummary.sameBlockExpectedFailures}`
+    `Same-block:     ${report.sameBlockSummary.attemptedBatches} batches / ${report.sameBlockSummary.attemptedTxs} tx / ${report.sameBlockSummary.expectedFailures} expected failures`
   );
   console.log(
-    `Same-block:     ${report.sameBlockSummary.attemptedBatches} batches / ${report.sameBlockSummary.attemptedTxs} tx / ${report.sameBlockSummary.expectedFailures} expected failures`
+    `Exp failures:   tx=${report.txSummary.failedExpected}, probes=${report.breakageSummary.probeSummary.failedAsExpected}, onchain=${report.breakageSummary.probeSummary.onchainReverts}, same-block=${report.sameBlockSummary.expectedFailures}`
   );
   console.log(
     `Probe summary:  ${report.breakageSummary.probeSummary.failedAsExpected}/${report.breakageSummary.probeSummary.attempted} expected failures, ${report.breakageSummary.probeSummary.unexpectedSuccesses} unexpected success`
@@ -1192,10 +1208,14 @@ export function printLoadHarnessMatrixSummary(report) {
     `Breakage:       wedge=${report.breakageSummary.gamesWithWedgedActiveSlot}, terminal=${report.breakageSummary.gamesWithTerminalStateMismatch}, accounting=${report.breakageSummary.gamesWithAccountingMismatch}, preview=${report.breakageSummary.gamesWithPreviewMismatch}, drain=${report.breakageSummary.gamesWithDrainMismatch}, replay=${report.breakageSummary.gamesWithReplayInconsistency}, unexpected=${report.breakageSummary.totalUnexpectedFailures}`
   );
   console.log(
-    `Outcomes:       ${formatCountEntries(report.scenarioSummary.byTerminalOutcome)}`
+    `Outcomes:       ${formatCountEntries(
+      report.scenarioSummary.byTerminalOutcome
+    )}`
   );
   console.log(
-    `Terminal paths: ${formatCountEntries(report.scenarioSummary.byTerminalPath)}`
+    `Terminal paths: ${formatCountEntries(
+      report.scenarioSummary.byTerminalPath
+    )}`
   );
 
   for (const run of report.runs) {
@@ -1205,19 +1225,47 @@ export function printLoadHarnessMatrixSummary(report) {
     console.log(`  Status:       ${run.status}`);
     console.log(`  Profile:      ${run.config.profile}`);
     console.log(
-      `  Scenario:     ${run.config.requestedScenario} (${run.result?.gamesCompleted ?? 0} games)`
+      `  Scenario:     ${run.config.requestedScenario} (${
+        run.result?.gamesCompleted ?? 0
+      } games)`
     );
     console.log(
-      `  Outcomes:     ${formatCountEntries(run.result?.terminalOutcomes ?? [])}`
+      `  Outcomes:     ${formatCountEntries(
+        run.result?.terminalOutcomes ?? []
+      )}`
     );
     console.log(
-      `  Tx unexpected:${run.result?.txSummary?.failedUnexpected ?? 0} failed / ${run.result?.txSummary?.unexpectedSuccesses ?? 0} unexpected success`
+      `  Tx unexpected:${
+        run.result?.txSummary?.failedUnexpected ?? 0
+      } failed / ${
+        run.result?.txSummary?.unexpectedSuccesses ?? 0
+      } unexpected success`
     );
     console.log(
-      `  Exp failures: tx=${run.result?.expectedFailureSummary?.txFailedExpected ?? 0}, probes=${run.result?.expectedFailureSummary?.probeFailedAsExpected ?? 0}, onchain=${run.result?.expectedFailureSummary?.probeOnchainReverts ?? 0}, same-block=${run.result?.expectedFailureSummary?.sameBlockExpectedFailures ?? 0}`
+      `  Exp failures: tx=${
+        run.result?.txSummary?.failedExpected ?? 0
+      }, probes=${
+        run.result?.breakageSummary?.probeSummary?.failedAsExpected ?? 0
+      }, onchain=${
+        run.result?.breakageSummary?.probeSummary?.onchainReverts ?? 0
+      }, same-block=${run.result?.sameBlockSummary?.expectedFailures ?? 0}`
     );
     console.log(
-      `  Breakage:     wedge=${run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0}, terminal=${run.result?.breakageSummary?.gamesWithTerminalStateMismatch ?? 0}, accounting=${run.result?.breakageSummary?.gamesWithAccountingMismatch ?? 0}, preview=${run.result?.breakageSummary?.gamesWithPreviewMismatch ?? 0}, drain=${run.result?.breakageSummary?.gamesWithDrainMismatch ?? 0}, replay=${run.result?.breakageSummary?.gamesWithReplayInconsistency ?? 0}, unexpected=${run.result?.breakageSummary?.totalUnexpectedFailures ?? 0}`
+      `  Breakage:     wedge=${
+        run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0
+      }, terminal=${
+        run.result?.breakageSummary?.gamesWithTerminalStateMismatch ?? 0
+      }, accounting=${
+        run.result?.breakageSummary?.gamesWithAccountingMismatch ?? 0
+      }, preview=${
+        run.result?.breakageSummary?.gamesWithPreviewMismatch ?? 0
+      }, drain=${
+        run.result?.breakageSummary?.gamesWithDrainMismatch ?? 0
+      }, replay=${
+        run.result?.breakageSummary?.gamesWithReplayInconsistency ?? 0
+      }, unexpected=${
+        run.result?.breakageSummary?.totalUnexpectedFailures ?? 0
+      }`
     );
     console.log(`  Report:       ${run.paths.report}`);
     if (run.error) {
