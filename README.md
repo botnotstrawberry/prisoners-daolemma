@@ -49,6 +49,8 @@ A separate compact matrix-level proof pack is also checked in at `packages/found
 
 A compact parallel-local proof pack is also checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`. It preserves copied top-level artifacts from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs, while keeping the local-only boundary explicit.
 
+A preserved raw host-local saturation proof bundle now also exists at `packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/`. It copies the full matrix report plus per-run raw reports/tx logs from a one-off bounded custom 7-way overlap attempt on the current codebase, with requested instance concurrency 7 and peak active runs observed 7.
+
 ## Current code state
 
 The repo now contains:
@@ -64,6 +66,7 @@ The repo now contains:
 - a checked-in full local proof bundle at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, preserving `report.json`, `txs.jsonl`, and per-game evidence from a clean 250-player single-game winner-path run
 - a checked-in compact local proof pack at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, preserving copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 - a checked-in compact parallel-local proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, preserving copied matrix summaries from the original 3-instance `parallel-local` validation plus stronger 5-instance and 6-instance host-local saturation runs
+- a preserved raw repo-local 7-instance host-local saturation proof bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/`, carrying the full matrix report plus per-run raw reports/tx logs from a one-off bounded custom 7-way overlap attempt (requested concurrency 7, peak active runs observed 7)
 - project-local skill routing for auth, comms/replay, and Solidity security
 
 Current implemented contract slice:
@@ -315,7 +318,7 @@ What it intentionally does **not** claim yet:
 - full SIWA wrapper rehearsal inside the harness itself
 - broad auth-expiry chaos across many wallets/games, mid-game auth expiry, or expiry behavior that depends on the full SIWA wrapper instead of direct verifier permit/register
 - proof of exploitable contract bugs just because adversarial local probes did not break a given run
-- exhaustive fuzzing, distributed-agent realism, or heavier 7-10 deployment host-saturation just because bounded host-local runs reached 6 overlapping isolated instances on one machine
+- exhaustive fuzzing, distributed-agent realism, or heavier 8-10 deployment host-saturation just because bounded host-local runs reached 7 overlapping isolated instances on one machine
 - that 250-player scale is already CI-proven just because the harness exists
 
 ## CLI evidence/query tooling
@@ -389,6 +392,8 @@ Current preserved local bundles:
   - copied `matrix-report.json` + `MATRIX_SUMMARY.md` files from the original bounded 3-instance `parallel-local` validation plus stronger bounded 5-instance and 6-instance host-local saturation runs
   - `local-proof-pack.json` manifest with source paths, byte counts, SHA-256 hashes, and explicit overlap metrics
   - generated `JUDGE_README.md` + `judge-evidence-index.json`
+- `packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/`
+  - copied raw `matrix-report.json` + `MATRIX_SUMMARY.md` plus per-run `report.json` / `txs.jsonl` from a one-off bounded custom 7-instance host-local saturation attempt
 
 See `JUDGE_EVIDENCE.md` for the judge open-order, the current honest local-proof boundary, and the live canary packaging contract.
 

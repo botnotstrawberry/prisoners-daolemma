@@ -1,0 +1,889 @@
+{
+  "type": "local-load-harness-matrix-run",
+  "title": "Prisoners DAOllema host-local saturation c7 proof bundle",
+  "sourceRunDir": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt",
+  "copiedProofDir": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof",
+  "sourceConsoleLog": "packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt.console.log",
+  "matrixStatus": "ok",
+  "requestedInstanceConcurrency": 7,
+  "peakActiveRuns": 7,
+  "parallelOverlapConfirmed": true,
+  "plannedRunCount": 7,
+  "completedRunCount": 7,
+  "runIds": [
+    "adversarial-a",
+    "adversarial-b",
+    "adversarial-c",
+    "adversarial-d",
+    "scale-winner-a",
+    "scale-winner-b",
+    "scale-winner-c"
+  ],
+  "files": [
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/ATTEMPT.console.log",
+      "sizeBytes": 8610,
+      "sha256": "3fa36bc097c1d17cc5823e29c46d003650d9f702ee1a2985cf65ffec1740a503"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/MATRIX_SUMMARY.md",
+      "sizeBytes": 13111,
+      "sha256": "92a54e7d7fdae0e298ef83c55a6c524b639cb22d37b6c58d1665cf47e0b207b9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/README.md",
+      "sizeBytes": 1591,
+      "sha256": "0386b1ca0b48a000623e0149881d29c68ab2edddabd182b1f12cebed0881cf4f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/custom-plan.json",
+      "sizeBytes": 6600,
+      "sha256": "44bff1174dac0cc062c69934253a824efa8f044708f34348381d764304a46276"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/matrix-report.json",
+      "sizeBytes": 36865,
+      "sha256": "87ab50d35de666c634d10efd06101894c38b5c2259cf12449a44d89b70515bf5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/auth.json",
+      "sizeBytes": 1713,
+      "sha256": "2c8a56c52c20f458419d043ca51843ca974018ad3a8c21b5c67232b051b3ed5b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/causes.json",
+      "sizeBytes": 2096,
+      "sha256": "0c6a2261b2b55c398a5fb968993420a2813c462ec16200539e0584ecbe221fab"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2909,
+      "sha256": "a0fb980d5bec3dc62d0a3a26fc868b33f349dd00cc725b7a956bb95755daaf2b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/game-summary.json",
+      "sizeBytes": 5589,
+      "sha256": "d696de4fc8ec5d7101850e30a7401e84c8b10b71a6992e3728f29e71c52a82d9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/payouts.json",
+      "sizeBytes": 7394,
+      "sha256": "7b7735139916f26d750a8dd071e90fc04ea75dd8eec15db04712d8a2397a1de3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/roster.json",
+      "sizeBytes": 2999,
+      "sha256": "afc5db32ce191b0993bd300227fec5c12ae38dfbfc21584b8c2bc0d7b0aeb3d6"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-1/evidence/rounds.json",
+      "sizeBytes": 391,
+      "sha256": "b309cdfe7a275f367832d5ad16ee53bc71da6e3bf43a87e2ddd22def51b9eb87"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/auth.json",
+      "sizeBytes": 5297,
+      "sha256": "5194c5730f713ba23cbb6e7ac9541ff924b42bb1645c8218042447a3cb2dbcee"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/causes.json",
+      "sizeBytes": 3176,
+      "sha256": "a26a26cbd359f56c4104c4f772fba9bdb19e125d658e2320ddce96b6ebb709d7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2911,
+      "sha256": "c8c1d7f3dadd0ba162febb2e8c46feb7141e02775b9a1358905ec10fc64b468a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/game-summary.json",
+      "sizeBytes": 7549,
+      "sha256": "704866b830dd0891d3f4ca0ecc53f93cf485b2a0d79d8a36c2cb454ec4594a54"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/payouts.json",
+      "sizeBytes": 11626,
+      "sha256": "d4ca68c6ec76bd907b05ff15bb3d5cf02f0c29c3995e9b57beb79e24cce17939"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/roster.json",
+      "sizeBytes": 10719,
+      "sha256": "ce343b3db5a7e8a1f2bf2dbc8499f692359ded38df9ff2d1e2b738984ebc17e8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-2/evidence/rounds.json",
+      "sizeBytes": 23834,
+      "sha256": "f12622bfea041d0f1d8853ada7711863d68b78f7ffb17e8ec3913302ce39bd20"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/auth.json",
+      "sizeBytes": 1120,
+      "sha256": "a018c541f624a76022b315ef5a572ddf1c3e635bd505369595512ff2c69a4e30"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/causes.json",
+      "sizeBytes": 1683,
+      "sha256": "a16d1e03f0b36b5ad5fab2cb174a832d193036c0efd442bc6d3f2ffcf75db3b5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "1a92311bcf2d2f058de4b57cbb61e12bddff0f16d2e9182dc86e9eda9b7af33a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/game-summary.json",
+      "sizeBytes": 5600,
+      "sha256": "0147fb91f440611d3c9f024d73a332552df86088a35ac31c3abe49c3f79f35c3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/payouts.json",
+      "sizeBytes": 6280,
+      "sha256": "89253885e3709feee97aedc32e0bdbee8da713838413fa815b664243cada2bd3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/roster.json",
+      "sizeBytes": 1703,
+      "sha256": "78568d9e33c23018c58308b2078884f9eac3c51fb6e7232567f66c9921049479"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-3/evidence/rounds.json",
+      "sizeBytes": 395,
+      "sha256": "98886c684e9e9658bea2c7a75e50126f232f7ce557ccc8afd18e68fcb1ef698a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/auth.json",
+      "sizeBytes": 5299,
+      "sha256": "f60b6df93d30f3b50a471bec13f87d45c331d9e94dc6eecba1dc372956ce9b35"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/causes.json",
+      "sizeBytes": 3178,
+      "sha256": "46ab0ed15aeb0cbfcf0ee19dd230bf2d2fbbe05a98041078e7cbe4e700e1f72e"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "771ca157d029c21c1272591348588f812dbf534b2b4fdbcfd29ae130e4c6df0b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/game-summary.json",
+      "sizeBytes": 7128,
+      "sha256": "4177948a3600b6976008c8b670f4603777f3a09a7bda2762235a9ebc54d89203"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/payouts.json",
+      "sizeBytes": 11628,
+      "sha256": "77dcd863ab6d065f9930bc72ab3b6d088996b66d524081a86d3686fa366a8e18"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/roster.json",
+      "sizeBytes": 10720,
+      "sha256": "c87e1a679ed458edfaa05f2b2f1ccabfead4ce1c744992287b13dee5674a0a03"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/game-4/evidence/rounds.json",
+      "sizeBytes": 24111,
+      "sha256": "45c4985522daf82843917567a5de4961a85e1f12d07001a639d14b0360765618"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/report.json",
+      "sizeBytes": 270227,
+      "sha256": "9d3d5bbb4c6ae2510a0ce0ad523c9051c524dfbbb82be4042dcac03114789033"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/01-adversarial-a/txs.jsonl",
+      "sizeBytes": 152824,
+      "sha256": "240331c00c21336e16eaf606289bf0e9b69c0af56217e8013526c449eea5ed37"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/auth.json",
+      "sizeBytes": 6491,
+      "sha256": "a6f33d9a488fd9af4379a68656d9ce53054db541f7512fd0ca60e5d20189976f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/causes.json",
+      "sizeBytes": 3284,
+      "sha256": "f7b6566fb8e3d8ae7a148ac71001568002b1784af3af2559c1049d9c3c70148b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2911,
+      "sha256": "1ba41e07ef083bc93c5d2f3fafac6e6013b3bd8a18d9b15313cccaad54dd3e17"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/game-summary.json",
+      "sizeBytes": 7560,
+      "sha256": "f0755dbafbbadc8b8184fbf87ae6c7190ca7f1892014fd2e4628570729fa54e9"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/payouts.json",
+      "sizeBytes": 12541,
+      "sha256": "0918d206bc7985ead5c6184b16cb905063a4a000abeb3294dc565eaa4369edfa"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/roster.json",
+      "sizeBytes": 13287,
+      "sha256": "60c64cfcbcb1b59b4b8ac6250da6100f34dedeb04e1d3ad67d412a098ee38a13"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-1/evidence/rounds.json",
+      "sizeBytes": 29636,
+      "sha256": "0034b77c1d4b3e10178912b7f1dfe40b816150fdb3cf831e86fedf0a876118ba"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/auth.json",
+      "sizeBytes": 1717,
+      "sha256": "a5f84b26f276450cee16804169b33f3e18d629d76abd46e3b85949685eacda2a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/causes.json",
+      "sizeBytes": 2100,
+      "sha256": "1374fdedbb7f24b3c9c5aeb64bb2a778f27dc2f4a3d241006386183a65786d37"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "5972d1c36e9f6ecbd72d3dcb4743969b7fa74fb885849bf8bcc492e2beb867fc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/game-summary.json",
+      "sizeBytes": 5600,
+      "sha256": "ce9b0723a20b87f90598755a29d92d65ad276bbad67996c0120749662f42a064"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/payouts.json",
+      "sizeBytes": 7403,
+      "sha256": "bdaf996f2e3f7f13d5c0057ed4528627a3e0b6721365bd559c720ea408bb8125"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/roster.json",
+      "sizeBytes": 3003,
+      "sha256": "911e407b60adca5c71a78880213d1c7509f3fc040d7509889c299c9444f6fc4b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-2/evidence/rounds.json",
+      "sizeBytes": 395,
+      "sha256": "0881f7cfd2c461a06b55474b95de81da3f86e9c50a29417d11e51d55e18759ef"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/auth.json",
+      "sizeBytes": 7687,
+      "sha256": "18f848559925f574921aba1c9032183e115cc63e1669ec9fcf35d2bb583f0bc5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/causes.json",
+      "sizeBytes": 3422,
+      "sha256": "8e28ac83bfcdcf67d262e0229c879908ebf58ca42f8085a742a0620895b8fdf8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "f0ece776e01bfc855e1d9835d5f0bffc6a0ec562db531f54b212a0a5daad5fb2"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/game-summary.json",
+      "sizeBytes": 6272,
+      "sha256": "d526ea6c0dc97b8e82d633ca185c8182a5ebcd9a436a04543269de20bbc3aec7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/payouts.json",
+      "sizeBytes": 14285,
+      "sha256": "bddc4a1a4012cf0820374aa426cc2a432df8af933eb78378e39ee0af1239735a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/roster.json",
+      "sizeBytes": 15908,
+      "sha256": "c89d2fc2c3f12f049042a28b97e1737b8fc98556d2c4abbbcde51c5459304e3b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-3/evidence/rounds.json",
+      "sizeBytes": 21105,
+      "sha256": "e8f9e8d7848e8418deece84f7cb20e46d1a96abdbdb7c66562bf56fbd3c60113"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/auth.json",
+      "sizeBytes": 3508,
+      "sha256": "0aabe03c09339bd9a6c93a79df2fa6d51e75b0a582ddb8277487aee79d137dad"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/causes.json",
+      "sizeBytes": 3016,
+      "sha256": "0a558fa2c46e1f06415ca01938f9c4edbf07763270e91ec6cf3d0960f51c18c0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "6ad2255a42aaeeb46fe6967f85d590d1289961de6d925926e12849a3aa2249c1"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/game-summary.json",
+      "sizeBytes": 6696,
+      "sha256": "c311b0eb7211d6411502606c63067540d22d877865763b4c66e1ee74f7d1bd55"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/payouts.json",
+      "sizeBytes": 10278,
+      "sha256": "0670e8c0a27083b44294e24f52872875a723edec67268b3f5f6e32e850850acc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/roster.json",
+      "sizeBytes": 6869,
+      "sha256": "5fae1989776a29038146ec1e35045b9b12f93ea22dea4db2d2c7f21da9ac7200"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/game-4/evidence/rounds.json",
+      "sizeBytes": 14578,
+      "sha256": "c0f4621b18d96cc9137d066429677679fea311bd47fccde878bce500929e6f1d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/report.json",
+      "sizeBytes": 286516,
+      "sha256": "5dc4fb05ef2e8f3124980f0ee2b1b35b401a892da742266170be57ad30ac459d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/02-adversarial-b/txs.jsonl",
+      "sizeBytes": 200343,
+      "sha256": "88f52680b091a4280f8abbf87a6276c0ff2d9af20024a83ff828000ba8c4c9c8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/auth.json",
+      "sizeBytes": 5297,
+      "sha256": "a528fdf1ac89a95c8e182424037f60e9dfd36094566e3ceeccde2acf40d3c541"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/causes.json",
+      "sizeBytes": 3176,
+      "sha256": "d9a6453238dc7449dcbc5d0e18b260bbc7ecfa9d22eb6c5e7e39aa1df8c6f513"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2911,
+      "sha256": "8bf1602ef0d6bc9c4c61a91fb4405f3519bbe12aef085a0b8a1e0000a78b67f3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/game-summary.json",
+      "sizeBytes": 7549,
+      "sha256": "bc71bde67aeda9bfa8ff2e83a5596635a8132addcdcedaae5465e31977ccb24d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/payouts.json",
+      "sizeBytes": 11626,
+      "sha256": "55d4497ab90a9d1860936e0623a7ecffd39a8a267988aaaefd52acc0535a7ad5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/roster.json",
+      "sizeBytes": 10719,
+      "sha256": "44c280ee1bd6fbfe453ed32474f3920abf434558cd3c4f4663356a20d3004ff2"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-1/evidence/rounds.json",
+      "sizeBytes": 24386,
+      "sha256": "a664cb5f656e799b1fe2f2373d64723ee02ea4bd7244ffda374396b2d1431489"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/auth.json",
+      "sizeBytes": 6493,
+      "sha256": "2f13804f787d424337684eb55e513b82e3cc528658d394382463198b49bfd4e8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/causes.json",
+      "sizeBytes": 3286,
+      "sha256": "866cb0ddbe89fc5d66d0df950cb9f835a67b8ee4f5d2bbdbe3949a9fdd6ae8d4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "c377d3aa43376602bf47492e74e5df34d61ccd7d85d1a86604170872820c9146"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/game-summary.json",
+      "sizeBytes": 6272,
+      "sha256": "30b43323b52cc84f7f782e21792726435138bffbf6e9904a3682b86bbfbe6e6c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/payouts.json",
+      "sizeBytes": 12543,
+      "sha256": "045f6ff8630ef60f6145209aedfc0e60c1b7d5e3925a6a18f784faee0c289d62"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/roster.json",
+      "sizeBytes": 13295,
+      "sha256": "cbdd75990efbca9c188efe350a953e355d70d5f3e80f1d8f90fea8a747cc5c6f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-2/evidence/rounds.json",
+      "sizeBytes": 19293,
+      "sha256": "4a38d1675b2aa9d5f5f99be4164806992c0f3249274a9e384a7ab1bce7cd5ffe"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/auth.json",
+      "sizeBytes": 4105,
+      "sha256": "e4b6c7c6344036bcad410175e8fd41f8997e5be83881005e1277efe2efacbf15"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/causes.json",
+      "sizeBytes": 2707,
+      "sha256": "4c5ef0fcb808c680066a5fbfa2d2b1f0268f00abad9c1fd1e187ac68ca4cb9a8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "774cd8840e25c84c8f837dcdd3a4ffcf03836bc51d52c89a2a5eb8ff562889d5"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/game-summary.json",
+      "sizeBytes": 7992,
+      "sha256": "c37215a05f7f18862d157bf7354b594f5d5e67c288938d1e34b971f9ea1586d4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/payouts.json",
+      "sizeBytes": 10338,
+      "sha256": "5a2a82e96a668e8622e723db83c27c89c5077d9d937384261af8f447931757bd"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/roster.json",
+      "sizeBytes": 8151,
+      "sha256": "7fe5c79c05c1a35e02e164ee5b3b9d87886edd583805ddb6f180f6aa4c54a0dc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-3/evidence/rounds.json",
+      "sizeBytes": 25033,
+      "sha256": "a4d83a37d19520dfc2ab4e457263703898e60d0b39d896ebffbb7a162ae80890"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/auth.json",
+      "sizeBytes": 4702,
+      "sha256": "65669af8a715bc05c187c3e87fe7e79d7b512673bbbdc5956957ea0d5baa422c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/causes.json",
+      "sizeBytes": 3124,
+      "sha256": "e35b7141af04363a0ffc7c0b68dc70adaeb9aa3e2bf9558cd6a1ee55726ad8f7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "d878c29c14a457b3fc5d0b554532cc285ed5fbb75234603f91a15e2680894e33"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/game-summary.json",
+      "sizeBytes": 7128,
+      "sha256": "c195757511fcfbbcb2e299ef3085d9301526393741f9e3e1e860614fedaf474c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/payouts.json",
+      "sizeBytes": 11178,
+      "sha256": "9eae4e941cacfd7386ddbed760ccba64fb072cb6a689d4314979f75e7d08be5d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/roster.json",
+      "sizeBytes": 9435,
+      "sha256": "cd679c001f6937028a2d5b15104f403bba330e02df62332e13708d2cb44d4760"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/game-4/evidence/rounds.json",
+      "sizeBytes": 16850,
+      "sha256": "cf06d1891a5e4526186bc2c9f6879b909323b02452354752e3cb50b527691cf6"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/report.json",
+      "sizeBytes": 343861,
+      "sha256": "cee51aa291e233db48a12d77496a885346fd436d264a3c199a1d19001bce163b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/03-adversarial-c/txs.jsonl",
+      "sizeBytes": 257667,
+      "sha256": "6d622c24b7fd2a628c9e1697dd4b44f7de065b173479e81d43eb6e34565e0c16"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/auth.json",
+      "sizeBytes": 5297,
+      "sha256": "91397938edbba5df2f8ff5697cb40eda4d29a25ee6f48dabd06c73d6b1912164"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/causes.json",
+      "sizeBytes": 2813,
+      "sha256": "4c17f49eb6ae456a0c2b0734b988328f77e1ffd33945b93035aa92176dd3aa73"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2911,
+      "sha256": "d51d6e33bd0257441a0cc15942963eb6769c8032358a37c3b736f3816cf0e9b0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/game-summary.json",
+      "sizeBytes": 6255,
+      "sha256": "eeebef8a166d74469d2b8d9f466c6a02ba12ddb140589fba5ffa368ea2743788"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/payouts.json",
+      "sizeBytes": 11236,
+      "sha256": "550598ef8828cfe1dc8b07c65800c4aaf008640829c3fdbdac8ea93f2cb136bb"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/roster.json",
+      "sizeBytes": 10719,
+      "sha256": "17cdc086d9c7682154a9993100b9ea90e6716d94d13c31a99d64755dda9d0c21"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-1/evidence/rounds.json",
+      "sizeBytes": 12361,
+      "sha256": "193c8efaf980ff8373240ab7d0ef8f10605fa463d3a8dd79f3d4c41a551e0e9c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/auth.json",
+      "sizeBytes": 7090,
+      "sha256": "babc8b058e3e8689bed793a26a49ea548263fa6683e71b09beba3cb2daeb2e50"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/causes.json",
+      "sizeBytes": 3368,
+      "sha256": "d45b3bae56538cadc806fd7cc5ff9d0f3a7aed448b20fa5102fc86ac106097be"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "ce8c6421e4998e3228cb2fc411bea4b1824b08b72673d0425a41748ec3fca5da"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/game-summary.json",
+      "sizeBytes": 7568,
+      "sha256": "d94869c9009dc55c41688d7a32bb57cd635aa6bfa7b2f5f2f3e4bdadd59e40d4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/payouts.json",
+      "sizeBytes": 14632,
+      "sha256": "429f982d437c996845d98ae90a4043053f134ca44e471ac1db1f9ff492d9b01f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/roster.json",
+      "sizeBytes": 14659,
+      "sha256": "067e38eb92cbd4371268fa55b1b3abbf86f2381335ed23dfb85f25a2ee762de3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-2/evidence/rounds.json",
+      "sizeBytes": 33062,
+      "sha256": "793d89f9f024debbf6df40fae10d42e410c9678fc4ee77891288e6b2145b2f05"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/auth.json",
+      "sizeBytes": 5299,
+      "sha256": "ea5c720e9743b8a52604a41f59aca85f83fa5c5400dc845ab1e2e1adaba902dc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/causes.json",
+      "sizeBytes": 2815,
+      "sha256": "e79ed35946c4c489ae88cd33d390411f10b5340b0e4cb2b0c869b0b8202395ca"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "4c1d657507a4b51aa6aef4b655d18b8af1fb35792df1fc6fb4fdbe0c1bff44ee"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/game-summary.json",
+      "sizeBytes": 7560,
+      "sha256": "c5513a83afea730c384ef05bcd8beae10f2a46da0e8c6041a72f4220bf7cc200"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/payouts.json",
+      "sizeBytes": 11238,
+      "sha256": "9d2cbdf798a6032a876c3ea9ab745d89bc19f5e5d8ba649c268495fa358cc1b4"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/roster.json",
+      "sizeBytes": 10720,
+      "sha256": "18fece3964dddcb6bb6af70a0d97cb04ff74c4627aa99d6ff5ec3ca10e51f378"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-3/evidence/rounds.json",
+      "sizeBytes": 23578,
+      "sha256": "dca1aa03da05d99694f45c653003e41ac6deb9f8a9f921b4f0c0b59a85ad742f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/auth.json",
+      "sizeBytes": 4105,
+      "sha256": "f09f37d6683568bde8aa8c8750a624c89612b2800a70371d58fd28657c4bfafb"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/causes.json",
+      "sizeBytes": 3098,
+      "sha256": "125cfbd32ffc534a869cb03a496683891f6a4c5fd915bd3a961183bf3b180106"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/export-manifest.json",
+      "sizeBytes": 2913,
+      "sha256": "9778ca532cc94b99355fd9ac1f2afa6c7eec210df7da04afda0a566a67531cc7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/game-summary.json",
+      "sizeBytes": 6264,
+      "sha256": "e53066a1b60a2933fbef5f65d4370cbbb3d5ff0bb9c0f4567a3545de5aa41b9d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/payouts.json",
+      "sizeBytes": 11567,
+      "sha256": "f2044c1b2eb38eb5133311bc9e023069bf9c41638222c9d9cb8af1d210d8ca1e"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/roster.json",
+      "sizeBytes": 8195,
+      "sha256": "332a9ea39584836bb26e06d14f0a34ba7ecf5661fd8f235ac6d1fd9127353f16"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/game-4/evidence/rounds.json",
+      "sizeBytes": 11998,
+      "sha256": "56a3672705e5f410a672b37707856ef042611f280b2feff66953190a6375658b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/report.json",
+      "sizeBytes": 332749,
+      "sha256": "0d66b675fcfbc4c60c1402be31ba67aec4e05e41b5a484552517276eebc004d3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/04-adversarial-d/txs.jsonl",
+      "sizeBytes": 261031,
+      "sha256": "97c85d73ed0b2f35959a2f643dde96ad750c4a8cd9873b2f27058da1fa4fb765"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/auth.json",
+      "sizeBytes": 12461,
+      "sha256": "36bb1f4467d7cb6ffdd071ddca470f824e2fca112e2d3dc0564c407320bacce7"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/causes.json",
+      "sizeBytes": 5112,
+      "sha256": "5bce78ec6065c9a9cdac502b23408044a50804e5d2f883e1788c9bc832a3d3db"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2919,
+      "sha256": "4ce8cee96b23d76890712ad9eafeb385f664917cde93ecc96a05ac48537e6b90"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/game-summary.json",
+      "sizeBytes": 6707,
+      "sha256": "b7f0b749f650914dadd1b3b083db6e282a1c9b19f49edad4f6adff46f3b52ad1"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/payouts.json",
+      "sizeBytes": 28943,
+      "sha256": "395c01ceebe40cccc26f0330cf113afef22888d5017fc33bb68343777d8f826b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/roster.json",
+      "sizeBytes": 26907,
+      "sha256": "c7a98242f9bfe02b35533cebf0516af53f00014cae5b9fc7f1b4dea980e61bdf"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-1/evidence/rounds.json",
+      "sizeBytes": 54642,
+      "sha256": "5dd87fd2324ba3266fb2da3cbefb337a0c9259c959ea08376a9b376720a91c07"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/auth.json",
+      "sizeBytes": 12463,
+      "sha256": "c59bc8816a08114629086708486b3ccebcfcf2a3d052e8b3972f7cc080d2bd65"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/causes.json",
+      "sizeBytes": 5114,
+      "sha256": "fed73dcd535257ebb024312937e55026ba3489ad761716f4224a9a0c4168bc09"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2921,
+      "sha256": "ca3f6e28d1bf4decd2bfd29899772ff17b772b8b01efb817fa3110c6fcd0c825"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/game-summary.json",
+      "sizeBytes": 6714,
+      "sha256": "814ef4f9986d837aa47894fa1eb2d82469e29365a0dba53dcd2a09ff2878961a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/payouts.json",
+      "sizeBytes": 28945,
+      "sha256": "590c122d8747b332ba5e0dcf8388e17f08e76fb9f376609f929ddcbe307373b8"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/roster.json",
+      "sizeBytes": 26907,
+      "sha256": "a007c30fe388c7c0e3ef02b248cca73ac661c984d6e37f60df28de1045080cf3"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/game-2/evidence/rounds.json",
+      "sizeBytes": 56560,
+      "sha256": "b2f5efca3222917c87bab88fe3d3b1a9c57eef28347aa2564e5359ac0e72319c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/report.json",
+      "sizeBytes": 147575,
+      "sha256": "71d6e1617ae351b546fc745a79f49fa74695c6467b99136ff24bb288ca82828a"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/05-scale-winner-a/txs.jsonl",
+      "sizeBytes": 235901,
+      "sha256": "425a0465a02f8dd5ac51d63d16f47eb6234bac84c400f06f84083cfa52e2b070"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/auth.json",
+      "sizeBytes": 12461,
+      "sha256": "5ce7b21d6dceca1f2f06b5ac6ee7ea9126d4ae656fbe220e6c3ffbc7b24e9a14"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/causes.json",
+      "sizeBytes": 5112,
+      "sha256": "d3e7b73684a2cfa61e1668eda2a0ef89399195f9dba751629645a164f8f1ad33"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2919,
+      "sha256": "17e457c2f4f841aed8dc09c54a65266eb88d67278d9fe05f62d6ad45d67dab9b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/game-summary.json",
+      "sizeBytes": 6707,
+      "sha256": "ce24a99a0099c43a7bba1f7d163e12389013dd2e5d395cac57bf3827087936cd"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/payouts.json",
+      "sizeBytes": 28943,
+      "sha256": "915121ce3974becf4f03199c7dc10e0a361764d75bf2b05b67e5872dd0db24fc"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/roster.json",
+      "sizeBytes": 26908,
+      "sha256": "f96f5d9f09a0cbed6018c15c472b1c0597ced2812a9cdb3fa1a052a6f06727d2"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-1/evidence/rounds.json",
+      "sizeBytes": 54270,
+      "sha256": "e27ef6673d3aa0b76c318a62c1932abb8944c3cdb4c93d72050b3899dacb3e98"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/auth.json",
+      "sizeBytes": 12463,
+      "sha256": "3bf7e6e10b1ebcd98bb547087eeb1e14f46b754526c84a2c7573d79ed5a0d8f0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/causes.json",
+      "sizeBytes": 5114,
+      "sha256": "aa2259c279140045ebc3f265af9b134b2de72b1767c17fb5b56f441b8d7dea1c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2921,
+      "sha256": "c00232f0bd8ac13ce3216b6a11ca45ff982726e25c2c846312021e9109656a28"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/game-summary.json",
+      "sizeBytes": 6714,
+      "sha256": "1456ad4ebb7ae95df9df71e36785bfd436bac6082409cd03cf41122f9051482c"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/payouts.json",
+      "sizeBytes": 28945,
+      "sha256": "390d9aacaa4e3479a9ab8857e3bb72f8d55df6d9645490e7012b22b7b6ad660e"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/roster.json",
+      "sizeBytes": 26913,
+      "sha256": "4f341b59a224cf71868d447a5159b574e9f887e83948dbcf6da822215c3f9739"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/game-2/evidence/rounds.json",
+      "sizeBytes": 53256,
+      "sha256": "b4082a18fd69c772cfc5dd527b943d9121e38a93dff10814ec0b8d4f2e52320f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/report.json",
+      "sizeBytes": 147895,
+      "sha256": "e9a262d6b8c6b804888e7aa5e71c86143714a36dd1e47fcac5785cc130be7646"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/06-scale-winner-b/txs.jsonl",
+      "sizeBytes": 226974,
+      "sha256": "f207e5cd8358f2df2e9189e23b3e3661973988b9fe75e787948e6a0718bf4370"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/auth.json",
+      "sizeBytes": 12461,
+      "sha256": "333722306aae5a4c9b4dd2ecbba88d2b4f3b238064b6ddbe789ba2d808557020"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/causes.json",
+      "sizeBytes": 5112,
+      "sha256": "2c6796e2dfc56ba7746d00487ff53f2d1efb8dc562f2394bdfabbbcdeb3e67fa"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/export-manifest.json",
+      "sizeBytes": 2919,
+      "sha256": "a5f2ba188b1926125980d05f464bc76d51a320583b49c0406cd34ac03aa7247d"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/game-summary.json",
+      "sizeBytes": 6707,
+      "sha256": "5b2ae60a9ffac9417a4373a51177718724238f0c96037f62c50239c2c3f5fab0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/payouts.json",
+      "sizeBytes": 28943,
+      "sha256": "553e2c52aac08fcf667a673baa958a90d22991d58cca3be8f759e0bb5e912f7f"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/roster.json",
+      "sizeBytes": 26905,
+      "sha256": "cee9ea3f59251848ecba7f02e4aa6ca188a294a4a4f3e6a2def459e22978a272"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-1/evidence/rounds.json",
+      "sizeBytes": 54873,
+      "sha256": "8eeff8bc6be389616fde203351a66dfb50e087c5563aa0c285e12d8bbe35e985"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/auth.json",
+      "sizeBytes": 12463,
+      "sha256": "507f596eab7a36fabad8a65920d911b4d38c2cfe4a3b0164e689adefd3dabdcb"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/causes.json",
+      "sizeBytes": 5114,
+      "sha256": "e8bd7bf1a8be66c803aac7cfdc5cd9f0e73a59c85f6b3de11e8546b84ea39369"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/export-manifest.json",
+      "sizeBytes": 2921,
+      "sha256": "c6b31cb29075e72cc5e4baf7ab6fb0b52c4a7abc5f8029caa8f3446ea29e840b"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/game-summary.json",
+      "sizeBytes": 6714,
+      "sha256": "7a29187424c697ceea315149805bc14c290399297f16bc49be26a7e645275aac"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/payouts.json",
+      "sizeBytes": 28945,
+      "sha256": "e992cb1e6bd487e1541550786bbc3895778835d66da444013381102da44fa3c0"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/roster.json",
+      "sizeBytes": 26907,
+      "sha256": "3e06857d83c6dbd69d66f0920147d6a39d602b06a23cc3ef41d2f1575914bc06"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/game-2/evidence/rounds.json",
+      "sizeBytes": 54945,
+      "sha256": "8e4758f0853d18e411038de9952fb2a776b927721fb183beb379d755983a84e1"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/report.json",
+      "sizeBytes": 147755,
+      "sha256": "bf4becac53d2a933f68105f07a626e91cf2d55c153b0c62de7edd30ba7a23fed"
+    },
+    {
+      "path": "packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/runs/07-scale-winner-c/txs.jsonl",
+      "sizeBytes": 232481,
+      "sha256": "b131162c13f6b475dd021fae4ee604f92c7e7cf13d5002cd7f07edd8000ec7e2"
+    }
+  ]
+}

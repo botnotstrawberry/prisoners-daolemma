@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-matrix-v1",
+  "kind": "custom-host-local-saturation-plan",
+  "createdAt": "2026-03-16T05:47:15.803Z",
+  "requestedInstanceConcurrency": 7,
+  "description": "One-off bounded 7-way host-local saturation attempt: four seeded smoke adversarial sweeps plus three scale winner soaks, all launched together across isolated harness + Anvil instances on one machine.",
+  "runs": [
+    {
+      "index": 1,
+      "id": "adversarial-a",
+      "caseId": "smoke-adversarial-sweep",
+      "seed": "adversarial-a",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/01-adversarial-a",
+      "harnessOptions": {
+        "profile": "smoke",
+        "playerCount": 12,
+        "causeCount": 4,
+        "games": 4,
+        "scenario": "adversarial-random",
+        "concurrency": 6,
+        "commitDurationBlocks": 24,
+        "revealDurationBlocks": 24,
+        "skipCommitRate": 0.25,
+        "skipRevealRate": 0.25,
+        "underfilledRate": 0.2,
+        "invalidRevealRate": 0.15,
+        "probeRate": 0.6,
+        "sameBlockProbes": true,
+        "seed": "adversarial-a",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/01-adversarial-a"
+      }
+    },
+    {
+      "index": 2,
+      "id": "adversarial-b",
+      "caseId": "smoke-adversarial-sweep",
+      "seed": "adversarial-b",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b",
+      "harnessOptions": {
+        "profile": "smoke",
+        "playerCount": 12,
+        "causeCount": 4,
+        "games": 4,
+        "scenario": "adversarial-random",
+        "concurrency": 6,
+        "commitDurationBlocks": 24,
+        "revealDurationBlocks": 24,
+        "skipCommitRate": 0.25,
+        "skipRevealRate": 0.25,
+        "underfilledRate": 0.2,
+        "invalidRevealRate": 0.15,
+        "probeRate": 0.6,
+        "sameBlockProbes": true,
+        "seed": "adversarial-b",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b"
+      }
+    },
+    {
+      "index": 3,
+      "id": "adversarial-c",
+      "caseId": "smoke-adversarial-sweep",
+      "seed": "adversarial-c",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/03-adversarial-c",
+      "harnessOptions": {
+        "profile": "smoke",
+        "playerCount": 12,
+        "causeCount": 4,
+        "games": 4,
+        "scenario": "adversarial-random",
+        "concurrency": 6,
+        "commitDurationBlocks": 24,
+        "revealDurationBlocks": 24,
+        "skipCommitRate": 0.25,
+        "skipRevealRate": 0.25,
+        "underfilledRate": 0.2,
+        "invalidRevealRate": 0.15,
+        "probeRate": 0.6,
+        "sameBlockProbes": true,
+        "seed": "adversarial-c",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/03-adversarial-c"
+      }
+    },
+    {
+      "index": 4,
+      "id": "adversarial-d",
+      "caseId": "smoke-adversarial-sweep",
+      "seed": "adversarial-d",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/04-adversarial-d",
+      "harnessOptions": {
+        "profile": "smoke",
+        "playerCount": 12,
+        "causeCount": 4,
+        "games": 4,
+        "scenario": "adversarial-random",
+        "concurrency": 6,
+        "commitDurationBlocks": 24,
+        "revealDurationBlocks": 24,
+        "skipCommitRate": 0.25,
+        "skipRevealRate": 0.25,
+        "underfilledRate": 0.2,
+        "invalidRevealRate": 0.15,
+        "probeRate": 0.6,
+        "sameBlockProbes": true,
+        "seed": "adversarial-d",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/04-adversarial-d"
+      }
+    },
+    {
+      "index": 5,
+      "id": "scale-winner-a",
+      "caseId": "scale-winner-soak",
+      "seed": "scale-winner-a",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/05-scale-winner-a",
+      "harnessOptions": {
+        "profile": "scale",
+        "playerCount": 20,
+        "causeCount": 6,
+        "games": 2,
+        "scenario": "winner-all-share",
+        "concurrency": 8,
+        "commitDurationBlocks": 40,
+        "revealDurationBlocks": 40,
+        "skipCommitRate": 0.1,
+        "skipRevealRate": 0.15,
+        "seed": "scale-winner-a",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/05-scale-winner-a"
+      }
+    },
+    {
+      "index": 6,
+      "id": "scale-winner-b",
+      "caseId": "scale-winner-soak",
+      "seed": "scale-winner-b",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b",
+      "harnessOptions": {
+        "profile": "scale",
+        "playerCount": 20,
+        "causeCount": 6,
+        "games": 2,
+        "scenario": "winner-all-share",
+        "concurrency": 8,
+        "commitDurationBlocks": 40,
+        "revealDurationBlocks": 40,
+        "skipCommitRate": 0.1,
+        "skipRevealRate": 0.15,
+        "seed": "scale-winner-b",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b"
+      }
+    },
+    {
+      "index": 7,
+      "id": "scale-winner-c",
+      "caseId": "scale-winner-soak",
+      "seed": "scale-winner-c",
+      "outDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/07-scale-winner-c",
+      "harnessOptions": {
+        "profile": "scale",
+        "playerCount": 20,
+        "causeCount": 6,
+        "games": 2,
+        "scenario": "winner-all-share",
+        "concurrency": 8,
+        "commitDurationBlocks": 40,
+        "revealDurationBlocks": 40,
+        "skipCommitRate": 0.1,
+        "skipRevealRate": 0.15,
+        "seed": "scale-winner-c",
+        "out": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/07-scale-winner-c"
+      }
+    }
+  ]
+}

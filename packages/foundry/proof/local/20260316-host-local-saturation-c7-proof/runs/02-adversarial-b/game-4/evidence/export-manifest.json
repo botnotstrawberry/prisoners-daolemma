@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 493,
+      "timestamp": 1773640340
+    },
+    "logRange": {
+      "requestedFromBlock": 382,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 382,
+      "resolvedToBlock": 493,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "outputDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence",
+  "gameId": 4,
+  "chainId": 31337,
+  "produced": [
+    {
+      "artifact": "game-summary.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/game-summary.json"
+    },
+    {
+      "artifact": "roster.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/roster.json"
+    },
+    {
+      "artifact": "causes.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/causes.json"
+    },
+    {
+      "artifact": "rounds.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/rounds.json"
+    },
+    {
+      "artifact": "auth.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/auth.json"
+    },
+    {
+      "artifact": "payouts.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/payouts.json"
+    },
+    {
+      "artifact": "export-manifest.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/02-adversarial-b/game-4/evidence/export-manifest.json"
+    }
+  ],
+  "skipped": [
+    {
+      "artifact": "messages.jsonl",
+      "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+    }
+  ]
+}

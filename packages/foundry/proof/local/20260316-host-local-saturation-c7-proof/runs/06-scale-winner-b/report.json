@@ -1,0 +1,4911 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-v1",
+  "boundaryNote": "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.",
+  "mode": "sequential",
+  "profile": {
+    "name": "scale",
+    "source": "PARAMETERS.md §5.2 Anvil scale profile",
+    "notes": [
+      "Scenario list winner-all-share is shorter than games=2, so the harness cycles that list across the sequential run.",
+      "Overrode commitDurationBlocks from profile default 10 to 40 for this run.",
+      "Overrode revealDurationBlocks from profile default 10 to 40 for this run."
+    ],
+    "strategy": "scenario-driven local flows: deterministic winner/cancelled/no-winner paths plus a seeded adversarial-random mode that mixes started vs underfilled games, random round choices, omissions, invalid follow-ups, and settlement-order probes for local breakage hunting."
+  },
+  "options": {
+    "playerCount": 20,
+    "causeCount": 6,
+    "games": 2,
+    "concurrency": 8,
+    "skipCommitRate": 0.1,
+    "skipRevealRate": 0.15,
+    "underfilledRate": 0.2,
+    "invalidRevealRate": 0.15,
+    "probeRate": 0.35,
+    "choiceWeights": {
+      "share": 1,
+      "catch": 1,
+      "steal": 1
+    },
+    "claimWinners": true,
+    "expectedFailures": false,
+    "sameBlockProbes": false,
+    "authExpiryChaos": {
+      "enabled": false,
+      "staleBundleFailures": 0,
+      "expiredJoinFailures": 0,
+      "ttlSeconds": 0,
+      "applyBeforeGameIndex": null
+    },
+    "requestedScenario": "winner-all-share",
+    "selectedScenarioTypes": [
+      "winner-all-share"
+    ],
+    "seed": "scale-winner-b"
+  },
+  "scenarios": {
+    "requested": "winner-all-share",
+    "selectedTypes": [
+      "winner-all-share"
+    ],
+    "plan": [
+      "winner-all-share",
+      "winner-all-share"
+    ]
+  },
+  "config": {
+    "entryFeeWei": "10000000000000000",
+    "creatorFeeBps": 100,
+    "causeFeeBps": 100,
+    "joinDurationSeconds": 60,
+    "commitDurationBlocks": 40,
+    "revealDurationBlocks": 40,
+    "minPlayers": 16,
+    "maxPlayers": 256,
+    "maxCauses": 16
+  },
+  "paths": {
+    "runDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b",
+    "report": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/report.json",
+    "txLog": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/txs.jsonl"
+  },
+  "limitations": [
+    "This harness currently drives verifier-approved permit/register directly for speed; it does not rehearse the full SIWA nonce/sign/verify wrapper.",
+    "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
+    "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
+    "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
+    "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
+    "Optional auth-expiry chaos is intentionally bounded to one pre-join rehearsal per run. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, but it does not prove broader mass-expiry, mid-game expiry, or full SIWA-wrapper expiry behavior."
+  ],
+  "status": "ok",
+  "startedAt": "2026-03-16T05:47:15.867Z",
+  "finishedAt": "2026-03-16T05:48:11.334Z",
+  "wallClockMs": 55467,
+  "environment": {
+    "chainId": 31337,
+    "rpcUrl": "http://127.0.0.1:43239",
+    "spawnedAnvil": true,
+    "anvilPort": 43239,
+    "initialBlock": 0,
+    "finalBlock": 605,
+    "blocksMined": 605,
+    "initialTimestamp": 1773640036,
+    "finalTimestamp": 1773640212
+  },
+  "deployment": {
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "verifier": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "authRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "game": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "treasury": "0xA1196426b41627ae75Ea7f7409E074BE97367da2",
+    "causes": [
+      {
+        "causeId": 1,
+        "recipient": "0x9eF6c02FB2ECc446146E05F1fF687a788a8BF76d",
+        "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc"
+      },
+      {
+        "causeId": 2,
+        "recipient": "0x08A2DE6F3528319123b25935C92888B16db8913E",
+        "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786"
+      },
+      {
+        "causeId": 3,
+        "recipient": "0xe141C82D99D85098e03E1a1cC1CdE676556fDdE0",
+        "metadataHash": "0x52cc4c68f1072851c03761050c15117b38c2fd44d91f5ccb4bb171dab30ab578"
+      },
+      {
+        "causeId": 4,
+        "recipient": "0x4b23D303D9e3719D6CDf8d172Ea030F80509ea15",
+        "metadataHash": "0xbc5defc0c747bf1508f48d8edeac2c67274a38ea25f6ea932bac26bcc24cff0e"
+      },
+      {
+        "causeId": 5,
+        "recipient": "0xC004e69C5C04A223463Ff32042dd36DabF63A25a",
+        "metadataHash": "0x4629be37307d52aaa335a9830fc6cb07e01d713393983674cbcdb08e9ffd6a2a"
+      },
+      {
+        "causeId": 6,
+        "recipient": "0x5eb15C0992734B5e77c888D713b4FC67b3D679A2",
+        "metadataHash": "0x210fc68e46a1c8a9d649e74c69250f8aa6b5da6b6650c21e73f625415f9c2661"
+      }
+    ]
+  },
+  "bootstrap": {
+    "wallClockMs": 9432,
+    "playersRegistered": 20,
+    "initialBlock": 0,
+    "finalBlockAfterBootstrap": 19
+  },
+  "chaos": {
+    "skipCommitRate": 0.1,
+    "skipRevealRate": 0.15,
+    "underfilledRate": 0.2,
+    "invalidRevealRate": 0.15,
+    "probeRate": 0.35,
+    "choiceWeights": {
+      "share": 1,
+      "catch": 1,
+      "steal": 1
+    },
+    "expectedFailuresEnabled": false,
+    "skippedCommitCount": 18,
+    "skippedRevealCount": 12,
+    "commitDeadlineRounds": 6,
+    "revealDeadlineRounds": 6,
+    "expectedFailureAttempts": 0,
+    "expectedFailureCount": 0,
+    "probeAttempts": 0,
+    "probeFailuresAsExpected": 0,
+    "probeUnexpectedSuccesses": 0,
+    "sameBlockBatches": 0,
+    "sameBlockTxs": 0,
+    "sameBlockExpectedFailures": 0
+  },
+  "authChaos": {
+    "enabled": false,
+    "configured": {
+      "staleBundleFailures": 0,
+      "expiredJoinFailures": 0,
+      "ttlSeconds": 0,
+      "applyBeforeGameIndex": null
+    },
+    "gamesConsidered": 0,
+    "gamesApplied": 0,
+    "timeWarpSeconds": 0,
+    "manualBlocksMined": 0,
+    "staleBundle": {
+      "requested": 0,
+      "attempted": 0,
+      "failedAsExpected": 0
+    },
+    "expiredJoin": {
+      "requested": 0,
+      "shortAuthRegistrations": 0,
+      "joinAttempts": 0,
+      "failedAsExpected": 0,
+      "localRegisterRejections": 0,
+      "refreshedRegistrations": 0
+    },
+    "skipped": []
+  },
+  "scenarioSummary": {
+    "byType": [
+      {
+        "key": "winner-all-share",
+        "count": 2
+      }
+    ],
+    "byTerminalOutcome": [
+      {
+        "key": "Winners",
+        "count": 2
+      }
+    ],
+    "byTerminalPath": [
+      {
+        "key": "winner-claims",
+        "count": 2
+      }
+    ]
+  },
+  "txSummary": {
+    "attempted": 330,
+    "succeeded": 330,
+    "failed": 0,
+    "failedExpected": 0,
+    "failedUnexpected": 0,
+    "failedOnchain": 0,
+    "failedLocal": 0,
+    "unexpectedSuccesses": 0,
+    "reverted": 0,
+    "gasUsed": {
+      "count": 330,
+      "total": "44242030",
+      "min": "44455",
+      "max": "9330556",
+      "average": "134066"
+    },
+    "latencyMs": {
+      "count": 330,
+      "total": 149749,
+      "min": 50,
+      "max": 882,
+      "average": 453.7848484848485
+    },
+    "byAction": {
+      "advanceFromCommit": {
+        "attempted": 6,
+        "succeeded": 6,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 6,
+          "total": "266730",
+          "min": "44455",
+          "max": "44455",
+          "average": "44455"
+        },
+        "latencyMs": {
+          "count": 6,
+          "total": 1275,
+          "min": 135,
+          "max": 283,
+          "average": 212.5
+        }
+      },
+      "advanceFromJoining": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "478772",
+          "min": "239386",
+          "max": "239386",
+          "average": "239386"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 698,
+          "min": 335,
+          "max": 363,
+          "average": 349
+        }
+      },
+      "advanceFromReveal": {
+        "attempted": 6,
+        "succeeded": 6,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 6,
+          "total": "2816364",
+          "min": "437577",
+          "max": "508123",
+          "average": "469394"
+        },
+        "latencyMs": {
+          "count": 6,
+          "total": 2106,
+          "min": 212,
+          "max": 465,
+          "average": 351
+        }
+      },
+      "authRegister": {
+        "attempted": 20,
+        "succeeded": 20,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 20,
+          "total": "3056436",
+          "min": "152805",
+          "max": "152829",
+          "average": "152821"
+        },
+        "latencyMs": {
+          "count": 20,
+          "total": 14245,
+          "min": 422,
+          "max": 822,
+          "average": 712.25
+        }
+      },
+      "claim": {
+        "attempted": 40,
+        "succeeded": 40,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 40,
+          "total": "3355120",
+          "min": "78748",
+          "max": "95848",
+          "average": "83878"
+        },
+        "latencyMs": {
+          "count": 40,
+          "total": 15340,
+          "min": 292,
+          "max": 468,
+          "average": 383.5
+        }
+      },
+      "commit": {
+        "attempted": 102,
+        "succeeded": 102,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 102,
+          "total": "6939210",
+          "min": "67997",
+          "max": "68033",
+          "average": "68031"
+        },
+        "latencyMs": {
+          "count": 102,
+          "total": 49154,
+          "min": 284,
+          "max": 759,
+          "average": 481.9019607843137
+        }
+      },
+      "createGame": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "341012",
+          "min": "161956",
+          "max": "179056",
+          "average": "170506"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 302,
+          "min": 117,
+          "max": 185,
+          "average": 151
+        }
+      },
+      "deployAuthRegistry": {
+        "attempted": 1,
+        "succeeded": 1,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 1,
+          "total": "2141684",
+          "min": "2141684",
+          "max": "2141684",
+          "average": "2141684"
+        },
+        "latencyMs": {
+          "count": 1,
+          "total": 59,
+          "min": 59,
+          "max": 59,
+          "average": 59
+        }
+      },
+      "deployGame": {
+        "attempted": 1,
+        "succeeded": 1,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 1,
+          "total": "9330556",
+          "min": "9330556",
+          "max": "9330556",
+          "average": "9330556"
+        },
+        "latencyMs": {
+          "count": 1,
+          "total": 50,
+          "min": 50,
+          "max": 50,
+          "average": 50
+        }
+      },
+      "join": {
+        "attempted": 40,
+        "succeeded": 40,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 40,
+          "total": "8433136",
+          "min": "192875",
+          "max": "295428",
+          "average": "210828"
+        },
+        "latencyMs": {
+          "count": 40,
+          "total": 21624,
+          "min": 316,
+          "max": 655,
+          "average": 540.6
+        }
+      },
+      "reveal": {
+        "attempted": 90,
+        "succeeded": 90,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 90,
+          "total": "5246382",
+          "min": "52191",
+          "max": "69315",
+          "average": "58293"
+        },
+        "latencyMs": {
+          "count": 90,
+          "total": 39596,
+          "min": 260,
+          "max": 707,
+          "average": 439.9555555555556
+        }
+      },
+      "whitelistCause": {
+        "attempted": 6,
+        "succeeded": 6,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 6,
+          "total": "725500",
+          "min": "112375",
+          "max": "163625",
+          "average": "120916"
+        },
+        "latencyMs": {
+          "count": 6,
+          "total": 2676,
+          "min": 140,
+          "max": 882,
+          "average": 446
+        }
+      },
+      "withdrawCause": {
+        "attempted": 12,
+        "succeeded": 12,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 12,
+          "total": "954528",
+          "min": "67044",
+          "max": "92044",
+          "average": "79544"
+        },
+        "latencyMs": {
+          "count": 12,
+          "total": 2193,
+          "min": 113,
+          "max": 296,
+          "average": 182.75
+        }
+      },
+      "withdrawTreasury": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "156600",
+          "min": "65800",
+          "max": "90800",
+          "average": "78300"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 431,
+          "min": 114,
+          "max": 317,
+          "average": 215.5
+        }
+      }
+    },
+    "byPhase": {
+      "bootstrap": {
+        "attempted": 26,
+        "succeeded": 26,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 26,
+          "total": "3781936",
+          "min": "112375",
+          "max": "163625",
+          "average": "145459"
+        },
+        "latencyMs": {
+          "count": 26,
+          "total": 16921,
+          "min": 140,
+          "max": 882,
+          "average": 650.8076923076923
+        }
+      },
+      "commit": {
+        "attempted": 108,
+        "succeeded": 108,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 108,
+          "total": "7205940",
+          "min": "44455",
+          "max": "68033",
+          "average": "66721"
+        },
+        "latencyMs": {
+          "count": 108,
+          "total": 50429,
+          "min": 135,
+          "max": 759,
+          "average": 466.93518518518516
+        }
+      },
+      "create": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "341012",
+          "min": "161956",
+          "max": "179056",
+          "average": "170506"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 302,
+          "min": 117,
+          "max": 185,
+          "average": 151
+        }
+      },
+      "deploy": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "11472240",
+          "min": "2141684",
+          "max": "9330556",
+          "average": "5736120"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 109,
+          "min": 50,
+          "max": 59,
+          "average": 54.5
+        }
+      },
+      "joining": {
+        "attempted": 42,
+        "succeeded": 42,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 42,
+          "total": "8911908",
+          "min": "192875",
+          "max": "295428",
+          "average": "212188"
+        },
+        "latencyMs": {
+          "count": 42,
+          "total": 22322,
+          "min": 316,
+          "max": 655,
+          "average": 531.4761904761905
+        }
+      },
+      "reveal": {
+        "attempted": 96,
+        "succeeded": 96,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 96,
+          "total": "8062746",
+          "min": "52191",
+          "max": "508123",
+          "average": "83986"
+        },
+        "latencyMs": {
+          "count": 96,
+          "total": 41702,
+          "min": 212,
+          "max": 707,
+          "average": 434.3958333333333
+        }
+      },
+      "settlement": {
+        "attempted": 54,
+        "succeeded": 54,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 54,
+          "total": "4466248",
+          "min": "65800",
+          "max": "95848",
+          "average": "82708"
+        },
+        "latencyMs": {
+          "count": 54,
+          "total": 17964,
+          "min": 113,
+          "max": 468,
+          "average": 332.6666666666667
+        }
+      }
+    },
+    "byScenario": {
+      "bootstrap": {
+        "attempted": 28,
+        "succeeded": 28,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 28,
+          "total": "15254176",
+          "min": "112375",
+          "max": "9330556",
+          "average": "544792"
+        },
+        "latencyMs": {
+          "count": 28,
+          "total": 17030,
+          "min": 50,
+          "max": 882,
+          "average": 608.2142857142857
+        }
+      },
+      "winner-all-share": {
+        "attempted": 302,
+        "succeeded": 302,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 302,
+          "total": "28987854",
+          "min": "44455",
+          "max": "508123",
+          "average": "95986"
+        },
+        "latencyMs": {
+          "count": 302,
+          "total": 132719,
+          "min": 113,
+          "max": 759,
+          "average": 439.4668874172185
+        }
+      }
+    },
+    "byExpectation": {
+      "success": {
+        "attempted": 330,
+        "succeeded": 330,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 330,
+          "total": "44242030",
+          "min": "44455",
+          "max": "9330556",
+          "average": "134066"
+        },
+        "latencyMs": {
+          "count": 330,
+          "total": 149749,
+          "min": 50,
+          "max": 882,
+          "average": 453.7848484848485
+        }
+      }
+    },
+    "byProbeKind": {
+      "(none)": {
+        "attempted": 330,
+        "succeeded": 330,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 330,
+          "total": "44242030",
+          "min": "44455",
+          "max": "9330556",
+          "average": "134066"
+        },
+        "latencyMs": {
+          "count": 330,
+          "total": 149749,
+          "min": 50,
+          "max": 882,
+          "average": 453.7848484848485
+        }
+      }
+    }
+  },
+  "sameBlockSummary": {
+    "enabled": false,
+    "attemptedBatches": 0,
+    "minedBatches": 0,
+    "attemptedTxs": 0,
+    "succeeded": 0,
+    "expectedFailures": 0,
+    "unexpectedFailures": 0,
+    "unexpectedSuccesses": 0,
+    "onchainReverts": 0,
+    "localRejections": 0,
+    "skipped": 0,
+    "byLabel": [],
+    "byAction": [],
+    "byGame": [
+      {
+        "gameId": 1,
+        "attemptedBatches": 0,
+        "skipped": 0
+      },
+      {
+        "gameId": 2,
+        "attemptedBatches": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "localScaleReadiness": {
+    "requestedPlayerTarget": 20,
+    "profileMaxPlayers": 256,
+    "sequentialGamesCompleted": 2,
+    "maxJoinedPlayersInSingleGame": 20,
+    "maxUsedCausesInSingleGame": 6,
+    "totalJoinedPlayersAcrossRun": 40,
+    "gamesHittingRequestedPlayerTarget": 2,
+    "gamesHittingProfileMaxPlayers": 0,
+    "fullyDrainedGames": 2,
+    "replayConsistentGames": 2,
+    "gamesWithoutUnexpectedFailures": 2,
+    "totalTerminalActions": {
+      "winnerClaimsExecuted": 40,
+      "refundsExecuted": 0,
+      "treasuryWithdrawalsExecuted": 2,
+      "causeWithdrawalsExecuted": 12
+    },
+    "throughput": {
+      "attemptedTxPerSecond": 5.949,
+      "successfulTxPerSecond": 5.949,
+      "failedTxPerSecond": 0
+    },
+    "hotspots": {
+      "highestGasTx": {
+        "action": "deployGame",
+        "phase": "deploy",
+        "scenarioType": null,
+        "gameIndex": null,
+        "gameId": null,
+        "round": null,
+        "wallet": null,
+        "causeId": null,
+        "txHash": "0x0a70b08350dd5f2d6f5aff41c4cd0f48b15cf0c75e295a6d473b65d12ad978b6",
+        "blockNumber": 2,
+        "gasUsed": "9330556",
+        "durationMs": 50
+      },
+      "highestLatencyTx": {
+        "action": "whitelistCause",
+        "phase": "bootstrap",
+        "scenarioType": null,
+        "gameIndex": null,
+        "gameId": null,
+        "round": null,
+        "wallet": null,
+        "causeId": 6,
+        "txHash": "0x30bcca0579c1722714ace1474914b8dc59e5262e68c9dd6b245b494fb4634b32",
+        "blockNumber": 8,
+        "gasUsed": "112375",
+        "durationMs": 882
+      },
+      "byAction": {
+        "deployAuthRegistry": {
+          "action": "deployAuthRegistry",
+          "phase": "deploy",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": null,
+          "txHash": "0x7ada097c7c7de610d04cf368f1d44dbbeb3dc8de8e8fe504268da74ff61dbddb",
+          "blockNumber": 1,
+          "gasUsed": "2141684",
+          "durationMs": 59
+        },
+        "deployGame": {
+          "action": "deployGame",
+          "phase": "deploy",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": null,
+          "txHash": "0x0a70b08350dd5f2d6f5aff41c4cd0f48b15cf0c75e295a6d473b65d12ad978b6",
+          "blockNumber": 2,
+          "gasUsed": "9330556",
+          "durationMs": 50
+        },
+        "whitelistCause": {
+          "action": "whitelistCause",
+          "phase": "bootstrap",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": 1,
+          "txHash": "0xa8434c427fcc5944e89fbb202856c461e54cfd7e7a36768766b34e3636b1de38",
+          "blockNumber": 3,
+          "gasUsed": "163625",
+          "durationMs": 140
+        },
+        "authRegister": {
+          "action": "authRegister",
+          "phase": "bootstrap",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "causeId": null,
+          "txHash": "0x1c12846f69a86030d96a88f7b8987ef004407f6eb77914e59af07f714a4f52f1",
+          "blockNumber": 9,
+          "gasUsed": "152829",
+          "durationMs": 744
+        },
+        "createGame": {
+          "action": "createGame",
+          "phase": "create",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x707b36042adb445cddc2bdf523e8b40413b55194170ad27ae1607cb5b6f9edff",
+          "blockNumber": 20,
+          "gasUsed": "179056",
+          "durationMs": 185
+        },
+        "join": {
+          "action": "join",
+          "phase": "joining",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+          "causeId": 3,
+          "txHash": "0x7b2c7d5d5bae3c68181038099a8e22703b5d965e6984ac229969e3d07afec137",
+          "blockNumber": 21,
+          "gasUsed": "295428",
+          "durationMs": 623
+        },
+        "advanceFromJoining": {
+          "action": "advanceFromJoining",
+          "phase": "joining",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x66f44f40c7cd126ca17fb2fccce7dadd3057665645a97d228c0ba353d979b9e6",
+          "blockNumber": 37,
+          "gasUsed": "239386",
+          "durationMs": 363
+        },
+        "commit": {
+          "action": "commit",
+          "phase": "commit",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "causeId": null,
+          "txHash": "0x33aa1390d5fc6a0266120fb4569c1f0dae9ed00b21dcad40e5ed996a7753688a",
+          "blockNumber": 43,
+          "gasUsed": "68033",
+          "durationMs": 592
+        },
+        "advanceFromCommit": {
+          "action": "advanceFromCommit",
+          "phase": "commit",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0xc80c1a5c352015ea2163aeaa1d70d75c24da7f6b65d7ae02447c9047997037a0",
+          "blockNumber": 79,
+          "gasUsed": "44455",
+          "durationMs": 205
+        },
+        "reveal": {
+          "action": "reveal",
+          "phase": "reveal",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "causeId": null,
+          "txHash": "0x04a488bd3adb9aee6671124c91c21e8a9c2423891ac4aad87d9bf5c8a99be54d",
+          "blockNumber": 85,
+          "gasUsed": "69315",
+          "durationMs": 532
+        },
+        "advanceFromReveal": {
+          "action": "advanceFromReveal",
+          "phase": "reveal",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x53bdd6d894c63904a1a126486cbfe5f4f22ba5adcaaedc1f957e7494da176090",
+          "blockNumber": 121,
+          "gasUsed": "508123",
+          "durationMs": 212
+        },
+        "claim": {
+          "action": "claim",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "causeId": null,
+          "txHash": "0xfccf5f900bd75e5e3db55df2a066e729d749314af0da2880f762e0596b040a27",
+          "blockNumber": 290,
+          "gasUsed": "95848",
+          "durationMs": 292
+        },
+        "withdrawTreasury": {
+          "action": "withdrawTreasury",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0xb816a153d69b80fb76437d04d6cc63938ebb46f803938deefca1f2fb1a7e6989",
+          "blockNumber": 307,
+          "gasUsed": "90800",
+          "durationMs": 317
+        },
+        "withdrawCause": {
+          "action": "withdrawCause",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": 1,
+          "txHash": "0x45b17c164c67a5add17a3091339546df435a70f145a867d7148a7cb5aaf8d49a",
+          "blockNumber": 308,
+          "gasUsed": "92044",
+          "durationMs": 296
+        }
+      }
+    }
+  },
+  "breakageSummary": {
+    "gamesChecked": 2,
+    "gamesWithWedgedActiveSlot": 0,
+    "gamesWithTerminalStateMismatch": 0,
+    "gamesWithAccountingMismatch": 0,
+    "gamesWithPreviewMismatch": 0,
+    "gamesWithDrainMismatch": 0,
+    "gamesWithReplayInconsistency": 0,
+    "gamesWithUnexpectedFailures": 0,
+    "totalUnexpectedFailures": 0,
+    "probeSummary": {
+      "attempted": 0,
+      "failedAsExpected": 0,
+      "unexpectedSuccesses": 0,
+      "onchainReverts": 0,
+      "localRejections": 0
+    },
+    "unexpectedFailureClusters": [],
+    "probeFailureClusters": []
+  },
+  "games": [
+    {
+      "index": 1,
+      "gameId": 1,
+      "scenario": {
+        "type": "winner-all-share",
+        "family": "winner",
+        "description": "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "terminalPath": "winner-claims",
+        "expectedFailuresEnabled": false,
+        "adversarialProbeModeEnabled": false,
+        "registeredPlayers": 20,
+        "plannedJoinedPlayers": 20,
+        "nonJoiningRegisteredPlayers": 0
+      },
+      "adversarialPlan": null,
+      "authChaos": {
+        "enabled": false,
+        "applied": false,
+        "configured": {
+          "staleBundleFailures": 0,
+          "expiredJoinFailures": 0,
+          "ttlSeconds": 0,
+          "applyBeforeGameIndex": null
+        },
+        "gameIndex": 1,
+        "gameId": 1,
+        "timeWarpSeconds": 0,
+        "manualBlocksMined": 0,
+        "staleBundle": {
+          "requested": 0,
+          "planned": 0,
+          "attempted": 0,
+          "failedAsExpected": 0,
+          "unexpectedSuccesses": 0,
+          "players": []
+        },
+        "expiredJoin": {
+          "requested": 0,
+          "planned": 0,
+          "shortAuthRegistrations": 0,
+          "joinAttempts": 0,
+          "failedAsExpected": 0,
+          "localRegisterRejections": 0,
+          "unexpectedSuccesses": 0,
+          "refreshedRegistrations": 0,
+          "players": []
+        },
+        "skipped": []
+      },
+      "wallClockMs": 22329,
+      "blocks": {
+        "start": 19,
+        "end": 313,
+        "mined": 294,
+        "manualMined": 165
+      },
+      "playerCount": 20,
+      "joinedPlayerCount": 20,
+      "causeCount": 6,
+      "causeDistribution": [
+        {
+          "causeId": 1,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 2,
+          "entrantCount": 4
+        },
+        {
+          "causeId": 3,
+          "entrantCount": 4
+        },
+        {
+          "causeId": 4,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 5,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 6,
+          "entrantCount": 3
+        }
+      ],
+      "phaseTimingMs": {
+        "joining": 2198,
+        "settlement": 2902,
+        "exportEvidence": 1551
+      },
+      "deadlineMisses": {
+        "commitRounds": 3,
+        "revealRounds": 3,
+        "skippedCommits": 9,
+        "skippedReveals": 4
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "wallClockMs": 4920,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 18,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 16,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 18,
+            "skipped": 2,
+            "skippedWallets": [
+              "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+              "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2466,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 1
+            }
+          },
+          "reveal": {
+            "submitted": 16,
+            "skipped": 2,
+            "skippedWallets": [
+              "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+              "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 2222,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 2,
+              "shareStreak": 1
+            }
+          }
+        },
+        {
+          "round": 2,
+          "wallClockMs": 4579,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 16,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 15,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 16,
+            "skipped": 4,
+            "skippedWallets": [
+              "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+              "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+              "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+              "0xdD2FD4581271e230360230F9337D5c0430Bf44C0"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2260,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 2
+            }
+          },
+          "reveal": {
+            "submitted": 15,
+            "skipped": 1,
+            "skippedWallets": [
+              "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 2193,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 3,
+              "shareStreak": 2
+            }
+          }
+        },
+        {
+          "round": 3,
+          "wallClockMs": 4717,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 17,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 16,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 17,
+            "skipped": 3,
+            "skippedWallets": [
+              "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+              "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+              "0x71bE63f3384f5fb98995898A86B02Fb2426c5788"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2590,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 3
+            }
+          },
+          "reveal": {
+            "submitted": 16,
+            "skipped": 1,
+            "skippedWallets": [
+              "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 2001,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Ended",
+              "outcome": "Winners",
+              "round": 3,
+              "shareStreak": 3
+            }
+          }
+        }
+      ],
+      "claims": {
+        "succeeded": 20,
+        "totalGrossPrizeWei": "198000000000000000",
+        "totalCauseCutWei": "1980000000000000",
+        "totalNetPrizeWei": "196020000000000000",
+        "byCause": [
+          {
+            "causeId": 1,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 2,
+            "claims": 4,
+            "grossPrizeWei": "39600000000000000",
+            "causeCutWei": "396000000000000",
+            "netPrizeWei": "39204000000000000"
+          },
+          {
+            "causeId": 3,
+            "claims": 4,
+            "grossPrizeWei": "39600000000000000",
+            "causeCutWei": "396000000000000",
+            "netPrizeWei": "39204000000000000"
+          },
+          {
+            "causeId": 4,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 5,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 6,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          }
+        ]
+      },
+      "refunds": {
+        "succeeded": 0,
+        "totalRefundWei": "0"
+      },
+      "withdrawals": {
+        "treasury": {
+          "executed": true,
+          "amountWei": "2000000000000000",
+          "recipient": "0xA1196426b41627ae75Ea7f7409E074BE97367da2"
+        },
+        "causes": {
+          "succeeded": 6,
+          "totalAmountWei": "1980000000000000",
+          "byCause": [
+            {
+              "causeId": 1,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x9eF6c02FB2ECc446146E05F1fF687a788a8BF76d"
+            },
+            {
+              "causeId": 2,
+              "withdrawals": 1,
+              "amountWei": "396000000000000",
+              "recipient": "0x08A2DE6F3528319123b25935C92888B16db8913E"
+            },
+            {
+              "causeId": 3,
+              "withdrawals": 1,
+              "amountWei": "396000000000000",
+              "recipient": "0xe141C82D99D85098e03E1a1cC1CdE676556fDdE0"
+            },
+            {
+              "causeId": 4,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x4b23D303D9e3719D6CDf8d172Ea030F80509ea15"
+            },
+            {
+              "causeId": 5,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0xC004e69C5C04A223463Ff32042dd36DabF63A25a"
+            },
+            {
+              "causeId": 6,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x5eb15C0992734B5e77c888D713b4FC67b3D679A2"
+            }
+          ]
+        }
+      },
+      "terminalActions": {
+        "path": "winner-claims",
+        "winnerClaimsExecuted": 20,
+        "refundsExecuted": 0,
+        "treasuryWithdrawalExecuted": true,
+        "causeWithdrawalsExecuted": 6
+      },
+      "expectedFailures": {
+        "enabled": false,
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0
+      },
+      "probes": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byKind": [],
+        "byAction": [],
+        "byPhase": []
+      },
+      "sameBlock": {
+        "enabled": false,
+        "attemptedBatches": 0,
+        "minedBatches": 0,
+        "attemptedTxs": 0,
+        "succeeded": 0,
+        "expectedFailures": 0,
+        "unexpectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byLabel": [],
+        "byAction": [],
+        "skipped": 0,
+        "skippedReasons": [],
+        "batches": []
+      },
+      "txSummary": {
+        "attempted": 153,
+        "succeeded": 153,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 153,
+          "total": "14695121",
+          "min": "44455",
+          "max": "508123",
+          "average": "96046"
+        },
+        "latencyMs": {
+          "count": 153,
+          "total": 73956,
+          "min": 133,
+          "max": 759,
+          "average": 483.37254901960785
+        },
+        "byAction": {
+          "advanceFromCommit": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "133365",
+              "min": "44455",
+              "max": "44455",
+              "average": "44455"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 623,
+              "min": 135,
+              "max": 283,
+              "average": 207.66666666666666
+            }
+          },
+          "advanceFromJoining": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "239386",
+              "min": "239386",
+              "max": "239386",
+              "average": "239386"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 363,
+              "min": 363,
+              "max": 363,
+              "average": 363
+            }
+          },
+          "advanceFromReveal": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "1408842",
+              "min": "437577",
+              "max": "508123",
+              "average": "469614"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 941,
+              "min": 212,
+              "max": 377,
+              "average": 313.6666666666667
+            }
+          },
+          "claim": {
+            "attempted": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 20,
+              "total": "1677560",
+              "min": "78748",
+              "max": "95848",
+              "average": "83878"
+            },
+            "latencyMs": {
+              "count": 20,
+              "total": 7214,
+              "min": 292,
+              "max": 445,
+              "average": 360.7
+            }
+          },
+          "commit": {
+            "attempted": 51,
+            "succeeded": 51,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 51,
+              "total": "3469647",
+              "min": "68021",
+              "max": "68033",
+              "average": "68032"
+            },
+            "latencyMs": {
+              "count": 51,
+              "total": 28239,
+              "min": 284,
+              "max": 759,
+              "average": 553.7058823529412
+            }
+          },
+          "createGame": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "179056",
+              "min": "179056",
+              "max": "179056",
+              "average": "179056"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 185,
+              "min": 185,
+              "max": 185,
+              "average": 185
+            }
+          },
+          "join": {
+            "attempted": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 20,
+              "total": "4216568",
+              "min": "192875",
+              "max": "295428",
+              "average": "210828"
+            },
+            "latencyMs": {
+              "count": 20,
+              "total": 12402,
+              "min": 544,
+              "max": 655,
+              "average": 620.1
+            }
+          },
+          "reveal": {
+            "attempted": 47,
+            "succeeded": 47,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 47,
+              "total": "2727633",
+              "min": "52191",
+              "max": "69315",
+              "average": "58034"
+            },
+            "latencyMs": {
+              "count": 47,
+              "total": 22438,
+              "min": 260,
+              "max": 707,
+              "average": 477.40425531914894
+            }
+          },
+          "withdrawCause": {
+            "attempted": 6,
+            "succeeded": 6,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "552264",
+              "min": "92044",
+              "max": "92044",
+              "average": "92044"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 1234,
+              "min": 133,
+              "max": 296,
+              "average": 205.66666666666666
+            }
+          },
+          "withdrawTreasury": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "90800",
+              "min": "90800",
+              "max": "90800",
+              "average": "90800"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 317,
+              "min": 317,
+              "max": 317,
+              "average": 317
+            }
+          }
+        },
+        "byPhase": {
+          "commit": {
+            "attempted": 54,
+            "succeeded": 54,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 54,
+              "total": "3603012",
+              "min": "44455",
+              "max": "68033",
+              "average": "66722"
+            },
+            "latencyMs": {
+              "count": 54,
+              "total": 28862,
+              "min": 135,
+              "max": 759,
+              "average": 534.4814814814815
+            }
+          },
+          "create": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "179056",
+              "min": "179056",
+              "max": "179056",
+              "average": "179056"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 185,
+              "min": 185,
+              "max": 185,
+              "average": 185
+            }
+          },
+          "joining": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "4455954",
+              "min": "192875",
+              "max": "295428",
+              "average": "212188"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 12765,
+              "min": 363,
+              "max": 655,
+              "average": 607.8571428571429
+            }
+          },
+          "reveal": {
+            "attempted": 50,
+            "succeeded": 50,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 50,
+              "total": "4136475",
+              "min": "52191",
+              "max": "508123",
+              "average": "82729"
+            },
+            "latencyMs": {
+              "count": 50,
+              "total": 23379,
+              "min": 212,
+              "max": 707,
+              "average": 467.58
+            }
+          },
+          "settlement": {
+            "attempted": 27,
+            "succeeded": 27,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 27,
+              "total": "2320624",
+              "min": "78748",
+              "max": "95848",
+              "average": "85949"
+            },
+            "latencyMs": {
+              "count": 27,
+              "total": 8765,
+              "min": 133,
+              "max": 445,
+              "average": 324.6296296296296
+            }
+          }
+        },
+        "byScenario": {
+          "winner-all-share": {
+            "attempted": 153,
+            "succeeded": 153,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 153,
+              "total": "14695121",
+              "min": "44455",
+              "max": "508123",
+              "average": "96046"
+            },
+            "latencyMs": {
+              "count": 153,
+              "total": 73956,
+              "min": 133,
+              "max": 759,
+              "average": 483.37254901960785
+            }
+          }
+        },
+        "byExpectation": {
+          "success": {
+            "attempted": 153,
+            "succeeded": 153,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 153,
+              "total": "14695121",
+              "min": "44455",
+              "max": "508123",
+              "average": "96046"
+            },
+            "latencyMs": {
+              "count": 153,
+              "total": 73956,
+              "min": 133,
+              "max": 759,
+              "average": 483.37254901960785
+            }
+          }
+        },
+        "byProbeKind": {
+          "(none)": {
+            "attempted": 153,
+            "succeeded": 153,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 153,
+              "total": "14695121",
+              "min": "44455",
+              "max": "508123",
+              "average": "96046"
+            },
+            "latencyMs": {
+              "count": 153,
+              "total": 73956,
+              "min": 133,
+              "max": 759,
+              "average": 483.37254901960785
+            }
+          }
+        }
+      },
+      "resultState": {
+        "phase": "Ended",
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "round": 3,
+        "shareStreak": 3,
+        "counts": {
+          "joined": 20,
+          "alive": 20,
+          "claimed": 20,
+          "refunded": 0,
+          "usedCauses": 6,
+          "committed": 17,
+          "revealed": 16,
+          "messages": 0
+        },
+        "settlement": {
+          "finalized": true,
+          "terminalPath": "winner-claims",
+          "totalPotWei": "200000000000000000",
+          "creatorFeeWei": "2000000000000000",
+          "treasuryAccruedWei": "2000000000000000",
+          "treasuryWithdrawnWei": "2000000000000000",
+          "treasuryClaimableWei": "0",
+          "winnerCount": 20,
+          "winnerShareWei": "9900000000000000",
+          "refundPerPlayerWei": "0",
+          "noWinnerCausePoolWei": "0",
+          "noWinnerCauseDistributedWei": "0"
+        }
+      },
+      "postRunOutstanding": {
+        "treasuryClaimableWei": "0",
+        "totalCauseClaimableWei": "0",
+        "unclaimedWinnerCount": 0,
+        "pendingRefundCount": 0,
+        "fullyDrainedByHarness": true
+      },
+      "replayConsistency": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "joinedCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "usedCauses",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "settlementFinalized",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "totalPotWei",
+            "expected": "200000000000000000",
+            "actual": "200000000000000000",
+            "ok": true
+          },
+          {
+            "name": "phase",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "name": "outcome",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "name": "terminalPath",
+            "expected": "winner-claims",
+            "actual": "winner-claims",
+            "ok": true
+          },
+          {
+            "name": "shareStreak",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "aliveCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "winnerCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "claimPathAvailable",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "claimedCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "claimedWinnerCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "grossClaimsVsWinnerShare",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossEqualsNetPlusCauseCut",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossClaimsAgreeWithEvidence",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnWei",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryClaimableWei",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeClaimableWeiAfterWithdrawals",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawnWei",
+            "expected": "1980000000000000",
+            "actual": "1980000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnAgreeWithHarness",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawalsAgreeWithHarness",
+            "expected": "1980000000000000",
+            "actual": "1980000000000000",
+            "ok": true
+          }
+        ]
+      },
+      "breakageChecks": {
+        "ok": true,
+        "checks": [
+          {
+            "category": "slot",
+            "name": "activeGameIdCleared",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "slot",
+            "name": "currentGameIdAtLeastGameId",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "phaseMatchesEvidence",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "outcomeMatchesEvidence",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "roundMatchesEvidence",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "treasuryAccruedEqualsClaimablePlusWithdrawn",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-3-routedEqualsClaimablePlusWithdrawn",
+            "expected": "396000000000000",
+            "actual": "396000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-3-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-4-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-4-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-2-routedEqualsClaimablePlusWithdrawn",
+            "expected": "396000000000000",
+            "actual": "396000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-2-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-5-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-5-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-6-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-6-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-1-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-1-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "treasuryClaimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "unclaimedWinnerCountAfterCleanup",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "treasuryClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "causeClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          }
+        ],
+        "categories": {
+          "slot": {
+            "ok": true,
+            "failed": [],
+            "total": 2
+          },
+          "terminal": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          },
+          "accounting": {
+            "ok": true,
+            "failed": [],
+            "total": 7
+          },
+          "preview": {
+            "ok": true,
+            "failed": [],
+            "total": 87
+          },
+          "drain": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          }
+        },
+        "slotState": {
+          "activeGameId": 0,
+          "currentGameId": 1
+        }
+      },
+      "evidence": {
+        "outputDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence",
+        "manifestPath": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/export-manifest.json",
+        "produced": [
+          {
+            "artifact": "game-summary.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/game-summary.json"
+          },
+          {
+            "artifact": "roster.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/roster.json"
+          },
+          {
+            "artifact": "causes.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/causes.json"
+          },
+          {
+            "artifact": "rounds.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/rounds.json"
+          },
+          {
+            "artifact": "auth.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/auth.json"
+          },
+          {
+            "artifact": "payouts.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/payouts.json"
+          },
+          {
+            "artifact": "export-manifest.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-1/evidence/export-manifest.json"
+          }
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      },
+      "notes": [
+        "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads.",
+        "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable.",
+        "Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: joining:early advance probe skipped, joining:late join probe skipped, joining:advance burst skipped."
+      ]
+    },
+    {
+      "index": 2,
+      "gameId": 2,
+      "scenario": {
+        "type": "winner-all-share",
+        "family": "winner",
+        "description": "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "terminalPath": "winner-claims",
+        "expectedFailuresEnabled": false,
+        "adversarialProbeModeEnabled": false,
+        "registeredPlayers": 20,
+        "plannedJoinedPlayers": 20,
+        "nonJoiningRegisteredPlayers": 0
+      },
+      "adversarialPlan": null,
+      "authChaos": {
+        "enabled": false,
+        "applied": false,
+        "configured": {
+          "staleBundleFailures": 0,
+          "expiredJoinFailures": 0,
+          "ttlSeconds": 0,
+          "applyBeforeGameIndex": null
+        },
+        "gameIndex": 2,
+        "gameId": 2,
+        "timeWarpSeconds": 0,
+        "manualBlocksMined": 0,
+        "staleBundle": {
+          "requested": 0,
+          "planned": 0,
+          "attempted": 0,
+          "failedAsExpected": 0,
+          "unexpectedSuccesses": 0,
+          "players": []
+        },
+        "expiredJoin": {
+          "requested": 0,
+          "planned": 0,
+          "shortAuthRegistrations": 0,
+          "joinAttempts": 0,
+          "failedAsExpected": 0,
+          "localRegisterRejections": 0,
+          "unexpectedSuccesses": 0,
+          "refreshedRegistrations": 0,
+          "players": []
+        },
+        "skipped": []
+      },
+      "wallClockMs": 20514,
+      "blocks": {
+        "start": 313,
+        "end": 605,
+        "mined": 292,
+        "manualMined": 175
+      },
+      "playerCount": 20,
+      "joinedPlayerCount": 20,
+      "causeCount": 6,
+      "causeDistribution": [
+        {
+          "causeId": 1,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 2,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 3,
+          "entrantCount": 4
+        },
+        {
+          "causeId": 4,
+          "entrantCount": 4
+        },
+        {
+          "causeId": 5,
+          "entrantCount": 3
+        },
+        {
+          "causeId": 6,
+          "entrantCount": 3
+        }
+      ],
+      "phaseTimingMs": {
+        "joining": 1803,
+        "settlement": 2327,
+        "exportEvidence": 705
+      },
+      "deadlineMisses": {
+        "commitRounds": 3,
+        "revealRounds": 3,
+        "skippedCommits": 9,
+        "skippedReveals": 8
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "wallClockMs": 4664,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 17,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 16,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 17,
+            "skipped": 3,
+            "skippedWallets": [
+              "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+              "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+              "0x2546BcD3c84621e976D8185a91A922aE77ECEc30"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2543,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 1
+            }
+          },
+          "reveal": {
+            "submitted": 16,
+            "skipped": 1,
+            "skippedWallets": [
+              "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 1898,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 2,
+              "shareStreak": 1
+            }
+          }
+        },
+        {
+          "round": 2,
+          "wallClockMs": 4714,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 16,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 15,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 16,
+            "skipped": 4,
+            "skippedWallets": [
+              "0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+              "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+              "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+              "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2237,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 2
+            }
+          },
+          "reveal": {
+            "submitted": 15,
+            "skipped": 1,
+            "skippedWallets": [
+              "0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 2366,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 3,
+              "shareStreak": 2
+            }
+          }
+        },
+        {
+          "round": 3,
+          "wallClockMs": 5384,
+          "choicePlan": {
+            "activePlayers": 20,
+            "intendedCounts": {
+              "Share": 20,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 18,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 12,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 18,
+            "skipped": 2,
+            "skippedWallets": [
+              "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+              "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+            ],
+            "deadlineHit": true,
+            "durationMs": 2824,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 3
+            }
+          },
+          "reveal": {
+            "submitted": 12,
+            "skipped": 6,
+            "skippedWallets": [
+              "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+              "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+              "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+              "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+              "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+              "0x2546BcD3c84621e976D8185a91A922aE77ECEc30"
+            ],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": true,
+            "durationMs": 2308,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Ended",
+              "outcome": "Winners",
+              "round": 3,
+              "shareStreak": 3
+            }
+          }
+        }
+      ],
+      "claims": {
+        "succeeded": 20,
+        "totalGrossPrizeWei": "198000000000000000",
+        "totalCauseCutWei": "1980000000000000",
+        "totalNetPrizeWei": "196020000000000000",
+        "byCause": [
+          {
+            "causeId": 1,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 2,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 3,
+            "claims": 4,
+            "grossPrizeWei": "39600000000000000",
+            "causeCutWei": "396000000000000",
+            "netPrizeWei": "39204000000000000"
+          },
+          {
+            "causeId": 4,
+            "claims": 4,
+            "grossPrizeWei": "39600000000000000",
+            "causeCutWei": "396000000000000",
+            "netPrizeWei": "39204000000000000"
+          },
+          {
+            "causeId": 5,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          },
+          {
+            "causeId": 6,
+            "claims": 3,
+            "grossPrizeWei": "29700000000000000",
+            "causeCutWei": "297000000000000",
+            "netPrizeWei": "29403000000000000"
+          }
+        ]
+      },
+      "refunds": {
+        "succeeded": 0,
+        "totalRefundWei": "0"
+      },
+      "withdrawals": {
+        "treasury": {
+          "executed": true,
+          "amountWei": "2000000000000000",
+          "recipient": "0xA1196426b41627ae75Ea7f7409E074BE97367da2"
+        },
+        "causes": {
+          "succeeded": 6,
+          "totalAmountWei": "1980000000000000",
+          "byCause": [
+            {
+              "causeId": 1,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x9eF6c02FB2ECc446146E05F1fF687a788a8BF76d"
+            },
+            {
+              "causeId": 2,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x08A2DE6F3528319123b25935C92888B16db8913E"
+            },
+            {
+              "causeId": 3,
+              "withdrawals": 1,
+              "amountWei": "396000000000000",
+              "recipient": "0xe141C82D99D85098e03E1a1cC1CdE676556fDdE0"
+            },
+            {
+              "causeId": 4,
+              "withdrawals": 1,
+              "amountWei": "396000000000000",
+              "recipient": "0x4b23D303D9e3719D6CDf8d172Ea030F80509ea15"
+            },
+            {
+              "causeId": 5,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0xC004e69C5C04A223463Ff32042dd36DabF63A25a"
+            },
+            {
+              "causeId": 6,
+              "withdrawals": 1,
+              "amountWei": "297000000000000",
+              "recipient": "0x5eb15C0992734B5e77c888D713b4FC67b3D679A2"
+            }
+          ]
+        }
+      },
+      "terminalActions": {
+        "path": "winner-claims",
+        "winnerClaimsExecuted": 20,
+        "refundsExecuted": 0,
+        "treasuryWithdrawalExecuted": true,
+        "causeWithdrawalsExecuted": 6
+      },
+      "expectedFailures": {
+        "enabled": false,
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0
+      },
+      "probes": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byKind": [],
+        "byAction": [],
+        "byPhase": []
+      },
+      "sameBlock": {
+        "enabled": false,
+        "attemptedBatches": 0,
+        "minedBatches": 0,
+        "attemptedTxs": 0,
+        "succeeded": 0,
+        "expectedFailures": 0,
+        "unexpectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byLabel": [],
+        "byAction": [],
+        "skipped": 0,
+        "skippedReasons": [],
+        "batches": []
+      },
+      "txSummary": {
+        "attempted": 149,
+        "succeeded": 149,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 149,
+          "total": "14292733",
+          "min": "44455",
+          "max": "507115",
+          "average": "95924"
+        },
+        "latencyMs": {
+          "count": 149,
+          "total": 58763,
+          "min": 113,
+          "max": 603,
+          "average": 394.38255033557044
+        },
+        "byAction": {
+          "advanceFromCommit": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "133365",
+              "min": "44455",
+              "max": "44455",
+              "average": "44455"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 652,
+              "min": 183,
+              "max": 274,
+              "average": 217.33333333333334
+            }
+          },
+          "advanceFromJoining": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "239386",
+              "min": "239386",
+              "max": "239386",
+              "average": "239386"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 335,
+              "min": 335,
+              "max": 335,
+              "average": 335
+            }
+          },
+          "advanceFromReveal": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "1407522",
+              "min": "437577",
+              "max": "507115",
+              "average": "469174"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 1165,
+              "min": 264,
+              "max": 465,
+              "average": 388.3333333333333
+            }
+          },
+          "claim": {
+            "attempted": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 20,
+              "total": "1677560",
+              "min": "78748",
+              "max": "95848",
+              "average": "83878"
+            },
+            "latencyMs": {
+              "count": 20,
+              "total": 8126,
+              "min": 313,
+              "max": 468,
+              "average": 406.3
+            }
+          },
+          "commit": {
+            "attempted": 51,
+            "succeeded": 51,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 51,
+              "total": "3469563",
+              "min": "67997",
+              "max": "68033",
+              "average": "68030"
+            },
+            "latencyMs": {
+              "count": 51,
+              "total": 20915,
+              "min": 294,
+              "max": 552,
+              "average": 410.0980392156863
+            }
+          },
+          "createGame": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 117,
+              "min": 117,
+              "max": 117,
+              "average": 117
+            }
+          },
+          "join": {
+            "attempted": 20,
+            "succeeded": 20,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 20,
+              "total": "4216568",
+              "min": "192875",
+              "max": "295428",
+              "average": "210828"
+            },
+            "latencyMs": {
+              "count": 20,
+              "total": 9222,
+              "min": 316,
+              "max": 603,
+              "average": 461.1
+            }
+          },
+          "reveal": {
+            "attempted": 43,
+            "succeeded": 43,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 43,
+              "total": "2518749",
+              "min": "52203",
+              "max": "69315",
+              "average": "58575"
+            },
+            "latencyMs": {
+              "count": 43,
+              "total": 17158,
+              "min": 298,
+              "max": 485,
+              "average": 399.0232558139535
+            }
+          },
+          "withdrawCause": {
+            "attempted": 6,
+            "succeeded": 6,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "402264",
+              "min": "67044",
+              "max": "67044",
+              "average": "67044"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 959,
+              "min": 113,
+              "max": 223,
+              "average": 159.83333333333334
+            }
+          },
+          "withdrawTreasury": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "65800",
+              "min": "65800",
+              "max": "65800",
+              "average": "65800"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 114,
+              "min": 114,
+              "max": 114,
+              "average": 114
+            }
+          }
+        },
+        "byPhase": {
+          "commit": {
+            "attempted": 54,
+            "succeeded": 54,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 54,
+              "total": "3602928",
+              "min": "44455",
+              "max": "68033",
+              "average": "66720"
+            },
+            "latencyMs": {
+              "count": 54,
+              "total": 21567,
+              "min": 183,
+              "max": 552,
+              "average": 399.3888888888889
+            }
+          },
+          "create": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 117,
+              "min": 117,
+              "max": 117,
+              "average": 117
+            }
+          },
+          "joining": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "4455954",
+              "min": "192875",
+              "max": "295428",
+              "average": "212188"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 9557,
+              "min": 316,
+              "max": 603,
+              "average": 455.0952380952381
+            }
+          },
+          "reveal": {
+            "attempted": 46,
+            "succeeded": 46,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 46,
+              "total": "3926271",
+              "min": "52203",
+              "max": "507115",
+              "average": "85353"
+            },
+            "latencyMs": {
+              "count": 46,
+              "total": 18323,
+              "min": 264,
+              "max": 485,
+              "average": 398.32608695652175
+            }
+          },
+          "settlement": {
+            "attempted": 27,
+            "succeeded": 27,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 27,
+              "total": "2145624",
+              "min": "65800",
+              "max": "95848",
+              "average": "79467"
+            },
+            "latencyMs": {
+              "count": 27,
+              "total": 9199,
+              "min": 113,
+              "max": 468,
+              "average": 340.7037037037037
+            }
+          }
+        },
+        "byScenario": {
+          "winner-all-share": {
+            "attempted": 149,
+            "succeeded": 149,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 149,
+              "total": "14292733",
+              "min": "44455",
+              "max": "507115",
+              "average": "95924"
+            },
+            "latencyMs": {
+              "count": 149,
+              "total": 58763,
+              "min": 113,
+              "max": 603,
+              "average": 394.38255033557044
+            }
+          }
+        },
+        "byExpectation": {
+          "success": {
+            "attempted": 149,
+            "succeeded": 149,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 149,
+              "total": "14292733",
+              "min": "44455",
+              "max": "507115",
+              "average": "95924"
+            },
+            "latencyMs": {
+              "count": 149,
+              "total": 58763,
+              "min": 113,
+              "max": 603,
+              "average": 394.38255033557044
+            }
+          }
+        },
+        "byProbeKind": {
+          "(none)": {
+            "attempted": 149,
+            "succeeded": 149,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 149,
+              "total": "14292733",
+              "min": "44455",
+              "max": "507115",
+              "average": "95924"
+            },
+            "latencyMs": {
+              "count": 149,
+              "total": 58763,
+              "min": 113,
+              "max": 603,
+              "average": 394.38255033557044
+            }
+          }
+        }
+      },
+      "resultState": {
+        "phase": "Ended",
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "round": 3,
+        "shareStreak": 3,
+        "counts": {
+          "joined": 20,
+          "alive": 20,
+          "claimed": 20,
+          "refunded": 0,
+          "usedCauses": 6,
+          "committed": 18,
+          "revealed": 12,
+          "messages": 0
+        },
+        "settlement": {
+          "finalized": true,
+          "terminalPath": "winner-claims",
+          "totalPotWei": "200000000000000000",
+          "creatorFeeWei": "2000000000000000",
+          "treasuryAccruedWei": "2000000000000000",
+          "treasuryWithdrawnWei": "2000000000000000",
+          "treasuryClaimableWei": "0",
+          "winnerCount": 20,
+          "winnerShareWei": "9900000000000000",
+          "refundPerPlayerWei": "0",
+          "noWinnerCausePoolWei": "0",
+          "noWinnerCauseDistributedWei": "0"
+        }
+      },
+      "postRunOutstanding": {
+        "treasuryClaimableWei": "0",
+        "totalCauseClaimableWei": "0",
+        "unclaimedWinnerCount": 0,
+        "pendingRefundCount": 0,
+        "fullyDrainedByHarness": true
+      },
+      "replayConsistency": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "joinedCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "usedCauses",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "settlementFinalized",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "totalPotWei",
+            "expected": "200000000000000000",
+            "actual": "200000000000000000",
+            "ok": true
+          },
+          {
+            "name": "phase",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "name": "outcome",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "name": "terminalPath",
+            "expected": "winner-claims",
+            "actual": "winner-claims",
+            "ok": true
+          },
+          {
+            "name": "shareStreak",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "aliveCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "winnerCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "claimPathAvailable",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "claimedCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "claimedWinnerCount",
+            "expected": 20,
+            "actual": 20,
+            "ok": true
+          },
+          {
+            "name": "grossClaimsVsWinnerShare",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossEqualsNetPlusCauseCut",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossClaimsAgreeWithEvidence",
+            "expected": "198000000000000000",
+            "actual": "198000000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnWei",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryClaimableWei",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeClaimableWeiAfterWithdrawals",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawnWei",
+            "expected": "1980000000000000",
+            "actual": "1980000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnAgreeWithHarness",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawalsAgreeWithHarness",
+            "expected": "1980000000000000",
+            "actual": "1980000000000000",
+            "ok": true
+          }
+        ]
+      },
+      "breakageChecks": {
+        "ok": true,
+        "checks": [
+          {
+            "category": "slot",
+            "name": "activeGameIdCleared",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "slot",
+            "name": "currentGameIdAtLeastGameId",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "phaseMatchesEvidence",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "outcomeMatchesEvidence",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "roundMatchesEvidence",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "treasuryAccruedEqualsClaimablePlusWithdrawn",
+            "expected": "2000000000000000",
+            "actual": "2000000000000000",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-3-routedEqualsClaimablePlusWithdrawn",
+            "expected": "396000000000000",
+            "actual": "396000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-3-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-6-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-6-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-4-routedEqualsClaimablePlusWithdrawn",
+            "expected": "396000000000000",
+            "actual": "396000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-4-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-1-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-1-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-2-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-2-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-5-routedEqualsClaimablePlusWithdrawn",
+            "expected": "297000000000000",
+            "actual": "297000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-5-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "treasuryClaimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x09DB0a93B389bEF724429898f539AEB7ac2Dd55f",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x02484cb50AAC86Eae85610D6f4Bf026f30f6627D",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "unclaimedWinnerCountAfterCleanup",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "treasuryClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "causeClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          }
+        ],
+        "categories": {
+          "slot": {
+            "ok": true,
+            "failed": [],
+            "total": 2
+          },
+          "terminal": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          },
+          "accounting": {
+            "ok": true,
+            "failed": [],
+            "total": 7
+          },
+          "preview": {
+            "ok": true,
+            "failed": [],
+            "total": 87
+          },
+          "drain": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          }
+        },
+        "slotState": {
+          "activeGameId": 0,
+          "currentGameId": 2
+        }
+      },
+      "evidence": {
+        "outputDir": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence",
+        "manifestPath": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/export-manifest.json",
+        "produced": [
+          {
+            "artifact": "game-summary.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/game-summary.json"
+          },
+          {
+            "artifact": "roster.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/roster.json"
+          },
+          {
+            "artifact": "causes.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/causes.json"
+          },
+          {
+            "artifact": "rounds.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/rounds.json"
+          },
+          {
+            "artifact": "auth.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/auth.json"
+          },
+          {
+            "artifact": "payouts.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/payouts.json"
+          },
+          {
+            "artifact": "export-manifest.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/load-harness-matrix/20260316-host-local-saturation-c7-attempt/runs/06-scale-winner-b/game-2/evidence/export-manifest.json"
+          }
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      },
+      "notes": [
+        "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads.",
+        "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable.",
+        "Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: joining:early advance probe skipped, joining:late join probe skipped, joining:advance burst skipped."
+      ]
+    }
+  ]
+}

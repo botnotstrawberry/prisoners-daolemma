@@ -1,0 +1,331 @@
+{
+  "gameId": 4,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 380,
+      "timestamp": 1773640332
+    },
+    "logRange": {
+      "requestedFromBlock": 193,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 193,
+      "resolvedToBlock": 380,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "participants": [
+    {
+      "wallet": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+      "agentKey": "0x8dc5ea5babceef73084a91763c50524c146f2df4ad21e1b8af3f2200c80ff57d",
+      "causeId": 2,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x72c92887af4b6f84e2fdf9dbbbf76250d958ea53fea6d58abe9489589afa799a",
+      "revealedChoice": "Steal",
+      "revealedChoiceCode": 3,
+      "effectiveChoice": "Steal",
+      "effectiveChoiceCode": 3,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0x8dc5ea5babceef73084a91763c50524c146f2df4ad21e1b8af3f2200c80ff57d",
+          "manifestHash": "0x3147d472a8beabb3ce21c22c2b8947c15ac1c8137d0f216d4da52a9713ec2494",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+      "agentKey": "0x18d2e4e6bf614156289706ba6638ad9897c39f050287235ba6885869dd871528",
+      "causeId": 3,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0xe69cc4665b71821ad094ad02b02f4cfce03ecf3f8006685eb7aa1c4cfe68dc83",
+      "revealedChoice": "Catch",
+      "revealedChoiceCode": 2,
+      "effectiveChoice": "Catch",
+      "effectiveChoiceCode": 2,
+      "lastChoiceRound": 4,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0x18d2e4e6bf614156289706ba6638ad9897c39f050287235ba6885869dd871528",
+          "manifestHash": "0x2419207a1b61c035f1b8095f5216c65c3d7c0cf9cb305c84d643f02446cd7832",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+      "agentKey": "0xffe6b34fc09a58147115c38de20aaab8840d6fe629159f525af9b40ca59e3f31",
+      "causeId": 4,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x4892eb5cb9b558013f4a9bce75c30be9e84ebfac5709abecef415f4bd81a71ae",
+      "revealedChoice": "Steal",
+      "revealedChoiceCode": 3,
+      "effectiveChoice": "Steal",
+      "effectiveChoiceCode": 3,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xffe6b34fc09a58147115c38de20aaab8840d6fe629159f525af9b40ca59e3f31",
+          "manifestHash": "0x73ae62fb0c3679abd2570f96a6639cce96044ad3457e654776ad5fd7e32ffe18",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+      "agentKey": "0xb3e7434f07ad38fafee33da45efab0e279ed470eec226e29fe489d76951351bb",
+      "causeId": 4,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x011f3ed0c549d22cb88da7b3c06993cda9e2c964c832b807f071037ac09058a7",
+      "revealedChoice": "Catch",
+      "revealedChoiceCode": 2,
+      "effectiveChoice": "Catch",
+      "effectiveChoiceCode": 2,
+      "lastChoiceRound": 3,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xb3e7434f07ad38fafee33da45efab0e279ed470eec226e29fe489d76951351bb",
+          "manifestHash": "0xba1ce38f93d8581ca8971c6fb4476fcd7ad89ad3a394f128b15aa9a3e52ebca8",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+      "agentKey": "0xa6920cf66552010877b411f32726eedb929823768886a5271cd4fa16c05ea1b2",
+      "causeId": 1,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x3bff412871a6cbcf540a634693f45e1e1b81bf2fe6ff6c8615bf29d54b043fc3",
+      "revealedChoice": "Steal",
+      "revealedChoiceCode": 3,
+      "effectiveChoice": "Steal",
+      "effectiveChoiceCode": 3,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xa6920cf66552010877b411f32726eedb929823768886a5271cd4fa16c05ea1b2",
+          "manifestHash": "0x0b57788ee977376f8929329865d6eed7d3911d3a6d686ba16f30eb008577bde9",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+      "agentKey": "0x95b62347280c0247c05d3d3ef6324aebeaa0161c454df2b87f79281d09ab26cc",
+      "causeId": 4,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": false,
+      "commitment": "0x9090d50782a81f81656c3466bba921a9a8a4658e2863702affd8de3eebef4d6c",
+      "revealedChoice": "Unset",
+      "revealedChoiceCode": 0,
+      "effectiveChoice": "Share",
+      "effectiveChoiceCode": 1,
+      "lastChoiceRound": 4,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0x95b62347280c0247c05d3d3ef6324aebeaa0161c454df2b87f79281d09ab26cc",
+          "manifestHash": "0x42cd6c74dc5ce66b2fb6052dfe21f4bab18d7cb26ea33a6f6955b57ae76a0912",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "79200000000000000",
+        "causeCutWei": "792000000000000",
+        "netPrizeWei": "78408000000000000",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+      "agentKey": "0xeae2a92745bda49c1bd957754f9418f5d20aafc284bf70c272c075e047562ba7",
+      "causeId": 3,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0xdc73010f3634c27d4346a5a84f6dc8521122e4c83d645353890c4dcc38638a7e",
+      "revealedChoice": "Catch",
+      "revealedChoiceCode": 2,
+      "effectiveChoice": "Catch",
+      "effectiveChoiceCode": 2,
+      "lastChoiceRound": 4,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xeae2a92745bda49c1bd957754f9418f5d20aafc284bf70c272c075e047562ba7",
+          "manifestHash": "0xbaf83359d6387317b41d7081c919c35cc3b8b70ac90c413476a620517f84cdd4",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+      "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+      "causeId": 2,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x722fffd8bc4f7621bbed1f0cc80542f952c684bfb989895e590b747f5eab3773",
+      "revealedChoice": "Catch",
+      "revealedChoiceCode": 2,
+      "effectiveChoice": "Catch",
+      "effectiveChoiceCode": 2,
+      "lastChoiceRound": 4,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+          "manifestHash": "0xe5471a6434f9bac61332f5802457be8ab90d3e3289cdfca1cce8f512f258b5b8",
+          "issuedAt": 1773640043,
+          "expiresAt": 0,
+          "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    }
+  ]
+}

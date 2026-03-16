@@ -90,7 +90,7 @@ This section is not a release waiver. It is the current honest state of local va
 - a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
 
 ### Still not proven locally
-- heavier multi-instance parallel saturation beyond the current bounded 6-instance host-local proof
+- heavier multi-instance parallel saturation beyond the current bounded 7-instance host-local proof
 - broader auth-expiry chaos beyond the current bounded pre-join stale-permit / expired-join rehearsal
 - a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
 
@@ -272,7 +272,8 @@ Purpose:
 Current repo status:
 - the matrix runner now supports a bounded host-local version of Mode C via `packages/foundry/scripts-js/loadHarnessMatrixCli.js` + `--instance-concurrency`
 - the checked-in preserved proof pack at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` now captures the original `parallel-local` run (requested instance concurrency 3, peak active runs observed 3) plus stronger `broader-local` host-saturation runs (requested instance concurrency 5 with peak 5, and requested instance concurrency 6 with peak 6), proving 6 overlapping isolated harness + Anvil instances on one machine
-- the lower bound of that 6-10 deployment saturation envelope is now proven locally at 6 overlapping instances, but heavier 7-10 deployment saturation is still unproven
+- a separate preserved raw proof bundle at `packages/foundry/proof/local/20260316-host-local-saturation-c7-proof/` now records a one-off bounded custom run with requested instance concurrency 7 and peak active runs observed 7, proving 7 overlapping isolated harness + Anvil instances on one machine
+- the lower bound of that 7-10 deployment saturation envelope is now proven locally at 7 overlapping instances, but heavier 8-10 deployment saturation is still unproven
 
 ### Mode D — chaos profile
 Deliberately inject:
@@ -304,7 +305,7 @@ What it covers today:
 
 What it does **not** cover yet:
 - CI automation or broader multi-seed repetition of the 250-player target
-- the heavier 7-10 deployment Mode C saturation envelope beyond the current checked-in 6-instance host-local proof
+- the heavier 8-10 deployment Mode C saturation envelope beyond the current raw 7-instance host-local proof
 - auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
 - a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus compact preserved matrix proof packs
 
