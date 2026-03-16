@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 211,
+      "timestamp": 1773645400
+    },
+    "logRange": {
+      "requestedFromBlock": 144,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 144,
+      "resolvedToBlock": 211,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "outputDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence",
+  "gameId": 3,
+  "chainId": 31337,
+  "produced": [
+    {
+      "artifact": "game-summary.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/game-summary.json"
+    },
+    {
+      "artifact": "roster.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/roster.json"
+    },
+    {
+      "artifact": "causes.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/causes.json"
+    },
+    {
+      "artifact": "rounds.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/rounds.json"
+    },
+    {
+      "artifact": "auth.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/auth.json"
+    },
+    {
+      "artifact": "payouts.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/payouts.json"
+    },
+    {
+      "artifact": "export-manifest.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/game-3/evidence/export-manifest.json"
+    }
+  ],
+  "skipped": [
+    {
+      "artifact": "messages.jsonl",
+      "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+    }
+  ]
+}

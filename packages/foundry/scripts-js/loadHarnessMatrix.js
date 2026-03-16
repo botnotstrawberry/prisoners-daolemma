@@ -46,6 +46,24 @@ export const LOAD_HARNESS_MATRIX_CASES = {
       sameBlockProbes: true,
     },
   },
+  "smoke-auth-expiry-sweep": {
+    label: "smoke-auth-expiry-sweep",
+    description:
+      "Sequential winner-path auth-expiry sweep on the smoke profile: repeat bounded stale-bundle plus expired-join recovery before every game's join batch so pre-join auth-expiry coverage is broader than a single once-per-run rehearsal.",
+    harnessOptions: {
+      profile: "smoke",
+      playerCount: 6,
+      causeCount: 3,
+      games: 3,
+      scenario: "winner-all-share",
+      concurrency: 3,
+      authExpiryChaos: true,
+      authExpiryGames: "all",
+      authExpiryStaleBundles: 2,
+      authExpiryJoinFailures: 2,
+      authExpiryTtlSeconds: 2,
+    },
+  },
   "scale-winner-soak": {
     label: "scale-winner-soak",
     description:
@@ -206,6 +224,23 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
       },
     ],
   },
+  "auth-expiry-local": {
+    label: "auth-expiry-local",
+    description:
+      "Two seeded repeated auth-expiry sweeps on the smoke profile, each replaying bounded stale-bundle plus expired-join recovery before every sequential winner-path game.",
+    runs: [
+      {
+        id: "auth-expiry-a",
+        caseId: "smoke-auth-expiry-sweep",
+        seed: "auth-expiry-a",
+      },
+      {
+        id: "auth-expiry-b",
+        caseId: "smoke-auth-expiry-sweep",
+        seed: "auth-expiry-b",
+      },
+    ],
+  },
   "medium-local": {
     label: "medium-local",
     description:
@@ -315,7 +350,7 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
   "broader-local": {
     label: "broader-local",
     description:
-      "Bounded broader local soak: one deterministic same-block family pass, three seeded adversarial smoke sweeps, and two larger scale-profile winner-path drain rehearsals.",
+      "Bounded broader local soak: one deterministic same-block family pass, three seeded adversarial smoke sweeps, one repeated auth-expiry sweep, and two larger scale-profile winner-path drain rehearsals.",
     runs: [
       {
         id: "same-block-family-a",
@@ -336,6 +371,11 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
         id: "adversarial-c",
         caseId: "smoke-adversarial-sweep",
         seed: "adversarial-c",
+      },
+      {
+        id: "auth-expiry-a",
+        caseId: "smoke-auth-expiry-sweep",
+        seed: "auth-expiry-a",
       },
       {
         id: "scale-winner-a",
@@ -691,6 +731,15 @@ function buildRunResult(plannedRun, execution) {
       requestedScenario: String(plannedRun.harnessOptions.scenario),
       sameBlockProbes: Boolean(plannedRun.harnessOptions.sameBlockProbes),
       expectedFailures: Boolean(plannedRun.harnessOptions.expectedFailures),
+      authExpiryChaos: {
+        enabled: Boolean(plannedRun.harnessOptions.authExpiryChaos),
+        games: plannedRun.harnessOptions.authExpiryGames ?? null,
+        staleBundleFailures:
+          plannedRun.harnessOptions.authExpiryStaleBundles ?? 0,
+        expiredJoinFailures:
+          plannedRun.harnessOptions.authExpiryJoinFailures ?? 0,
+        ttlSeconds: plannedRun.harnessOptions.authExpiryTtlSeconds ?? null,
+      },
       commitDurationBlocks:
         plannedRun.harnessOptions.commitDurationBlocks ?? null,
       revealDurationBlocks:
@@ -734,6 +783,7 @@ function buildRunResult(plannedRun, execution) {
                 skipped: sameBlockSummary.skipped,
               }
             : null,
+          authChaos: report?.authChaos ?? null,
           localScaleReadiness: localScaleReadiness
             ? {
                 maxJoinedPlayersInSingleGame:
@@ -771,6 +821,56 @@ function buildRunResult(plannedRun, execution) {
           unexpectedFailureClusters,
         }
       : null,
+  };
+}
+
+function buildMatrixAuthChaosSummary(runs) {
+  const runAuthChaos = runs
+    .map((run) => run.result?.authChaos)
+    .filter((entry) => entry?.enabled);
+
+  return {
+    enabledRuns: runAuthChaos.length,
+    gamesConsidered: sumBy(
+      runAuthChaos,
+      (entry) => entry?.gamesConsidered ?? 0
+    ),
+    gamesSelected: sumBy(runAuthChaos, (entry) => entry?.gamesSelected ?? 0),
+    gamesApplied: sumBy(runAuthChaos, (entry) => entry?.gamesApplied ?? 0),
+    timeWarpSeconds: sumBy(runAuthChaos, (entry) => entry?.timeWarpSeconds ?? 0),
+    manualBlocksMined: sumBy(
+      runAuthChaos,
+      (entry) => entry?.manualBlocksMined ?? 0
+    ),
+    staleBundle: {
+      requested: sumBy(runAuthChaos, (entry) => entry?.staleBundle?.requested ?? 0),
+      attempted: sumBy(runAuthChaos, (entry) => entry?.staleBundle?.attempted ?? 0),
+      failedAsExpected: sumBy(
+        runAuthChaos,
+        (entry) => entry?.staleBundle?.failedAsExpected ?? 0
+      ),
+    },
+    expiredJoin: {
+      requested: sumBy(runAuthChaos, (entry) => entry?.expiredJoin?.requested ?? 0),
+      shortAuthRegistrations: sumBy(
+        runAuthChaos,
+        (entry) => entry?.expiredJoin?.shortAuthRegistrations ?? 0
+      ),
+      joinAttempts: sumBy(runAuthChaos, (entry) => entry?.expiredJoin?.joinAttempts ?? 0),
+      failedAsExpected: sumBy(
+        runAuthChaos,
+        (entry) => entry?.expiredJoin?.failedAsExpected ?? 0
+      ),
+      localRegisterRejections: sumBy(
+        runAuthChaos,
+        (entry) => entry?.expiredJoin?.localRegisterRejections ?? 0
+      ),
+      refreshedRegistrations: sumBy(
+        runAuthChaos,
+        (entry) => entry?.expiredJoin?.refreshedRegistrations ?? 0
+      ),
+    },
+    skipped: runAuthChaos.flatMap((entry) => entry?.skipped ?? []),
   };
 }
 
@@ -1004,6 +1104,7 @@ export function buildLoadHarnessMatrixReport({
     ),
     skipped: sumBy(runs, (run) => run.result?.sameBlockSummary?.skipped ?? 0),
   };
+  const authChaosSummary = buildMatrixAuthChaosSummary(runs);
   const aggregateBreakageSummary = {
     gamesChecked: sumBy(
       runs,
@@ -1125,6 +1226,9 @@ export function buildLoadHarnessMatrixReport({
       expectedFailuresEnabledRuns: runs.filter(
         (run) => run.config.expectedFailures
       ).length,
+      authChaosEnabledRuns: runs.filter(
+        (run) => run.config.authExpiryChaos?.enabled
+      ).length,
       largestRequestedPlayerCount: maxBy(runs, (run) => run.config.playerCount),
       totalRequestedGames: sumBy(runs, (run) => run.config.games),
       totalCompletedGames: sumBy(
@@ -1135,6 +1239,7 @@ export function buildLoadHarnessMatrixReport({
     runStatusSummary,
     txSummary: aggregateTxSummary,
     sameBlockSummary: aggregateSameBlockSummary,
+    authChaosSummary,
     scenarioSummary: {
       byTerminalOutcome: mergeCountEntries(
         runs.map((run) => run.result?.terminalOutcomes ?? [])
@@ -1344,6 +1449,7 @@ function renderLoadHarnessMatrixRunMarkdown(run) {
   const sameBlockSummary = run.result?.sameBlockSummary ?? {};
   const breakageSummary = run.result?.breakageSummary ?? {};
   const probeSummary = breakageSummary.probeSummary ?? {};
+  const authChaos = run.result?.authChaos ?? {};
   const localScaleReadiness = run.result?.localScaleReadiness ?? {};
 
   return [
@@ -1396,6 +1502,9 @@ function renderLoadHarnessMatrixRunMarkdown(run) {
     }, tx=${sameBlockSummary.attemptedTxs ?? 0}, expectedFailures=${
       sameBlockSummary.expectedFailures ?? 0
     }, unexpectedFailures=${sameBlockSummary.unexpectedFailures ?? 0}`,
+    authChaos.enabled
+      ? `- Auth chaos: selectedGames=${authChaos.gamesSelected ?? 0}, appliedGames=${authChaos.gamesApplied ?? 0}, stale=${authChaos.staleBundle?.failedAsExpected ?? 0}/${authChaos.staleBundle?.attempted ?? 0}, expiredJoin=${authChaos.expiredJoin?.failedAsExpected ?? 0}/${authChaos.expiredJoin?.joinAttempts ?? 0}, refresh=${authChaos.expiredJoin?.refreshedRegistrations ?? 0}`
+      : null,
     `- Breakage: wedge=${
       breakageSummary.gamesWithWedgedActiveSlot ?? 0
     }, terminal=${
@@ -1452,7 +1561,18 @@ export function renderLoadHarnessMatrixMarkdown(report) {
     `- Games hitting requested player target: ${report.localScaleReadiness.gamesHittingRequestedPlayerTarget}`,
     `- Same-block-enabled runs: ${report.coverage.sameBlockEnabledRuns}`,
     `- Expected-failure-enabled runs: ${report.coverage.expectedFailuresEnabledRuns}`,
+    `- Auth-chaos-enabled runs: ${report.coverage.authChaosEnabledRuns}`,
     `- Total requested games: ${report.coverage.totalRequestedGames}`,
+    "",
+    "## Auth-expiry chaos summary",
+    "",
+    `- Enabled runs: ${report.authChaosSummary.enabledRuns}`,
+    `- Selected games: ${report.authChaosSummary.gamesSelected}`,
+    `- Applied games: ${report.authChaosSummary.gamesApplied}`,
+    `- Stale bundles failed as expected: ${report.authChaosSummary.staleBundle.failedAsExpected}/${report.authChaosSummary.staleBundle.attempted}`,
+    `- Expired joins failed as expected: ${report.authChaosSummary.expiredJoin.failedAsExpected}/${report.authChaosSummary.expiredJoin.joinAttempts}`,
+    `- Refreshed registrations: ${report.authChaosSummary.expiredJoin.refreshedRegistrations}`,
+    `- Manual blocks mined for auth chaos: ${report.authChaosSummary.manualBlocksMined}`,
     "",
     "## Aggregate breakage signals",
     "",
@@ -1586,6 +1706,11 @@ export function printLoadHarnessMatrixSummary(report) {
   console.log(
     `Same-block:     ${report.sameBlockSummary.attemptedBatches} batches / ${report.sameBlockSummary.attemptedTxs} tx / ${report.sameBlockSummary.expectedFailures} expected failures`
   );
+  if (report.authChaosSummary?.enabledRuns > 0) {
+    console.log(
+      `Auth chaos:     runs=${report.authChaosSummary.enabledRuns}, games=${report.authChaosSummary.gamesApplied}/${report.authChaosSummary.gamesSelected}, stale=${report.authChaosSummary.staleBundle.failedAsExpected}/${report.authChaosSummary.staleBundle.attempted}, expiredJoin=${report.authChaosSummary.expiredJoin.failedAsExpected}/${report.authChaosSummary.expiredJoin.joinAttempts}`
+    );
+  }
   console.log(
     `Exp failures:   tx=${report.txSummary.failedExpected}, probes=${report.breakageSummary.probeSummary.failedAsExpected}, onchain=${report.breakageSummary.probeSummary.onchainReverts}, same-block=${report.sameBlockSummary.expectedFailures}`
   );
@@ -1645,6 +1770,11 @@ export function printLoadHarnessMatrixSummary(report) {
         run.result?.breakageSummary?.probeSummary?.onchainReverts ?? 0
       }, same-block=${run.result?.sameBlockSummary?.expectedFailures ?? 0}`
     );
+    if (run.result?.authChaos?.enabled) {
+      console.log(
+        `  Auth chaos:   games=${run.result?.authChaos?.gamesApplied ?? 0}/${run.result?.authChaos?.gamesSelected ?? 0}, stale=${run.result?.authChaos?.staleBundle?.failedAsExpected ?? 0}/${run.result?.authChaos?.staleBundle?.attempted ?? 0}, expiredJoin=${run.result?.authChaos?.expiredJoin?.failedAsExpected ?? 0}/${run.result?.authChaos?.expiredJoin?.joinAttempts ?? 0}, refresh=${run.result?.authChaos?.expiredJoin?.refreshedRegistrations ?? 0}`
+      );
+    }
     console.log(
       `  Breakage:     wedge=${
         run.result?.breakageSummary?.gamesWithWedgedActiveSlot ?? 0

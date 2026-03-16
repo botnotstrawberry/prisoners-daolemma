@@ -50,6 +50,7 @@ Examples:
   node scripts-js/loadHarnessMatrixCli.js --preset parallel-local --instance-concurrency 3
   node scripts-js/loadHarnessMatrixCli.js --preset large-local
   node scripts-js/loadHarnessMatrixCli.js --preset xlarge-local
+  node scripts-js/loadHarnessMatrixCli.js --preset auth-expiry-local
   node scripts-js/loadHarnessMatrixCli.js --preset adversarial-smoke --json
   node scripts-js/loadHarnessMatrixCli.js --preset broader-local --runs adversarial-a,adversarial-b
 `);

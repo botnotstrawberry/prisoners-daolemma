@@ -1,0 +1,502 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-matrix-v1",
+  "status": "ok",
+  "boundaryNote": "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation. This matrix runner automates multiple local harness runs and aggregates their local-dev results. When instanceConcurrency is greater than 1, it coordinates multiple isolated harness + Anvil instances in parallel on one host. That is still synthetic host-local stress only: it does not add live-network realism, public mempool contention, or distributed-agent behavior.",
+  "startedAt": "2026-03-16T07:12:56.658Z",
+  "finishedAt": "2026-03-16T07:13:28.550Z",
+  "wallClockMs": 31892,
+  "execution": {
+    "mode": "sequential",
+    "requestedInstanceConcurrency": 1,
+    "instanceConcurrencyLimit": 1,
+    "peakActiveRuns": 1,
+    "runsWithAnyOverlap": 0,
+    "localParallelismConfirmed": false,
+    "stopOnError": false,
+    "dispatchStoppedEarly": false,
+    "overlappingRunPairs": []
+  },
+  "preset": {
+    "name": "auth-expiry-local",
+    "label": "auth-expiry-local",
+    "description": "Two seeded repeated auth-expiry sweeps on the smoke profile, each replaying bounded stale-bundle plus expired-join recovery before every sequential winner-path game."
+  },
+  "paths": {
+    "runDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof",
+    "report": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/matrix-report.json",
+    "summary": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/MATRIX_SUMMARY.md"
+  },
+  "plan": {
+    "plannedRunCount": 2,
+    "completedRunCount": 2,
+    "stopOnError": false,
+    "requestedInstanceConcurrency": 1,
+    "instanceConcurrency": 1,
+    "executionMode": "sequential",
+    "runIds": [
+      "auth-expiry-a",
+      "auth-expiry-b"
+    ],
+    "caseIds": [
+      "smoke-auth-expiry-sweep"
+    ]
+  },
+  "coverage": {
+    "seeds": [
+      "auth-expiry-a",
+      "auth-expiry-b"
+    ],
+    "profiles": [
+      "smoke"
+    ],
+    "requestedScenarios": [
+      "winner-all-share"
+    ],
+    "scenarioPlans": [
+      {
+        "key": "winner-all-share, winner-all-share, winner-all-share",
+        "count": 2
+      }
+    ],
+    "sameBlockEnabledRuns": 0,
+    "expectedFailuresEnabledRuns": 0,
+    "authChaosEnabledRuns": 2,
+    "largestRequestedPlayerCount": 6,
+    "totalRequestedGames": 6,
+    "totalCompletedGames": 6
+  },
+  "runStatusSummary": [
+    {
+      "key": "ok",
+      "count": 2
+    }
+  ],
+  "txSummary": {
+    "attempted": 430,
+    "succeeded": 406,
+    "failed": 24,
+    "failedExpected": 24,
+    "failedUnexpected": 0,
+    "unexpectedSuccesses": 0
+  },
+  "sameBlockSummary": {
+    "attemptedBatches": 0,
+    "minedBatches": 0,
+    "attemptedTxs": 0,
+    "expectedFailures": 0,
+    "unexpectedFailures": 0,
+    "unexpectedSuccesses": 0,
+    "skipped": 0
+  },
+  "authChaosSummary": {
+    "enabledRuns": 2,
+    "gamesConsidered": 6,
+    "gamesSelected": 6,
+    "gamesApplied": 6,
+    "timeWarpSeconds": 18,
+    "manualBlocksMined": 6,
+    "staleBundle": {
+      "requested": 12,
+      "attempted": 12,
+      "failedAsExpected": 12
+    },
+    "expiredJoin": {
+      "requested": 12,
+      "shortAuthRegistrations": 12,
+      "joinAttempts": 12,
+      "failedAsExpected": 12,
+      "localRegisterRejections": 0,
+      "refreshedRegistrations": 12
+    },
+    "skipped": []
+  },
+  "scenarioSummary": {
+    "byTerminalOutcome": [
+      {
+        "key": "Winners",
+        "count": 6
+      }
+    ],
+    "byTerminalPath": [
+      {
+        "key": "winner-claims",
+        "count": 6
+      }
+    ]
+  },
+  "localScaleReadiness": {
+    "maxJoinedPlayersInSingleGame": 6,
+    "totalJoinedPlayersAcrossRun": 36,
+    "gamesHittingRequestedPlayerTarget": 6,
+    "fullyDrainedGames": 6,
+    "replayConsistentGames": 6
+  },
+  "breakageSummary": {
+    "gamesChecked": 6,
+    "gamesWithWedgedActiveSlot": 0,
+    "gamesWithTerminalStateMismatch": 0,
+    "gamesWithAccountingMismatch": 0,
+    "gamesWithPreviewMismatch": 0,
+    "gamesWithDrainMismatch": 0,
+    "gamesWithReplayInconsistency": 0,
+    "gamesWithUnexpectedFailures": 0,
+    "totalUnexpectedFailures": 0,
+    "probeSummary": {
+      "attempted": 0,
+      "failedAsExpected": 0,
+      "unexpectedSuccesses": 0,
+      "onchainReverts": 0,
+      "localRejections": 0
+    }
+  },
+  "unexpectedFailureClusters": [],
+  "caseSummary": [
+    {
+      "caseId": "smoke-auth-expiry-sweep",
+      "label": "smoke-auth-expiry-sweep",
+      "description": "Sequential winner-path auth-expiry sweep on the smoke profile: repeat bounded stale-bundle plus expired-join recovery before every game's join batch so pre-join auth-expiry coverage is broader than a single once-per-run rehearsal.",
+      "runs": 2,
+      "seeds": [
+        "auth-expiry-a",
+        "auth-expiry-b"
+      ],
+      "profiles": [
+        "smoke"
+      ],
+      "requestedScenarios": [
+        "winner-all-share"
+      ],
+      "totalGamesCompleted": 6,
+      "txAttempted": 430,
+      "txFailedExpected": 24,
+      "txFailedUnexpected": 0,
+      "unexpectedSuccesses": 0,
+      "maxJoinedPlayersInSingleGame": 6,
+      "totalJoinedPlayersAcrossRuns": 36,
+      "sameBlockBatches": 0,
+      "sameBlockExpectedFailures": 0,
+      "probeFailedAsExpected": 0,
+      "terminalOutcomes": [
+        {
+          "key": "Winners",
+          "count": 6
+        }
+      ],
+      "breakageSummary": {
+        "gamesWithWedgedActiveSlot": 0,
+        "gamesWithTerminalStateMismatch": 0,
+        "gamesWithAccountingMismatch": 0,
+        "gamesWithPreviewMismatch": 0,
+        "gamesWithDrainMismatch": 0,
+        "gamesWithReplayInconsistency": 0,
+        "totalUnexpectedFailures": 0
+      }
+    }
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "id": "auth-expiry-a",
+      "caseId": "smoke-auth-expiry-sweep",
+      "label": "smoke-auth-expiry-sweep",
+      "description": "Sequential winner-path auth-expiry sweep on the smoke profile: repeat bounded stale-bundle plus expired-join recovery before every game's join batch so pre-join auth-expiry coverage is broader than a single once-per-run rehearsal.",
+      "seed": "auth-expiry-a",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/txs.jsonl"
+      },
+      "execution": {
+        "mode": "sequential",
+        "workerSlot": 1,
+        "startedAt": "2026-03-16T07:12:56.667Z",
+        "finishedAt": "2026-03-16T07:13:09.864Z",
+        "wallClockMs": 13197
+      },
+      "environment": {
+        "spawnedAnvil": true,
+        "chainId": 31337,
+        "rpcUrl": "http://127.0.0.1:38803",
+        "anvilPort": 38803
+      },
+      "config": {
+        "profile": "smoke",
+        "playerCount": 6,
+        "causeCount": 3,
+        "games": 3,
+        "concurrency": 3,
+        "requestedScenario": "winner-all-share",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "authExpiryChaos": {
+          "enabled": true,
+          "games": "all",
+          "staleBundleFailures": 2,
+          "expiredJoinFailures": 2,
+          "ttlSeconds": 2
+        },
+        "commitDurationBlocks": null,
+        "revealDurationBlocks": null,
+        "skipCommitRate": 0,
+        "skipRevealRate": 0,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0,
+        "probeRate": 0
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "sequential",
+        "wallClockMs": 13175,
+        "gamesCompleted": 3,
+        "scenarioPlan": [
+          "winner-all-share",
+          "winner-all-share",
+          "winner-all-share"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 3
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 3
+          }
+        ],
+        "txSummary": {
+          "attempted": 215,
+          "succeeded": 203,
+          "failed": 12,
+          "failedExpected": 12,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "authChaos": {
+          "enabled": true,
+          "configured": {
+            "staleBundleFailures": 2,
+            "expiredJoinFailures": 2,
+            "ttlSeconds": 2,
+            "applyBeforeGameIndex": null,
+            "applyBeforeGameIndexes": [
+              1,
+              2,
+              3
+            ]
+          },
+          "gamesConsidered": 3,
+          "gamesSelected": 3,
+          "gamesApplied": 3,
+          "timeWarpSeconds": 9,
+          "manualBlocksMined": 3,
+          "staleBundle": {
+            "requested": 6,
+            "attempted": 6,
+            "failedAsExpected": 6
+          },
+          "expiredJoin": {
+            "requested": 6,
+            "shortAuthRegistrations": 6,
+            "joinAttempts": 6,
+            "failedAsExpected": 6,
+            "localRegisterRejections": 0,
+            "refreshedRegistrations": 6
+          },
+          "skipped": []
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 6,
+          "totalJoinedPlayersAcrossRun": 18,
+          "gamesHittingRequestedPlayerTarget": 3,
+          "fullyDrainedGames": 3,
+          "replayConsistentGames": 3
+        },
+        "breakageSummary": {
+          "gamesChecked": 3,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 0,
+            "failedAsExpected": 0,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 0,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    },
+    {
+      "index": 2,
+      "id": "auth-expiry-b",
+      "caseId": "smoke-auth-expiry-sweep",
+      "label": "smoke-auth-expiry-sweep",
+      "description": "Sequential winner-path auth-expiry sweep on the smoke profile: repeat bounded stale-bundle plus expired-join recovery before every game's join batch so pre-join auth-expiry coverage is broader than a single once-per-run rehearsal.",
+      "seed": "auth-expiry-b",
+      "status": "ok",
+      "error": null,
+      "paths": {
+        "runDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b",
+        "report": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/report.json",
+        "txLog": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/02-auth-expiry-b/txs.jsonl"
+      },
+      "execution": {
+        "mode": "sequential",
+        "workerSlot": 1,
+        "startedAt": "2026-03-16T07:13:09.866Z",
+        "finishedAt": "2026-03-16T07:13:28.549Z",
+        "wallClockMs": 18683
+      },
+      "environment": {
+        "spawnedAnvil": true,
+        "chainId": 31337,
+        "rpcUrl": "http://127.0.0.1:41621",
+        "anvilPort": 41621
+      },
+      "config": {
+        "profile": "smoke",
+        "playerCount": 6,
+        "causeCount": 3,
+        "games": 3,
+        "concurrency": 3,
+        "requestedScenario": "winner-all-share",
+        "sameBlockProbes": false,
+        "expectedFailures": false,
+        "authExpiryChaos": {
+          "enabled": true,
+          "games": "all",
+          "staleBundleFailures": 2,
+          "expiredJoinFailures": 2,
+          "ttlSeconds": 2
+        },
+        "commitDurationBlocks": null,
+        "revealDurationBlocks": null,
+        "skipCommitRate": 0,
+        "skipRevealRate": 0,
+        "underfilledRate": 0,
+        "invalidRevealRate": 0,
+        "probeRate": 0
+      },
+      "result": {
+        "harnessStatus": "ok",
+        "mode": "sequential",
+        "wallClockMs": 18651,
+        "gamesCompleted": 3,
+        "scenarioPlan": [
+          "winner-all-share",
+          "winner-all-share",
+          "winner-all-share"
+        ],
+        "terminalOutcomes": [
+          {
+            "key": "Winners",
+            "count": 3
+          }
+        ],
+        "terminalPaths": [
+          {
+            "key": "winner-claims",
+            "count": 3
+          }
+        ],
+        "txSummary": {
+          "attempted": 215,
+          "succeeded": 203,
+          "failed": 12,
+          "failedExpected": 12,
+          "failedUnexpected": 0,
+          "unexpectedSuccesses": 0
+        },
+        "sameBlockSummary": {
+          "enabled": false,
+          "attemptedBatches": 0,
+          "minedBatches": 0,
+          "attemptedTxs": 0,
+          "expectedFailures": 0,
+          "unexpectedFailures": 0,
+          "unexpectedSuccesses": 0,
+          "skipped": 0
+        },
+        "authChaos": {
+          "enabled": true,
+          "configured": {
+            "staleBundleFailures": 2,
+            "expiredJoinFailures": 2,
+            "ttlSeconds": 2,
+            "applyBeforeGameIndex": null,
+            "applyBeforeGameIndexes": [
+              1,
+              2,
+              3
+            ]
+          },
+          "gamesConsidered": 3,
+          "gamesSelected": 3,
+          "gamesApplied": 3,
+          "timeWarpSeconds": 9,
+          "manualBlocksMined": 3,
+          "staleBundle": {
+            "requested": 6,
+            "attempted": 6,
+            "failedAsExpected": 6
+          },
+          "expiredJoin": {
+            "requested": 6,
+            "shortAuthRegistrations": 6,
+            "joinAttempts": 6,
+            "failedAsExpected": 6,
+            "localRegisterRejections": 0,
+            "refreshedRegistrations": 6
+          },
+          "skipped": []
+        },
+        "localScaleReadiness": {
+          "maxJoinedPlayersInSingleGame": 6,
+          "totalJoinedPlayersAcrossRun": 18,
+          "gamesHittingRequestedPlayerTarget": 3,
+          "fullyDrainedGames": 3,
+          "replayConsistentGames": 3
+        },
+        "breakageSummary": {
+          "gamesChecked": 3,
+          "gamesWithWedgedActiveSlot": 0,
+          "gamesWithTerminalStateMismatch": 0,
+          "gamesWithAccountingMismatch": 0,
+          "gamesWithPreviewMismatch": 0,
+          "gamesWithDrainMismatch": 0,
+          "gamesWithReplayInconsistency": 0,
+          "gamesWithUnexpectedFailures": 0,
+          "totalUnexpectedFailures": 0,
+          "probeSummary": {
+            "attempted": 0,
+            "failedAsExpected": 0,
+            "unexpectedSuccesses": 0,
+            "onchainReverts": 0,
+            "localRejections": 0
+          }
+        },
+        "unexpectedFailureClusters": []
+      }
+    }
+  ]
+}

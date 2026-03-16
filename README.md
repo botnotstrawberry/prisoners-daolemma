@@ -200,7 +200,7 @@ Current boundary:
   - `adversarial-random`: seeded synthetic local breakage hunting across sequential games with randomized started-vs-underfilled game selection, random move choices, commit/reveal omissions, wrong-preimage probes, short phase-edge burst probes around late commit/reveal, `advancePhase`, claim/refund, and treasury/cause withdrawals, plus randomized settlement ordering
   - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
   - optional `--same-block-probes` mode for local dev RPCs that support `evm_setAutomine`, using short manual no-automine single-block batches to cover underfilled joining transitions, per-round last-commit/last-reveal vs `advancePhase` ordering in started games, and first-success-vs-loser duplicate settlement actions (`claim`, `refund`, `withdrawTreasury`, `withdrawCause`)
-  - optional bounded `--auth-expiry-chaos` mode that runs once before game 1 joins and reuses the current auth tooling to rehearse: (a) verifier-signed permit bundles expiring before `registerAuth`, and (b) short-lived auth records expiring before `join`, followed by a fresh auth refresh so the requested scenario can still complete
+  - optional bounded `--auth-expiry-chaos` mode that reuses the current auth tooling before selected pre-join batches (default: game 1; configurable via `--auth-expiry-games`) to rehearse: (a) verifier-signed permit bundles expiring before `registerAuth`, and (b) short-lived auth records expiring before `join`, followed by a fresh auth refresh so the requested scenario can still complete
   - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
   - `report.json` (including top-level `localScaleReadiness`, top-level `breakageSummary`, top-level `sameBlockSummary`, top-level `authChaos`, per-game `probes`, per-game `sameBlock`, per-game `authChaos`, per-game `breakageChecks`, and per-game `postRunOutstanding` drain checks)
@@ -231,9 +231,9 @@ Example runs:
    - `yarn load:harness -- --profile smoke --player-count 6 --cause-count 3 --scenario winner-all-share --same-block-probes --expected-failures`
 7. adversarial many-game local breakage hunt:
    - `yarn load:harness -- --profile smoke --player-count 12 --cause-count 4 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6 --same-block-probes`
-8. bounded auth-expiry rehearsal before a winner-path run:
+8. repeated auth-expiry rehearsal before every game in a winner-path run:
    - `yarn load:harness:auth-expiry`
-   - or `yarn load:harness -- --profile smoke --player-count 8 --cause-count 4 --scenario winner-all-share --concurrency 4 --auth-expiry-chaos --auth-expiry-stale-bundles 2 --auth-expiry-join-failures 2 --auth-expiry-ttl-seconds 2`
+   - or `yarn load:harness -- --profile smoke --player-count 8 --cause-count 4 --games 3 --scenario winner-all-share --concurrency 4 --auth-expiry-chaos --auth-expiry-games all --auth-expiry-stale-bundles 2 --auth-expiry-join-failures 2 --auth-expiry-ttl-seconds 2`
 
 ## Broader local soak matrix
 
@@ -247,6 +247,7 @@ Useful commands:
 - `yarn load:harness:matrix:large`
 - `yarn load:harness:matrix:xlarge`
 - `yarn load:harness:matrix:parallel`
+- `yarn load:harness:matrix:auth-expiry`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 - `yarn load:harness:matrix -- --preset parallel-local --instance-concurrency 3`
 - `yarn load:harness:matrix -- --preset broader-local --instance-concurrency 6`
@@ -257,6 +258,8 @@ Current built-in presets:
   - one deterministic `mixed` pass (`winner-all-share`, `cancelled-underfilled`, `no-winner-all-catch`) with same-block probes enabled
 - `adversarial-smoke`
   - three seeded `adversarial-random` sweeps on the smoke profile
+- `auth-expiry-local`
+  - two seeded three-game winner-path sweeps on the smoke profile, each repeating bounded stale-bundle plus expired-join auth-expiry recovery before every game
 - `medium-local`
   - one deterministic 16-player `mixed` pass on the scale profile plus two seeded 20-player `adversarial-random` sweeps, all with explicit 40/48-block phase budgets so larger local rounds do not fake-timeout
 - `large-local`
@@ -268,7 +271,7 @@ Current built-in presets:
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
-  - combines the same-block smoke, adversarial smoke, and winner-scale presets into one bounded default local soak preset
+  - combines the same-block smoke, adversarial smoke, auth-expiry-local, and winner-scale coverage families into one bounded default local soak preset
 
 The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only. By default it runs sequentially, but `--instance-concurrency > 1` now coordinates multiple isolated harness + Anvil instances in parallel on one host. That is useful for host-local infra breakage hunting only, not as a model of live mempool or distributed production behavior.
 
@@ -290,6 +293,7 @@ What it adds:
   - medium-scale seeded adversarial sweeps on the scale profile with longer phase budgets
   - larger 24-player mixed-family and 28-player adversarial scale-profile sweeps with explicit higher local block budgets
   - bounded 32-player mixed-family plus multi-seed started full-roster 32-player adversarial scale-profile sweeps with explicit 72/80-block phase budgets
+  - repeated pre-join auth-expiry sweeps across selected games, with stale permit/register failures, expired-auth join failures, and fresh-auth recovery recorded in aggregate matrix artifacts
   - larger winner-path drain/replay rehearsals on the scale profile
   - bounded host-local parallel overlap across isolated harness + Anvil instances when `--instance-concurrency` is raised above 1
 
@@ -310,6 +314,7 @@ What this harness honestly proves today:
   - optional bounded auth-expiry chaos coverage that can now prove, on a local dev chain, that:
     - verifier-signed bundles can become non-registerable before `registerAuth`
     - a wallet with a short-lived auth record can become unauthorized before `join`
+    - the same bounded pre-join auth-expiry rehearsal can repeat before selected sequential games instead of being limited to one once-per-run probe
     - the harness can refresh that wallet with a fresh verifier-approved auth bundle and still complete the intended gameplay scenario
 - per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed and whether preview/claimable/export views stayed consistent
 - deterministic duplicate/invalid follow-up attempts and adversarial probes are accounted for separately instead of getting mixed into normal tx failures
@@ -319,7 +324,7 @@ What it intentionally does **not** claim yet:
 - live-network realism, mempool behavior, or independent-agent network jitter
 - cross-wallet public mempool ordering games or fee-bid competition; the current same-block mode is intentionally deterministic and usually sequences one caller wallet inside one manually mined local block
 - full SIWA wrapper rehearsal inside the harness itself
-- broad auth-expiry chaos across many wallets/games, mid-game auth expiry, or expiry behavior that depends on the full SIWA wrapper instead of direct verifier permit/register
+- mid-game auth expiry, unbounded/mass auth-expiry chaos, or expiry behavior that depends on the full SIWA wrapper instead of direct verifier permit/register
 - proof of exploitable contract bugs just because adversarial local probes did not break a given run
 - exhaustive fuzzing, distributed-agent realism, or heavier 11+ host saturation just because bounded host-local runs reached 10 overlapping isolated instances on one machine
 - that 250-player scale is already CI-proven just because the harness exists

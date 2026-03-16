@@ -159,7 +159,9 @@ test(
     assert.equal(report.status, "ok");
     assert.equal(report.mode, "single-game");
     assert.equal(report.options.authExpiryChaos.enabled, true);
+    assert.deepEqual(report.options.authExpiryChaos.applyBeforeGameIndexes, [1]);
     assert.equal(report.authChaos.enabled, true);
+    assert.equal(report.authChaos.gamesSelected, 1);
     assert.equal(report.authChaos.gamesApplied, 1);
     assert.equal(report.authChaos.staleBundle.attempted, 1);
     assert.equal(report.authChaos.staleBundle.failedAsExpected, 1);
@@ -211,6 +213,104 @@ test(
     assert.ok(game.blocks.manualMined >= 2);
     assert.ok(existsSync(game.evidence.outputDir));
     assert.ok(existsSync(game.evidence.manifestPath));
+  }
+);
+
+test(
+  "load harness can repeat bounded auth-expiry chaos before every sequential winner-path game",
+  { timeout: 240_000, concurrency: false },
+  async () => {
+    const anvilPort = await getFreePort();
+    const outDir = createOutDir("pd-load-harness-auth-expiry-broader-");
+
+    const { report } = await runLoadHarness({
+      profile: "smoke",
+      scenario: "winner-all-share",
+      playerCount: 6,
+      causeCount: 3,
+      games: 3,
+      concurrency: 3,
+      authExpiryChaos: true,
+      authExpiryGames: "all",
+      authExpiryStaleBundles: 2,
+      authExpiryJoinFailures: 2,
+      authExpiryTtlSeconds: 2,
+      seed: "load-harness-auth-expiry-broader-seed",
+      anvilPort,
+      out: outDir,
+    });
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.mode, "sequential");
+    assert.deepEqual(report.options.authExpiryChaos.applyBeforeGameIndexes, [
+      1,
+      2,
+      3,
+    ]);
+    assert.equal(report.authChaos.enabled, true);
+    assert.equal(report.authChaos.gamesConsidered, 3);
+    assert.equal(report.authChaos.gamesSelected, 3);
+    assert.equal(report.authChaos.gamesApplied, 3);
+    assert.equal(report.authChaos.timeWarpSeconds, 9);
+    assert.equal(report.authChaos.manualBlocksMined, 3);
+    assert.equal(report.authChaos.staleBundle.requested, 6);
+    assert.equal(report.authChaos.staleBundle.attempted, 6);
+    assert.equal(report.authChaos.staleBundle.failedAsExpected, 6);
+    assert.equal(report.authChaos.expiredJoin.requested, 6);
+    assert.equal(report.authChaos.expiredJoin.shortAuthRegistrations, 6);
+    assert.equal(report.authChaos.expiredJoin.joinAttempts, 6);
+    assert.equal(report.authChaos.expiredJoin.failedAsExpected, 6);
+    assert.equal(report.authChaos.expiredJoin.refreshedRegistrations, 6);
+    assert.equal(report.txSummary.failed, 12);
+    assert.equal(report.txSummary.failedExpected, 12);
+    assert.equal(report.txSummary.failedUnexpected, 0);
+    assert.equal(report.txSummary.unexpectedSuccesses, 0);
+    assert.equal(report.localScaleReadiness.fullyDrainedGames, 3);
+    assert.equal(report.localScaleReadiness.replayConsistentGames, 3);
+
+    for (const game of report.games) {
+      assert.equal(game.resultState.outcome, "Winners");
+      assert.equal(game.resultState.phase, "Ended");
+      assert.equal(game.resultState.counts.joined, 6);
+      assert.equal(game.claims.succeeded, 6);
+      assert.equal(game.postRunOutstanding.unclaimedWinnerCount, 0);
+      assert.equal(game.postRunOutstanding.fullyDrainedByHarness, true);
+      assert.equal(game.replayConsistency.ok, true);
+      assert.equal(game.authChaos.enabled, true);
+      assert.equal(game.authChaos.selectedForGame, true);
+      assert.equal(game.authChaos.applied, true);
+      assert.equal(game.authChaos.timeWarpSeconds, 3);
+      assert.equal(game.authChaos.manualBlocksMined, 1);
+      assert.equal(game.authChaos.staleBundle.requested, 2);
+      assert.equal(game.authChaos.staleBundle.attempted, 2);
+      assert.equal(game.authChaos.staleBundle.failedAsExpected, 2);
+      assert.equal(game.authChaos.expiredJoin.requested, 2);
+      assert.equal(game.authChaos.expiredJoin.shortAuthRegistrations, 2);
+      assert.equal(game.authChaos.expiredJoin.joinAttempts, 2);
+      assert.equal(game.authChaos.expiredJoin.failedAsExpected, 2);
+      assert.equal(game.authChaos.expiredJoin.refreshedRegistrations, 2);
+      assert.equal(game.authChaos.expiredJoin.players.length, 2);
+      assert.equal(game.authChaos.staleBundle.players.length, 2);
+      assert.ok(
+        game.authChaos.expiredJoin.players.every(
+          (player) =>
+            player.shortAuth.statusAfterRegister.isAuthorized === true &&
+            player.statusAfterExpiry.isAuthorized === false &&
+            player.joinFailure.length > 0 &&
+            player.refreshedAuth.statusAfterRefresh.isAuthorized === true
+        )
+      );
+      assert.ok(
+        game.authChaos.staleBundle.players.every(
+          (player) =>
+            player.statusBeforeAttempt.isAuthorized === true &&
+            player.statusAfterFailure.isAuthorized === true &&
+            /expired/i.test(player.failure)
+        )
+      );
+      assert.ok(existsSync(game.evidence.outputDir));
+      assert.ok(existsSync(game.evidence.manifestPath));
+    }
   }
 );
 

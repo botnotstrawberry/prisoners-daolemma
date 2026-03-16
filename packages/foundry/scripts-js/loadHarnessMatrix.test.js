@@ -153,6 +153,64 @@ test("load harness matrix exposes a bounded xlarge local preset", () => {
   );
 });
 
+test("load harness matrix exposes a bounded auth-expiry local preset", () => {
+  const outDir = createOutDir("pd-load-harness-matrix-auth-expiry-plan-");
+  const plan = buildLoadHarnessMatrixPlan({
+    preset: "auth-expiry-local",
+    out: outDir,
+  });
+  const broaderPlan = buildLoadHarnessMatrixPlan({
+    preset: "broader-local",
+    out: createOutDir("pd-load-harness-matrix-broader-auth-plan-"),
+  });
+
+  assert.equal(plan.presetName, "auth-expiry-local");
+  assert.equal(plan.plannedRunCount, 2);
+  assert.deepEqual(
+    plan.runs.map((run) => ({
+      id: run.id,
+      caseId: run.caseId,
+      seed: run.seed,
+      playerCount: run.harnessOptions.playerCount,
+      games: run.harnessOptions.games,
+      authExpiryChaos: Boolean(run.harnessOptions.authExpiryChaos),
+      authExpiryGames: run.harnessOptions.authExpiryGames,
+      authExpiryStaleBundles: run.harnessOptions.authExpiryStaleBundles,
+      authExpiryJoinFailures: run.harnessOptions.authExpiryJoinFailures,
+    })),
+    [
+      {
+        id: "auth-expiry-a",
+        caseId: "smoke-auth-expiry-sweep",
+        seed: "auth-expiry-a",
+        playerCount: 6,
+        games: 3,
+        authExpiryChaos: true,
+        authExpiryGames: "all",
+        authExpiryStaleBundles: 2,
+        authExpiryJoinFailures: 2,
+      },
+      {
+        id: "auth-expiry-b",
+        caseId: "smoke-auth-expiry-sweep",
+        seed: "auth-expiry-b",
+        playerCount: 6,
+        games: 3,
+        authExpiryChaos: true,
+        authExpiryGames: "all",
+        authExpiryStaleBundles: 2,
+        authExpiryJoinFailures: 2,
+      },
+    ]
+  );
+  assert.ok(
+    broaderPlan.runs.some(
+      (run) =>
+        run.id === "auth-expiry-a" && run.caseId === "smoke-auth-expiry-sweep"
+    )
+  );
+});
+
 test("load harness matrix exposes a bounded parallel-local preset", () => {
   const outDir = createOutDir("pd-load-harness-matrix-parallel-plan-");
   const plan = buildLoadHarnessMatrixPlan({
@@ -343,6 +401,160 @@ test(
     assert.match(markdown, /parallel-same-block-a/);
     assert.match(markdown, /parallel-adversarial-a/);
     assert.match(markdown, /parallel-winner-a/);
+  }
+);
+
+test(
+  "load harness matrix aggregates focused auth-expiry coverage honestly",
+  async () => {
+    const outDir = createOutDir("pd-load-harness-matrix-auth-expiry-stub-");
+
+    const { report, summaryPath } = await runLoadHarnessMatrix(
+      {
+        preset: "auth-expiry-local",
+        out: outDir,
+      },
+      {
+        runLoadHarness: async (options) => {
+          mkdirSync(options.out, { recursive: true });
+          const reportPath = join(options.out, "report.json");
+          const txLogPath = join(options.out, "txs.jsonl");
+          const stubReport = {
+            status: "ok",
+            mode: "stubbed",
+            wallClockMs: 50,
+            environment: {
+              spawnedAnvil: true,
+              chainId: 31337,
+              rpcUrl: `http://127.0.0.1:${options.anvilPort}`,
+              anvilPort: options.anvilPort,
+            },
+            games: [{}, {}, {}],
+            scenarios: {
+              plan: [
+                "winner-all-share",
+                "winner-all-share",
+                "winner-all-share",
+              ],
+            },
+            scenarioSummary: {
+              byTerminalOutcome: [{ key: "Winners", count: 3 }],
+              byTerminalPath: [{ key: "winner-claims", count: 3 }],
+            },
+            txSummary: {
+              attempted: 90,
+              succeeded: 78,
+              failed: 12,
+              failedExpected: 12,
+              failedUnexpected: 0,
+              unexpectedSuccesses: 0,
+            },
+            sameBlockSummary: {
+              enabled: false,
+              attemptedBatches: 0,
+              minedBatches: 0,
+              attemptedTxs: 0,
+              expectedFailures: 0,
+              unexpectedFailures: 0,
+              unexpectedSuccesses: 0,
+              skipped: 0,
+            },
+            authChaos: {
+              enabled: true,
+              configured: {
+                staleBundleFailures: 2,
+                expiredJoinFailures: 2,
+                ttlSeconds: 2,
+                applyBeforeGameIndex: null,
+                applyBeforeGameIndexes: [1, 2, 3],
+              },
+              gamesConsidered: 3,
+              gamesSelected: 3,
+              gamesApplied: 3,
+              timeWarpSeconds: 9,
+              manualBlocksMined: 3,
+              staleBundle: {
+                requested: 6,
+                attempted: 6,
+                failedAsExpected: 6,
+              },
+              expiredJoin: {
+                requested: 6,
+                shortAuthRegistrations: 6,
+                joinAttempts: 6,
+                failedAsExpected: 6,
+                localRegisterRejections: 0,
+                refreshedRegistrations: 6,
+              },
+              skipped: [],
+            },
+            localScaleReadiness: {
+              maxJoinedPlayersInSingleGame: 6,
+              totalJoinedPlayersAcrossRun: 18,
+              gamesHittingRequestedPlayerTarget: 3,
+              fullyDrainedGames: 3,
+              replayConsistentGames: 3,
+            },
+            breakageSummary: {
+              gamesChecked: 3,
+              gamesWithWedgedActiveSlot: 0,
+              gamesWithTerminalStateMismatch: 0,
+              gamesWithAccountingMismatch: 0,
+              gamesWithPreviewMismatch: 0,
+              gamesWithDrainMismatch: 0,
+              gamesWithReplayInconsistency: 0,
+              gamesWithUnexpectedFailures: 0,
+              totalUnexpectedFailures: 0,
+              probeSummary: {
+                attempted: 0,
+                failedAsExpected: 0,
+                unexpectedSuccesses: 0,
+                onchainReverts: 0,
+                localRejections: 0,
+              },
+              unexpectedFailureClusters: [],
+            },
+          };
+
+          writeFileSync(
+            reportPath,
+            `${JSON.stringify(stubReport, null, 2)}\n`
+          );
+          writeFileSync(txLogPath, "", "utf8");
+
+          return {
+            report: stubReport,
+            reportPath,
+            txLogPath,
+          };
+        },
+      }
+    );
+
+    assert.equal(report.status, "ok");
+    assert.equal(report.preset.name, "auth-expiry-local");
+    assert.equal(report.coverage.authChaosEnabledRuns, 2);
+    assert.equal(report.coverage.totalCompletedGames, 6);
+    assert.equal(report.authChaosSummary.enabledRuns, 2);
+    assert.equal(report.authChaosSummary.gamesConsidered, 6);
+    assert.equal(report.authChaosSummary.gamesSelected, 6);
+    assert.equal(report.authChaosSummary.gamesApplied, 6);
+    assert.equal(report.authChaosSummary.timeWarpSeconds, 18);
+    assert.equal(report.authChaosSummary.manualBlocksMined, 6);
+    assert.equal(report.authChaosSummary.staleBundle.requested, 12);
+    assert.equal(report.authChaosSummary.staleBundle.attempted, 12);
+    assert.equal(report.authChaosSummary.staleBundle.failedAsExpected, 12);
+    assert.equal(report.authChaosSummary.expiredJoin.requested, 12);
+    assert.equal(report.authChaosSummary.expiredJoin.shortAuthRegistrations, 12);
+    assert.equal(report.authChaosSummary.expiredJoin.joinAttempts, 12);
+    assert.equal(report.authChaosSummary.expiredJoin.failedAsExpected, 12);
+    assert.equal(report.authChaosSummary.expiredJoin.refreshedRegistrations, 12);
+    assert.ok(existsSync(summaryPath));
+    const markdown = readFileSync(summaryPath, "utf8");
+    assert.match(markdown, /## Auth-expiry chaos summary/);
+    assert.match(markdown, /Enabled runs: 2/);
+    assert.match(markdown, /auth-expiry-a/);
+    assert.match(markdown, /auth-expiry-b/);
   }
 );
 

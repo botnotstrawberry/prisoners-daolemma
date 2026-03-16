@@ -1,0 +1,81 @@
+{
+  "gameId": 2,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 143,
+      "timestamp": 1773645325
+    },
+    "logRange": {
+      "requestedFromBlock": 78,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 78,
+      "resolvedToBlock": 143,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "usedCauses": [
+    {
+      "causeId": 2,
+      "used": true,
+      "entrantCount": 2,
+      "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e",
+      "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786",
+      "members": [
+        "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+        "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
+      ],
+      "routedFromGameWei": "198000000000000",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "198000000000000"
+    },
+    {
+      "causeId": 1,
+      "used": true,
+      "entrantCount": 2,
+      "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931",
+      "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc",
+      "members": [
+        "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "0x976EA74026E726554dB657fA54763abd0C3a0aa9"
+      ],
+      "routedFromGameWei": "198000000000000",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "198000000000000"
+    },
+    {
+      "causeId": 3,
+      "used": true,
+      "entrantCount": 2,
+      "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624",
+      "metadataHash": "0x52cc4c68f1072851c03761050c15117b38c2fd44d91f5ccb4bb171dab30ab578",
+      "members": [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc"
+      ],
+      "routedFromGameWei": "198000000000000",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "198000000000000"
+    }
+  ],
+  "whitelist": [
+    {
+      "causeId": 1,
+      "active": true,
+      "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931",
+      "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc"
+    },
+    {
+      "causeId": 2,
+      "active": true,
+      "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e",
+      "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786"
+    },
+    {
+      "causeId": 3,
+      "active": true,
+      "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624",
+      "metadataHash": "0x52cc4c68f1072851c03761050c15117b38c2fd44d91f5ccb4bb171dab30ab578"
+    }
+  ]
+}

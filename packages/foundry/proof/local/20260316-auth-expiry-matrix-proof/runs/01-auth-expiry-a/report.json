@@ -1,0 +1,6028 @@
+{
+  "schemaVersion": "prisoners-daollema/load-harness-v1",
+  "boundaryNote": "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.",
+  "mode": "sequential",
+  "profile": {
+    "name": "smoke",
+    "source": "PARAMETERS.md §5.1 Anvil smoke profile",
+    "notes": [
+      "Scenario list winner-all-share is shorter than games=3, so the harness cycles that list across the sequential run.",
+      "authExpiryChaos enabled before game(s) 1, 2, 3: staleBundleFailures=2, expiredJoinFailures=2, ttlSeconds=2.",
+      "Auth-expiry chaos stays bounded and pre-join only: it can repeat before selected games, then refreshes the affected wallets so the requested gameplay scenario can still execute."
+    ],
+    "strategy": "scenario-driven local flows: deterministic winner/cancelled/no-winner paths plus a seeded adversarial-random mode that mixes started vs underfilled games, random round choices, omissions, invalid follow-ups, and settlement-order probes for local breakage hunting."
+  },
+  "options": {
+    "playerCount": 6,
+    "causeCount": 3,
+    "games": 3,
+    "concurrency": 3,
+    "skipCommitRate": 0,
+    "skipRevealRate": 0,
+    "underfilledRate": 0.2,
+    "invalidRevealRate": 0.15,
+    "probeRate": 0.35,
+    "choiceWeights": {
+      "share": 1,
+      "catch": 1,
+      "steal": 1
+    },
+    "claimWinners": true,
+    "expectedFailures": false,
+    "sameBlockProbes": false,
+    "authExpiryChaos": {
+      "enabled": true,
+      "staleBundleFailures": 2,
+      "expiredJoinFailures": 2,
+      "ttlSeconds": 2,
+      "applyBeforeGameIndex": null,
+      "applyBeforeGameIndexes": [
+        1,
+        2,
+        3
+      ]
+    },
+    "requestedScenario": "winner-all-share",
+    "selectedScenarioTypes": [
+      "winner-all-share"
+    ],
+    "seed": "auth-expiry-a"
+  },
+  "scenarios": {
+    "requested": "winner-all-share",
+    "selectedTypes": [
+      "winner-all-share"
+    ],
+    "plan": [
+      "winner-all-share",
+      "winner-all-share",
+      "winner-all-share"
+    ]
+  },
+  "config": {
+    "entryFeeWei": "10000000000000000",
+    "creatorFeeBps": 100,
+    "causeFeeBps": 100,
+    "joinDurationSeconds": 60,
+    "commitDurationBlocks": 10,
+    "revealDurationBlocks": 10,
+    "minPlayers": 3,
+    "maxPlayers": 32,
+    "maxCauses": 8
+  },
+  "paths": {
+    "runDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a",
+    "report": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/report.json",
+    "txLog": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/txs.jsonl"
+  },
+  "limitations": [
+    "This harness currently drives verifier-approved permit/register directly for speed; it does not rehearse the full SIWA nonce/sign/verify wrapper.",
+    "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
+    "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
+    "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
+    "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
+    "Optional auth-expiry chaos is intentionally bounded to selected pre-join rehearsals. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, and can repeat before selected games, but it does not prove mid-game expiry, unbounded mass-expiry, or full SIWA-wrapper expiry behavior."
+  ],
+  "status": "ok",
+  "startedAt": "2026-03-16T07:12:56.670Z",
+  "finishedAt": "2026-03-16T07:13:09.845Z",
+  "wallClockMs": 13175,
+  "environment": {
+    "chainId": 31337,
+    "rpcUrl": "http://127.0.0.1:38803",
+    "spawnedAnvil": true,
+    "anvilPort": 38803,
+    "initialBlock": 0,
+    "finalBlock": 209,
+    "blocksMined": 209,
+    "initialTimestamp": 1773645176,
+    "finalTimestamp": 1773645381
+  },
+  "deployment": {
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "verifier": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "authRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "game": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "treasury": "0x4779d18931B35540F84b0cd0e9633855B84df7b8",
+    "causes": [
+      {
+        "causeId": 1,
+        "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931",
+        "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc"
+      },
+      {
+        "causeId": 2,
+        "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e",
+        "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786"
+      },
+      {
+        "causeId": 3,
+        "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624",
+        "metadataHash": "0x52cc4c68f1072851c03761050c15117b38c2fd44d91f5ccb4bb171dab30ab578"
+      }
+    ]
+  },
+  "bootstrap": {
+    "wallClockMs": 767,
+    "playersRegistered": 6,
+    "initialBlock": 0,
+    "finalBlockAfterBootstrap": 11
+  },
+  "chaos": {
+    "skipCommitRate": 0,
+    "skipRevealRate": 0,
+    "underfilledRate": 0.2,
+    "invalidRevealRate": 0.15,
+    "probeRate": 0.35,
+    "choiceWeights": {
+      "share": 1,
+      "catch": 1,
+      "steal": 1
+    },
+    "expectedFailuresEnabled": false,
+    "skippedCommitCount": 0,
+    "skippedRevealCount": 0,
+    "commitDeadlineRounds": 0,
+    "revealDeadlineRounds": 0,
+    "expectedFailureAttempts": 12,
+    "expectedFailureCount": 12,
+    "probeAttempts": 0,
+    "probeFailuresAsExpected": 0,
+    "probeUnexpectedSuccesses": 0,
+    "sameBlockBatches": 0,
+    "sameBlockTxs": 0,
+    "sameBlockExpectedFailures": 0
+  },
+  "authChaos": {
+    "enabled": true,
+    "configured": {
+      "staleBundleFailures": 2,
+      "expiredJoinFailures": 2,
+      "ttlSeconds": 2,
+      "applyBeforeGameIndex": null,
+      "applyBeforeGameIndexes": [
+        1,
+        2,
+        3
+      ]
+    },
+    "gamesConsidered": 3,
+    "gamesSelected": 3,
+    "gamesApplied": 3,
+    "timeWarpSeconds": 9,
+    "manualBlocksMined": 3,
+    "staleBundle": {
+      "requested": 6,
+      "attempted": 6,
+      "failedAsExpected": 6
+    },
+    "expiredJoin": {
+      "requested": 6,
+      "shortAuthRegistrations": 6,
+      "joinAttempts": 6,
+      "failedAsExpected": 6,
+      "localRegisterRejections": 0,
+      "refreshedRegistrations": 6
+    },
+    "skipped": []
+  },
+  "scenarioSummary": {
+    "byType": [
+      {
+        "key": "winner-all-share",
+        "count": 3
+      }
+    ],
+    "byTerminalOutcome": [
+      {
+        "key": "Winners",
+        "count": 3
+      }
+    ],
+    "byTerminalPath": [
+      {
+        "key": "winner-claims",
+        "count": 3
+      }
+    ]
+  },
+  "txSummary": {
+    "attempted": 215,
+    "succeeded": 203,
+    "failed": 12,
+    "failedExpected": 12,
+    "failedUnexpected": 0,
+    "failedOnchain": 6,
+    "failedLocal": 6,
+    "unexpectedSuccesses": 0,
+    "reverted": 0,
+    "gasUsed": {
+      "count": 203,
+      "total": "30112937",
+      "min": "44430",
+      "max": "9330556",
+      "average": "148339"
+    },
+    "latencyMs": {
+      "count": 215,
+      "total": 21210,
+      "min": 9,
+      "max": 236,
+      "average": 98.65116279069767
+    },
+    "byAction": {
+      "advanceFromCommit": {
+        "attempted": 9,
+        "succeeded": 9,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 9,
+          "total": "399870",
+          "min": "44430",
+          "max": "44430",
+          "average": "44430"
+        },
+        "latencyMs": {
+          "count": 9,
+          "total": 594,
+          "min": 52,
+          "max": 114,
+          "average": 66
+        }
+      },
+      "advanceFromJoining": {
+        "attempted": 3,
+        "succeeded": 3,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 3,
+          "total": "302106",
+          "min": "100702",
+          "max": "100702",
+          "average": "100702"
+        },
+        "latencyMs": {
+          "count": 3,
+          "total": 222,
+          "min": 67,
+          "max": 87,
+          "average": 74
+        }
+      },
+      "advanceFromReveal": {
+        "attempted": 9,
+        "succeeded": 9,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 9,
+          "total": "1818843",
+          "min": "172790",
+          "max": "260701",
+          "average": "202093"
+        },
+        "latencyMs": {
+          "count": 9,
+          "total": 748,
+          "min": 61,
+          "max": 165,
+          "average": 83.11111111111111
+        }
+      },
+      "authRegister": {
+        "attempted": 24,
+        "succeeded": 18,
+        "failed": 6,
+        "failedExpected": 6,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 6,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 18,
+          "total": "1868100",
+          "min": "78817",
+          "max": "152829",
+          "average": "103783"
+        },
+        "latencyMs": {
+          "count": 24,
+          "total": 1659,
+          "min": 10,
+          "max": 164,
+          "average": 69.125
+        }
+      },
+      "claim": {
+        "attempted": 18,
+        "succeeded": 18,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 18,
+          "total": "1571364",
+          "min": "78748",
+          "max": "95848",
+          "average": "87298"
+        },
+        "latencyMs": {
+          "count": 18,
+          "total": 2113,
+          "min": 71,
+          "max": 204,
+          "average": 117.38888888888889
+        }
+      },
+      "commit": {
+        "attempted": 54,
+        "succeeded": 54,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 54,
+          "total": "3673722",
+          "min": "68021",
+          "max": "68033",
+          "average": "68031"
+        },
+        "latencyMs": {
+          "count": 54,
+          "total": 5696,
+          "min": 68,
+          "max": 160,
+          "average": 105.48148148148148
+        }
+      },
+      "createGame": {
+        "attempted": 3,
+        "succeeded": 3,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 3,
+          "total": "502968",
+          "min": "161956",
+          "max": "179056",
+          "average": "167656"
+        },
+        "latencyMs": {
+          "count": 3,
+          "total": 190,
+          "min": 49,
+          "max": 77,
+          "average": 63.333333333333336
+        }
+      },
+      "deployAuthRegistry": {
+        "attempted": 1,
+        "succeeded": 1,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 1,
+          "total": "2141684",
+          "min": "2141684",
+          "max": "2141684",
+          "average": "2141684"
+        },
+        "latencyMs": {
+          "count": 1,
+          "total": 10,
+          "min": 10,
+          "max": 10,
+          "average": 10
+        }
+      },
+      "deployGame": {
+        "attempted": 1,
+        "succeeded": 1,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 1,
+          "total": "9330556",
+          "min": "9330556",
+          "max": "9330556",
+          "average": "9330556"
+        },
+        "latencyMs": {
+          "count": 1,
+          "total": 9,
+          "min": 9,
+          "max": 9,
+          "average": 9
+        }
+      },
+      "join": {
+        "attempted": 24,
+        "succeeded": 18,
+        "failed": 6,
+        "failedExpected": 6,
+        "failedUnexpected": 0,
+        "failedOnchain": 6,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 18,
+          "total": "4087227",
+          "min": "192875",
+          "max": "295428",
+          "average": "227068"
+        },
+        "latencyMs": {
+          "count": 24,
+          "total": 2184,
+          "min": 22,
+          "max": 144,
+          "average": 91
+        }
+      },
+      "reveal": {
+        "attempted": 54,
+        "succeeded": 54,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 54,
+          "total": "3127326",
+          "min": "52191",
+          "max": "69315",
+          "average": "57913"
+        },
+        "latencyMs": {
+          "count": 54,
+          "total": 6919,
+          "min": 78,
+          "max": 236,
+          "average": 128.12962962962962
+        }
+      },
+      "whitelistCause": {
+        "attempted": 3,
+        "succeeded": 3,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 3,
+          "total": "388375",
+          "min": "112375",
+          "max": "163625",
+          "average": "129458"
+        },
+        "latencyMs": {
+          "count": 3,
+          "total": 93,
+          "min": 29,
+          "max": 34,
+          "average": 31
+        }
+      },
+      "withdrawCause": {
+        "attempted": 9,
+        "succeeded": 9,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 9,
+          "total": "678396",
+          "min": "67044",
+          "max": "92044",
+          "average": "75377"
+        },
+        "latencyMs": {
+          "count": 9,
+          "total": 591,
+          "min": 49,
+          "max": 106,
+          "average": 65.66666666666667
+        }
+      },
+      "withdrawTreasury": {
+        "attempted": 3,
+        "succeeded": 3,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 3,
+          "total": "222400",
+          "min": "65800",
+          "max": "90800",
+          "average": "74133"
+        },
+        "latencyMs": {
+          "count": 3,
+          "total": 182,
+          "min": 50,
+          "max": 81,
+          "average": 60.666666666666664
+        }
+      }
+    },
+    "byPhase": {
+      "auth-chaos": {
+        "attempted": 18,
+        "succeeded": 12,
+        "failed": 6,
+        "failedExpected": 6,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 6,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 12,
+          "total": "951174",
+          "min": "78817",
+          "max": "79716",
+          "average": "79264"
+        },
+        "latencyMs": {
+          "count": 18,
+          "total": 759,
+          "min": 10,
+          "max": 70,
+          "average": 42.166666666666664
+        }
+      },
+      "bootstrap": {
+        "attempted": 9,
+        "succeeded": 9,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 9,
+          "total": "1305301",
+          "min": "112375",
+          "max": "163625",
+          "average": "145033"
+        },
+        "latencyMs": {
+          "count": 9,
+          "total": 993,
+          "min": 29,
+          "max": 164,
+          "average": 110.33333333333333
+        }
+      },
+      "commit": {
+        "attempted": 63,
+        "succeeded": 63,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 63,
+          "total": "4073592",
+          "min": "44430",
+          "max": "68033",
+          "average": "64660"
+        },
+        "latencyMs": {
+          "count": 63,
+          "total": 6290,
+          "min": 52,
+          "max": 160,
+          "average": 99.84126984126983
+        }
+      },
+      "create": {
+        "attempted": 3,
+        "succeeded": 3,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 3,
+          "total": "502968",
+          "min": "161956",
+          "max": "179056",
+          "average": "167656"
+        },
+        "latencyMs": {
+          "count": 3,
+          "total": 190,
+          "min": 49,
+          "max": 77,
+          "average": 63.333333333333336
+        }
+      },
+      "deploy": {
+        "attempted": 2,
+        "succeeded": 2,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 2,
+          "total": "11472240",
+          "min": "2141684",
+          "max": "9330556",
+          "average": "5736120"
+        },
+        "latencyMs": {
+          "count": 2,
+          "total": 19,
+          "min": 9,
+          "max": 10,
+          "average": 9.5
+        }
+      },
+      "joining": {
+        "attempted": 27,
+        "succeeded": 21,
+        "failed": 6,
+        "failedExpected": 6,
+        "failedUnexpected": 0,
+        "failedOnchain": 6,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 21,
+          "total": "4389333",
+          "min": "100702",
+          "max": "295428",
+          "average": "209015"
+        },
+        "latencyMs": {
+          "count": 27,
+          "total": 2406,
+          "min": 22,
+          "max": 144,
+          "average": 89.11111111111111
+        }
+      },
+      "reveal": {
+        "attempted": 63,
+        "succeeded": 63,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 63,
+          "total": "4946169",
+          "min": "52191",
+          "max": "260701",
+          "average": "78510"
+        },
+        "latencyMs": {
+          "count": 63,
+          "total": 7667,
+          "min": 61,
+          "max": 236,
+          "average": 121.6984126984127
+        }
+      },
+      "settlement": {
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 30,
+          "total": "2472160",
+          "min": "65800",
+          "max": "95848",
+          "average": "82405"
+        },
+        "latencyMs": {
+          "count": 30,
+          "total": 2886,
+          "min": 49,
+          "max": 204,
+          "average": 96.2
+        }
+      }
+    },
+    "byScenario": {
+      "bootstrap": {
+        "attempted": 11,
+        "succeeded": 11,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 11,
+          "total": "12777541",
+          "min": "112375",
+          "max": "9330556",
+          "average": "1161594"
+        },
+        "latencyMs": {
+          "count": 11,
+          "total": 1012,
+          "min": 9,
+          "max": 164,
+          "average": 92
+        }
+      },
+      "winner-all-share": {
+        "attempted": 204,
+        "succeeded": 192,
+        "failed": 12,
+        "failedExpected": 12,
+        "failedUnexpected": 0,
+        "failedOnchain": 6,
+        "failedLocal": 6,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 192,
+          "total": "17335396",
+          "min": "44430",
+          "max": "295428",
+          "average": "90288"
+        },
+        "latencyMs": {
+          "count": 204,
+          "total": 20198,
+          "min": 10,
+          "max": 236,
+          "average": 99.00980392156863
+        }
+      }
+    },
+    "byExpectation": {
+      "expected-failure": {
+        "attempted": 12,
+        "succeeded": 0,
+        "failed": 12,
+        "failedExpected": 12,
+        "failedUnexpected": 0,
+        "failedOnchain": 6,
+        "failedLocal": 6,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 0,
+          "total": "0",
+          "min": null,
+          "max": null,
+          "average": null
+        },
+        "latencyMs": {
+          "count": 12,
+          "total": 233,
+          "min": 10,
+          "max": 32,
+          "average": 19.416666666666668
+        }
+      },
+      "success": {
+        "attempted": 203,
+        "succeeded": 203,
+        "failed": 0,
+        "failedExpected": 0,
+        "failedUnexpected": 0,
+        "failedOnchain": 0,
+        "failedLocal": 0,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 203,
+          "total": "30112937",
+          "min": "44430",
+          "max": "9330556",
+          "average": "148339"
+        },
+        "latencyMs": {
+          "count": 203,
+          "total": 20977,
+          "min": 9,
+          "max": 236,
+          "average": 103.33497536945812
+        }
+      }
+    },
+    "byProbeKind": {
+      "(none)": {
+        "attempted": 215,
+        "succeeded": 203,
+        "failed": 12,
+        "failedExpected": 12,
+        "failedUnexpected": 0,
+        "failedOnchain": 6,
+        "failedLocal": 6,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 203,
+          "total": "30112937",
+          "min": "44430",
+          "max": "9330556",
+          "average": "148339"
+        },
+        "latencyMs": {
+          "count": 215,
+          "total": 21210,
+          "min": 9,
+          "max": 236,
+          "average": 98.65116279069767
+        }
+      }
+    }
+  },
+  "sameBlockSummary": {
+    "enabled": false,
+    "attemptedBatches": 0,
+    "minedBatches": 0,
+    "attemptedTxs": 0,
+    "succeeded": 0,
+    "expectedFailures": 0,
+    "unexpectedFailures": 0,
+    "unexpectedSuccesses": 0,
+    "onchainReverts": 0,
+    "localRejections": 0,
+    "skipped": 0,
+    "byLabel": [],
+    "byAction": [],
+    "byGame": [
+      {
+        "gameId": 1,
+        "attemptedBatches": 0,
+        "skipped": 0
+      },
+      {
+        "gameId": 2,
+        "attemptedBatches": 0,
+        "skipped": 0
+      },
+      {
+        "gameId": 3,
+        "attemptedBatches": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "localScaleReadiness": {
+    "requestedPlayerTarget": 6,
+    "profileMaxPlayers": 32,
+    "sequentialGamesCompleted": 3,
+    "maxJoinedPlayersInSingleGame": 6,
+    "maxUsedCausesInSingleGame": 3,
+    "totalJoinedPlayersAcrossRun": 18,
+    "gamesHittingRequestedPlayerTarget": 3,
+    "gamesHittingProfileMaxPlayers": 0,
+    "fullyDrainedGames": 3,
+    "replayConsistentGames": 3,
+    "gamesWithoutUnexpectedFailures": 3,
+    "totalTerminalActions": {
+      "winnerClaimsExecuted": 18,
+      "refundsExecuted": 0,
+      "treasuryWithdrawalsExecuted": 3,
+      "causeWithdrawalsExecuted": 9
+    },
+    "throughput": {
+      "attemptedTxPerSecond": 16.319,
+      "successfulTxPerSecond": 15.408,
+      "failedTxPerSecond": 0.911
+    },
+    "hotspots": {
+      "highestGasTx": {
+        "action": "deployGame",
+        "phase": "deploy",
+        "scenarioType": null,
+        "gameIndex": null,
+        "gameId": null,
+        "round": null,
+        "wallet": null,
+        "causeId": null,
+        "txHash": "0x36473e8496db7ef0a809465074f1731e7b2c2a1a2888498cc3aa1ae76e9a9de2",
+        "blockNumber": 2,
+        "gasUsed": "9330556",
+        "durationMs": 9
+      },
+      "highestLatencyTx": {
+        "action": "reveal",
+        "phase": "reveal",
+        "scenarioType": "winner-all-share",
+        "gameIndex": 1,
+        "gameId": 1,
+        "round": 3,
+        "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+        "causeId": null,
+        "txHash": "0x17e6112ba673786dd7fbbf6e6fd455b08d8adc02974e3b03601c7eebd0a487d7",
+        "blockNumber": 65,
+        "gasUsed": "52215",
+        "durationMs": 236
+      },
+      "byAction": {
+        "deployAuthRegistry": {
+          "action": "deployAuthRegistry",
+          "phase": "deploy",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": null,
+          "txHash": "0x7ada097c7c7de610d04cf368f1d44dbbeb3dc8de8e8fe504268da74ff61dbddb",
+          "blockNumber": 1,
+          "gasUsed": "2141684",
+          "durationMs": 10
+        },
+        "deployGame": {
+          "action": "deployGame",
+          "phase": "deploy",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": null,
+          "txHash": "0x36473e8496db7ef0a809465074f1731e7b2c2a1a2888498cc3aa1ae76e9a9de2",
+          "blockNumber": 2,
+          "gasUsed": "9330556",
+          "durationMs": 9
+        },
+        "whitelistCause": {
+          "action": "whitelistCause",
+          "phase": "bootstrap",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": null,
+          "causeId": 1,
+          "txHash": "0xaa742b5c9a380c84c5f148bc953a27bd90e9ae4aa81d2da2ee38363d052f5d03",
+          "blockNumber": 3,
+          "gasUsed": "163625",
+          "durationMs": 34
+        },
+        "authRegister": {
+          "action": "authRegister",
+          "phase": "bootstrap",
+          "scenarioType": null,
+          "gameIndex": null,
+          "gameId": null,
+          "round": null,
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "causeId": null,
+          "txHash": "0x4d4844fdf057294865074750e632346c4e6478c8b765ff2a43731b738706f34d",
+          "blockNumber": 9,
+          "gasUsed": "152829",
+          "durationMs": 134
+        },
+        "createGame": {
+          "action": "createGame",
+          "phase": "create",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x121e27fb0f5ac2a9b6dbe5061e06848386f068e151c85d370efa99466a751917",
+          "blockNumber": 12,
+          "gasUsed": "179056",
+          "durationMs": 64
+        },
+        "join": {
+          "action": "join",
+          "phase": "joining",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+          "causeId": 1,
+          "txHash": "0x8d31a3dd4fd39d6566615287daa2042b9324a908b4c87e2740d29c20ed53e0b7",
+          "blockNumber": 20,
+          "gasUsed": "295428",
+          "durationMs": 117
+        },
+        "advanceFromJoining": {
+          "action": "advanceFromJoining",
+          "phase": "joining",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0xc66013ba4204fbaafacd650725dded691b1a0c71d427effca4d53247357276ac",
+          "blockNumber": 27,
+          "gasUsed": "100702",
+          "durationMs": 87
+        },
+        "commit": {
+          "action": "commit",
+          "phase": "commit",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+          "causeId": null,
+          "txHash": "0x9b7f8869409c1e5c3247042b2383b7c0f43dbadfe5aaad850ee6e471962f898f",
+          "blockNumber": 29,
+          "gasUsed": "68033",
+          "durationMs": 128
+        },
+        "advanceFromCommit": {
+          "action": "advanceFromCommit",
+          "phase": "commit",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x5133dfde808e8259669329d4792f3fa2b5669bed041cd9a664cc89a2e75055ff",
+          "blockNumber": 34,
+          "gasUsed": "44430",
+          "durationMs": 69
+        },
+        "reveal": {
+          "action": "reveal",
+          "phase": "reveal",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 1,
+          "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+          "causeId": null,
+          "txHash": "0xe3742687fa919a3cb09afd749b621e23773c2d161ea5aa14f558b591093f8628",
+          "blockNumber": 35,
+          "gasUsed": "69315",
+          "durationMs": 150
+        },
+        "advanceFromReveal": {
+          "action": "advanceFromReveal",
+          "phase": "reveal",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": 3,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0xb8c6fddeeaa88727c4c7c1798d775cc82124d24060b2231e6651870dee8ba452",
+          "blockNumber": 68,
+          "gasUsed": "260701",
+          "durationMs": 165
+        },
+        "claim": {
+          "action": "claim",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "causeId": null,
+          "txHash": "0x724509236017ff6487c68b6af467cb85a32507000e51ec956c269b612ea2a838",
+          "blockNumber": 69,
+          "gasUsed": "95848",
+          "durationMs": 168
+        },
+        "withdrawTreasury": {
+          "action": "withdrawTreasury",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": null,
+          "txHash": "0x8bdaf3178fc51f73072048ff6afc852ff6c0738b9810cb28d90de5d551ba627c",
+          "blockNumber": 75,
+          "gasUsed": "90800",
+          "durationMs": 81
+        },
+        "withdrawCause": {
+          "action": "withdrawCause",
+          "phase": "settlement",
+          "scenarioType": "winner-all-share",
+          "gameIndex": 1,
+          "gameId": 1,
+          "round": null,
+          "wallet": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "causeId": 1,
+          "txHash": "0x9ae829d1be3b4fb72a7720312128573ca03a5bb7ce2d1191169ad9f07d002233",
+          "blockNumber": 76,
+          "gasUsed": "92044",
+          "durationMs": 106
+        }
+      }
+    }
+  },
+  "breakageSummary": {
+    "gamesChecked": 3,
+    "gamesWithWedgedActiveSlot": 0,
+    "gamesWithTerminalStateMismatch": 0,
+    "gamesWithAccountingMismatch": 0,
+    "gamesWithPreviewMismatch": 0,
+    "gamesWithDrainMismatch": 0,
+    "gamesWithReplayInconsistency": 0,
+    "gamesWithUnexpectedFailures": 0,
+    "totalUnexpectedFailures": 0,
+    "probeSummary": {
+      "attempted": 0,
+      "failedAsExpected": 0,
+      "unexpectedSuccesses": 0,
+      "onchainReverts": 0,
+      "localRejections": 0
+    },
+    "unexpectedFailureClusters": [],
+    "probeFailureClusters": []
+  },
+  "games": [
+    {
+      "index": 1,
+      "gameId": 1,
+      "scenario": {
+        "type": "winner-all-share",
+        "family": "winner",
+        "description": "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "terminalPath": "winner-claims",
+        "expectedFailuresEnabled": false,
+        "adversarialProbeModeEnabled": false,
+        "registeredPlayers": 6,
+        "plannedJoinedPlayers": 6,
+        "nonJoiningRegisteredPlayers": 0
+      },
+      "adversarialPlan": null,
+      "authChaos": {
+        "enabled": true,
+        "selectedForGame": true,
+        "applied": true,
+        "configured": {
+          "staleBundleFailures": 2,
+          "expiredJoinFailures": 2,
+          "ttlSeconds": 2,
+          "applyBeforeGameIndex": null,
+          "applyBeforeGameIndexes": [
+            1,
+            2,
+            3
+          ]
+        },
+        "gameIndex": 1,
+        "gameId": 1,
+        "timeWarpSeconds": 3,
+        "manualBlocksMined": 1,
+        "staleBundle": {
+          "requested": 2,
+          "planned": 2,
+          "attempted": 2,
+          "failedAsExpected": 2,
+          "unexpectedSuccesses": 0,
+          "players": [
+            {
+              "index": 6,
+              "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "bundleExpiresAt": 1773645180,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                  "manifestHash": "0xe5471a6434f9bac61332f5802457be8ab90d3e3289cdfca1cce8f512f258b5b8",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645180; latest block timestamp is 1773645181.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                  "manifestHash": "0xe5471a6434f9bac61332f5802457be8ab90d3e3289cdfca1cce8f512f258b5b8",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            },
+            {
+              "index": 1,
+              "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+              "bundleExpiresAt": 1773645180,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x7ea077672d973a497ee3b9499c4e371cbd58c7b138eb09e88bb0c62cba0b9e53",
+                  "manifestHash": "0x8d3a68a955b106966b47f389964b47bf4ac12f3b0ea5a3ad2d1c7e7fbb0269ed",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645180; latest block timestamp is 1773645181.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x7ea077672d973a497ee3b9499c4e371cbd58c7b138eb09e88bb0c62cba0b9e53",
+                  "manifestHash": "0x8d3a68a955b106966b47f389964b47bf4ac12f3b0ea5a3ad2d1c7e7fbb0269ed",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            }
+          ]
+        },
+        "expiredJoin": {
+          "requested": 2,
+          "planned": 2,
+          "shortAuthRegistrations": 2,
+          "joinAttempts": 2,
+          "failedAsExpected": 2,
+          "localRegisterRejections": 0,
+          "unexpectedSuccesses": 0,
+          "refreshedRegistrations": 2,
+          "players": [
+            {
+              "index": 5,
+              "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "causeId": 3,
+              "shortAuth": {
+                "txHash": "0x2f768edf09dee628c5011b5b1f143d5f27ae368b4a98ec5365c4552dc8f8dfb5",
+                "issuedAt": 1773645178,
+                "expiresAt": 1773645180,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                    "manifestHash": "0x863df0ca73c35b13c70d8e9792243a77b300cd19a5bf3df591fa0b89925e6f77",
+                    "issuedAt": 1773645178,
+                    "expiresAt": 1773645180,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                  "manifestHash": "0x863df0ca73c35b13c70d8e9792243a77b300cd19a5bf3df591fa0b89925e6f77",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 1773645180,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0x37cec81ae38e49dd6e10a70e18729117e911a8d79ce3f5949beceef4a8b8650d",
+                "issuedAt": 1773645182,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                    "manifestHash": "0x4b0c649a9e6cad439c9630e1c7d956d39e189f34494dfd8727436cf9ebb8e37c",
+                    "issuedAt": 1773645182,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            },
+            {
+              "index": 2,
+              "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+              "causeId": 3,
+              "shortAuth": {
+                "txHash": "0x6a5e6396c70231ab1e6c0a5a46d299627de3dc82beb67dd9b62dde900bd1eb49",
+                "issuedAt": 1773645178,
+                "expiresAt": 1773645180,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                    "manifestHash": "0x5e0c011863a0f0d2fdb3447e3463f47a617d9a6125acce1bb797bde107cb01e5",
+                    "issuedAt": 1773645178,
+                    "expiresAt": 1773645180,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                  "manifestHash": "0x5e0c011863a0f0d2fdb3447e3463f47a617d9a6125acce1bb797bde107cb01e5",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 1773645180,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0xf316697098c0c0dc4b2a1a5d5446f352e1a6363549a45bf8cfc6a227a4ffc2ff",
+                "issuedAt": 1773645182,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                    "manifestHash": "0x11e843b5cb60e1e46d73ae3febd36894038163fb67748d7fc17e46ffc310d6f4",
+                    "issuedAt": 1773645182,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "skipped": []
+      },
+      "wallClockMs": 4665,
+      "blocks": {
+        "start": 11,
+        "end": 78,
+        "mined": 67,
+        "manualMined": 2
+      },
+      "playerCount": 6,
+      "joinedPlayerCount": 6,
+      "causeCount": 3,
+      "causeDistribution": [
+        {
+          "causeId": 1,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 2,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 3,
+          "entrantCount": 2
+        }
+      ],
+      "phaseTimingMs": {
+        "joining": 818,
+        "settlement": 735,
+        "exportEvidence": 268
+      },
+      "deadlineMisses": {
+        "commitRounds": 0,
+        "revealRounds": 0,
+        "skippedCommits": 0,
+        "skippedReveals": 0
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "wallClockMs": 799,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 315,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 1
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 391,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 2,
+              "shareStreak": 1
+            }
+          }
+        },
+        {
+          "round": 2,
+          "wallClockMs": 723,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 321,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 2
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 341,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 3,
+              "shareStreak": 2
+            }
+          }
+        },
+        {
+          "round": 3,
+          "wallClockMs": 1071,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 379,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 3
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 617,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Ended",
+              "outcome": "Winners",
+              "round": 3,
+              "shareStreak": 3
+            }
+          }
+        }
+      ],
+      "claims": {
+        "succeeded": 6,
+        "totalGrossPrizeWei": "59400000000000000",
+        "totalCauseCutWei": "594000000000000",
+        "totalNetPrizeWei": "58806000000000000",
+        "byCause": [
+          {
+            "causeId": 1,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 2,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 3,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          }
+        ]
+      },
+      "refunds": {
+        "succeeded": 0,
+        "totalRefundWei": "0"
+      },
+      "withdrawals": {
+        "treasury": {
+          "executed": true,
+          "amountWei": "600000000000000",
+          "recipient": "0x4779d18931B35540F84b0cd0e9633855B84df7b8"
+        },
+        "causes": {
+          "succeeded": 3,
+          "totalAmountWei": "594000000000000",
+          "byCause": [
+            {
+              "causeId": 1,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931"
+            },
+            {
+              "causeId": 2,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e"
+            },
+            {
+              "causeId": 3,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624"
+            }
+          ]
+        }
+      },
+      "terminalActions": {
+        "path": "winner-claims",
+        "winnerClaimsExecuted": 6,
+        "refundsExecuted": 0,
+        "treasuryWithdrawalExecuted": true,
+        "causeWithdrawalsExecuted": 3
+      },
+      "expectedFailures": {
+        "enabled": false,
+        "attempted": 4,
+        "failedAsExpected": 4,
+        "unexpectedSuccesses": 0
+      },
+      "probes": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byKind": [],
+        "byAction": [],
+        "byPhase": []
+      },
+      "sameBlock": {
+        "enabled": false,
+        "attemptedBatches": 0,
+        "minedBatches": 0,
+        "attemptedTxs": 0,
+        "succeeded": 0,
+        "expectedFailures": 0,
+        "unexpectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byLabel": [],
+        "byAction": [],
+        "skipped": 0,
+        "skippedReasons": [],
+        "batches": []
+      },
+      "txSummary": {
+        "attempted": 68,
+        "succeeded": 64,
+        "failed": 4,
+        "failedExpected": 4,
+        "failedUnexpected": 0,
+        "failedOnchain": 2,
+        "failedLocal": 2,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 64,
+          "total": "5856528",
+          "min": "44430",
+          "max": "295428",
+          "average": "91508"
+        },
+        "latencyMs": {
+          "count": 68,
+          "total": 8347,
+          "min": 14,
+          "max": 236,
+          "average": 122.75
+        },
+        "byAction": {
+          "advanceFromCommit": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "133290",
+              "min": "44430",
+              "max": "44430",
+              "average": "44430"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 247,
+              "min": 64,
+              "max": 114,
+              "average": 82.33333333333333
+            }
+          },
+          "advanceFromJoining": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "100702",
+              "min": "100702",
+              "max": "100702",
+              "average": "100702"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 87,
+              "min": 87,
+              "max": 87,
+              "average": 87
+            }
+          },
+          "advanceFromReveal": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "606281",
+              "min": "172790",
+              "max": "260701",
+              "average": "202093"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 338,
+              "min": 86,
+              "max": 165,
+              "average": 112.66666666666667
+            }
+          },
+          "authRegister": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317054",
+              "min": "78817",
+              "max": "79716",
+              "average": "79263"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 280,
+              "min": 14,
+              "max": 70,
+              "average": 46.666666666666664
+            }
+          },
+          "claim": {
+            "attempted": 6,
+            "succeeded": 6,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "523788",
+              "min": "78748",
+              "max": "95848",
+              "average": "87298"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 1053,
+              "min": 146,
+              "max": 204,
+              "average": 175.5
+            }
+          },
+          "commit": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1224582",
+              "min": "68021",
+              "max": "68033",
+              "average": "68032"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 2271,
+              "min": 85,
+              "max": 160,
+              "average": 126.16666666666667
+            }
+          },
+          "createGame": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "179056",
+              "min": "179056",
+              "max": "179056",
+              "average": "179056"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 64,
+              "min": 64,
+              "max": 64,
+              "average": 64
+            }
+          },
+          "join": {
+            "attempted": 8,
+            "succeeded": 6,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "1362409",
+              "min": "192875",
+              "max": "295428",
+              "average": "227068"
+            },
+            "latencyMs": {
+              "count": 8,
+              "total": 708,
+              "min": 26,
+              "max": 118,
+              "average": 88.5
+            }
+          },
+          "reveal": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1042434",
+              "min": "52191",
+              "max": "69315",
+              "average": "57913"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 2949,
+              "min": 90,
+              "max": 236,
+              "average": 163.83333333333334
+            }
+          },
+          "withdrawCause": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "276132",
+              "min": "92044",
+              "max": "92044",
+              "average": "92044"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 269,
+              "min": 78,
+              "max": 106,
+              "average": 89.66666666666667
+            }
+          },
+          "withdrawTreasury": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "90800",
+              "min": "90800",
+              "max": "90800",
+              "average": "90800"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 81,
+              "min": 81,
+              "max": 81,
+              "average": 81
+            }
+          }
+        },
+        "byPhase": {
+          "auth-chaos": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317054",
+              "min": "78817",
+              "max": "79716",
+              "average": "79263"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 280,
+              "min": 14,
+              "max": 70,
+              "average": 46.666666666666664
+            }
+          },
+          "commit": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1357872",
+              "min": "44430",
+              "max": "68033",
+              "average": "64660"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 2518,
+              "min": 64,
+              "max": 160,
+              "average": 119.9047619047619
+            }
+          },
+          "create": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "179056",
+              "min": "179056",
+              "max": "179056",
+              "average": "179056"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 64,
+              "min": 64,
+              "max": 64,
+              "average": 64
+            }
+          },
+          "joining": {
+            "attempted": 9,
+            "succeeded": 7,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 7,
+              "total": "1463111",
+              "min": "100702",
+              "max": "295428",
+              "average": "209015"
+            },
+            "latencyMs": {
+              "count": 9,
+              "total": 795,
+              "min": 26,
+              "max": 118,
+              "average": 88.33333333333333
+            }
+          },
+          "reveal": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1648715",
+              "min": "52191",
+              "max": "260701",
+              "average": "78510"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 3287,
+              "min": 86,
+              "max": 236,
+              "average": 156.52380952380952
+            }
+          },
+          "settlement": {
+            "attempted": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 10,
+              "total": "890720",
+              "min": "78748",
+              "max": "95848",
+              "average": "89072"
+            },
+            "latencyMs": {
+              "count": 10,
+              "total": 1403,
+              "min": 78,
+              "max": 204,
+              "average": 140.3
+            }
+          }
+        },
+        "byScenario": {
+          "winner-all-share": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5856528",
+              "min": "44430",
+              "max": "295428",
+              "average": "91508"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 8347,
+              "min": 14,
+              "max": 236,
+              "average": 122.75
+            }
+          }
+        },
+        "byExpectation": {
+          "expected-failure": {
+            "attempted": 4,
+            "succeeded": 0,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 0,
+              "total": "0",
+              "min": null,
+              "max": null,
+              "average": null
+            },
+            "latencyMs": {
+              "count": 4,
+              "total": 81,
+              "min": 14,
+              "max": 27,
+              "average": 20.25
+            }
+          },
+          "success": {
+            "attempted": 64,
+            "succeeded": 64,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5856528",
+              "min": "44430",
+              "max": "295428",
+              "average": "91508"
+            },
+            "latencyMs": {
+              "count": 64,
+              "total": 8266,
+              "min": 56,
+              "max": 236,
+              "average": 129.15625
+            }
+          }
+        },
+        "byProbeKind": {
+          "(none)": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5856528",
+              "min": "44430",
+              "max": "295428",
+              "average": "91508"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 8347,
+              "min": 14,
+              "max": 236,
+              "average": 122.75
+            }
+          }
+        }
+      },
+      "resultState": {
+        "phase": "Ended",
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "round": 3,
+        "shareStreak": 3,
+        "counts": {
+          "joined": 6,
+          "alive": 6,
+          "claimed": 6,
+          "refunded": 0,
+          "usedCauses": 3,
+          "committed": 6,
+          "revealed": 6,
+          "messages": 0
+        },
+        "settlement": {
+          "finalized": true,
+          "terminalPath": "winner-claims",
+          "totalPotWei": "60000000000000000",
+          "creatorFeeWei": "600000000000000",
+          "treasuryAccruedWei": "600000000000000",
+          "treasuryWithdrawnWei": "600000000000000",
+          "treasuryClaimableWei": "0",
+          "winnerCount": 6,
+          "winnerShareWei": "9900000000000000",
+          "refundPerPlayerWei": "0",
+          "noWinnerCausePoolWei": "0",
+          "noWinnerCauseDistributedWei": "0"
+        }
+      },
+      "postRunOutstanding": {
+        "treasuryClaimableWei": "0",
+        "totalCauseClaimableWei": "0",
+        "unclaimedWinnerCount": 0,
+        "pendingRefundCount": 0,
+        "fullyDrainedByHarness": true
+      },
+      "replayConsistency": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "joinedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "usedCauses",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "settlementFinalized",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "totalPotWei",
+            "expected": "60000000000000000",
+            "actual": "60000000000000000",
+            "ok": true
+          },
+          {
+            "name": "phase",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "name": "outcome",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "name": "terminalPath",
+            "expected": "winner-claims",
+            "actual": "winner-claims",
+            "ok": true
+          },
+          {
+            "name": "shareStreak",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "aliveCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "winnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimPathAvailable",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "claimedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimedWinnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "grossClaimsVsWinnerShare",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossEqualsNetPlusCauseCut",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossClaimsAgreeWithEvidence",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnWei",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryClaimableWei",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeClaimableWeiAfterWithdrawals",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawnWei",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnAgreeWithHarness",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawalsAgreeWithHarness",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          }
+        ]
+      },
+      "breakageChecks": {
+        "ok": true,
+        "checks": [
+          {
+            "category": "slot",
+            "name": "activeGameIdCleared",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "slot",
+            "name": "currentGameIdAtLeastGameId",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "phaseMatchesEvidence",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "outcomeMatchesEvidence",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "roundMatchesEvidence",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "treasuryAccruedEqualsClaimablePlusWithdrawn",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-1-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-1-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-3-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-3-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-2-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-2-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "treasuryClaimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "unclaimedWinnerCountAfterCleanup",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "treasuryClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "causeClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          }
+        ],
+        "categories": {
+          "slot": {
+            "ok": true,
+            "failed": [],
+            "total": 2
+          },
+          "terminal": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          },
+          "accounting": {
+            "ok": true,
+            "failed": [],
+            "total": 4
+          },
+          "preview": {
+            "ok": true,
+            "failed": [],
+            "total": 28
+          },
+          "drain": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          }
+        },
+        "slotState": {
+          "activeGameId": 0,
+          "currentGameId": 1
+        }
+      },
+      "evidence": {
+        "outputDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence",
+        "manifestPath": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/export-manifest.json",
+        "produced": [
+          {
+            "artifact": "game-summary.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/game-summary.json"
+          },
+          {
+            "artifact": "roster.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/roster.json"
+          },
+          {
+            "artifact": "causes.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/causes.json"
+          },
+          {
+            "artifact": "rounds.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/rounds.json"
+          },
+          {
+            "artifact": "auth.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/auth.json"
+          },
+          {
+            "artifact": "payouts.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/payouts.json"
+          },
+          {
+            "artifact": "export-manifest.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-1/evidence/export-manifest.json"
+          }
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      },
+      "notes": [
+        "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "Auth-expiry chaos before joins: staleBundleFailures=2/2, expiredJoinFailures=2/2, localRegisterRejections=0, refreshed=2.",
+        "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads.",
+        "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable.",
+        "Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: joining:early advance probe skipped, joining:late join probe skipped, joining:advance burst skipped."
+      ]
+    },
+    {
+      "index": 2,
+      "gameId": 2,
+      "scenario": {
+        "type": "winner-all-share",
+        "family": "winner",
+        "description": "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "terminalPath": "winner-claims",
+        "expectedFailuresEnabled": false,
+        "adversarialProbeModeEnabled": false,
+        "registeredPlayers": 6,
+        "plannedJoinedPlayers": 6,
+        "nonJoiningRegisteredPlayers": 0
+      },
+      "adversarialPlan": null,
+      "authChaos": {
+        "enabled": true,
+        "selectedForGame": true,
+        "applied": true,
+        "configured": {
+          "staleBundleFailures": 2,
+          "expiredJoinFailures": 2,
+          "ttlSeconds": 2,
+          "applyBeforeGameIndex": null,
+          "applyBeforeGameIndexes": [
+            1,
+            2,
+            3
+          ]
+        },
+        "gameIndex": 2,
+        "gameId": 2,
+        "timeWarpSeconds": 3,
+        "manualBlocksMined": 1,
+        "staleBundle": {
+          "requested": 2,
+          "planned": 2,
+          "attempted": 2,
+          "failedAsExpected": 2,
+          "unexpectedSuccesses": 0,
+          "players": [
+            {
+              "index": 4,
+              "wallet": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "bundleExpiresAt": 1773645249,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x95b62347280c0247c05d3d3ef6324aebeaa0161c454df2b87f79281d09ab26cc",
+                  "manifestHash": "0x42cd6c74dc5ce66b2fb6052dfe21f4bab18d7cb26ea33a6f6955b57ae76a0912",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645249; latest block timestamp is 1773645250.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x95b62347280c0247c05d3d3ef6324aebeaa0161c454df2b87f79281d09ab26cc",
+                  "manifestHash": "0x42cd6c74dc5ce66b2fb6052dfe21f4bab18d7cb26ea33a6f6955b57ae76a0912",
+                  "issuedAt": 1773645178,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            },
+            {
+              "index": 5,
+              "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "bundleExpiresAt": 1773645249,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                  "manifestHash": "0x4b0c649a9e6cad439c9630e1c7d956d39e189f34494dfd8727436cf9ebb8e37c",
+                  "issuedAt": 1773645182,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645249; latest block timestamp is 1773645250.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                  "manifestHash": "0x4b0c649a9e6cad439c9630e1c7d956d39e189f34494dfd8727436cf9ebb8e37c",
+                  "issuedAt": 1773645182,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            }
+          ]
+        },
+        "expiredJoin": {
+          "requested": 2,
+          "planned": 2,
+          "shortAuthRegistrations": 2,
+          "joinAttempts": 2,
+          "failedAsExpected": 2,
+          "localRegisterRejections": 0,
+          "unexpectedSuccesses": 0,
+          "refreshedRegistrations": 2,
+          "players": [
+            {
+              "index": 6,
+              "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "causeId": 2,
+              "shortAuth": {
+                "txHash": "0xc1e50b01dfa1077ac6ea5b21bb1be3a1e2e2471daade651a214098d5deef37a2",
+                "issuedAt": 1773645247,
+                "expiresAt": 1773645249,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                    "manifestHash": "0xdc3652342be77bb80364546f6576d3581816e214b434f486fe86c254e59ae4c5",
+                    "issuedAt": 1773645247,
+                    "expiresAt": 1773645249,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                  "manifestHash": "0xdc3652342be77bb80364546f6576d3581816e214b434f486fe86c254e59ae4c5",
+                  "issuedAt": 1773645247,
+                  "expiresAt": 1773645249,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0x4a1d080d30f1ae8f198fda3393177c396255cdc5f0d553259ac493b055b6ecb5",
+                "issuedAt": 1773645250,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                    "manifestHash": "0xd51500469f80594bea66f2db2cd29ab9e6876a16c219f0f19c9c95ac15f13418",
+                    "issuedAt": 1773645250,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            },
+            {
+              "index": 1,
+              "wallet": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+              "causeId": 3,
+              "shortAuth": {
+                "txHash": "0xdaa489588dfc465f9d831fd185581c176742436d9a5613540c1837f78867a40d",
+                "issuedAt": 1773645247,
+                "expiresAt": 1773645249,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0x7ea077672d973a497ee3b9499c4e371cbd58c7b138eb09e88bb0c62cba0b9e53",
+                    "manifestHash": "0x7cfa33a64c65818850296fe530933d2cae48f0dc87aa173f2982eaf9187ac29f",
+                    "issuedAt": 1773645247,
+                    "expiresAt": 1773645249,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0x7ea077672d973a497ee3b9499c4e371cbd58c7b138eb09e88bb0c62cba0b9e53",
+                  "manifestHash": "0x7cfa33a64c65818850296fe530933d2cae48f0dc87aa173f2982eaf9187ac29f",
+                  "issuedAt": 1773645247,
+                  "expiresAt": 1773645249,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0x4bcff994a2d14b446b7549c1b215fa71b4320f2f0f4d82bf714283758eecb930",
+                "issuedAt": 1773645250,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0x7ea077672d973a497ee3b9499c4e371cbd58c7b138eb09e88bb0c62cba0b9e53",
+                    "manifestHash": "0x81f1561e85cba5a42e40a9785342b64ed179447577cd4509a3fcd791164b780a",
+                    "issuedAt": 1773645250,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "skipped": []
+      },
+      "wallClockMs": 3474,
+      "blocks": {
+        "start": 78,
+        "end": 141,
+        "mined": 63,
+        "manualMined": 2
+      },
+      "playerCount": 6,
+      "joinedPlayerCount": 6,
+      "causeCount": 3,
+      "causeDistribution": [
+        {
+          "causeId": 1,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 2,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 3,
+          "entrantCount": 2
+        }
+      ],
+      "phaseTimingMs": {
+        "joining": 777,
+        "settlement": 429,
+        "exportEvidence": 179
+      },
+      "deadlineMisses": {
+        "commitRounds": 0,
+        "revealRounds": 0,
+        "skippedCommits": 0,
+        "skippedReveals": 0
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "wallClockMs": 627,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 235,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 1
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 331,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 2,
+              "shareStreak": 1
+            }
+          }
+        },
+        {
+          "round": 2,
+          "wallClockMs": 653,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 243,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 2
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 353,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 3,
+              "shareStreak": 2
+            }
+          }
+        },
+        {
+          "round": 3,
+          "wallClockMs": 608,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 284,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 3
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 285,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Ended",
+              "outcome": "Winners",
+              "round": 3,
+              "shareStreak": 3
+            }
+          }
+        }
+      ],
+      "claims": {
+        "succeeded": 6,
+        "totalGrossPrizeWei": "59400000000000000",
+        "totalCauseCutWei": "594000000000000",
+        "totalNetPrizeWei": "58806000000000000",
+        "byCause": [
+          {
+            "causeId": 1,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 2,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 3,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          }
+        ]
+      },
+      "refunds": {
+        "succeeded": 0,
+        "totalRefundWei": "0"
+      },
+      "withdrawals": {
+        "treasury": {
+          "executed": true,
+          "amountWei": "600000000000000",
+          "recipient": "0x4779d18931B35540F84b0cd0e9633855B84df7b8"
+        },
+        "causes": {
+          "succeeded": 3,
+          "totalAmountWei": "594000000000000",
+          "byCause": [
+            {
+              "causeId": 1,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931"
+            },
+            {
+              "causeId": 2,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e"
+            },
+            {
+              "causeId": 3,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624"
+            }
+          ]
+        }
+      },
+      "terminalActions": {
+        "path": "winner-claims",
+        "winnerClaimsExecuted": 6,
+        "refundsExecuted": 0,
+        "treasuryWithdrawalExecuted": true,
+        "causeWithdrawalsExecuted": 3
+      },
+      "expectedFailures": {
+        "enabled": false,
+        "attempted": 4,
+        "failedAsExpected": 4,
+        "unexpectedSuccesses": 0
+      },
+      "probes": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byKind": [],
+        "byAction": [],
+        "byPhase": []
+      },
+      "sameBlock": {
+        "enabled": false,
+        "attemptedBatches": 0,
+        "minedBatches": 0,
+        "attemptedTxs": 0,
+        "succeeded": 0,
+        "expectedFailures": 0,
+        "unexpectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byLabel": [],
+        "byAction": [],
+        "skipped": 0,
+        "skippedReasons": [],
+        "batches": []
+      },
+      "txSummary": {
+        "attempted": 68,
+        "succeeded": 64,
+        "failed": 4,
+        "failedExpected": 4,
+        "failedUnexpected": 0,
+        "failedOnchain": 2,
+        "failedLocal": 2,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 64,
+          "total": "5739440",
+          "min": "44430",
+          "max": "295428",
+          "average": "89678"
+        },
+        "latencyMs": {
+          "count": 68,
+          "total": 6313,
+          "min": 12,
+          "max": 158,
+          "average": 92.83823529411765
+        },
+        "byAction": {
+          "advanceFromCommit": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "133290",
+              "min": "44430",
+              "max": "44430",
+              "average": "44430"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 170,
+              "min": 55,
+              "max": 58,
+              "average": 56.666666666666664
+            }
+          },
+          "advanceFromJoining": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "100702",
+              "min": "100702",
+              "max": "100702",
+              "average": "100702"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 68,
+              "min": 68,
+              "max": 68,
+              "average": 68
+            }
+          },
+          "advanceFromReveal": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "606281",
+              "min": "172790",
+              "max": "260701",
+              "average": "202093"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 222,
+              "min": 70,
+              "max": 77,
+              "average": 74
+            }
+          },
+          "authRegister": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317042",
+              "min": "78817",
+              "max": "79704",
+              "average": "79260"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 262,
+              "min": 12,
+              "max": 66,
+              "average": 43.666666666666664
+            }
+          },
+          "claim": {
+            "attempted": 6,
+            "succeeded": 6,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "523788",
+              "min": "78748",
+              "max": "95848",
+              "average": "87298"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 592,
+              "min": 71,
+              "max": 126,
+              "average": 98.66666666666667
+            }
+          },
+          "commit": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1224582",
+              "min": "68021",
+              "max": "68033",
+              "average": "68032"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 1760,
+              "min": 74,
+              "max": 152,
+              "average": 97.77777777777777
+            }
+          },
+          "createGame": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 77,
+              "min": 77,
+              "max": 77,
+              "average": 77
+            }
+          },
+          "join": {
+            "attempted": 8,
+            "succeeded": 6,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "1362409",
+              "min": "192875",
+              "max": "295428",
+              "average": "227068"
+            },
+            "latencyMs": {
+              "count": 8,
+              "total": 740,
+              "min": 25,
+              "max": 140,
+              "average": 92.5
+            }
+          },
+          "reveal": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1042458",
+              "min": "52215",
+              "max": "69315",
+              "average": "57914"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 2210,
+              "min": 78,
+              "max": 158,
+              "average": 122.77777777777777
+            }
+          },
+          "withdrawCause": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "201132",
+              "min": "67044",
+              "max": "67044",
+              "average": "67044"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 162,
+              "min": 51,
+              "max": 56,
+              "average": 54
+            }
+          },
+          "withdrawTreasury": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "65800",
+              "min": "65800",
+              "max": "65800",
+              "average": "65800"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 50,
+              "min": 50,
+              "max": 50,
+              "average": 50
+            }
+          }
+        },
+        "byPhase": {
+          "auth-chaos": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317042",
+              "min": "78817",
+              "max": "79704",
+              "average": "79260"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 262,
+              "min": 12,
+              "max": 66,
+              "average": 43.666666666666664
+            }
+          },
+          "commit": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1357872",
+              "min": "44430",
+              "max": "68033",
+              "average": "64660"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 1930,
+              "min": 55,
+              "max": 152,
+              "average": 91.9047619047619
+            }
+          },
+          "create": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 77,
+              "min": 77,
+              "max": 77,
+              "average": 77
+            }
+          },
+          "joining": {
+            "attempted": 9,
+            "succeeded": 7,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 7,
+              "total": "1463111",
+              "min": "100702",
+              "max": "295428",
+              "average": "209015"
+            },
+            "latencyMs": {
+              "count": 9,
+              "total": 808,
+              "min": 25,
+              "max": 140,
+              "average": 89.77777777777777
+            }
+          },
+          "reveal": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1648739",
+              "min": "52215",
+              "max": "260701",
+              "average": "78511"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 2432,
+              "min": 70,
+              "max": 158,
+              "average": 115.80952380952381
+            }
+          },
+          "settlement": {
+            "attempted": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 10,
+              "total": "790720",
+              "min": "65800",
+              "max": "95848",
+              "average": "79072"
+            },
+            "latencyMs": {
+              "count": 10,
+              "total": 804,
+              "min": 50,
+              "max": 126,
+              "average": 80.4
+            }
+          }
+        },
+        "byScenario": {
+          "winner-all-share": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739440",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 6313,
+              "min": 12,
+              "max": 158,
+              "average": 92.83823529411765
+            }
+          }
+        },
+        "byExpectation": {
+          "expected-failure": {
+            "attempted": 4,
+            "succeeded": 0,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 0,
+              "total": "0",
+              "min": null,
+              "max": null,
+              "average": null
+            },
+            "latencyMs": {
+              "count": 4,
+              "total": 85,
+              "min": 12,
+              "max": 32,
+              "average": 21.25
+            }
+          },
+          "success": {
+            "attempted": 64,
+            "succeeded": 64,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739440",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 64,
+              "total": 6228,
+              "min": 50,
+              "max": 158,
+              "average": 97.3125
+            }
+          }
+        },
+        "byProbeKind": {
+          "(none)": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739440",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 6313,
+              "min": 12,
+              "max": 158,
+              "average": 92.83823529411765
+            }
+          }
+        }
+      },
+      "resultState": {
+        "phase": "Ended",
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "round": 3,
+        "shareStreak": 3,
+        "counts": {
+          "joined": 6,
+          "alive": 6,
+          "claimed": 6,
+          "refunded": 0,
+          "usedCauses": 3,
+          "committed": 6,
+          "revealed": 6,
+          "messages": 0
+        },
+        "settlement": {
+          "finalized": true,
+          "terminalPath": "winner-claims",
+          "totalPotWei": "60000000000000000",
+          "creatorFeeWei": "600000000000000",
+          "treasuryAccruedWei": "600000000000000",
+          "treasuryWithdrawnWei": "600000000000000",
+          "treasuryClaimableWei": "0",
+          "winnerCount": 6,
+          "winnerShareWei": "9900000000000000",
+          "refundPerPlayerWei": "0",
+          "noWinnerCausePoolWei": "0",
+          "noWinnerCauseDistributedWei": "0"
+        }
+      },
+      "postRunOutstanding": {
+        "treasuryClaimableWei": "0",
+        "totalCauseClaimableWei": "0",
+        "unclaimedWinnerCount": 0,
+        "pendingRefundCount": 0,
+        "fullyDrainedByHarness": true
+      },
+      "replayConsistency": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "joinedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "usedCauses",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "settlementFinalized",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "totalPotWei",
+            "expected": "60000000000000000",
+            "actual": "60000000000000000",
+            "ok": true
+          },
+          {
+            "name": "phase",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "name": "outcome",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "name": "terminalPath",
+            "expected": "winner-claims",
+            "actual": "winner-claims",
+            "ok": true
+          },
+          {
+            "name": "shareStreak",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "aliveCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "winnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimPathAvailable",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "claimedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimedWinnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "grossClaimsVsWinnerShare",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossEqualsNetPlusCauseCut",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossClaimsAgreeWithEvidence",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnWei",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryClaimableWei",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeClaimableWeiAfterWithdrawals",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawnWei",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnAgreeWithHarness",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawalsAgreeWithHarness",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          }
+        ]
+      },
+      "breakageChecks": {
+        "ok": true,
+        "checks": [
+          {
+            "category": "slot",
+            "name": "activeGameIdCleared",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "slot",
+            "name": "currentGameIdAtLeastGameId",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "phaseMatchesEvidence",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "outcomeMatchesEvidence",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "roundMatchesEvidence",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "treasuryAccruedEqualsClaimablePlusWithdrawn",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-2-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-2-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-1-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-1-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-3-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-3-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "treasuryClaimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "unclaimedWinnerCountAfterCleanup",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "treasuryClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "causeClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          }
+        ],
+        "categories": {
+          "slot": {
+            "ok": true,
+            "failed": [],
+            "total": 2
+          },
+          "terminal": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          },
+          "accounting": {
+            "ok": true,
+            "failed": [],
+            "total": 4
+          },
+          "preview": {
+            "ok": true,
+            "failed": [],
+            "total": 28
+          },
+          "drain": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          }
+        },
+        "slotState": {
+          "activeGameId": 0,
+          "currentGameId": 2
+        }
+      },
+      "evidence": {
+        "outputDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence",
+        "manifestPath": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/export-manifest.json",
+        "produced": [
+          {
+            "artifact": "game-summary.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/game-summary.json"
+          },
+          {
+            "artifact": "roster.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/roster.json"
+          },
+          {
+            "artifact": "causes.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/causes.json"
+          },
+          {
+            "artifact": "rounds.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/rounds.json"
+          },
+          {
+            "artifact": "auth.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/auth.json"
+          },
+          {
+            "artifact": "payouts.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/payouts.json"
+          },
+          {
+            "artifact": "export-manifest.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-2/evidence/export-manifest.json"
+          }
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      },
+      "notes": [
+        "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "Auth-expiry chaos before joins: staleBundleFailures=2/2, expiredJoinFailures=2/2, localRegisterRejections=0, refreshed=2.",
+        "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads.",
+        "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable.",
+        "Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: joining:early advance probe skipped, joining:late join probe skipped, joining:advance burst skipped."
+      ]
+    },
+    {
+      "index": 3,
+      "gameId": 3,
+      "scenario": {
+        "type": "winner-all-share",
+        "family": "winner",
+        "description": "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "terminalPath": "winner-claims",
+        "expectedFailuresEnabled": false,
+        "adversarialProbeModeEnabled": false,
+        "registeredPlayers": 6,
+        "plannedJoinedPlayers": 6,
+        "nonJoiningRegisteredPlayers": 0
+      },
+      "adversarialPlan": null,
+      "authChaos": {
+        "enabled": true,
+        "selectedForGame": true,
+        "applied": true,
+        "configured": {
+          "staleBundleFailures": 2,
+          "expiredJoinFailures": 2,
+          "ttlSeconds": 2,
+          "applyBeforeGameIndex": null,
+          "applyBeforeGameIndexes": [
+            1,
+            2,
+            3
+          ]
+        },
+        "gameIndex": 3,
+        "gameId": 3,
+        "timeWarpSeconds": 3,
+        "manualBlocksMined": 1,
+        "staleBundle": {
+          "requested": 2,
+          "planned": 2,
+          "attempted": 2,
+          "failedAsExpected": 2,
+          "unexpectedSuccesses": 0,
+          "players": [
+            {
+              "index": 5,
+              "wallet": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "bundleExpiresAt": 1773645316,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                  "manifestHash": "0x4b0c649a9e6cad439c9630e1c7d956d39e189f34494dfd8727436cf9ebb8e37c",
+                  "issuedAt": 1773645182,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645316; latest block timestamp is 1773645317.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0xc8c01e317ec065a5efecec5fa450535fdac158f921f29d9ff39f81a353def38a",
+                  "manifestHash": "0x4b0c649a9e6cad439c9630e1c7d956d39e189f34494dfd8727436cf9ebb8e37c",
+                  "issuedAt": 1773645182,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            },
+            {
+              "index": 6,
+              "wallet": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "bundleExpiresAt": 1773645316,
+              "statusBeforeAttempt": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                  "manifestHash": "0xd51500469f80594bea66f2db2cd29ab9e6876a16c219f0f19c9c95ac15f13418",
+                  "issuedAt": 1773645250,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "failure": "Permit bundle is not registerable: Permit already expired at 1773645316; latest block timestamp is 1773645317.",
+              "statusAfterFailure": {
+                "isAuthorized": true,
+                "record": {
+                  "agentKey": "0x5725e6049a808402405993d298e234182a3a5b8a265eb108ecebf2f07612d9e6",
+                  "manifestHash": "0xd51500469f80594bea66f2db2cd29ab9e6876a16c219f0f19c9c95ac15f13418",
+                  "issuedAt": 1773645250,
+                  "expiresAt": 0,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              }
+            }
+          ]
+        },
+        "expiredJoin": {
+          "requested": 2,
+          "planned": 2,
+          "shortAuthRegistrations": 2,
+          "joinAttempts": 2,
+          "failedAsExpected": 2,
+          "localRegisterRejections": 0,
+          "unexpectedSuccesses": 0,
+          "refreshedRegistrations": 2,
+          "players": [
+            {
+              "index": 3,
+              "wallet": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "causeId": 3,
+              "shortAuth": {
+                "txHash": "0x1a866ff1e2e785a95c6c42b421b95e39632e69a9cd2be078f31b845826a5bc6c",
+                "issuedAt": 1773645314,
+                "expiresAt": 1773645316,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xeae2a92745bda49c1bd957754f9418f5d20aafc284bf70c272c075e047562ba7",
+                    "manifestHash": "0x1817c540257ef13a42cf101f3828e9f3a1bce65c2dd1c953ce6b3edd1a665610",
+                    "issuedAt": 1773645314,
+                    "expiresAt": 1773645316,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0xeae2a92745bda49c1bd957754f9418f5d20aafc284bf70c272c075e047562ba7",
+                  "manifestHash": "0x1817c540257ef13a42cf101f3828e9f3a1bce65c2dd1c953ce6b3edd1a665610",
+                  "issuedAt": 1773645314,
+                  "expiresAt": 1773645316,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0x2245f27fcdef1a11df45d879f4f75438a96e7bdbdd58094ff922e70a2c50a371",
+                "issuedAt": 1773645318,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xeae2a92745bda49c1bd957754f9418f5d20aafc284bf70c272c075e047562ba7",
+                    "manifestHash": "0x8efcf7ab49f04b7961e94f5019eec5f5767d8398d55c067399a6ff6022ab3c8b",
+                    "issuedAt": 1773645318,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            },
+            {
+              "index": 2,
+              "wallet": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+              "causeId": 2,
+              "shortAuth": {
+                "txHash": "0x2bfd27bdbeeb35265852aade2bd7677923a2085f5789e780c1efba6cb29cb31d",
+                "issuedAt": 1773645314,
+                "expiresAt": 1773645316,
+                "statusAfterRegister": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                    "manifestHash": "0xaf13a5c71fdad2d1ca6c65fd42370a88aadfdd84489a81aecf6a4f7a5ef518c6",
+                    "issuedAt": 1773645314,
+                    "expiresAt": 1773645316,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              },
+              "statusAfterExpiry": {
+                "isAuthorized": false,
+                "record": {
+                  "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                  "manifestHash": "0xaf13a5c71fdad2d1ca6c65fd42370a88aadfdd84489a81aecf6a4f7a5ef518c6",
+                  "issuedAt": 1773645314,
+                  "expiresAt": 1773645316,
+                  "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                  "active": true
+                }
+              },
+              "joinFailure": "transaction failed",
+              "refreshedAuth": {
+                "txHash": "0x8fbb5a294f02cfaf15189633bb95fe119a5f8dc8a963fc92df2fc12d0bd18cf9",
+                "issuedAt": 1773645318,
+                "expiresAt": 0,
+                "statusAfterRefresh": {
+                  "isAuthorized": true,
+                  "record": {
+                    "agentKey": "0xc5bba3fb0ab1573ac4b5ed4dc74dced116303e6745f1e481788c4690db75509a",
+                    "manifestHash": "0x5f7ea8c5151e609038ce17af9e262c1415543ead333d5c51b0308ee6cd339a26",
+                    "issuedAt": 1773645318,
+                    "expiresAt": 0,
+                    "issuer": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                    "active": true
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "skipped": []
+      },
+      "wallClockMs": 3063,
+      "blocks": {
+        "start": 141,
+        "end": 209,
+        "mined": 68,
+        "manualMined": 2
+      },
+      "playerCount": 6,
+      "joinedPlayerCount": 6,
+      "causeCount": 3,
+      "causeDistribution": [
+        {
+          "causeId": 1,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 2,
+          "entrantCount": 2
+        },
+        {
+          "causeId": 3,
+          "entrantCount": 2
+        }
+      ],
+      "phaseTimingMs": {
+        "joining": 685,
+        "settlement": 382,
+        "exportEvidence": 154
+      },
+      "deadlineMisses": {
+        "commitRounds": 0,
+        "revealRounds": 0,
+        "skippedCommits": 0,
+        "skippedReveals": 0
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "wallClockMs": 545,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 253,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 1
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 248,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 2,
+              "shareStreak": 1
+            }
+          }
+        },
+        {
+          "round": 2,
+          "wallClockMs": 536,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 241,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 2
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 253,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Commit",
+              "outcome": "Unset",
+              "round": 3,
+              "shareStreak": 2
+            }
+          }
+        },
+        {
+          "round": 3,
+          "wallClockMs": 575,
+          "choicePlan": {
+            "activePlayers": 6,
+            "intendedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "committedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            },
+            "revealedCounts": {
+              "Share": 6,
+              "Catch": 0,
+              "Steal": 0
+            }
+          },
+          "commit": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "deadlineHit": false,
+            "durationMs": 240,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Reveal",
+              "outcome": "Unset",
+              "round": 3
+            }
+          },
+          "reveal": {
+            "submitted": 6,
+            "skipped": 0,
+            "skippedWallets": [],
+            "invalidRevealAttempts": 0,
+            "deadlineHit": false,
+            "durationMs": 283,
+            "sameBlockAdvanceBatchId": null,
+            "advanceResult": {
+              "phase": "Ended",
+              "outcome": "Winners",
+              "round": 3,
+              "shareStreak": 3
+            }
+          }
+        }
+      ],
+      "claims": {
+        "succeeded": 6,
+        "totalGrossPrizeWei": "59400000000000000",
+        "totalCauseCutWei": "594000000000000",
+        "totalNetPrizeWei": "58806000000000000",
+        "byCause": [
+          {
+            "causeId": 1,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 2,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          },
+          {
+            "causeId": 3,
+            "claims": 2,
+            "grossPrizeWei": "19800000000000000",
+            "causeCutWei": "198000000000000",
+            "netPrizeWei": "19602000000000000"
+          }
+        ]
+      },
+      "refunds": {
+        "succeeded": 0,
+        "totalRefundWei": "0"
+      },
+      "withdrawals": {
+        "treasury": {
+          "executed": true,
+          "amountWei": "600000000000000",
+          "recipient": "0x4779d18931B35540F84b0cd0e9633855B84df7b8"
+        },
+        "causes": {
+          "succeeded": 3,
+          "totalAmountWei": "594000000000000",
+          "byCause": [
+            {
+              "causeId": 1,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x553BC17A05702530097c3677091C5BB47a3a7931"
+            },
+            {
+              "causeId": 2,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x87BdCE72c06C21cd96219BD8521bDF1F42C78b5e"
+            },
+            {
+              "causeId": 3,
+              "withdrawals": 1,
+              "amountWei": "198000000000000",
+              "recipient": "0x40Fc963A729c542424cD800349a7E4Ecc4896624"
+            }
+          ]
+        }
+      },
+      "terminalActions": {
+        "path": "winner-claims",
+        "winnerClaimsExecuted": 6,
+        "refundsExecuted": 0,
+        "treasuryWithdrawalExecuted": true,
+        "causeWithdrawalsExecuted": 3
+      },
+      "expectedFailures": {
+        "enabled": false,
+        "attempted": 4,
+        "failedAsExpected": 4,
+        "unexpectedSuccesses": 0
+      },
+      "probes": {
+        "attempted": 0,
+        "failedAsExpected": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byKind": [],
+        "byAction": [],
+        "byPhase": []
+      },
+      "sameBlock": {
+        "enabled": false,
+        "attemptedBatches": 0,
+        "minedBatches": 0,
+        "attemptedTxs": 0,
+        "succeeded": 0,
+        "expectedFailures": 0,
+        "unexpectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "onchainReverts": 0,
+        "localRejections": 0,
+        "byLabel": [],
+        "byAction": [],
+        "skipped": 0,
+        "skippedReasons": [],
+        "batches": []
+      },
+      "txSummary": {
+        "attempted": 68,
+        "succeeded": 64,
+        "failed": 4,
+        "failedExpected": 4,
+        "failedUnexpected": 0,
+        "failedOnchain": 2,
+        "failedLocal": 2,
+        "unexpectedSuccesses": 0,
+        "reverted": 0,
+        "gasUsed": {
+          "count": 64,
+          "total": "5739428",
+          "min": "44430",
+          "max": "295428",
+          "average": "89678"
+        },
+        "latencyMs": {
+          "count": 68,
+          "total": 5538,
+          "min": 10,
+          "max": 144,
+          "average": 81.44117647058823
+        },
+        "byAction": {
+          "advanceFromCommit": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "133290",
+              "min": "44430",
+              "max": "44430",
+              "average": "44430"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 177,
+              "min": 52,
+              "max": 63,
+              "average": 59
+            }
+          },
+          "advanceFromJoining": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "100702",
+              "min": "100702",
+              "max": "100702",
+              "average": "100702"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 67,
+              "min": 67,
+              "max": 67,
+              "average": 67
+            }
+          },
+          "advanceFromReveal": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "606281",
+              "min": "172790",
+              "max": "260701",
+              "average": "202093"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 188,
+              "min": 61,
+              "max": 65,
+              "average": 62.666666666666664
+            }
+          },
+          "authRegister": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317078",
+              "min": "78829",
+              "max": "79716",
+              "average": "79269"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 217,
+              "min": 10,
+              "max": 51,
+              "average": 36.166666666666664
+            }
+          },
+          "claim": {
+            "attempted": 6,
+            "succeeded": 6,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "523788",
+              "min": "78748",
+              "max": "95848",
+              "average": "87298"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 468,
+              "min": 77,
+              "max": 80,
+              "average": 78
+            }
+          },
+          "commit": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1224558",
+              "min": "68021",
+              "max": "68033",
+              "average": "68031"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 1665,
+              "min": 68,
+              "max": 120,
+              "average": 92.5
+            }
+          },
+          "createGame": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 49,
+              "min": 49,
+              "max": 49,
+              "average": 49
+            }
+          },
+          "join": {
+            "attempted": 8,
+            "succeeded": 6,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 6,
+              "total": "1362409",
+              "min": "192875",
+              "max": "295428",
+              "average": "227068"
+            },
+            "latencyMs": {
+              "count": 8,
+              "total": 736,
+              "min": 22,
+              "max": 144,
+              "average": 92
+            }
+          },
+          "reveal": {
+            "attempted": 18,
+            "succeeded": 18,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 18,
+              "total": "1042434",
+              "min": "52215",
+              "max": "69315",
+              "average": "57913"
+            },
+            "latencyMs": {
+              "count": 18,
+              "total": 1760,
+              "min": 80,
+              "max": 131,
+              "average": 97.77777777777777
+            }
+          },
+          "withdrawCause": {
+            "attempted": 3,
+            "succeeded": 3,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 3,
+              "total": "201132",
+              "min": "67044",
+              "max": "67044",
+              "average": "67044"
+            },
+            "latencyMs": {
+              "count": 3,
+              "total": 160,
+              "min": 49,
+              "max": 59,
+              "average": 53.333333333333336
+            }
+          },
+          "withdrawTreasury": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "65800",
+              "min": "65800",
+              "max": "65800",
+              "average": "65800"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 51,
+              "min": 51,
+              "max": 51,
+              "average": 51
+            }
+          }
+        },
+        "byPhase": {
+          "auth-chaos": {
+            "attempted": 6,
+            "succeeded": 4,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 4,
+              "total": "317078",
+              "min": "78829",
+              "max": "79716",
+              "average": "79269"
+            },
+            "latencyMs": {
+              "count": 6,
+              "total": 217,
+              "min": 10,
+              "max": 51,
+              "average": 36.166666666666664
+            }
+          },
+          "commit": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1357848",
+              "min": "44430",
+              "max": "68033",
+              "average": "64659"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 1842,
+              "min": 52,
+              "max": 120,
+              "average": 87.71428571428571
+            }
+          },
+          "create": {
+            "attempted": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 1,
+              "total": "161956",
+              "min": "161956",
+              "max": "161956",
+              "average": "161956"
+            },
+            "latencyMs": {
+              "count": 1,
+              "total": 49,
+              "min": 49,
+              "max": 49,
+              "average": 49
+            }
+          },
+          "joining": {
+            "attempted": 9,
+            "succeeded": 7,
+            "failed": 2,
+            "failedExpected": 2,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 7,
+              "total": "1463111",
+              "min": "100702",
+              "max": "295428",
+              "average": "209015"
+            },
+            "latencyMs": {
+              "count": 9,
+              "total": 803,
+              "min": 22,
+              "max": 144,
+              "average": 89.22222222222223
+            }
+          },
+          "reveal": {
+            "attempted": 21,
+            "succeeded": 21,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 21,
+              "total": "1648715",
+              "min": "52215",
+              "max": "260701",
+              "average": "78510"
+            },
+            "latencyMs": {
+              "count": 21,
+              "total": 1948,
+              "min": 61,
+              "max": 131,
+              "average": 92.76190476190476
+            }
+          },
+          "settlement": {
+            "attempted": 10,
+            "succeeded": 10,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 10,
+              "total": "790720",
+              "min": "65800",
+              "max": "95848",
+              "average": "79072"
+            },
+            "latencyMs": {
+              "count": 10,
+              "total": 679,
+              "min": 49,
+              "max": 80,
+              "average": 67.9
+            }
+          }
+        },
+        "byScenario": {
+          "winner-all-share": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739428",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 5538,
+              "min": 10,
+              "max": 144,
+              "average": 81.44117647058823
+            }
+          }
+        },
+        "byExpectation": {
+          "expected-failure": {
+            "attempted": 4,
+            "succeeded": 0,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 0,
+              "total": "0",
+              "min": null,
+              "max": null,
+              "average": null
+            },
+            "latencyMs": {
+              "count": 4,
+              "total": 67,
+              "min": 10,
+              "max": 24,
+              "average": 16.75
+            }
+          },
+          "success": {
+            "attempted": 64,
+            "succeeded": 64,
+            "failed": 0,
+            "failedExpected": 0,
+            "failedUnexpected": 0,
+            "failedOnchain": 0,
+            "failedLocal": 0,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739428",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 64,
+              "total": 5471,
+              "min": 47,
+              "max": 144,
+              "average": 85.484375
+            }
+          }
+        },
+        "byProbeKind": {
+          "(none)": {
+            "attempted": 68,
+            "succeeded": 64,
+            "failed": 4,
+            "failedExpected": 4,
+            "failedUnexpected": 0,
+            "failedOnchain": 2,
+            "failedLocal": 2,
+            "unexpectedSuccesses": 0,
+            "reverted": 0,
+            "gasUsed": {
+              "count": 64,
+              "total": "5739428",
+              "min": "44430",
+              "max": "295428",
+              "average": "89678"
+            },
+            "latencyMs": {
+              "count": 68,
+              "total": 5538,
+              "min": 10,
+              "max": 144,
+              "average": 81.44117647058823
+            }
+          }
+        }
+      },
+      "resultState": {
+        "phase": "Ended",
+        "outcome": "Winners",
+        "terminalPath": "winner-claims",
+        "round": 3,
+        "shareStreak": 3,
+        "counts": {
+          "joined": 6,
+          "alive": 6,
+          "claimed": 6,
+          "refunded": 0,
+          "usedCauses": 3,
+          "committed": 6,
+          "revealed": 6,
+          "messages": 0
+        },
+        "settlement": {
+          "finalized": true,
+          "terminalPath": "winner-claims",
+          "totalPotWei": "60000000000000000",
+          "creatorFeeWei": "600000000000000",
+          "treasuryAccruedWei": "600000000000000",
+          "treasuryWithdrawnWei": "600000000000000",
+          "treasuryClaimableWei": "0",
+          "winnerCount": 6,
+          "winnerShareWei": "9900000000000000",
+          "refundPerPlayerWei": "0",
+          "noWinnerCausePoolWei": "0",
+          "noWinnerCauseDistributedWei": "0"
+        }
+      },
+      "postRunOutstanding": {
+        "treasuryClaimableWei": "0",
+        "totalCauseClaimableWei": "0",
+        "unclaimedWinnerCount": 0,
+        "pendingRefundCount": 0,
+        "fullyDrainedByHarness": true
+      },
+      "replayConsistency": {
+        "ok": true,
+        "checks": [
+          {
+            "name": "joinedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "usedCauses",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "settlementFinalized",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "totalPotWei",
+            "expected": "60000000000000000",
+            "actual": "60000000000000000",
+            "ok": true
+          },
+          {
+            "name": "phase",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "name": "outcome",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "name": "terminalPath",
+            "expected": "winner-claims",
+            "actual": "winner-claims",
+            "ok": true
+          },
+          {
+            "name": "shareStreak",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "name": "aliveCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "winnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimPathAvailable",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "name": "claimedCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "claimedWinnerCount",
+            "expected": 6,
+            "actual": 6,
+            "ok": true
+          },
+          {
+            "name": "grossClaimsVsWinnerShare",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossEqualsNetPlusCauseCut",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "grossClaimsAgreeWithEvidence",
+            "expected": "59400000000000000",
+            "actual": "59400000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnWei",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryClaimableWei",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeClaimableWeiAfterWithdrawals",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawnWei",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          },
+          {
+            "name": "treasuryWithdrawnAgreeWithHarness",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "name": "causeWithdrawalsAgreeWithHarness",
+            "expected": "594000000000000",
+            "actual": "594000000000000",
+            "ok": true
+          }
+        ]
+      },
+      "breakageChecks": {
+        "ok": true,
+        "checks": [
+          {
+            "category": "slot",
+            "name": "activeGameIdCleared",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "slot",
+            "name": "currentGameIdAtLeastGameId",
+            "expected": true,
+            "actual": true,
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "phaseMatchesEvidence",
+            "expected": "Ended",
+            "actual": "Ended",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "outcomeMatchesEvidence",
+            "expected": "Winners",
+            "actual": "Winners",
+            "ok": true
+          },
+          {
+            "category": "terminal",
+            "name": "roundMatchesEvidence",
+            "expected": 3,
+            "actual": 3,
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "treasuryAccruedEqualsClaimablePlusWithdrawn",
+            "expected": "600000000000000",
+            "actual": "600000000000000",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-3-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-3-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-1-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-1-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "accounting",
+            "name": "cause-2-routedEqualsClaimablePlusWithdrawn",
+            "expected": "198000000000000",
+            "actual": "198000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "cause-2-claimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "treasuryClaimableMatchesEvidence",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "winner-preview-gross-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "9900000000000000",
+            "actual": "9900000000000000",
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-available-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": false,
+            "actual": false,
+            "ok": true
+          },
+          {
+            "category": "preview",
+            "name": "refund-preview-amount-0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "unclaimedWinnerCountAfterCleanup",
+            "expected": 0,
+            "actual": 0,
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "treasuryClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          },
+          {
+            "category": "drain",
+            "name": "causeClaimableAfterCleanup",
+            "expected": "0",
+            "actual": "0",
+            "ok": true
+          }
+        ],
+        "categories": {
+          "slot": {
+            "ok": true,
+            "failed": [],
+            "total": 2
+          },
+          "terminal": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          },
+          "accounting": {
+            "ok": true,
+            "failed": [],
+            "total": 4
+          },
+          "preview": {
+            "ok": true,
+            "failed": [],
+            "total": 28
+          },
+          "drain": {
+            "ok": true,
+            "failed": [],
+            "total": 3
+          }
+        },
+        "slotState": {
+          "activeGameId": 0,
+          "currentGameId": 3
+        }
+      },
+      "evidence": {
+        "outputDir": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence",
+        "manifestPath": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/export-manifest.json",
+        "produced": [
+          {
+            "artifact": "game-summary.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/game-summary.json"
+          },
+          {
+            "artifact": "roster.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/roster.json"
+          },
+          {
+            "artifact": "causes.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/causes.json"
+          },
+          {
+            "artifact": "rounds.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/rounds.json"
+          },
+          {
+            "artifact": "auth.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/auth.json"
+          },
+          {
+            "artifact": "payouts.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/payouts.json"
+          },
+          {
+            "artifact": "export-manifest.json",
+            "path": "/root/projects/prisoners-daollema/packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/runs/01-auth-expiry-a/game-3/evidence/export-manifest.json"
+          }
+        ],
+        "skipped": [
+          {
+            "artifact": "messages.jsonl",
+            "reason": "No GameChat address was provided or discovered for this chain, so message export was skipped."
+          }
+        ]
+      },
+      "notes": [
+        "All selected players join and the intended move plan is SHARE. Optional skip rates exercise missed commit/reveal deadline pressure while relying on the contract's default-to-SHARE behavior.",
+        "Auth-expiry chaos before joins: staleBundleFailures=2/2, expiredJoinFailures=2/2, localRegisterRejections=0, refreshed=2.",
+        "Missed commits/reveals, when configured, rely on the contract's current default-to-SHARE behavior rather than injecting invalid move payloads.",
+        "Winner-path runs now withdraw the settled creator-fee treasury balance and any routed cause balances after claims when those pull-based amounts are claimable.",
+        "Some adversarial probes were skipped because a prerequisite target or timing window was unavailable: joining:early advance probe skipped, joining:late join probe skipped, joining:advance burst skipped."
+      ]
+    }
+  ]
+}

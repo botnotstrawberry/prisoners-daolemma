@@ -178,6 +178,62 @@ function parseInteger(
   return numeric;
 }
 
+function buildSequentialGameIndexes(totalGames) {
+  return Array.from({ length: totalGames }, (_, index) => index + 1);
+}
+
+function parseAuthExpiryGameIndexes(value, totalGames) {
+  if (value === true) {
+    throw new Error(
+      "authExpiryGames must be a comma-separated list like 1,3 or the token 'all'."
+    );
+  }
+
+  if (value === undefined || value === null) {
+    return [1];
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) {
+    throw new Error(
+      "authExpiryGames must be a comma-separated list like 1,3 or the token 'all'."
+    );
+  }
+
+  if (normalized === "all") {
+    return buildSequentialGameIndexes(totalGames);
+  }
+
+  const indexes = [...new Set(
+    String(value)
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => parseInteger(part, "authExpiryGames", { min: 1, max: totalGames }))
+  )].sort((left, right) => left - right);
+
+  if (indexes.length === 0) {
+    throw new Error(
+      "authExpiryGames must be a comma-separated list like 1,3 or the token 'all'."
+    );
+  }
+
+  return indexes;
+}
+
+function authExpiryAppliesBeforeGame(authExpiryChaos, gameIndex) {
+  if (!authExpiryChaos?.enabled) {
+    return false;
+  }
+
+  const configuredIndexes = authExpiryChaos.applyBeforeGameIndexes ??
+    (authExpiryChaos.applyBeforeGameIndex !== undefined &&
+    authExpiryChaos.applyBeforeGameIndex !== null
+      ? [authExpiryChaos.applyBeforeGameIndex]
+      : []);
+  return configuredIndexes.includes(gameIndex);
+}
+
 function parseRate(value, label) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric < 0 || numeric > 1) {
@@ -911,7 +967,8 @@ function buildResolvedConfig(rawOptions = {}) {
     Boolean(rawOptions.authExpiryChaos) ||
     rawOptions.authExpiryStaleBundles !== undefined ||
     rawOptions.authExpiryJoinFailures !== undefined ||
-    rawOptions.authExpiryTtlSeconds !== undefined;
+    rawOptions.authExpiryTtlSeconds !== undefined ||
+    rawOptions.authExpiryGames !== undefined;
   const authExpiryStaleBundles = authExpiryChaosRequested
     ? parseInteger(
         rawOptions.authExpiryStaleBundles ?? 1,
@@ -933,6 +990,9 @@ function buildResolvedConfig(rawOptions = {}) {
         { min: 1, max: 3600 }
       )
     : 0;
+  const authExpiryGameIndexes = authExpiryChaosRequested
+    ? parseAuthExpiryGameIndexes(rawOptions.authExpiryGames, games)
+    : [];
 
   if (
     authExpiryChaosRequested &&
@@ -946,10 +1006,12 @@ function buildResolvedConfig(rawOptions = {}) {
 
   if (authExpiryChaosRequested) {
     notes.push(
-      `authExpiryChaos enabled for one bounded pre-join rehearsal before game 1: staleBundleFailures=${authExpiryStaleBundles}, expiredJoinFailures=${authExpiryJoinFailures}, ttlSeconds=${authExpiryTtlSeconds}.`
+      `authExpiryChaos enabled before game(s) ${authExpiryGameIndexes.join(
+        ", "
+      )}: staleBundleFailures=${authExpiryStaleBundles}, expiredJoinFailures=${authExpiryJoinFailures}, ttlSeconds=${authExpiryTtlSeconds}.`
     );
     notes.push(
-      "Auth-expiry chaos currently runs once per harness run before the first game's main join batch, then refreshes the affected wallets so the requested gameplay scenario can still execute."
+      "Auth-expiry chaos stays bounded and pre-join only: it can repeat before selected games, then refreshes the affected wallets so the requested gameplay scenario can still execute."
     );
   }
 
@@ -1035,7 +1097,13 @@ function buildResolvedConfig(rawOptions = {}) {
       staleBundleFailures: authExpiryStaleBundles,
       expiredJoinFailures: authExpiryJoinFailures,
       ttlSeconds: authExpiryTtlSeconds,
-      applyBeforeGameIndex: authExpiryChaosRequested ? 1 : null,
+      applyBeforeGameIndex:
+        authExpiryChaosRequested && authExpiryGameIndexes.length === 1
+          ? authExpiryGameIndexes[0]
+          : null,
+      applyBeforeGameIndexes: authExpiryChaosRequested
+        ? authExpiryGameIndexes
+        : [],
     },
     requestedScenario,
     selectedScenarioTypes,
@@ -2271,14 +2339,20 @@ async function runAuthExpiryChaos({
   authExpiryChaos,
   tracker,
 }) {
+  const selectedForGame = authExpiryAppliesBeforeGame(
+    authExpiryChaos,
+    gameIndex
+  );
   const summary = {
     enabled: Boolean(authExpiryChaos?.enabled),
+    selectedForGame,
     applied: false,
     configured: {
       staleBundleFailures: authExpiryChaos?.staleBundleFailures ?? 0,
       expiredJoinFailures: authExpiryChaos?.expiredJoinFailures ?? 0,
       ttlSeconds: authExpiryChaos?.ttlSeconds ?? 0,
       applyBeforeGameIndex: authExpiryChaos?.applyBeforeGameIndex ?? null,
+      applyBeforeGameIndexes: authExpiryChaos?.applyBeforeGameIndexes ?? [],
     },
     gameIndex,
     gameId,
@@ -2306,10 +2380,7 @@ async function runAuthExpiryChaos({
     skipped: [],
   };
 
-  if (
-    !authExpiryChaos?.enabled ||
-    authExpiryChaos.applyBeforeGameIndex !== gameIndex
-  ) {
+  if (!authExpiryChaos?.enabled || !selectedForGame) {
     return summary;
   }
 
@@ -7033,6 +7104,9 @@ function buildAuthChaosSummary({ games, authExpiryChaos }) {
   const gameAuthChaos = games
     .map((game) => game.authChaos)
     .filter((entry) => entry?.enabled);
+  const selectedGameAuthChaos = gameAuthChaos.filter(
+    (entry) => entry?.selectedForGame
+  );
 
   return {
     enabled: Boolean(authExpiryChaos?.enabled),
@@ -7041,8 +7115,10 @@ function buildAuthChaosSummary({ games, authExpiryChaos }) {
       expiredJoinFailures: authExpiryChaos?.expiredJoinFailures ?? 0,
       ttlSeconds: authExpiryChaos?.ttlSeconds ?? 0,
       applyBeforeGameIndex: authExpiryChaos?.applyBeforeGameIndex ?? null,
+      applyBeforeGameIndexes: authExpiryChaos?.applyBeforeGameIndexes ?? [],
     },
     gamesConsidered: gameAuthChaos.length,
+    gamesSelected: selectedGameAuthChaos.length,
     gamesApplied: gameAuthChaos.filter((entry) => entry.applied).length,
     timeWarpSeconds: gameAuthChaos.reduce(
       (sum, entry) => sum + (entry.timeWarpSeconds ?? 0),
@@ -7053,7 +7129,7 @@ function buildAuthChaosSummary({ games, authExpiryChaos }) {
       0
     ),
     staleBundle: {
-      requested: gameAuthChaos.reduce(
+      requested: selectedGameAuthChaos.reduce(
         (sum, entry) => sum + (entry.staleBundle?.requested ?? 0),
         0
       ),
@@ -7067,7 +7143,7 @@ function buildAuthChaosSummary({ games, authExpiryChaos }) {
       ),
     },
     expiredJoin: {
-      requested: gameAuthChaos.reduce(
+      requested: selectedGameAuthChaos.reduce(
         (sum, entry) => sum + (entry.expiredJoin?.requested ?? 0),
         0
       ),
@@ -7293,7 +7369,7 @@ export async function runLoadHarness(rawOptions = {}) {
       "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
       "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
       "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
-      "Optional auth-expiry chaos is intentionally bounded to one pre-join rehearsal per run. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, but it does not prove broader mass-expiry, mid-game expiry, or full SIWA-wrapper expiry behavior.",
+      "Optional auth-expiry chaos is intentionally bounded to selected pre-join rehearsals. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, and can repeat before selected games, but it does not prove mid-game expiry, unbounded mass-expiry, or full SIWA-wrapper expiry behavior.",
     ],
   };
 
@@ -7591,7 +7667,7 @@ export function printLoadHarnessSummary(report) {
   );
   if (report.authChaos?.enabled) {
     console.log(
-      `Auth chaos:     stale=${report.authChaos.staleBundle.failedAsExpected}/${report.authChaos.staleBundle.attempted}, expiredJoin=${report.authChaos.expiredJoin.failedAsExpected}/${report.authChaos.expiredJoin.joinAttempts}, localRegRejects=${report.authChaos.expiredJoin.localRegisterRejections}, refresh=${report.authChaos.expiredJoin.refreshedRegistrations}`
+      `Auth chaos:     games=${report.authChaos.gamesApplied}/${report.authChaos.gamesSelected ?? report.authChaos.gamesConsidered}, stale=${report.authChaos.staleBundle.failedAsExpected}/${report.authChaos.staleBundle.attempted}, expiredJoin=${report.authChaos.expiredJoin.failedAsExpected}/${report.authChaos.expiredJoin.joinAttempts}, localRegRejects=${report.authChaos.expiredJoin.localRegisterRejections}, refresh=${report.authChaos.expiredJoin.refreshedRegistrations}`
     );
   }
   if (report.environment) {

@@ -81,18 +81,18 @@ This section is not a release waiver. It is the current honest state of local va
   - seeded `adversarial-random` breakage hunting
   - phase-edge burst probes around commit/reveal/advance/settlement actions
   - optional same-block no-automine ordering probes for underfilled transitions, per-round last action vs `advancePhase`, and duplicate settlement attempts
-  - optional bounded pre-join auth-expiry chaos that locally rehearses stale permit/register rejection, expired-auth join rejection, and fresh-auth recovery
+  - optional bounded pre-join auth-expiry chaos that can now target selected sequential games, locally rehearsing stale permit/register rejection, expired-auth join rejection, and fresh-auth recovery
 - the broader local soak presets now extend through `xlarge-local`, including:
   - deterministic 32-player mixed-family coverage
   - started full-roster 32-player adversarial sweeps across multiple seeds
   - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
 - a full preserved 250-player single-game local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, carrying `report.json`, `txs.jsonl`, and per-game exports from a clean winner-path run with explicit 320/320/320 local timing budgets
 - a compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, carrying copied matrix summaries from the latest xlarge-local and 32-player adversarial multi-seed runs
+- a preserved raw auth-expiry matrix proof bundle is now checked in at `packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/`, carrying a full matrix report plus per-run raw reports/tx logs from repeated pre-join auth-expiry sweeps across two seeds
 - a preserved raw 10-instance host-local saturation proof bundle is now checked in at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`, carrying the full matrix report plus per-run raw reports/tx logs from a clean bounded custom 10-way overlap attempt
 
 ### Still not proven locally
-- broader auth-expiry chaos beyond the current bounded pre-join stale-permit / expired-join rehearsal
-- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus a compact preserved matrix proof pack
+- mid-game auth expiry, full SIWA-wrapper expiry rehearsal, or unbounded mass-auth-expiry chaos
 
 ### Blocked on external execution
 - Base Sepolia canary deployment + preserved live artifact bundle
@@ -302,12 +302,12 @@ What it covers today:
   - optional same-block no-automine ordering probes for underfilled transition ordering, per-round last action vs `advancePhase`, and duplicate `claim` / `refund` / `withdraw` contention
   - broader matrix presets through `xlarge-local`, including deterministic 32-player mixed-family coverage and multi-seed started full-roster 32-player adversarial sweeps with explicit longer phase budgets
   - bounded host-local multi-instance overlap through `parallel-local` / `--instance-concurrency`, with machine-readable execution timing, overlap-pair, and per-instance port reporting
+  - repeated bounded pre-join auth-expiry sweeps across selected sequential games via `--auth-expiry-games` and the `auth-expiry-local` matrix preset
 
 What it does **not** cover yet:
 - CI automation or broader multi-seed repetition of the 250-player target
 - heavier 11+ deployment saturation beyond the currently proven 10-instance Mode C envelope
-- auth-expiry chaos or broad invalid-op fuzzing inside the harness itself
-- a full raw in-repo tx/export bundle for the latest xlarge / multi-seed run set; the repo now ships a separate preserved raw 250-player single-game bundle plus compact preserved matrix proof packs
+- mid-game or full-SIWA-wrapper auth-expiry chaos, or broader invalid-op fuzzing inside the harness itself
 
 Purpose:
 - prove safety under ugly, non-demo behavior
@@ -336,7 +336,7 @@ Before Sepolia:
 - no unresolved critical/high severity issue from stress runs
 
 Current known gap against those gates:
-- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` plus the preserved raw `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` bundle, and bounded pre-join auth-expiry rehearsal is now covered locally, but the remaining broader local stress gaps are broader auth-expiry breadth and preserving a full raw xlarge / multi-seed matrix bundle
+- the explicit 250-player single-game gate is now closed locally by `packages/foundry/proof/local/20260316-250-player-single-game-proof/`; bounded multi-instance coverage is now also real via `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` plus the preserved raw `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` bundle, the full raw xlarge / multi-seed matrix bundle is now preserved locally at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`, and broader repeated pre-join auth-expiry rehearsal is now preserved locally at `packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/`; the remaining auth-expiry gap is mid-game / SIWA-wrapper-specific behavior rather than pre-join breadth
 
 ---
 
