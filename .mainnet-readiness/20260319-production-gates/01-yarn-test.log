@@ -1,0 +1,634 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/AgentAuthRegistry.t.sol:AgentAuthRegistryTest
+[PASS] testExpiredAuthIsNotAuthorized() (gas: 147716)
+[PASS] testNonOwnerCannotRotateVerifier() (gas: 15619)
+[PASS] testOwnerCanRevokeAuth() (gas: 156885)
+[PASS] testOwnerCanRotateVerifierAndOldVerifierStopsWorking() (gas: 179046)
+[PASS] testRegistersVerifierSignedPermitAndStoresWalletBinding() (gas: 153212)
+[PASS] testRejectsPermitSignedByWrongVerifier() (gas: 32510)
+[PASS] testRejectsPermitSubmittedByDifferentWallet() (gas: 25531)
+[PASS] testReplayProtectionUsesNonceOnlyOnce() (gas: 148625)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 8.60ms (7.22ms CPU time)
+
+Ran 15 tests for test/GameChat.t.sol:GameChatTest
+[PASS] testAliveSameCauseParticipantCanPostCauseChat() (gas: 455097)
+[PASS] testCannotPostCauseChatToMissingGame() (gas: 425684)
+[PASS] testCannotPostEmptyCauseMessage() (gas: 114312)
+[PASS] testCannotPostEmptyGlobalMessage() (gas: 112148)
+[PASS] testCannotPostGlobalToMissingGame() (gas: 425729)
+[PASS] testCannotPostOversizedCauseMessage() (gas: 141873)
+[PASS] testCannotPostOversizedGlobalMessage() (gas: 140039)
+[PASS] testEliminatedParticipantCanStillPostGlobal() (gas: 117350)
+[PASS] testEliminatedParticipantCannotPostCauseChat() (gas: 93598)
+[PASS] testJoinedParticipantCanPostGlobal() (gas: 452120)
+[PASS] testMaxLengthGlobalMessageIsAllowed() (gas: 166584)
+[PASS] testMessageEventCarriesDeterministicScopeAndGameContext() (gas: 157231)
+[PASS] testNonParticipantCannotPostCauseChat() (gas: 26686)
+[PASS] testNonParticipantCannotPostGlobal() (gas: 26615)
+[PASS] testWrongCauseParticipantCannotPostCauseChat() (gas: 425931)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 8.12ms (5.42ms CPU time)
+
+Ran 50 tests for test/PrisonersDaollema.t.sol:PrisonersDaollemaTest
+[PASS] testAdminConfigAndCauseWritesAreBlockedThroughCommitAndRevealPhases() (gas: 1038759)
+[PASS] testAdmissionViewsMirrorRegistry() (gas: 155018)
+[PASS] testAdvancePhaseCancelsJoiningGameAfterDeadlineBelowMinPlayers() (gas: 631882)
+[PASS] testAdvancePhaseMovesCommitToRevealEarlyWhenEveryoneCommitted() (gas: 992304)
+[PASS] testAdvancePhaseMovesJoiningToCommitAfterDeadlineWhenMinPlayersMet() (gas: 912079)
+[PASS] testAdvancePhaseResolvesAllThreeChoicesByEliminatingStealersAndContinuing() (gas: 1388906)
+[PASS] testAdvancePhaseResolvesCatchersOnlyToNoWinnersAndReleasesActiveSlot() (gas: 1365372)
+[PASS] testAdvancePhaseResolvesSharersAndCatchersToSoleSurvivorWin() (gas: 1168526)
+[PASS] testAdvancePhaseResolvesSharersOnlyAndIncrementsShareStreak() (gas: 1028178)
+[PASS] testAdvancePhaseResolvesStealersAndCatchersToSoleSurvivorWin() (gas: 1168649)
+[PASS] testAdvancePhaseResolvesStealersAndSharersToStealerWinAndReleasesActiveSlot() (gas: 1289893)
+[PASS] testAdvancePhaseResolvesStealersOnlyToNoWinners() (gas: 1245100)
+[PASS] testCancelIfInsufficientPlayersRejectsMissingGame() (gas: 12017)
+[PASS] testCancelIfInsufficientPlayersRejectsOnceMinimumPlayersMet() (gas: 891476)
+[PASS] testCancelIfInsufficientPlayersRejectsWhileJoinWindowIsStillOpen() (gas: 562644)
+[PASS] testCancelIfInsufficientPlayersSnapshotsOldGameAndReleasesActiveSlot() (gas: 1184099)
+[PASS] testCancelledGameRefundsEntryFeeAndPreventsDoubleRefund() (gas: 701381)
+[PASS] testCauseWhitelistManagementStoresRecipientsAndActiveCount() (gas: 57161)
+[PASS] testCommitAllowsLastValidBlock() (gas: 977314)
+[PASS] testCommitBecomesAdvanceableOnlyAfterDeadlineWhenNotEveryoneCommitted() (gas: 958407)
+[PASS] testCommitRequiresJoinedPlayerStoresHashAndRejectsDuplicateCommit() (gas: 963255)
+[PASS] testConstructorStoresCoreAddressesAndDefaultConfig() (gas: 29620)
+[PASS] testCreateGameRequiresAtLeastOneWhitelistedCause() (gas: 4164605)
+[PASS] testCreateGameRequiresIdlePhase() (gas: 167341)
+[PASS] testCreateGameStartsJoiningAndSnapshotsDefaults() (gas: 178409)
+[PASS] testJoinAllowsExactJoinDeadlineButRejectsAfterDeadline() (gas: 708637)
+[PASS] testJoinEnforcesMaxCausesButAllowsExistingCauseReuse() (gas: 5386584)
+[PASS] testJoinEnforcesMaxPlayers() (gas: 5425727)
+[PASS] testJoinRejectsDuplicateAgentKeyPerGame() (gas: 699554)
+[PASS] testJoinRejectsDuplicateWalletPerGame() (gas: 567737)
+[PASS] testJoinRejectsExpiredAuthAndAdmissionViewTurnsFalse() (gas: 324385)
+[PASS] testJoinRejectsInvalidCause() (gas: 325407)
+[PASS] testJoinRejectsRevokedAuthAndAdmissionViewTurnsFalse() (gas: 329280)
+[PASS] testJoinRejectsUnauthorizedWallet() (gas: 190225)
+[PASS] testJoinRequiresExactEntryFee() (gas: 322277)
+[PASS] testJoinStoresPlayerStateRosterAndCauseSnapshotReads() (gas: 853033)
+[PASS] testMissedCommitDefaultsToShareAtResolution() (gas: 1137585)
+[PASS] testMixedTerminalOutcomeSequencePreservesOlderAccountingAcrossAdminChanges() (gas: 3961048)
+[PASS] testMultiRoundSurvivorFlowResetsRoundStateAndEndsOnThreeAllShareRounds() (gas: 1792594)
+[PASS] testNoWinnerSettlementRoutesCausePoolAndTreasuryPerGame() (gas: 1803869)
+[PASS] testNoWinnerSettlementRoutesRoundingDustToTreasury() (gas: 1561532)
+[PASS] testNoWinnerWithdrawalsUseSnapshottedRecipientsAfterWhitelistRemovalAndRewhitelist() (gas: 2507033)
+[PASS] testNonRevealDefaultsToShareAtResolution() (gas: 1168524)
+[PASS] testRejectsInvalidGameConfigBounds() (gas: 1707484)
+[PASS] testRevealAllowsLastValidBlock() (gas: 1036156)
+[PASS] testRevealBecomesReadyAfterDeadlineWhenNotEveryoneReveals() (gas: 1016072)
+[PASS] testRevealEarlyReadinessWhenAllCommittedPlayersReveal() (gas: 1035117)
+[PASS] testRevealRejectsWithoutCommitInvalidPreimageAndDuplicateReveal() (gas: 994422)
+[PASS] testWinnerClaimUsesSnapshottedCauseRecipientAndTreasuryAfterAdminChanges() (gas: 1362233)
+[PASS] testWinnerClaimsSplitPostCreatorPotAndPreventDoubleClaim() (gas: 1421012)
+Suite result: ok. 50 passed; 0 failed; 0 skipped; finished in 166.75ms (157.25ms CPU time)
+Warning: Failure from "/root/projects/prisoners-daollema/packages/foundry/cache/invariant/failures/PrisonersDaollemaInvariantTest/invariant_phase_progress_and_terminal_state_consistency" file was ignored because test contract bytecode has changed.
+
+Ran 6 tests for test/PrisonersDaollemaInvariant.t.sol:PrisonersDaollemaInvariantTest
+[PASS] invariant_duplicate_claims_and_cross_path_payouts_never_succeed() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 154   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 150   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 140   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 158   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 170   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 135   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 134   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 145   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 131   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 154   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 149   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 144   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 149   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 135   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+[PASS] invariant_game_snapshots_and_used_cause_snapshots_remain_immutable() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 168   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 152   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 161   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 143   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 137   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 152   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 123   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 149   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 124   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 152   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 149   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 159   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 134   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 145   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+[PASS] invariant_identity_and_roster_accounting_hold_per_game() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 133   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 165   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 174   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 133   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 146   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 171   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 131   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 145   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 124   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 137   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 133   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 153   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 159   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 144   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+[PASS] invariant_phase_progress_and_terminal_state_consistency() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 151   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 138   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 142   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 158   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 148   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 146   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 146   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 139   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 123   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 161   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 154   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 154   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 159   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 129   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+[PASS] invariant_settlement_bounds_and_payout_paths_remain_exclusive() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 138   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 152   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 161   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 149   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 140   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 151   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 154   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 137   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 162   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 145   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 137   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 134   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 139   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 149   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+[PASS] invariant_terminal_previews_and_claimables_remain_conservative_per_game() (runs: 32, calls: 2048, reverts: 0)
+
+╭--------------------------+-----------------------+-------+---------+----------╮
+| Contract                 | Selector              | Calls | Reverts | Discards |
++===============================================================================+
+| PrisonersDaollemaHandler | advanceActiveGame     | 164   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claim                 | 145   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | claimRefund           | 133   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | commit                | 142   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | configureDefaults     | 122   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | createGame            | 147   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | join                  | 168   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | probeDuplicatePayouts | 145   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reconfigureCause      | 142   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | reveal                | 133   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | setTreasury           | 157   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | toggleCause           | 159   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawCause         | 162   | 0       | 0        |
+|--------------------------+-----------------------+-------+---------+----------|
+| PrisonersDaollemaHandler | withdrawTreasury      | 129   | 0       | 0        |
+╰--------------------------+-----------------------+-------+---------+----------╯
+
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 4.83s (6.78s CPU time)
+
+Ran 4 tests for test/PrisonersDaollemaFuzz.t.sol:PrisonersDaollemaFuzzTest
+[PASS] testFuzz_NoWinnerSettlementConservesValueAcrossCauseSplits(uint8,uint256) (runs: 256, μ: 1189223, ~: 1238173)
+[PASS] testFuzz_SequentialMixedTerminalGamesKeepOlderPreviewsAndWithdrawablesStable(uint8,uint256,uint256,uint256,uint256,uint256,uint256,uint256) (runs: 257, μ: 7264572, ~: 7103777)
+[PASS] testFuzz_SequentialWinnerGamesKeepSnapshottedFeesAndRecipients(uint256,uint256,uint96,uint96) (runs: 257, μ: 2990198, ~: 2945378)
+[PASS] testFuzz_WinnerSettlementConservesValueAcrossClaimSubsets(uint8,uint256,uint256) (runs: 256, μ: 1352862, ~: 1365594)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 9.03s (20.52s CPU time)
+
+Ran 5 test suites in 9.05s (14.04s CPU time): 83 tests passed, 0 failed, 0 skipped (83 total tests)
+TAP version 13
+# Subtest: auth CLI signs, registers, and inspects AgentAuthRegistry auth state with keystores
+ok 1 - auth CLI signs, registers, and inspects AgentAuthRegistry auth state with keystores
+  ---
+  duration_ms: 10300.360263
+  type: 'test'
+  ...
+# Subtest: permit still honors manual wallet and agentKey overrides for non-SIWA input files
+ok 2 - permit still honors manual wallet and agentKey overrides for non-SIWA input files
+  ---
+  duration_ms: 2348.451912
+  type: 'test'
+  ...
+# Subtest: permit rejects raw verifier private keys on the command line by default
+ok 3 - permit rejects raw verifier private keys on the command line by default
+  ---
+  duration_ms: 1875.141136
+  type: 'test'
+  ...
+# Subtest: permit fails fast when the verifier signer does not match the registry verifier
+ok 4 - permit fails fast when the verifier signer does not match the registry verifier
+  ---
+  duration_ms: 2410.708
+  type: 'test'
+  ...
+# Subtest: register fails fast when the gameplay wallet signer does not match permit.wallet
+ok 5 - register fails fast when the gameplay wallet signer does not match permit.wallet
+  ---
+  duration_ms: 4334.61086
+  type: 'test'
+  ...
+# Subtest: register fails fast on registry or bundle mismatch
+ok 6 - register fails fast on registry or bundle mismatch
+  ---
+  duration_ms: 4111.826094
+  type: 'test'
+  ...
+# Subtest: status and register surface stale bundles after verifier rotation
+ok 7 - status and register surface stale bundles after verifier rotation
+  ---
+  duration_ms: 6017.262801
+  type: 'test'
+  ...
+# Subtest: status and register surface expired bundles before sending the transaction
+ok 8 - status and register surface expired bundles before sending the transaction
+  ---
+  duration_ms: 11080.481835
+  type: 'test'
+  ...
+# Subtest: resolveCanaryProfile defaults to the recommended Base Sepolia canary profile
+ok 9 - resolveCanaryProfile defaults to the recommended Base Sepolia canary profile
+  ---
+  duration_ms: 1.949228
+  type: 'test'
+  ...
+# Subtest: compareProfiles reports canary mismatches explicitly
+ok 10 - compareProfiles reports canary mismatches explicitly
+  ---
+  duration_ms: 1.868656
+  type: 'test'
+  ...
+# Subtest: extractNamedDeployments normalizes contract addresses from the repo deployment map
+ok 11 - extractNamedDeployments normalizes contract addresses from the repo deployment map
+  ---
+  duration_ms: 4.97149
+  type: 'test'
+  ...
+# Subtest: readDeployerAddressFromKeystore reads the address field without decrypting the keystore
+ok 12 - readDeployerAddressFromKeystore reads the address field without decrypting the keystore
+  ---
+  duration_ms: 1.770444
+  type: 'test'
+  ...
+# Subtest: integration smoke covers local auth wrapper plus winner claims, cancelled refunds, no-winner withdrawals, and evidence export
+ok 13 - integration smoke covers local auth wrapper plus winner claims, cancelled refunds, no-winner withdrawals, and evidence export
+  ---
+  duration_ms: 127390.221154
+  type: 'test'
+  ...
+# Subtest: buildJudgeEvidenceIndex summarizes the tracked local load-harness bundle honestly
+ok 14 - buildJudgeEvidenceIndex summarizes the tracked local load-harness bundle honestly
+  ---
+  duration_ms: 18.286282
+  type: 'test'
+  ...
+# Subtest: buildJudgeEvidenceIndex summarizes compact local proof packs honestly
+ok 15 - buildJudgeEvidenceIndex summarizes compact local proof packs honestly
+  ---
+  duration_ms: 3.49578
+  type: 'test'
+  ...
+# Subtest: writeJudgeEvidencePack emits judge-facing files for a live canary-style bundle
+ok 16 - writeJudgeEvidencePack emits judge-facing files for a live canary-style bundle
+  ---
+  duration_ms: 5.496781
+  type: 'test'
+  ...
+# Subtest: load harness runs a small sequential local smoke and emits structured winner artifacts
+ok 17 - load harness runs a small sequential local smoke and emits structured winner artifacts
+  ---
+  duration_ms: 13715.69546
+  type: 'test'
+  ...
+# Subtest: load harness can rehearse stale bundles plus expired auth before join and recover into a winner run
+ok 18 - load harness can rehearse stale bundles plus expired auth before join and recover into a winner run
+  ---
+  duration_ms: 6189.12576
+  type: 'test'
+  ...
+# Subtest: load harness can repeat bounded auth-expiry chaos before every sequential winner-path game
+ok 19 - load harness can repeat bounded auth-expiry chaos before every sequential winner-path game
+  ---
+  duration_ms: 26567.439629
+  type: 'test'
+  ...
+# Subtest: load harness fully wires the cancelled-underfilled refund path and reports expected failures honestly
+ok 20 - load harness fully wires the cancelled-underfilled refund path and reports expected failures honestly
+  ---
+  duration_ms: 1911.096002
+  type: 'test'
+  ...
+# Subtest: load harness wires the no-winner routing path through treasury and cause withdrawals
+ok 21 - load harness wires the no-winner routing path through treasury and cause withdrawals
+  ---
+  duration_ms: 3296.293065
+  type: 'test'
+  ...
+# Subtest: load harness same-block probes cover winner edge ordering and duplicate settlement contention on local Anvil
+ok 22 - load harness same-block probes cover winner edge ordering and duplicate settlement contention on local Anvil
+  ---
+  duration_ms: 5701.504453
+  type: 'test'
+  ...
+# Subtest: load harness same-block probes cover underfilled transition ordering and duplicate refunds
+ok 23 - load harness same-block probes cover underfilled transition ordering and duplicate refunds
+  ---
+  duration_ms: 2037.486717
+  type: 'test'
+  ...
+# Subtest: load harness same-block probes cover no-winner round edge ordering plus duplicate treasury/cause withdrawals
+ok 24 - load harness same-block probes cover no-winner round edge ordering plus duplicate treasury/cause withdrawals
+  ---
+  duration_ms: 3421.09186
+  type: 'test'
+  ...
+# Subtest: load harness adversarial-random mode hunts for weird local state without leaving wedges or drain inconsistencies
+ok 25 - load harness adversarial-random mode hunts for weird local state without leaving wedges or drain inconsistencies
+  ---
+  duration_ms: 18129.380746
+  type: 'test'
+  ...
+# Subtest: load harness adversarial-random can force full-roster started games via minPlayers override
+ok 26 - load harness adversarial-random can force full-roster started games via minPlayers override
+  ---
+  duration_ms: 8553.322583
+  type: 'test'
+  ...
+# Subtest: load harness matrix exposes a bounded large local preset
+ok 27 - load harness matrix exposes a bounded large local preset
+  ---
+  duration_ms: 4.979589
+  type: 'test'
+  ...
+# Subtest: load harness matrix exposes a bounded xlarge local preset
+ok 28 - load harness matrix exposes a bounded xlarge local preset
+  ---
+  duration_ms: 1.341349
+  type: 'test'
+  ...
+# Subtest: load harness matrix exposes a bounded auth-expiry local preset
+ok 29 - load harness matrix exposes a bounded auth-expiry local preset
+  ---
+  duration_ms: 1.548524
+  type: 'test'
+  ...
+# Subtest: load harness matrix exposes a bounded parallel-local preset
+ok 30 - load harness matrix exposes a bounded parallel-local preset
+  ---
+  duration_ms: 0.797568
+  type: 'test'
+  ...
+# Subtest: load harness matrix can coordinate bounded parallel-local instances and report overlap honestly
+ok 31 - load harness matrix can coordinate bounded parallel-local instances and report overlap honestly
+  ---
+  duration_ms: 301.251691
+  type: 'test'
+  ...
+# Subtest: load harness matrix aggregates focused auth-expiry coverage honestly
+ok 32 - load harness matrix aggregates focused auth-expiry coverage honestly
+  ---
+  duration_ms: 4.613431
+  type: 'test'
+  ...
+# Subtest: load harness matrix runs a medium local preset and emits aggregate artifacts
+ok 33 - load harness matrix runs a medium local preset and emits aggregate artifacts
+  ---
+  duration_ms: 54110.592082
+  type: 'test'
+  ...
+# Subtest: query export writes honest evidence artifacts for current auth/game/chat state
+ok 34 - query export writes honest evidence artifacts for current auth/game/chat state
+  ---
+  duration_ms: 3392.6673
+  type: 'test'
+  ...
+# Subtest: bounded query export reads state at numeric toBlock when historical calls are available
+ok 35 - bounded query export reads state at numeric toBlock when historical calls are available
+  ---
+  duration_ms: 2139.079385
+  type: 'test'
+  ...
+# Subtest: bounded query evidence falls back to latest hybrid state when provider lacks historical eth_call
+ok 36 - bounded query evidence falls back to latest hybrid state when provider lacks historical eth_call
+  ---
+  duration_ms: 999.53983
+  type: 'test'
+  ...
+# Subtest: bounded multi-round exports attribute phase starts by round identity
+ok 37 - bounded multi-round exports attribute phase starts by round identity
+  ---
+  duration_ms: 1504.61231
+  type: 'test'
+  ...
+# Subtest: query tooling exports settled no-winner payout data honestly
+ok 38 - query tooling exports settled no-winner payout data honestly
+  ---
+  duration_ms: 1249.471935
+  type: 'test'
+  ...
+# Subtest: query tooling exports winner claims and winner-path withdrawals honestly
+ok 39 - query tooling exports winner claims and winner-path withdrawals honestly
+  ---
+  duration_ms: 1081.499452
+  type: 'test'
+  ...
+# Subtest: query tooling exports cancelled refund evidence honestly
+ok 40 - query tooling exports cancelled refund evidence honestly
+  ---
+  duration_ms: 770.429175
+  type: 'test'
+  ...
+# Subtest: query tooling derives message-time liveness from elimination timing instead of final state
+ok 41 - query tooling derives message-time liveness from elimination timing instead of final state
+  ---
+  duration_ms: 3207.679324
+  type: 'test'
+  ...
+# Subtest: query tooling leaves global-message liveness null when elimination timing falls outside the selected log window
+ok 42 - query tooling leaves global-message liveness null when elimination timing falls outside the selected log window
+  ---
+  duration_ms: 4769.684053
+  type: 'test'
+  ...
+# Subtest: query tooling rejects a GameChat contract linked to a different game
+ok 43 - query tooling rejects a GameChat contract linked to a different game
+  ---
+  duration_ms: 729.690281
+  type: 'test'
+  ...
+# Subtest: SIWA CLI issues, signs, verifies, and feeds the permit/register flow
+ok 44 - SIWA CLI issues, signs, verifies, and feeds the permit/register flow
+  ---
+  duration_ms: 18009.27178
+  type: 'test'
+  ...
+# Subtest: permit rejects wallet overrides when input comes from verified SIWA output
+ok 45 - permit rejects wallet overrides when input comes from verified SIWA output
+  ---
+  duration_ms: 6965.706615
+  type: 'test'
+  ...
+# Subtest: permit rejects agentKey overrides when input comes from verified SIWA output
+ok 46 - permit rejects agentKey overrides when input comes from verified SIWA output
+  ---
+  duration_ms: 6469.739557
+  type: 'test'
+  ...
+# Subtest: siwa-sign rejects raw wallet private keys on the command line by default
+ok 47 - siwa-sign rejects raw wallet private keys on the command line by default
+  ---
+  duration_ms: 3000.242526
+  type: 'test'
+  ...
+# Subtest: siwa-sign fails fast when the gameplay signer does not match the issued challenge wallet
+ok 48 - siwa-sign fails fast when the gameplay signer does not match the issued challenge wallet
+  ---
+  duration_ms: 3538.158877
+  type: 'test'
+  ...
+# Subtest: siwa-nonce rejects an RPC chain that does not match the declared agentRegistry chain
+ok 49 - siwa-nonce rejects an RPC chain that does not match the declared agentRegistry chain
+  ---
+  duration_ms: 1696.625519
+  type: 'test'
+  ...
+# Subtest: siwa-nonce rejects SIWA chain context that does not match the declared agentRegistry chain
+ok 50 - siwa-nonce rejects SIWA chain context that does not match the declared agentRegistry chain
+  ---
+  duration_ms: 1552.867667
+  type: 'test'
+  ...
+# Subtest: permit rejects a verified SIWA artifact when the permit chain does not match the verified chain context
+ok 51 - permit rejects a verified SIWA artifact when the permit chain does not match the verified chain context
+  ---
+  duration_ms: 7104.543429
+  type: 'test'
+  ...
+# Subtest: SIWA flow accepts agentId 0 as a valid ERC-721/8004 token id through permit generation
+ok 52 - SIWA flow accepts agentId 0 as a valid ERC-721/8004 token id through permit generation
+  ---
+  duration_ms: 7833.592858
+  type: 'test'
+  ...
+# Subtest: SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe integer range
+ok 53 - SIWA flow preserves large ERC-8004 agent IDs exactly above the JS safe integer range
+  ---
+  duration_ms: 7547.125852
+  type: 'test'
+  ...
+# Subtest: auth flow wrapper runs the explicit six-step local path and keeps stage artifacts inspectable
+ok 54 - auth flow wrapper runs the explicit six-step local path and keeps stage artifacts inspectable
+  ---
+  duration_ms: 11544.398329
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 419426.873078

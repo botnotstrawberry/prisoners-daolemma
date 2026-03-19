@@ -1,0 +1,65 @@
+{
+  "gameId": 3,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39055560,
+      "timestamp": 1773879408
+    },
+    "logRange": {
+      "requestedFromBlock": 39049220,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39049220,
+      "resolvedToBlock": 39055560,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "usedCauses": [
+    {
+      "causeId": 1,
+      "used": true,
+      "entrantCount": 1,
+      "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "metadataHash": "0xf404aa60f5d73d0c8bbe2a1fd0916b90d92c4cc1af804a45427382aa6a1cfdd2",
+      "members": [
+        "0x373c73a96C40F82D8E684448527E78Aa90572AaA"
+      ],
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0"
+    },
+    {
+      "causeId": 2,
+      "used": true,
+      "entrantCount": 1,
+      "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "metadataHash": "0x0a412d748b4b98f54b95cb6400b2d126b2226e2aa8a92bd47e7a613464c0a372",
+      "members": [
+        "0xd5B820002455D9E19044b2830Bb30eD813bf3424"
+      ],
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0"
+    }
+  ],
+  "whitelist": [
+    {
+      "causeId": 1,
+      "active": true,
+      "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "metadataHash": "0xf404aa60f5d73d0c8bbe2a1fd0916b90d92c4cc1af804a45427382aa6a1cfdd2"
+    },
+    {
+      "causeId": 2,
+      "active": true,
+      "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "metadataHash": "0x0a412d748b4b98f54b95cb6400b2d126b2226e2aa8a92bd47e7a613464c0a372"
+    },
+    {
+      "causeId": 3,
+      "active": true,
+      "recipient": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+      "metadataHash": "0x5bd5715fd96d6109866903f8dc540c8bde1be6112681a56a5894849415c9bd7a"
+    }
+  ]
+}

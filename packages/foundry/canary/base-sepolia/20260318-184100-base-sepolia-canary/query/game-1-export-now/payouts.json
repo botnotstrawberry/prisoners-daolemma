@@ -1,0 +1,214 @@
+{
+  "gameId": 1,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39052457,
+      "timestamp": 1773873202
+    },
+    "logRange": {
+      "requestedFromBlock": 39049220,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39049220,
+      "resolvedToBlock": 39052457,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "terminalOutcome": {
+    "terminal": false,
+    "terminalPath": "pending",
+    "phase": "Commit",
+    "phaseCode": 2,
+    "outcome": "Unset",
+    "outcomeCode": 0,
+    "round": 1,
+    "shareStreak": 0,
+    "aliveCount": 3,
+    "winnerCount": 0,
+    "gameEndedEvent": null,
+    "gameCancelledEvent": null,
+    "settlementFinalizedEvent": null,
+    "notes": [
+      "Game has not yet reached a terminal phase at the selected state snapshot block."
+    ]
+  },
+  "settlement": {
+    "finalized": false,
+    "terminalPath": "pending",
+    "totalPotWei": "0",
+    "creatorFeeWei": "0",
+    "treasuryRecipient": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "treasuryAccruedWei": "0",
+    "treasuryAccruedExcludingCreatorFeeWei": "0",
+    "treasuryWithdrawnWei": "0",
+    "treasuryClaimableWei": "0",
+    "winnerCount": 0,
+    "winnerShareWei": "0",
+    "refundPerPlayerWei": "0",
+    "noWinnerCausePoolWei": "0",
+    "noWinnerCauseDistributedWei": "0",
+    "claimPathAvailable": false,
+    "refundPathAvailable": false,
+    "noWinnerPathAvailable": false
+  },
+  "claims": {
+    "winners": {
+      "claimPathAvailable": false,
+      "eligibleWinnerCount": 0,
+      "claimedWinnerCount": 0,
+      "unclaimedWinnerCount": 0,
+      "grossPrizePerWinnerWei": "0",
+      "causeCutPerWinnerWei": "0",
+      "netPrizePerWinnerWei": "0",
+      "totalGrossClaimedWei": "0",
+      "totalGrossUnclaimedWei": "0",
+      "totalNetClaimedWei": "0",
+      "totalNetUnclaimedWei": "0",
+      "totalCauseCutClaimedWei": "0",
+      "totalCauseCutPendingWei": "0"
+    },
+    "refunds": {
+      "refundPathAvailable": false,
+      "eligibleRefundCount": 0,
+      "refundedCount": 0,
+      "pendingRefundCount": 0,
+      "refundPerPlayerWei": "0",
+      "totalRefundedWei": "0",
+      "totalRefundPendingWei": "0"
+    }
+  },
+  "treasury": {
+    "recipient": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "creatorFeeWei": "0",
+    "nonCreatorAccruedWei": "0",
+    "accruedWei": "0",
+    "withdrawnWei": "0",
+    "claimableWei": "0",
+    "winnerResidualWei": "0",
+    "noWinnerRouteWei": "0"
+  },
+  "noWinner": {
+    "applicable": false,
+    "causePoolWei": "0",
+    "distributedWei": "0",
+    "undistributedWei": "0",
+    "treasuryRouteWei": "0"
+  },
+  "participants": [
+    {
+      "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": false,
+      "refunded": false,
+      "terminalStatus": "alive",
+      "claim": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "causeId": 2,
+      "joined": true,
+      "alive": true,
+      "claimed": false,
+      "refunded": false,
+      "terminalStatus": "alive",
+      "claim": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+      "causeId": 3,
+      "joined": true,
+      "alive": true,
+      "claimed": false,
+      "refunded": false,
+      "terminalStatus": "alive",
+      "claim": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    }
+  ],
+  "causes": [
+    {
+      "causeId": 1,
+      "entrantCount": 1,
+      "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0",
+      "winnerCount": 0,
+      "claimedWinnerCount": 0,
+      "unclaimedWinnerCount": 0,
+      "claimedWinnerCauseCutWei": "0",
+      "pendingWinnerCauseCutWei": "0"
+    },
+    {
+      "causeId": 2,
+      "entrantCount": 1,
+      "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0",
+      "winnerCount": 0,
+      "claimedWinnerCount": 0,
+      "unclaimedWinnerCount": 0,
+      "claimedWinnerCauseCutWei": "0",
+      "pendingWinnerCauseCutWei": "0"
+    },
+    {
+      "causeId": 3,
+      "entrantCount": 1,
+      "recipient": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0",
+      "winnerCount": 0,
+      "claimedWinnerCount": 0,
+      "unclaimedWinnerCount": 0,
+      "claimedWinnerCauseCutWei": "0",
+      "pendingWinnerCauseCutWei": "0"
+    }
+  ],
+  "events": {
+    "settlementFinalized": [],
+    "prizeClaims": [],
+    "refundClaims": [],
+    "noWinnerDistributions": [],
+    "treasuryAccruals": [],
+    "treasuryWithdrawals": [],
+    "causeWithdrawals": []
+  },
+  "notes": [
+    "routedFromGameWei fields are game-specific lifetime routing totals exposed by the current contract state.",
+    "claimableFromGameWei and treasuryClaimableWei fields are the selected game's current outstanding pull-based amounts at the chosen state snapshot block.",
+    "withdrawnFromGameWei and withdrawal events are per-game counters/events, so they remain attributable even after recipients pull funds later.",
+    "Winner-path cause routing only moves on actual claim transactions; pendingWinnerCauseCutWei fields are derived from the current winner roster, immutable cause choices, and claim flags at the selected state snapshot.",
+    "TreasuryWithdrawal and CauseWithdrawal events expose recipient + amount + txHash, but the current contract does not emit a dedicated caller field inside those event payloads.",
+    "This game is not yet terminal at the selected state snapshot, so settlement values remain zero/unfinalized and claim/refund paths are not yet live."
+  ]
+}

@@ -1,0 +1,26 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 84532
+
+Estimated gas price: 0.011 gwei
+
+Estimated total gas used for script: 7923750
+
+Estimated amount required: 0.00008716125 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /root/projects/prisoners-daollema/packages/foundry/broadcast/Deploy.s.sol/84532/run-latest.json
+
+Sensitive values saved to: /root/projects/prisoners-daollema/packages/foundry/cache/Deploy.s.sol/84532/run-latest.json
+

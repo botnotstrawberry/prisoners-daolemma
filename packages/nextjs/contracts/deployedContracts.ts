@@ -4,6 +4,3413 @@
  */
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
-const deployedContracts = {} as const;
+const deployedContracts = {
+  84532: {
+    AgentAuthRegistry: {
+      address: "0xcabde80aa0677935c8c30f5595299f6325e3b8ed",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "owner_",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "verifier_",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "AUTH_PERMIT_TYPEHASH",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "agentKeyOf",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "authRecordOf",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct AgentAuthRegistry.AuthRecord",
+              components: [
+                {
+                  name: "agentKey",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "manifestHash",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "issuedAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "expiresAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "issuer",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "active",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "domainSeparatorV4",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "eip712Domain",
+          inputs: [],
+          outputs: [
+            {
+              name: "fields",
+              type: "bytes1",
+              internalType: "bytes1",
+            },
+            {
+              name: "name",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "version",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "chainId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "verifyingContract",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "salt",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+            {
+              name: "extensions",
+              type: "uint256[]",
+              internalType: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameNamespace",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "pure",
+        },
+        {
+          type: "function",
+          name: "hasUsedNonce",
+          inputs: [
+            {
+              name: "nonce",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "hashAuthPermit",
+          inputs: [
+            {
+              name: "permit",
+              type: "tuple",
+              internalType: "struct AgentAuthRegistry.AuthPermit",
+              components: [
+                {
+                  name: "wallet",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "agentKey",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "manifestHash",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "chainId",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "gameNamespace",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "issuedAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "expiresAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "nonce",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+              ],
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isAuthorized",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "owner",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "registerAuth",
+          inputs: [
+            {
+              name: "permit",
+              type: "tuple",
+              internalType: "struct AgentAuthRegistry.AuthPermit",
+              components: [
+                {
+                  name: "wallet",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "agentKey",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "manifestHash",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "chainId",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "gameNamespace",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "issuedAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "expiresAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "nonce",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+              ],
+            },
+            {
+              name: "signature",
+              type: "bytes",
+              internalType: "bytes",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "renounceOwnership",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "revokeAuth",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setVerifier",
+          inputs: [
+            {
+              name: "newVerifier",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "transferOwnership",
+          inputs: [
+            {
+              name: "newOwner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "verifier",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "event",
+          name: "AuthRegistered",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "agentKey",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "manifestHash",
+              type: "bytes32",
+              indexed: false,
+              internalType: "bytes32",
+            },
+            {
+              name: "expiresAt",
+              type: "uint64",
+              indexed: false,
+              internalType: "uint64",
+            },
+            {
+              name: "issuer",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "AuthRevoked",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "agentKey",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "EIP712DomainChanged",
+          inputs: [],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OwnershipTransferred",
+          inputs: [
+            {
+              name: "previousOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "VerifierUpdated",
+          inputs: [
+            {
+              name: "previousVerifier",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newVerifier",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "AuthInactive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "CallerMustBeWallet",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignature",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignatureLength",
+          inputs: [
+            {
+              name: "length",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignatureS",
+          inputs: [
+            {
+              name: "s",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidAgentKey",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidManifestHash",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidNonce",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidPermitChain",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidPermitNamespace",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidPermitSigner",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidPermitWindow",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidShortString",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidVerifier",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidWallet",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MissingAuthRecord",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NonceAlreadyUsed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "OwnableInvalidOwner",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "OwnableUnauthorizedAccount",
+          inputs: [
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "StringTooLong",
+          inputs: [
+            {
+              name: "str",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 39049210,
+    },
+    PrisonersDaollema: {
+      address: "0xbababfbbdbae58457e8b83aaa1b37df6e0990fff",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "owner_",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "treasury_",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "authRegistry_",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "defaultConfig_",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.GameConfig",
+              components: [
+                {
+                  name: "entryFeeWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "creatorFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "causeFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "joinDurationSeconds",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "commitDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "revealDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "minPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxCauses",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+              ],
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "BPS_DENOMINATOR",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "MAX_CAUSE_CAP",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "MAX_FEE_BPS",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "MAX_PLAYER_CAP",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "NO_WINNER_CAUSE_BPS",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "activeCauseCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "activeGameId",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "admissionAgentKey",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "advancePhase",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "authRegistry",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "canAdvancePhase",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "cancelIfInsufficientPlayers",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "causeAt",
+          inputs: [
+            {
+              name: "index",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "causeCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "causeEntrants",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "chatContext",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "round",
+              type: "uint32",
+              internalType: "uint32",
+            },
+            {
+              name: "phase",
+              type: "uint8",
+              internalType: "uint8",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "claim",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "claimRefund",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "commit",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "commitment",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "computeCommitment",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              internalType: "uint32",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "choice",
+              type: "uint8",
+              internalType: "enum PrisonersDaollema.Choice",
+            },
+            {
+              name: "salt",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          stateMutability: "pure",
+        },
+        {
+          type: "function",
+          name: "configureDefaults",
+          inputs: [
+            {
+              name: "newDefaultConfig",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.GameConfig",
+              components: [
+                {
+                  name: "entryFeeWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "creatorFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "causeFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "joinDurationSeconds",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "commitDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "revealDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "minPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxCauses",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+              ],
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "createGame",
+          inputs: [],
+          outputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "currentGameId",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "defaultConfig",
+          inputs: [],
+          outputs: [
+            {
+              name: "entryFeeWei",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "creatorFeeBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "causeFeeBps",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "joinDurationSeconds",
+              type: "uint32",
+              internalType: "uint32",
+            },
+            {
+              name: "commitDurationBlocks",
+              type: "uint32",
+              internalType: "uint32",
+            },
+            {
+              name: "revealDurationBlocks",
+              type: "uint32",
+              internalType: "uint32",
+            },
+            {
+              name: "minPlayers",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "maxPlayers",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "maxCauses",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseAt",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "index",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseClaimableAmount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseCount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseRecipient",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseRoutedAmount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameCauseWithdrawnAmount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "gameExists",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getCause",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.CauseDefinition",
+              components: [
+                {
+                  name: "active",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "recipient",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "metadataHash",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getDefaultConfig",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.GameConfig",
+              components: [
+                {
+                  name: "entryFeeWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "creatorFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "causeFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "joinDurationSeconds",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "commitDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "revealDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "minPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxCauses",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getGame",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.GameSnapshot",
+              components: [
+                {
+                  name: "entryFeeWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "creatorFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "causeFeeBps",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "joinDurationSeconds",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "commitDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "revealDurationBlocks",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "minPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxPlayers",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "maxCauses",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "joinedCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "aliveCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "usedCauseCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "committedCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "revealedCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "createdAt",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "joinDeadline",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "commitDeadlineBlock",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "revealDeadlineBlock",
+                  type: "uint64",
+                  internalType: "uint64",
+                },
+                {
+                  name: "round",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "shareStreak",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+                {
+                  name: "phase",
+                  type: "uint8",
+                  internalType: "enum PrisonersDaollema.Phase",
+                },
+                {
+                  name: "outcome",
+                  type: "uint8",
+                  internalType: "enum PrisonersDaollema.Outcome",
+                },
+                {
+                  name: "treasury",
+                  type: "address",
+                  internalType: "address",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getGameCause",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.GameCauseState",
+              components: [
+                {
+                  name: "used",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "entrantCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "recipient",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "metadataHash",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getPlayer",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.PlayerState",
+              components: [
+                {
+                  name: "joined",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "alive",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "claimed",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "refunded",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "committedThisRound",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "revealedThisRound",
+                  type: "bool",
+                  internalType: "bool",
+                },
+                {
+                  name: "wallet",
+                  type: "address",
+                  internalType: "address",
+                },
+                {
+                  name: "agentKey",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "causeId",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "commitment",
+                  type: "bytes32",
+                  internalType: "bytes32",
+                },
+                {
+                  name: "revealedChoice",
+                  type: "uint8",
+                  internalType: "enum PrisonersDaollema.Choice",
+                },
+                {
+                  name: "effectiveChoice",
+                  type: "uint8",
+                  internalType: "enum PrisonersDaollema.Choice",
+                },
+                {
+                  name: "lastChoiceRound",
+                  type: "uint32",
+                  internalType: "uint32",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getSettlement",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              internalType: "struct PrisonersDaollema.SettlementState",
+              components: [
+                {
+                  name: "totalPotWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "creatorFeeWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "treasuryAccruedWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "treasuryWithdrawnWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winnerShareWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "refundPerPlayerWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noWinnerCausePoolWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "noWinnerCauseDistributedWei",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "winnerCount",
+                  type: "uint16",
+                  internalType: "uint16",
+                },
+                {
+                  name: "finalized",
+                  type: "bool",
+                  internalType: "bool",
+                },
+              ],
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isAdmissionReady",
+          inputs: [
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isAlive",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isCauseWhitelisted",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isJoined",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isRoundReadyForResolution",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "join",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "owner",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "playerAt",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "index",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "playerCause",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "playerCount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "previewRefund",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "refundWei",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "availableNow",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "previewWinnerClaim",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "grossPrizeWei",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeCutWei",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "netPrizeWei",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "availableNow",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "removeCause",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "renounceOwnership",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "reveal",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "choice",
+              type: "uint8",
+              internalType: "enum PrisonersDaollema.Choice",
+            },
+            {
+              name: "salt",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setAuthRegistry",
+          inputs: [
+            {
+              name: "newAuthRegistry",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setTreasury",
+          inputs: [
+            {
+              name: "newTreasury",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "transferOwnership",
+          inputs: [
+            {
+              name: "newOwner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "treasury",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "treasuryClaimableAmount",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "whitelistCause",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "metadataHash",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawCause",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawTreasury",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "AuthRegistryUpdated",
+          inputs: [
+            {
+              name: "previousAuthRegistry",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newAuthRegistry",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "CauseRemoved",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: true,
+              internalType: "uint16",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "CauseWhitelisted",
+          inputs: [
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: true,
+              internalType: "uint16",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "metadataHash",
+              type: "bytes32",
+              indexed: false,
+              internalType: "bytes32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "CauseWithdrawal",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: true,
+              internalType: "uint16",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amountWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "Committed",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: true,
+              internalType: "uint32",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "commitment",
+              type: "bytes32",
+              indexed: false,
+              internalType: "bytes32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "DefaultsConfigured",
+          inputs: [
+            {
+              name: "entryFeeWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "creatorFeeBps",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "causeFeeBps",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "joinDurationSeconds",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "commitDurationBlocks",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "revealDurationBlocks",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "minPlayers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "maxPlayers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "maxCauses",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "EffectiveChoiceMaterialized",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: true,
+              internalType: "uint32",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "choice",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Choice",
+            },
+            {
+              name: "defaultedCommit",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+            {
+              name: "defaultedReveal",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "GameCancelled",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "GameCreated",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "joinDeadline",
+              type: "uint64",
+              indexed: false,
+              internalType: "uint64",
+            },
+            {
+              name: "entryFeeWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "minPlayers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "maxPlayers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "maxCauses",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "GameEnded",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Outcome",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "winnerCount",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "shareStreak",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "NoWinnerDistributed",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: true,
+              internalType: "uint16",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amountWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "OwnershipTransferred",
+          inputs: [
+            {
+              name: "previousOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newOwner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PhaseAdvanced",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "newPhase",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Phase",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PlayerEliminated",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: true,
+              internalType: "uint32",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "choice",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Choice",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PlayerJoined",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "agentKey",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "joinedCount",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PrizeClaimed",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: true,
+              internalType: "uint16",
+            },
+            {
+              name: "grossPrizeWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "causeCutWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "netPrizeWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "causeRecipient",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RefundClaimed",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "refundWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "Revealed",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: true,
+              internalType: "uint32",
+            },
+            {
+              name: "wallet",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "choice",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Choice",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RoundResolved",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: true,
+              internalType: "uint32",
+            },
+            {
+              name: "sharers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "catchers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "stealers",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "eliminatedCount",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "aliveCount",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "shareStreak",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "SettlementFinalized",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "outcome",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum PrisonersDaollema.Outcome",
+            },
+            {
+              name: "totalPotWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "creatorFeeWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "winnerCount",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "winnerShareWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "refundPerPlayerWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "noWinnerCausePoolWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "treasuryAccruedWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "TreasuryAccrued",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "treasury",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amountWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "TreasuryUpdated",
+          inputs: [
+            {
+              name: "previousTreasury",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "newTreasury",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "TreasuryWithdrawal",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amountWei",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "AlreadyClaimed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AlreadyRefunded",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ClaimUnavailable",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "CommitPhaseStillOpen",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "CommitWindowClosed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "DuplicateAgentKey",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "DuplicateCommit",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "DuplicateReveal",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "DuplicateWallet",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "EntryFeeMismatch",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "GameNotCommitPhase",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "GameNotJoining",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "GameNotRevealPhase",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidAuthRegistry",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidCause",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidChoice",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidCommitment",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidGameConfig",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidPhaseAdvance",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidRecipient",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidResolutionState",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidRevealPreimage",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidTreasury",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "JoinWindowClosed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "JoinWindowStillOpen",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MaxCausesReached",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MaxPlayersReached",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MinimumPlayersMet",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MissingCommitment",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MissingGame",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NoWhitelistedCauses",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NothingToWithdraw",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "OwnableInvalidOwner",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "OwnableUnauthorizedAccount",
+          inputs: [
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "PlayerNotAlive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "PlayerNotJoined",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ReentrancyGuardReentrantCall",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "RefundUnavailable",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "RevealPhaseStillOpen",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "RevealWindowClosed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "SettlementAlreadyFinalized",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "UnauthorizedWallet",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "UnsafePhase",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 39049210,
+    },
+    GameChat: {
+      address: "0x232bb450c63c9df8d8a832a02adf8349b02bfeb6",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "game_",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "MAX_MESSAGE_BYTES",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "game",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "contract IGameChatHost",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "messageCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "postCause",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "text",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "messageId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "postGlobal",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "text",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "messageId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "MessagePosted",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "messageId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "sender",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "phase",
+              type: "uint8",
+              indexed: false,
+              internalType: "uint8",
+            },
+            {
+              name: "scope",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum GameChat.Scope",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "createdAt",
+              type: "uint64",
+              indexed: false,
+              internalType: "uint64",
+            },
+            {
+              name: "text",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "EmptyMessage",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidGameContract",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MessageTooLong",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MissingGame",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotAlive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotJoined",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "WrongCause",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 39049210,
+    },
+  },
+} as const;
 
 export default deployedContracts satisfies GenericContractsDeclaration;

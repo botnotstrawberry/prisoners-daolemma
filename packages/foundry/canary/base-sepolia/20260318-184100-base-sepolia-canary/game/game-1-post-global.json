@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-global",
+  "chainId": 84532,
+  "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+  "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0xc94a9874bc18dfcb268918926537d6997a0ea7db72c741281ba3ddab3de616a0",
+  "blockNumber": 39049856,
+  "messageId": 1,
+  "round": 1,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "global",
+  "causeId": null,
+  "createdAt": 1773868000,
+  "text": "base sepolia canary round one global check-in"
+}

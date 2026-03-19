@@ -1,0 +1,14 @@
+[
+  {
+    "account": "canary-player-4",
+    "address": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+    "keystore": "/root/.foundry/keystores/canary-player-4",
+    "passwordFile": "/root/.secrets/canary-player-4.pass"
+  },
+  {
+    "account": "canary-player-5",
+    "address": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+    "keystore": "/root/.foundry/keystores/canary-player-5",
+    "passwordFile": "/root/.secrets/canary-player-5.pass"
+  }
+]

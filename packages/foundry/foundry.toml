@@ -4,6 +4,15 @@ out = 'out'
 libs = ['lib', 'node_modules']
 fs_permissions = [{ access = "read-write", path = "./"}]
 
+# Use this profile for real/public deployments and explorer verification.
+# Current Sepolia canary evidence shows `PrisonersDaollema` exceeds the EVM
+# contract size limit when built with the unoptimized default profile, but fits
+# safely when compiled with via-IR + optimizer enabled.
+[profile.production]
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+
 [rpc_endpoints]
 default_network = "http://127.0.0.1:8545"
 

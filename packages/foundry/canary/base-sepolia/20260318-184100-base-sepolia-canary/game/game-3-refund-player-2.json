@@ -1,0 +1,14 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "refund",
+  "chainId": 84532,
+  "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+  "wallet": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+  "gameId": 3,
+  "txHash": "0x0746db481eb2c09f71d2aad40013d255fd518758d7bcaed450e8d633e226505b",
+  "blockNumber": 39055557,
+  "refundWei": "1000000000000000",
+  "availableBefore": true,
+  "availableAfter": false,
+  "refunded": true
+}

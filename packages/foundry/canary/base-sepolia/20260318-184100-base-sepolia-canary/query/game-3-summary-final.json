@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "gameId": 3,
+  "chainId": 84532,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39055559,
+      "timestamp": 1773879406
+    },
+    "logRange": {
+      "requestedFromBlock": 39049220,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39049220,
+      "resolvedToBlock": 39055559,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "addresses": {
+    "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+    "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6"
+  },
+  "game": {
+    "currentGameId": 3,
+    "activeGameId": 0,
+    "createdAt": 1773875018,
+    "createdAtBlock": 39053365,
+    "parameterSnapshot": {
+      "entryFeeWei": "1000000000000000",
+      "creatorFeeBps": 100,
+      "causeFeeBps": 100,
+      "joinDurationSeconds": 900,
+      "commitDurationBlocks": 20,
+      "revealDurationBlocks": 20,
+      "minPlayers": 3,
+      "maxPlayers": 32,
+      "maxCauses": 8
+    },
+    "treasury": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "phase": "Cancelled",
+    "phaseCode": 5,
+    "outcome": "Cancelled",
+    "outcomeCode": 3,
+    "settlement": {
+      "finalized": true,
+      "terminalPath": "cancelled-refunds",
+      "totalPotWei": "2000000000000000",
+      "creatorFeeWei": "0",
+      "treasuryAccruedWei": "0",
+      "treasuryWithdrawnWei": "0",
+      "treasuryClaimableWei": "0",
+      "winnerCount": 0,
+      "winnerShareWei": "0",
+      "refundPerPlayerWei": "1000000000000000",
+      "noWinnerCausePoolWei": "0",
+      "noWinnerCauseDistributedWei": "0"
+    },
+    "terminalOutcome": {
+      "terminal": true,
+      "terminalPath": "cancelled-refunds",
+      "phase": "Cancelled",
+      "phaseCode": 5,
+      "outcome": "Cancelled",
+      "outcomeCode": 3,
+      "round": 0,
+      "shareStreak": 0,
+      "aliveCount": 2,
+      "winnerCount": 0,
+      "gameEndedEvent": null,
+      "gameCancelledEvent": {
+        "blockNumber": 39055549,
+        "txHash": "0x631154cb90b7353167201ae97c0cfb251bb13b3d6234d6552faf62b0a5a9ef6f",
+        "timestamp": 1773879386
+      },
+      "settlementFinalizedEvent": {
+        "outcome": "Cancelled",
+        "outcomeCode": 3,
+        "totalPotWei": "2000000000000000",
+        "creatorFeeWei": "0",
+        "winnerCount": 0,
+        "winnerShareWei": "0",
+        "refundPerPlayerWei": "1000000000000000",
+        "noWinnerCausePoolWei": "0",
+        "treasuryAccruedWei": "0",
+        "blockNumber": 39055549,
+        "txHash": "0x631154cb90b7353167201ae97c0cfb251bb13b3d6234d6552faf62b0a5a9ef6f",
+        "timestamp": 1773879386
+      },
+      "notes": [
+        "The current contract emits GameCancelled(gameId) without round/winner/share-streak fields, so cancelled terminal metadata comes from snapshot state plus SettlementFinalized."
+      ]
+    },
+    "round": 0,
+    "shareStreak": 0,
+    "counts": {
+      "joined": 2,
+      "alive": 2,
+      "claimed": 0,
+      "refunded": 2,
+      "usedCauses": 2,
+      "committed": 0,
+      "revealed": 0,
+      "messages": 0
+    },
+    "phaseHistory": [
+      {
+        "phase": "Joining",
+        "phaseCode": 1,
+        "blockNumber": 39053365,
+        "txHash": "0xeae16e23c870c4f39fe93416db9297487785ad3a3aeec1924e5548c788992889",
+        "timestamp": 1773875018
+      },
+      {
+        "phase": "Cancelled",
+        "phaseCode": 5,
+        "blockNumber": 39055549,
+        "txHash": "0x631154cb90b7353167201ae97c0cfb251bb13b3d6234d6552faf62b0a5a9ef6f",
+        "timestamp": 1773879386
+      }
+    ]
+  },
+  "capabilities": {
+    "available": [
+      "game-parameter-snapshot",
+      "current-phase-and-round-context",
+      "player-roster-and-cause-selection",
+      "used-cause-team-state",
+      "auth-records-for-participants",
+      "commit-and-reveal-event-inspection",
+      "round-resolution-outcomes",
+      "elimination-history",
+      "winner-no-winner-terminal-state",
+      "claim-refund-settlement-data",
+      "payout-destination-audit",
+      "game-chat-message-export"
+    ],
+    "unavailable": []
+  },
+  "notes": [
+    "Event-derived sections only cover logs from block 39049220 through 39055559. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+    "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+    "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+    "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state.",
+    "The current contract emits GameCancelled(gameId) without round/winner/share-streak fields, so cancelled terminal metadata comes from snapshot state plus SettlementFinalized."
+  ]
+}

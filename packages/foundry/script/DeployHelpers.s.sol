@@ -54,7 +54,9 @@ contract ScaffoldETHDeploy is Script {
 
     function exportDeployments() internal {
         root = vm.projectRoot();
-        path = string.concat(root, "/deployments/");
+        string memory deploymentsDir = string.concat(root, "/deployments");
+        vm.createDir(deploymentsDir, true);
+        path = string.concat(deploymentsDir, "/");
         string memory chainIdStr = vm.toString(block.chainid);
         path = string.concat(path, string.concat(chainIdStr, ".json"));
 

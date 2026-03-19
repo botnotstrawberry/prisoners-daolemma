@@ -1,0 +1,34 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Submitting verification for contract: 0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed
+  Warning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)
+
+  Submitting verification for contract: 0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF
+  Error: Checking verification result failed
+
+Context:
+- Contract verification failed:
+Status: `0`
+Result: `Max calls per sec rate limit reached (3/sec)`
+
+  Submitting verification for contract: 0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6
+  Warning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)
+
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Start verifying contract `0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408
+
+Contract [contracts/AgentAuthRegistry.sol:AgentAuthRegistry] "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed" is already verified. Skipping verification.
+  Start verifying contract `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000cabde80aa0677935c8c30f5595299f6325e3b8ed00000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000038400000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008
+
+Contract [contracts/PrisonersDaollema.sol:PrisonersDaollema] "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF" is already verified. Skipping verification.
+  Start verifying contract `0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000bababfbbdbae58457e8b83aaa1b37df6e0990fff
+
+Contract [contracts/GameChat.sol:GameChat] "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6" is already verified. Skipping verification.

@@ -126,7 +126,7 @@ contract PrisonersDaollemaTest is Test {
     }
 
     function testCreateGameStartsJoiningAndSnapshotsDefaults() public {
-        uint256 expectedDeadline = block.timestamp + _defaultConfig().joinDurationSeconds;
+        uint256 expectedDeadline = vm.getBlockTimestamp() + _defaultConfig().joinDurationSeconds;
 
         vm.prank(owner);
         uint256 gameId = game.createGame();
@@ -140,7 +140,7 @@ contract PrisonersDaollemaTest is Test {
         assertEq(snapshot.minPlayers, 2);
         assertEq(snapshot.maxPlayers, 4);
         assertEq(snapshot.maxCauses, 2);
-        assertEq(snapshot.createdAt, block.timestamp);
+        assertEq(snapshot.createdAt, vm.getBlockTimestamp());
         assertEq(snapshot.joinDeadline, expectedDeadline);
         assertEq(snapshot.round, 0);
         assertEq(snapshot.committedCount, 0);
@@ -220,7 +220,7 @@ contract PrisonersDaollemaTest is Test {
     }
 
     function testAdmissionViewsMirrorRegistry() public {
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-admission"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-admission"));
 
         assertTrue(game.isAdmissionReady(player1));
         assertEq(game.admissionAgentKey(player1), PLAYER1_AGENT);
@@ -236,9 +236,9 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinRejectsExpiredAuthAndAdmissionViewTurnsFalse() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 10), keccak256("nonce-expired"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-expired"));
 
-        vm.warp(block.timestamp + 11);
+        vm.warp(vm.getBlockTimestamp() + 11);
 
         assertFalse(game.isAdmissionReady(player1));
         assertEq(game.admissionAgentKey(player1), PLAYER1_AGENT);
@@ -250,7 +250,7 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinRejectsRevokedAuthAndAdmissionViewTurnsFalse() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-revoked"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-revoked"));
 
         vm.prank(owner);
         registry.revokeAuth(player1);
@@ -265,7 +265,7 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinRejectsDuplicateWalletPerGame() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-wallet-1"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-wallet-1"));
 
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -279,8 +279,8 @@ contract PrisonersDaollemaTest is Test {
         uint256 gameId = _createGame();
         bytes32 sharedAgentKey = keccak256("shared-agent");
 
-        _registerWallet(player1, sharedAgentKey, uint64(block.timestamp + 1 hours), keccak256("nonce-agent-1"));
-        _registerWallet(player2, sharedAgentKey, uint64(block.timestamp + 1 hours), keccak256("nonce-agent-2"));
+        _registerWallet(player1, sharedAgentKey, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-1"));
+        _registerWallet(player2, sharedAgentKey, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-2"));
 
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -292,7 +292,7 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinRejectsInvalidCause() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-invalid-cause"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-invalid-cause"));
 
         vm.expectRevert(PrisonersDaollema.InvalidCause.selector);
         vm.prank(player1);
@@ -301,7 +301,7 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinRequiresExactEntryFee() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-entry-fee"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-entry-fee"));
 
         vm.expectRevert(PrisonersDaollema.EntryFeeMismatch.selector);
         vm.prank(player1);
@@ -319,9 +319,9 @@ contract PrisonersDaollemaTest is Test {
         vm.prank(owner);
         uint256 gameId = limitedGame.createGame();
 
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-players-1"));
-        _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-players-2"));
-        _registerWallet(player3, PLAYER3_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-players-3"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-players-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-players-2"));
+        _registerWallet(player3, PLAYER3_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-players-3"));
 
         vm.prank(player1);
         limitedGame.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -341,9 +341,9 @@ contract PrisonersDaollemaTest is Test {
         vm.prank(owner);
         uint256 gameId = singleCauseGame.createGame();
 
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-causes-1"));
-        _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-causes-2"));
-        _registerWallet(player3, PLAYER3_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-max-causes-3"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-causes-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-causes-2"));
+        _registerWallet(player3, PLAYER3_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-max-causes-3"));
 
         vm.prank(player1);
         singleCauseGame.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -358,8 +358,8 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinStoresPlayerStateRosterAndCauseSnapshotReads() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-read-1"));
-        _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-read-2"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-read-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-read-2"));
 
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -408,8 +408,8 @@ contract PrisonersDaollemaTest is Test {
 
     function testJoinAllowsExactJoinDeadlineButRejectsAfterDeadline() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-deadline-1"));
-        _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-deadline-2"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-deadline-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-deadline-2"));
 
         uint64 joinDeadline = game.getGame(gameId).joinDeadline;
 
@@ -666,7 +666,7 @@ contract PrisonersDaollemaTest is Test {
 
     function testCancelIfInsufficientPlayersSnapshotsOldGameAndReleasesActiveSlot() public {
         uint256 gameId1 = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-snapshot-1"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-snapshot-1"));
 
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId1, CAUSE_A);
@@ -695,7 +695,7 @@ contract PrisonersDaollemaTest is Test {
         uint256 gameId2 = game.createGame();
         vm.stopPrank();
 
-        _registerWallet(player2, PLAYER2_AGENT, uint64(block.timestamp + 1 hours), keccak256("nonce-snapshot-2"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-snapshot-2"));
         vm.prank(player2);
         game.join{ value: 0.002 ether }(gameId2, CAUSE_A);
 
@@ -1694,7 +1694,7 @@ contract PrisonersDaollemaTest is Test {
     }
 
     function _joinPlayer(uint256 gameId, address wallet_, bytes32 agentKey_, bytes32 nonce_, uint16 causeId) internal {
-        _registerWallet(wallet_, agentKey_, uint64(block.timestamp + 1 hours), nonce_);
+        _registerWallet(wallet_, agentKey_, uint64(vm.getBlockTimestamp() + 1 hours), nonce_);
 
         uint256 entryFeeWei = game.getGame(gameId).entryFeeWei;
         vm.prank(wallet_);
@@ -1798,7 +1798,7 @@ contract PrisonersDaollemaTest is Test {
             manifestHash: keccak256(abi.encodePacked("manifest://", agentKey_)),
             chainId: block.chainid,
             gameNamespace: registry.gameNamespace(),
-            issuedAt: uint64(block.timestamp),
+            issuedAt: uint64(vm.getBlockTimestamp()),
             expiresAt: expiresAt_,
             nonce: nonce_
         });

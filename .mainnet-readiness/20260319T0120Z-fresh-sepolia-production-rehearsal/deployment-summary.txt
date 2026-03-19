@@ -1,0 +1,26 @@
+
+🧪 Base Sepolia canary deployment summary
+RPC target:     baseSepolia
+Chain ID:       84532
+Latest block:   39057219
+Deployment:     /root/projects/prisoners-daollema/packages/foundry/deployments/84532.json
+Registry:       0x88D2E6494841EeaF4761E63A1ABF9b2722B22ec1
+Game:           0xE595C744Fd21111Ba74790644C5C7578F36261fF
+Chat:           0xcc99e3739d5AE0273448cc55ee298A264c357665
+Registry owner: 0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Game owner:     0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Treasury:       0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Verifier:       0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Default config: entryFeeWei=1000000000000000 | creatorFeeBps=100 | causeFeeBps=100 | join=120s | commit=40 blocks | reveal=40 blocks | min=3 | max=32 | maxCauses=8
+Recommended:    no
+currentGameId:  0
+activeGameId:   0
+messageCount:   0
+Known causes:   0
+Active causes:  0
+Warnings:
+  - Onchain default config joinDurationSeconds=120 differs from the recommended Base Sepolia canary value 900.
+  - Onchain default config commitDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.
+  - Onchain default config revealDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.
+  - No active causes are currently whitelisted, so createGame() will revert until the owner whitelists at least one cause.
+Output:         /root/projects/prisoners-daollema/.mainnet-readiness/20260319T0120Z-fresh-sepolia-production-rehearsal/deployment-summary.json

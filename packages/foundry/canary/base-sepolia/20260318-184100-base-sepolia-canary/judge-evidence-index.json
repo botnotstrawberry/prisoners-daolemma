@@ -1,0 +1,280 @@
+{
+  "schemaVersion": "prisoners-daollema/judge-evidence-v0",
+  "generatedAt": "2026-03-19T00:29:55.611Z",
+  "title": "Prisoners DAOllema Judge Evidence Pack",
+  "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
+  "bundleType": "base-sepolia-canary",
+  "bundleDir": "canary/base-sepolia/20260318-184100-base-sepolia-canary",
+  "outputDir": "canary/base-sepolia/20260318-184100-base-sepolia-canary",
+  "generatedArtifacts": {
+    "humanGuide": "JUDGE_README.md",
+    "machineIndex": "judge-evidence-index.json"
+  },
+  "localProof": {
+    "kind": "load-harness",
+    "status": "missing",
+    "reportPath": null,
+    "txLogPath": null,
+    "report": null,
+    "exports": [],
+    "outcomes": [],
+    "claims": [],
+    "packManifestPath": null,
+    "packReadmePath": null,
+    "pack": null,
+    "matrixBundles": []
+  },
+  "liveSepoliaProof": {
+    "status": "present",
+    "preflightPath": "preflight.json",
+    "deploymentSummaryPath": "deployment-summary.json",
+    "deploymentFilePath": "deployments-84532.json",
+    "verifyLogPath": "verify.log",
+    "operatorNotesPath": "operator-notes.md",
+    "createPath": null,
+    "querySummaryPath": "query/game-summary-live.json",
+    "preflight": {
+      "chainId": 84532,
+      "latestBlock": {
+        "number": 39049093,
+        "timestamp": 1773866474
+      },
+      "warnings": [],
+      "matchesRecommendedProfile": true
+    },
+    "deployment": {
+      "chainId": 84532,
+      "latestBlock": {
+        "number": 39055933,
+        "timestamp": 1773880154
+      },
+      "currentGameId": 4,
+      "activeGameId": 0,
+      "messageCount": 2,
+      "activeCauseCount": 5,
+      "warnings": [
+        "Onchain default config joinDurationSeconds=120 differs from the recommended Base Sepolia canary value 900.",
+        "Onchain default config commitDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+        "Onchain default config revealDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+        "currentGameId is already 4, so this deployment is no longer a pristine pre-game canary instance.",
+        "GameChat.messageCount is already 2, so this deployment already has chat history."
+      ],
+      "matchesRecommendedProfile": false,
+      "addresses": {
+        "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+        "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+        "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6"
+      }
+    },
+    "querySummary": {
+      "gameId": 4,
+      "chainId": 84532,
+      "outcome": "Winners",
+      "terminalPath": "winner-claims",
+      "counts": {
+        "joined": 5,
+        "alive": 5,
+        "claimed": 5,
+        "refunded": 0,
+        "usedCauses": 5,
+        "committed": 5,
+        "revealed": 5,
+        "messages": 0
+      },
+      "notes": [
+        "Event-derived sections only cover logs from block 39049220 through 39055934. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+        "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+        "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+        "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state."
+      ],
+      "addresses": {
+        "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+        "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+        "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6"
+      },
+      "evidenceWindow": {
+        "stateSnapshot": {
+          "blockNumber": 39055934,
+          "timestamp": 1773880156
+        },
+        "logRange": {
+          "requestedFromBlock": 39049220,
+          "requestedToBlock": "latest",
+          "resolvedFromBlock": 39049220,
+          "resolvedToBlock": 39055934,
+          "coversFullHistoryToStateSnapshot": false,
+          "isHybridAgainstStateSnapshot": false
+        }
+      }
+    },
+    "queryExport": {
+      "manifestPath": "query/export/export-manifest.json",
+      "files": {
+        "gameSummary": "query/export/game-summary.json",
+        "roster": "query/export/roster.json",
+        "causes": "query/export/causes.json",
+        "rounds": "query/export/rounds.json",
+        "auth": "query/export/auth.json",
+        "payouts": "query/export/payouts.json",
+        "messages": "query/export/messages.jsonl"
+      },
+      "gameId": 4,
+      "chainId": 84532,
+      "outcome": "Winners",
+      "terminalPath": "winner-claims",
+      "counts": {
+        "joined": 5,
+        "alive": 5,
+        "claimed": 5,
+        "refunded": 0,
+        "usedCauses": 5,
+        "committed": 5,
+        "revealed": 5,
+        "messages": 0
+      },
+      "notes": [
+        "Event-derived sections only cover logs from block 39049220 through 39055919. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+        "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+        "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+        "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state."
+      ],
+      "addresses": {
+        "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+        "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+        "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6"
+      },
+      "evidenceWindow": {
+        "stateSnapshot": {
+          "blockNumber": 39055919,
+          "timestamp": 1773880126
+        },
+        "logRange": {
+          "requestedFromBlock": 39049220,
+          "requestedToBlock": "latest",
+          "resolvedFromBlock": 39049220,
+          "resolvedToBlock": 39055919,
+          "coversFullHistoryToStateSnapshot": false,
+          "isHybridAgainstStateSnapshot": false
+        }
+      },
+      "produced": [
+        "game-summary.json",
+        "roster.json",
+        "causes.json",
+        "rounds.json",
+        "auth.json",
+        "payouts.json",
+        "messages.jsonl",
+        "export-manifest.json"
+      ],
+      "skipped": []
+    },
+    "auth": {
+      "authStatusCount": 8,
+      "authPermitCount": 8,
+      "authStatusPaths": [
+        "auth/player-1/auth-status.json",
+        "auth/player-2/auth-status.json",
+        "auth/player-3/auth-status.json",
+        "auth/player-4/auth-status.json",
+        "auth/player-5/auth-status.json",
+        "auth/refresh-player-1/auth-status.json",
+        "auth/refresh-player-2/auth-status.json",
+        "auth/refresh-player-3/auth-status.json"
+      ],
+      "authPermitPaths": [
+        "auth/player-1/auth-permit.json",
+        "auth/player-2/auth-permit.json",
+        "auth/player-3/auth-permit.json",
+        "auth/player-4/auth-permit.json",
+        "auth/player-5/auth-permit.json",
+        "auth/refresh-player-1/auth-permit.json",
+        "auth/refresh-player-2/auth-permit.json",
+        "auth/refresh-player-3/auth-permit.json"
+      ]
+    },
+    "operatorNotes": {
+      "txHashCount": 0
+    },
+    "screenshots": [],
+    "claims": [
+      "Preflight inputs were captured for chain 84532 before deployment.",
+      "An onchain deployment summary is present, so owner/treasury/verifier wiring and default config can be inspected after deployment.",
+      "A live query export bundle is present, so judges can inspect the deployed contracts through the same repo-native export surface used locally.",
+      "8 saved auth status artifact(s) are present for admitted gameplay wallets."
+    ]
+  },
+  "recommendedOpenOrder": [
+    {
+      "path": "preflight.json",
+      "why": "Expected Base Sepolia deploy inputs before the live run."
+    },
+    {
+      "path": "deployment-summary.json",
+      "why": "Onchain wiring, default config, and deployment freshness after deploy."
+    },
+    {
+      "path": "operator-notes.md",
+      "why": "Operator-written tx hashes, explorer links, auth flavor, and notable manual observations."
+    },
+    {
+      "path": "auth/player-1/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-2/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-3/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-4/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-5/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/refresh-player-1/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/refresh-player-2/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/refresh-player-3/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "query/game-summary-live.json",
+      "why": "Live game summary exported directly from the deployed contracts."
+    },
+    {
+      "path": "query/export/game-summary.json",
+      "why": "Live export snapshot for the final game state and terminal outcome."
+    },
+    {
+      "path": "query/export/rounds.json",
+      "why": "Live round-by-round replay context."
+    },
+    {
+      "path": "query/export/payouts.json",
+      "why": "Live settlement and payout routing."
+    },
+    {
+      "path": "query/export/export-manifest.json",
+      "why": "Live export manifest, including anything intentionally skipped."
+    }
+  ],
+  "missingImportantArtifacts": [
+    "No screenshots were found under screenshots/, so there is no bundled visual companion to the JSON evidence yet."
+  ],
+  "unknowns": [],
+  "nextCapturePriorities": [
+    "Add screenshots/ if you want a more judge-friendly visual companion to the live JSON bundle."
+  ]
+}

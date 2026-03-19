@@ -1,0 +1,21 @@
+[2026-03-18T20:56:33Z] Starting unattended Base Sepolia canary orchestration
+[2026-03-18T20:56:33Z] Waiting 594s for game 1 join deadline
+[2026-03-18T21:06:27Z] Running winner-all-share flow for game 1
+[2026-03-18T21:06:35Z] Advance succeeded for game 1 (start) on attempt 1
+[2026-03-18T22:49:02Z] Starting post-Game1 continuation (Game2 no-winner + Game3 cancelled)
+[2026-03-18T22:49:02Z] Waiting 795s for game 2 join deadline
+[2026-03-18T23:02:17Z] Advancing game 2 into Commit
+[2026-03-18T23:02:23Z] Preparing + committing catch for all 3 players in parallel
+[2026-03-18T23:02:35Z] Advancing game 2 into Reveal
+[2026-03-18T23:02:41Z] Revealing catch for all 3 players in parallel
+[2026-03-18T23:02:53Z] Resolving game 2
+[2026-03-18T23:03:00Z] Withdrawing game 2 treasury and cause balances
+[2026-03-18T23:03:57Z] Waiting 886s for game 3 join deadline
+[2026-03-18T23:18:43Z] Cancelling underfilled game 3
+[2026-03-19T00:23:23Z] Creating 5-player fast-follow Game 4
+[2026-03-19T00:23:46Z] Waiting 107s for game 4 join deadline
+[2026-03-19T00:25:39Z] Game 4 round 1: parallel commit/reveal
+[2026-03-19T00:26:18Z] Game 4 round 2: parallel commit/reveal
+[2026-03-19T00:26:55Z] Game 4 round 3: parallel commit/reveal
+[2026-03-19T00:27:37Z] Game 4: terminal actions
+[2026-03-19T00:28:53Z] Game 4 fast-follow smoke complete

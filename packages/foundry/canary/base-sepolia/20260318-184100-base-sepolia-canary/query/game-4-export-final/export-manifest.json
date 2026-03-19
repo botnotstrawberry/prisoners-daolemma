@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "prisoners-daollema/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39055919,
+      "timestamp": 1773880126
+    },
+    "logRange": {
+      "requestedFromBlock": 39049220,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39049220,
+      "resolvedToBlock": 39055919,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "outputDir": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final",
+  "gameId": 4,
+  "chainId": 84532,
+  "produced": [
+    {
+      "artifact": "game-summary.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/game-summary.json"
+    },
+    {
+      "artifact": "roster.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/roster.json"
+    },
+    {
+      "artifact": "causes.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/causes.json"
+    },
+    {
+      "artifact": "rounds.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/rounds.json"
+    },
+    {
+      "artifact": "auth.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/auth.json"
+    },
+    {
+      "artifact": "payouts.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/payouts.json"
+    },
+    {
+      "artifact": "messages.jsonl",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/messages.jsonl",
+      "count": 0
+    },
+    {
+      "artifact": "export-manifest.json",
+      "path": "/root/projects/prisoners-daollema/packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-4-export-final/export-manifest.json"
+    }
+  ],
+  "skipped": []
+}

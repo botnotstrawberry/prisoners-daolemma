@@ -125,7 +125,10 @@
     "vercel": "yarn workspace @prisoners-daollema/nextjs vercel",
     "vercel:login": "yarn workspace @prisoners-daollema/nextjs vercel:login",
     "vercel:yolo": "yarn workspace @prisoners-daollema/nextjs vercel:yolo",
-    "verify": "yarn foundry:verify"
+    "verify": "yarn foundry:verify",
+    "prod:size:check": "bash scripts/check-production-size.sh",
+    "prod:gates": "bash scripts/run-production-gates.sh",
+    "prod:sepolia:fresh-rehearsal": "bash scripts/run-fresh-sepolia-production-rehearsal.sh"
   },
   "packageManager": "yarn@3.2.3",
   "engines": {

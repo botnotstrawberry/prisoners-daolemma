@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "prisoners-daollema/base-sepolia-canary-deployment-v0",
+  "target": {
+    "rpcTarget": "baseSepolia",
+    "chainId": 84532,
+    "latestBlock": {
+      "number": 39055933,
+      "timestamp": 1773880154
+    }
+  },
+  "deploymentFile": "/root/projects/prisoners-daollema/packages/foundry/deployments/84532.json",
+  "deploymentNetworkName": "base-sepolia",
+  "addresses": {
+    "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "game": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+    "chat": "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6"
+  },
+  "expectedRoles": {
+    "owner": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "treasury": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "authVerifier": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    }
+  },
+  "onchain": {
+    "registryOwner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "gameOwner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "treasury": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "authRegistry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "linkedGame": "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+    "defaultConfig": {
+      "entryFeeWei": "1000000000000000",
+      "creatorFeeBps": 100,
+      "causeFeeBps": 100,
+      "joinDurationSeconds": 120,
+      "commitDurationBlocks": 40,
+      "revealDurationBlocks": 40,
+      "minPlayers": 3,
+      "maxPlayers": 32,
+      "maxCauses": 8
+    },
+    "currentGameId": 4,
+    "activeGameId": 0,
+    "messageCount": 2,
+    "knownCauseCount": 5,
+    "activeCauseCount": 5,
+    "causes": [
+      {
+        "causeId": 1,
+        "active": true,
+        "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "metadataHash": "0xf404aa60f5d73d0c8bbe2a1fd0916b90d92c4cc1af804a45427382aa6a1cfdd2"
+      },
+      {
+        "causeId": 2,
+        "active": true,
+        "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "metadataHash": "0x0a412d748b4b98f54b95cb6400b2d126b2226e2aa8a92bd47e7a613464c0a372"
+      },
+      {
+        "causeId": 3,
+        "active": true,
+        "recipient": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+        "metadataHash": "0x5bd5715fd96d6109866903f8dc540c8bde1be6112681a56a5894849415c9bd7a"
+      },
+      {
+        "causeId": 4,
+        "active": true,
+        "recipient": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+        "metadataHash": "0xda08bf9efaea52cc55790094bf359f45c10f6813413d07d5c10303e1b6d715e8"
+      },
+      {
+        "causeId": 5,
+        "active": true,
+        "recipient": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+        "metadataHash": "0x422491709379fdce10827eeee8517a5dda1f663ecc5d34e2b441a73b76868ff4"
+      }
+    ]
+  },
+  "profileComparison": {
+    "matchesRecommendedProfile": false,
+    "mismatches": [
+      {
+        "field": "joinDurationSeconds",
+        "actual": "120",
+        "expected": "900"
+      },
+      {
+        "field": "commitDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      },
+      {
+        "field": "revealDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      }
+    ]
+  },
+  "warnings": [
+    "Onchain default config joinDurationSeconds=120 differs from the recommended Base Sepolia canary value 900.",
+    "Onchain default config commitDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+    "Onchain default config revealDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+    "currentGameId is already 4, so this deployment is no longer a pristine pre-game canary instance.",
+    "GameChat.messageCount is already 2, so this deployment already has chat history."
+  ]
+}

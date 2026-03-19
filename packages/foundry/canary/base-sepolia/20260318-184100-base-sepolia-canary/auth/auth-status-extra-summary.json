@@ -1,0 +1,66 @@
+[
+  {
+    "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "wallet": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+    "chainId": 84532,
+    "latestBlockNumber": 39055721,
+    "latestBlockTimestamp": 1773879730,
+    "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "isAuthorized": true,
+    "hasRecord": true,
+    "expired": false,
+    "nonceChecked": "0xd2beb208a553fc3d899fada9cef0d84c5c38130823756b02362992604ff9c85b",
+    "nonceUsed": true,
+    "record": {
+      "agentKey": "0xfe3967d69ab56d266fb575e4829aedbb7c1be4d8810a3e59a9858af92135178f",
+      "manifestHash": "0xc587ae26ff9ca5e81046d3cbb47a6b9a5932ed694858c70f04a3f8e732b180f3",
+      "issuedAt": 1773879720,
+      "expiresAt": 1773894120,
+      "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "active": true
+    },
+    "bundleInspection": {
+      "registerable": false,
+      "recoveredSigner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "bundleVerifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "bundleRegistry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+      "bundleDomainVerifyingContract": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+      "problems": [
+        "Permit nonce 0xd2beb208a553fc3d899fada9cef0d84c5c38130823756b02362992604ff9c85b was already used on registry 0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed."
+      ]
+    }
+  },
+  {
+    "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "wallet": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+    "chainId": 84532,
+    "latestBlockNumber": 39055729,
+    "latestBlockTimestamp": 1773879746,
+    "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "isAuthorized": true,
+    "hasRecord": true,
+    "expired": false,
+    "nonceChecked": "0xa9f20286fac73362d4ab325a049ed7740987b3d18124a171ccd242188bacc2aa",
+    "nonceUsed": true,
+    "record": {
+      "agentKey": "0x224cbe134152bda54806ea74f196cef4f07121bf513a8f9f691a1226ec2d94e9",
+      "manifestHash": "0xb5366536b00fb166321635dc029d47588a7db876323a8d6e5a5347f2271bf8ba",
+      "issuedAt": 1773879734,
+      "expiresAt": 1773894134,
+      "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "active": true
+    },
+    "bundleInspection": {
+      "registerable": false,
+      "recoveredSigner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "bundleVerifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "bundleRegistry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+      "bundleDomainVerifyingContract": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+      "problems": [
+        "Permit nonce 0xa9f20286fac73362d4ab325a049ed7740987b3d18124a171ccd242188bacc2aa was already used on registry 0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed."
+      ]
+    }
+  }
+]

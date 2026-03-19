@@ -1,0 +1,112 @@
+
+🏋️ Prisoners DAOllema load harness summary
+Status:         ok
+Mode:           sequential
+Profile:        smoke (PARAMETERS.md §5.1 Anvil smoke profile)
+Run dir:        /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z
+Players:        8
+Causes:         4
+Games:          3
+Concurrency:    4
+Scenario req:   winner-all-share
+Scenario plan:  winner-all-share, winner-all-share, winner-all-share
+Skip commit:    0
+Skip reveal:    0
+Probe rate:     0.35
+Underfilled:    0.2
+Exp failures:   disabled
+Same-block:     disabled
+Auth chaos:     games=3/3, stale=6/6, expiredJoin=6/6, localRegRejects=0, refresh=6
+RPC URL:        http://127.0.0.1:8555
+Chain ID:       31337
+Blocks mined:   254
+Tx attempted:   269
+Tx succeeded:   257
+Tx failed:      12
+  expected:     12
+  unexpected:   0
+  unexp succ:   0
+Gas total:      28595742
+SB batches:     0/0
+SB exp fails:   0/0
+Wall clock ms:  32200
+Notes:
+  - Scenario list winner-all-share is shorter than games=3, so the harness cycles that list across the sequential run.
+  - authExpiryChaos enabled before game(s) 1, 2, 3: staleBundleFailures=2, expiredJoinFailures=2, ttlSeconds=2.
+  - Auth-expiry chaos stays bounded and pre-join only: it can repeat before selected games, then refreshes the affected wallets so the requested gameplay scenario can still execute.
+Max joined:     8/32
+Target-hit:     3/3
+Fully drained:  3/3
+Replay-ok:      3/3
+Succ tx/s:      7.981
+Breakage ok:    clean
+Probe fails:    0/0
+Unexp fails:    0
+
+Game 1 (run #1)
+  Scenario:     winner-all-share
+  Outcome:      Winners
+  Path:         winner-claims
+  Phase:        Ended
+  Round:        3
+  Share streak: 3
+  Joined:       8
+  Claimed:      8
+  Refunded:     0
+  Exp fails:    4/4
+  Probes:       0/0
+  Same-block:   0/0 tx across 0 batches
+  Auth chaos:   stale=2/2, expiredJoin=2/2, localRegRejects=0, refresh=2
+  Unexp fails:  0
+  Manual blocks:2
+  Replay ok:    true
+  Breakage ok:  true
+  Drained:      true
+  Evidence dir: /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z/game-1/evidence
+
+Game 2 (run #2)
+  Scenario:     winner-all-share
+  Outcome:      Winners
+  Path:         winner-claims
+  Phase:        Ended
+  Round:        3
+  Share streak: 3
+  Joined:       8
+  Claimed:      8
+  Refunded:     0
+  Exp fails:    4/4
+  Probes:       0/0
+  Same-block:   0/0 tx across 0 batches
+  Auth chaos:   stale=2/2, expiredJoin=2/2, localRegRejects=0, refresh=2
+  Unexp fails:  0
+  Manual blocks:2
+  Replay ok:    true
+  Breakage ok:  true
+  Drained:      true
+  Evidence dir: /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z/game-2/evidence
+
+Game 3 (run #3)
+  Scenario:     winner-all-share
+  Outcome:      Winners
+  Path:         winner-claims
+  Phase:        Ended
+  Round:        3
+  Share streak: 3
+  Joined:       8
+  Claimed:      8
+  Refunded:     0
+  Exp fails:    4/4
+  Probes:       0/0
+  Same-block:   0/0 tx across 0 batches
+  Auth chaos:   stale=2/2, expiredJoin=2/2, localRegRejects=0, refresh=2
+  Unexp fails:  0
+  Manual blocks:2
+  Replay ok:    true
+  Breakage ok:  true
+  Drained:      true
+  Evidence dir: /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z/game-3/evidence
+
+Report:         /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z/report.json
+Tx log:         /root/projects/prisoners-daollema/packages/foundry/load-harness/2026-03-19T01-08-26-515Z/txs.jsonl
+
+Boundary note: This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.

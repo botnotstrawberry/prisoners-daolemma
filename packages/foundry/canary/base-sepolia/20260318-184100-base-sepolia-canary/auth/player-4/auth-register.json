@@ -1,0 +1,29 @@
+{
+  "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+  "wallet": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+  "txHash": "0x0a47a149467a961590c1873cc78342488577bbc347d081b82f447234e26b22c6",
+  "blockNumber": 39055719,
+  "gasUsed": "147929",
+  "status": {
+    "registry": "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    "wallet": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+    "chainId": 84532,
+    "latestBlockNumber": 39055718,
+    "latestBlockTimestamp": 1773879724,
+    "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "isAuthorized": false,
+    "hasRecord": false,
+    "expired": false,
+    "nonceChecked": "0xd2beb208a553fc3d899fada9cef0d84c5c38130823756b02362992604ff9c85b",
+    "nonceUsed": false,
+    "record": {
+      "agentKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "manifestHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "issuedAt": 0,
+      "expiresAt": 0,
+      "issuer": "0x0000000000000000000000000000000000000000",
+      "active": false
+    }
+  }
+}
