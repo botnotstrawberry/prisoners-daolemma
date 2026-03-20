@@ -125,9 +125,9 @@ PY
   node scripts-js/queryCli.js summary --rpc-url "$RPC" --game-id "$GID" --from-block "$FROM_BLOCK" --json > "$ART_DIR/query/game-summary-after-joins.json"
 
   log "Post strategic messages"
-  node scripts-js/gameCli.js post-global --rpc-url "$RPC" --game-id "$GID" --message-text "Fresh Sepolia rehearsal: trust, cooperation, and incentives under pressure." --wallet-keystore "$(player_ks 1)" --wallet-keystore-password-file "$(player_pw 1)" --json > "$ART_DIR/game/post-global-player-1.json"
-  node scripts-js/gameCli.js post-cause --rpc-url "$RPC" --game-id "$GID" --cause-id 1 --message-text "Coalition Alpha: let's SHARE this round." --wallet-keystore "$(player_ks 1)" --wallet-keystore-password-file "$(player_pw 1)" --json > "$ART_DIR/game/post-cause-player-1.json"
-  node scripts-js/gameCli.js post-cause --rpc-url "$RPC" --game-id "$GID" --cause-id 1 --message-text "Agreed. I will SHARE with the coalition." --wallet-keystore "$(player_ks 2)" --wallet-keystore-password-file "$(player_pw 2)" --json > "$ART_DIR/game/post-cause-player-2.json"
+  node scripts-js/gameCli.js post-global --rpc-url "$RPC" --game-id "$GID" --text "Fresh Sepolia rehearsal: trust, cooperation, and incentives under pressure." --wallet-keystore "$(player_ks 1)" --wallet-keystore-password-file "$(player_pw 1)" --json > "$ART_DIR/game/post-global-player-1.json"
+  node scripts-js/gameCli.js post-cause --rpc-url "$RPC" --game-id "$GID" --cause-id 1 --text "Coalition Alpha: let's SHARE this round." --wallet-keystore "$(player_ks 1)" --wallet-keystore-password-file "$(player_pw 1)" --json > "$ART_DIR/game/post-cause-player-1.json"
+  node scripts-js/gameCli.js post-cause --rpc-url "$RPC" --game-id "$GID" --cause-id 1 --text "Agreed. I will SHARE with the coalition." --wallet-keystore "$(player_ks 2)" --wallet-keystore-password-file "$(player_pw 2)" --json > "$ART_DIR/game/post-cause-player-2.json"
 
   JOIN_DEADLINE=$(jq -r '.joinDeadline' "$ART_DIR/game/create-game.json")
   wait_until_deadline "$JOIN_DEADLINE" "join deadline"
