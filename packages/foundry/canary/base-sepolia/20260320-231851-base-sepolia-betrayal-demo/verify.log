@@ -1,0 +1,33 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  Using verify broadcast file: /root/projects/prisoners-daolemma/packages/foundry/broadcast/Deploy.s.sol/84532/run-latest.json
+  Start verifying contract `0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408
+
+Submitting verification for [contracts/AgentAuthRegistry.sol:AgentAuthRegistry] 0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9.
+
+Submitting verification for [contracts/AgentAuthRegistry.sol:AgentAuthRegistry] 0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `i3l16jjpasshftz1qj8yrrhbcfjuayjb49uyvvvcmd7vujg8kr`
+	URL: https://sepolia.basescan.org/address/0xab4e245c6d72cbe6458613bda1e10ee8829291f9
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+  Warning: Could not detect deployment: Unable to locate ContractCode at 0xab4e245c6d72cbe6458613bda1e10ee8829291f9; waiting 5 seconds before trying again (4 tries remaining)
+Warning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)
+
+  Start verifying contract `0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000ab4e245c6d72cbe6458613bda1e10ee8829291f900000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000007800000000000000000000000000000000000000000000000000000000000000280000000000000000000000000000000000000000000000000000000000000028000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008
+
+Contract [contracts/PrisonersDAOlemma.sol:PrisonersDAOlemma] "0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e" is already verified. Skipping verification.
+  Start verifying contract `0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a` deployed on base-sepolia
+Constructor args: 0x0000000000000000000000005abe1fcc6c5ad6e2842d8d3add0fd56e98b7da9e
+
+Contract [contracts/GameChat.sol:GameChat] "0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a" is already verified. Skipping verification.

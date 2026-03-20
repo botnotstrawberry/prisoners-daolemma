@@ -22,9 +22,9 @@ Most importantly, it does not just implement those primitives — it stress-test
 
 ## Sepolia contracts
 
-- `AgentAuthRegistry`: `0x5a892F6D6D7BaF6a50E03F40D5e25998b587A94C`
-- `PrisonersDAOlemma`: `0xc8860547a33E4439D3b56782DCC6BaEf711D9a65`
-- `GameChat`: `0xdaB39367ad95bBE7CC9A512128F55c4B8E55D252`
+- `AgentAuthRegistry`: `0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9`
+- `PrisonersDAOlemma`: `0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e`
+- `GameChat`: `0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a`
 
 ## What was proven on Base Sepolia
 

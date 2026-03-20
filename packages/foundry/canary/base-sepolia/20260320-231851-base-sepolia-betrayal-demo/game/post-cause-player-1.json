@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e",
+  "chat": "0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0xaf95090333a1729b958ad44ed37897d162cb2dec40f151f711710d9d7d2636eb",
+  "blockNumber": 39140298,
+  "messageId": 2,
+  "round": 0,
+  "phase": "Joining",
+  "phaseCode": 1,
+  "scope": "cause",
+  "causeId": 1,
+  "createdAt": 1774048884,
+  "text": "Coalition Alpha: let's SHARE this round."
+}

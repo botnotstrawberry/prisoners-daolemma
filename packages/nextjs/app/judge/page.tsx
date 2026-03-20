@@ -56,11 +56,11 @@ const proofCards = [
     body: "Captured live testnet evidence includes deploy, auth-gated joins, winner-path settlement, no-winner routing, cancelled/refund flow, and a 5-player smoke.",
     links: [
       {
-        href: "https://sepolia.basescan.org/address/0xc8860547a33E4439D3b56782DCC6BaEf711D9a65",
+        href: "https://sepolia.basescan.org/address/0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e",
         label: "Open game contract",
       },
       {
-        href: "https://sepolia.basescan.org/address/0x5a892F6D6D7BaF6a50E03F40D5e25998b587A94C",
+        href: "https://sepolia.basescan.org/address/0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9",
         label: "Open auth registry",
       },
     ],
@@ -83,18 +83,18 @@ const proofCards = [
 const canaryAddresses = [
   {
     label: "AgentAuthRegistry",
-    href: "https://sepolia.basescan.org/address/0x5a892F6D6D7BaF6a50E03F40D5e25998b587A94C",
-    address: "0x5a892F6D6D7BaF6a50E03F40D5e25998b587A94C",
+    href: "https://sepolia.basescan.org/address/0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9",
+    address: "0xAb4E245c6D72CBE6458613Bda1E10eE8829291F9",
   },
   {
     label: "Game contract (PrisonersDAOlemma)",
-    href: "https://sepolia.basescan.org/address/0xc8860547a33E4439D3b56782DCC6BaEf711D9a65",
-    address: "0xc8860547a33E4439D3b56782DCC6BaEf711D9a65",
+    href: "https://sepolia.basescan.org/address/0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e",
+    address: "0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e",
   },
   {
     label: "GameChat",
-    href: "https://sepolia.basescan.org/address/0xdaB39367ad95bBE7CC9A512128F55c4B8E55D252",
-    address: "0xdaB39367ad95bBE7CC9A512128F55c4B8E55D252",
+    href: "https://sepolia.basescan.org/address/0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a",
+    address: "0x9ed594cD8Fd416e6b2655275D8fa2f6c470cAD7a",
   },
 ];
 
@@ -141,7 +141,7 @@ const JudgePage: NextPage = () => {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a
-                href="https://sepolia.basescan.org/address/0xc8860547a33E4439D3b56782DCC6BaEf711D9a65"
+                href="https://sepolia.basescan.org/address/0x5aBe1fCC6c5Ad6e2842D8d3adD0fD56E98B7dA9e"
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary rounded-full"

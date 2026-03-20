@@ -1,0 +1,136 @@
+{
+  "gameId": 1,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39140384,
+      "timestamp": 1774049056
+    },
+    "logRange": {
+      "requestedFromBlock": 39140233,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39140233,
+      "resolvedToBlock": 39140384,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "participants": [
+    {
+      "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "agentKey": "0xd27df2aeca121c0b60bc5b1d2d37648aa23aeff9eacfc9ab74f2e0473f3a8e64",
+      "causeId": 1,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x9f480f8ec58db3fec2e18870d3157fe77a1f3a8bc97d02080effac3a16520242",
+      "revealedChoice": "Share",
+      "revealedChoiceCode": 1,
+      "effectiveChoice": "Share",
+      "effectiveChoiceCode": 1,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xd27df2aeca121c0b60bc5b1d2d37648aa23aeff9eacfc9ab74f2e0473f3a8e64",
+          "manifestHash": "0x1ccf3c8c528bb9443e77816e74641639426dc70a435bdee2130fec59c69b83d6",
+          "issuedAt": 1774048816,
+          "expiresAt": 1774063216,
+          "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "agentKey": "0xb054972700f9579ae6242d7e06719393bf6ff278ae7c62f944f23d51c2fd209b",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0x7749621293b57ed0886a2c0e953303008e0f7133c25e8b92bda77a7bbda84bda",
+      "revealedChoice": "Steal",
+      "revealedChoiceCode": 3,
+      "effectiveChoice": "Steal",
+      "effectiveChoiceCode": 3,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xb054972700f9579ae6242d7e06719393bf6ff278ae7c62f944f23d51c2fd209b",
+          "manifestHash": "0x8a6bbf8c1f90a5a806104de3b4288f1ccf7a2b1131fc4c465e2399a35c7c4f55",
+          "issuedAt": 1774048826,
+          "expiresAt": 1774063226,
+          "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "2970000000000000",
+        "causeCutWei": "29700000000000",
+        "netPrizeWei": "2940300000000000",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+      "agentKey": "0xd3b983c4a232a449c5233a47b1767e5734295d2ae730bc4423a05ecf87f249a4",
+      "causeId": 2,
+      "joined": true,
+      "alive": false,
+      "claimed": false,
+      "refunded": false,
+      "committedThisRound": true,
+      "revealedThisRound": true,
+      "commitment": "0xa93eb5f5ce53fb1f0e211872297e66898001f4be0b87d245875e2c1533494960",
+      "revealedChoice": "Share",
+      "revealedChoiceCode": 1,
+      "effectiveChoice": "Share",
+      "effectiveChoiceCode": 1,
+      "lastChoiceRound": 1,
+      "auth": {
+        "status": "active",
+        "isAuthorizedNow": true,
+        "record": {
+          "agentKey": "0xd3b983c4a232a449c5233a47b1767e5734295d2ae730bc4423a05ecf87f249a4",
+          "manifestHash": "0xa9bf6c0b7a5408ab644a5e148d1497040af34c99a5f2343a18b2649ee27b4dde",
+          "issuedAt": 1774048836,
+          "expiresAt": 1774063236,
+          "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+          "active": true
+        }
+      },
+      "claimPreview": {
+        "grossPrizeWei": "0",
+        "causeCutWei": "0",
+        "netPrizeWei": "0",
+        "availableNow": false
+      },
+      "refundPreview": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    }
+  ]
+}

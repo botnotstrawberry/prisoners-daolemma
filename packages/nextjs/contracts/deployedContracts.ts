@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     AgentAuthRegistry: {
-      address: "0x5a892f6d6d7baf6a50e03f40d5e25998b587a94c",
+      address: "0xab4e245c6d72cbe6458613bda1e10ee8829291f9",
       abi: [
         {
           type: "constructor",
@@ -640,10 +640,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39136850,
+      deployedOnBlock: 39140233,
     },
     GameChat: {
-      address: "0xdab39367ad95bbe7cc9a512128f55c4b8e55d252",
+      address: "0x9ed594cd8fd416e6b2655275d8fa2f6c470cad7a",
       abi: [
         {
           type: "constructor",
@@ -846,10 +846,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39136850,
+      deployedOnBlock: 39140233,
     },
     PrisonersDAOlemma: {
-      address: "0xc8860547a33e4439d3b56782dcc6baef711d9a65",
+      address: "0x5abe1fcc6c5ad6e2842d8d3add0fd56e98b7da9e",
       abi: [
         {
           type: "constructor",
@@ -3444,7 +3444,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39136850,
+      deployedOnBlock: 39140233,
     },
   },
 } as const;
