@@ -9,8 +9,9 @@ Provide one place that points auditors/operators at the current audit-readiness 
 
 ## Current code provenance
 
-- **Current HEAD:** `2474e2fa6591196dcd0c54e8490fcfcd6dedeb39`
-- **Important note:** the working tree is still dirty, so this is a **provenance reference**, not yet a finalized audit-freeze commit.
+- **Chosen local audit-freeze candidate commit:** `2267ce521548cae9cce7cfb5ad001d936470c627`
+- **Meaning:** this is the commit that collects the bounded-v1 hardening, audit docs, deploy/provenance improvements, and new targeted evidence/tests.
+- **Important note:** this packet index may itself live in a follow-up docs commit; treat the hash above as the actual freeze candidate reference.
 
 ## Core audit/readiness notes
 
@@ -73,5 +74,8 @@ Files:
 
 ## Remaining gap before a true audit-freeze handoff
 
-- choose and record the exact **final** audit candidate commit after deciding what to commit from the dirty tree
-- keep the audit packet tied to that exact frozen commit rather than to a moving worktree
+- the local audit-freeze candidate commit is now chosen: `2267ce521548cae9cce7cfb5ad001d936470c627`
+- remaining work is mostly operator/handoff work:
+  - decide whether to push/share that candidate as the canonical review target
+  - keep any future audit notes tied to that exact commit
+  - finalize operator-owned mainnet inputs separately from the code freeze

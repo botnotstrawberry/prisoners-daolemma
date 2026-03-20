@@ -6,7 +6,10 @@ Purpose: identify what should likely be part of the next **audit-freeze candidat
 
 ## Current state summary
 
-The repo is close to a reasonable audit-freeze point, but the working tree is still mixed.
+A local audit-freeze candidate has now been prepared and committed.
+
+Chosen local freeze candidate:
+- `2267ce521548cae9cce7cfb5ad001d936470c627`
 
 ### Important observation
 The working tree is no longer just deploy-script movement.

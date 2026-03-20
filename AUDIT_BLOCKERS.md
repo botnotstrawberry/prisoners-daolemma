@@ -46,7 +46,7 @@ These are the most important items to resolve or explicitly sign off before call
 - production gates have passed on the updated tree (`.mainnet-readiness/20260320T001239Z-production-gates/`)
 - a dedicated bounded-v1 targeted evidence bundle has been captured at `.mainnet-readiness/20260320T002341Z-bounded-v1-audit-targets/`
 
-These improvements reduce the ops/evidence risk materially and close several of the earlier proof gaps. The main remaining work is to freeze provenance cleanly, decide what to do about the still-dirty unrelated worktree state, and explicitly sign off on the remaining edge cases around winner payout recovery for v1.
+These improvements reduce the ops/evidence risk materially and close several of the earlier proof gaps. A local audit-freeze candidate commit has now been created: `2267ce521548cae9cce7cfb5ad001d936470c627`. The main remaining work is to keep future audit discussion tied to that commit, explicitly sign off on the remaining edge cases around winner payout recovery for v1, and finalize operator-owned mainnet inputs separately from the code freeze.
 
 ### P0.1 — Winner-payout liveness / recovery path
 
@@ -109,14 +109,16 @@ You do not want a launch/audit packet that says “verified” when it is stale,
 
 **Severity:** High process blocker.
 
-### Problem
-The repo still lacks a fully frozen audit candidate with tight provenance.
+### Status
+**Closed at local freeze-candidate level.**
 
-### Required outcome
-- choose exact audit commit hash
-- record that hash in the audit packet / manifests / notes
-- tie production gates and rehearsal evidence to that candidate
-- reconcile stale docs before handing the packet to auditors
+A local audit-freeze candidate commit has been chosen:
+- `2267ce521548cae9cce7cfb5ad001d936470c627`
+
+### Follow-through still needed
+- keep audit notes/evidence references tied to that exact commit
+- decide whether/when to push/share that candidate as the canonical review target
+- finalize operator-owned mainnet inputs separately from the code freeze
 
 ---
 

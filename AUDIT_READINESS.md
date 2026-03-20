@@ -2,7 +2,7 @@
 
 Date: 2026-03-19 UTC
 Repo: `/root/projects/prisoners-daollema`
-Status: **Near audit-freeze, but not fully frozen yet**
+Status: **Local audit-freeze candidate prepared**
 
 ## Purpose
 
@@ -15,7 +15,7 @@ It is a readiness and packaging note.
 
 ## Current verdict
 
-The project appears **far enough along for serious audit preparation**, but I would not yet call the launch candidate fully frozen.
+The project is now **far enough along to name a concrete local audit-freeze candidate** and hand that candidate to smart contract auditors.
 
 ### What looks done enough for audit prep
 - Core onchain game flow exists and has been exercised live on Base Sepolia.
@@ -29,10 +29,9 @@ The project appears **far enough along for serious audit preparation**, but I wo
 - Production compile profile is defined and contract size is within EIP-170 limits.
 
 ### What is still not fully frozen
-- The **exact audit commit hash** has not been chosen and written down.
-- The working tree is still dirty.
-- `packages/foundry/script/DeployPrisonersDaollema.s.sol` still has uncommitted deployment-hardening changes.
-- Final mainnet operator inputs (owner / treasury / verifier / final parameter sheet) are not fully locked.
+- The local audit-freeze candidate commit is now chosen: `2267ce521548cae9cce7cfb5ad001d936470c627`.
+- Final mainnet operator inputs (owner / treasury / verifier / final parameter sheet) are still not fully locked.
+- The freeze candidate still needs whatever human decision you want on distribution/push/review workflow, but the code-side bounded-v1 candidate is now pinned locally.
 
 ---
 
