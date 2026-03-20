@@ -96,13 +96,24 @@ main() {
   cd "$FOUNDRY_DIR"
   forge script script/Deploy.s.sol --rpc-url "$RPC" --ffi --account "$OWNER_KS" --password-file "$OWNER_PW" --broadcast | tee "$ART_DIR/deploy.log"
   cp deployments/84532.json "$ART_DIR/deployments-84532.json"
+  DEPLOY_TX_HASH=$(jq -r '.transactions[0].hash' broadcast/Deploy.s.sol/84532/run-latest.json)
+  FROM_BLOCK=$(python3 - <<'PY' "$RPC" "$DEPLOY_TX_HASH"
+import json, subprocess, sys
+rpc, tx_hash = sys.argv[1], sys.argv[2]
+out = subprocess.check_output(['cast', 'receipt', tx_hash, '--rpc-url', rpc, '--json'], text=True)
+print(int(json.loads(out)['blockNumber'], 16))
+PY
+)
+  echo "$FROM_BLOCK" > "$ART_DIR/from-block.txt"
 
   log "Verify"
   forge script script/VerifyAll.s.sol --ffi --rpc-url "$RPC" | tee "$ART_DIR/verify.log"
 
   log "Deployment summary"
   node scripts-js/canaryCli.js deployment --rpc-url "$RPC" --out "$ART_DIR/deployment-summary.json" | tee "$ART_DIR/deployment-summary.txt"
-  FROM_BLOCK=$(jq -r '.onchain.latestBlock // .latestBlock // 0' "$ART_DIR/deployment-summary.json")
+  if [[ -f "$ART_DIR/from-block.txt" ]]; then
+    FROM_BLOCK=$(cat "$ART_DIR/from-block.txt")
+  fi
 
   log "Whitelist causes"
   for idx in 1 2 3; do

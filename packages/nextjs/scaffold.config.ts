@@ -13,9 +13,17 @@ export type ScaffoldConfig = BaseConfig;
 
 export const DEFAULT_ALCHEMY_API_KEY = "cR4WnXePioePZ5fFrnSiR";
 
+const requestedTarget = (process.env.NEXT_PUBLIC_TARGET_NETWORK || "baseSepolia").toLowerCase();
+const targetNetworks: [chains.Chain, ...chains.Chain[]] =
+  requestedTarget === "base"
+    ? [chains.base]
+    : requestedTarget === "foundry"
+      ? [chains.foundry]
+      : [chains.baseSepolia, chains.foundry];
+
 const scaffoldConfig = {
-  // Default to Base Sepolia for safe agent-facing development, while still supporting local Foundry.
-  targetNetworks: [chains.baseSepolia, chains.foundry],
+  // Default to Base Sepolia for safe agent-facing development, while supporting explicit Base mainnet cutover via NEXT_PUBLIC_TARGET_NETWORK=base.
+  targetNetworks,
   pollingInterval: 3000,
   alchemyApiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || DEFAULT_ALCHEMY_API_KEY,
   rpcOverrides: {

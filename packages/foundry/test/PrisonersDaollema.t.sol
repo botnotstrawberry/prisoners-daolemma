@@ -59,6 +59,17 @@ contract PrisonersDaollemaTest is Test {
         address causeBRecipient;
     }
 
+    struct HighCardinalityNoWinnerExpectation {
+        uint256 totalPotWei;
+        uint256 creatorFeeWei;
+        uint256 noWinnerCausePoolWei;
+        uint256 noWinnerCauseDistributedWei;
+        uint256 treasuryAccruedWei;
+        uint256 causeAAmountWei;
+        uint256 causeBAmountWei;
+        uint256 causeCAmountWei;
+    }
+
     function setUp() public {
         owner = vm.addr(ownerPk);
         verifier = vm.addr(verifierPk);
@@ -263,6 +274,55 @@ contract PrisonersDaollemaTest is Test {
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
+    function testPostJoinRevokedOrExpiredAuthDoesNotBlockGameplayOrClaims() public {
+        uint256 gameId = _createGame();
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-postjoin-revoked"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-postjoin-expired"));
+
+        vm.prank(player1);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
+
+        vm.prank(player2);
+        game.join{ value: 0.001 ether }(gameId, CAUSE_B);
+
+        vm.prank(owner);
+        registry.revokeAuth(player1);
+
+        vm.warp(game.getGame(gameId).joinDeadline + 1);
+
+        assertFalse(game.isAdmissionReady(player1));
+        assertFalse(game.isAdmissionReady(player2));
+
+        game.advancePhase(gameId);
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_3, player2, PrisonersDaollema.Choice.Share, SALT_4
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(41)),
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(42))
+        );
+
+        uint256 player1BalanceBefore = player1.balance;
+        uint256 player2BalanceBefore = player2.balance;
+
+        vm.prank(player1);
+        game.claim(gameId);
+
+        vm.prank(player2);
+        game.claim(gameId);
+
+        assertGt(player1.balance, player1BalanceBefore);
+        assertGt(player2.balance, player2BalanceBefore);
+    }
+
     function testJoinRejectsDuplicateWalletPerGame() public {
         uint256 gameId = _createGame();
         _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-wallet-1"));
@@ -332,6 +392,50 @@ contract PrisonersDaollemaTest is Test {
         vm.expectRevert(PrisonersDaollema.MaxPlayersReached.selector);
         vm.prank(player3);
         limitedGame.join{ value: 0.001 ether }(gameId, CAUSE_C);
+    }
+
+    function testJoinAccepts256PlayersAndRejects257th() public {
+        PrisonersDaollema maxGame = _deployGame(_configWith(0.001 ether, 2, 256, 1));
+        _whitelistDefaultCauses(maxGame);
+
+        vm.prank(owner);
+        uint256 gameId = maxGame.createGame();
+
+        uint256 entryFeeWei = maxGame.getGame(gameId).entryFeeWei;
+
+        for (uint256 index = 0; index < 256; ++index) {
+            address wallet = vm.addr(10_000 + index);
+            bytes32 agentKey = keccak256(abi.encodePacked("bulk-agent-", index));
+            bytes32 nonce = keccak256(abi.encodePacked("bulk-nonce-", index));
+
+            vm.deal(wallet, 1 ether);
+            _registerWallet(wallet, agentKey, uint64(vm.getBlockTimestamp() + 1 hours), nonce);
+
+            vm.prank(wallet);
+            maxGame.join{ value: entryFeeWei }(gameId, CAUSE_A);
+        }
+
+        PrisonersDaollema.GameSnapshot memory snapshot = maxGame.getGame(gameId);
+        assertEq(snapshot.joinedCount, 256);
+        assertEq(snapshot.aliveCount, 256);
+        assertEq(snapshot.usedCauseCount, 1);
+        assertEq(maxGame.playerCount(gameId), 256);
+
+        address overflowWallet = vm.addr(20_000);
+        vm.deal(overflowWallet, 1 ether);
+        _registerWallet(
+            overflowWallet,
+            keccak256("bulk-agent-overflow"),
+            uint64(vm.getBlockTimestamp() + 1 hours),
+            keccak256("bulk-nonce-overflow")
+        );
+
+        vm.expectRevert(PrisonersDaollema.MaxPlayersReached.selector);
+        vm.prank(overflowWallet);
+        maxGame.join{ value: entryFeeWei }(gameId, CAUSE_A);
+
+        assertEq(maxGame.playerCount(gameId), 256);
+        assertEq(maxGame.playerAt(gameId, 255), vm.addr(10_000 + 255));
     }
 
     function testJoinEnforcesMaxCausesButAllowsExistingCauseReuse() public {
@@ -1076,6 +1180,76 @@ contract PrisonersDaollemaTest is Test {
         game.claim(gameId);
     }
 
+    function testWinnerCanRedirectPrizeWithClaimTo() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_3, player2, PrisonersDaollema.Choice.Share, SALT_4
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(303)),
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(304))
+        );
+
+        (, uint256 causeCutWei, uint256 netPrizeWei, bool availableNow) = game.previewWinnerClaim(gameId, player1);
+        assertTrue(availableNow);
+
+        address payoutRecipient = makeAddr("claim-to-recipient");
+        uint256 recipientBalanceBefore = payoutRecipient.balance;
+        uint256 playerBalanceBefore = player1.balance;
+
+        vm.prank(player1);
+        game.claimTo(gameId, payoutRecipient);
+
+        assertEq(payoutRecipient.balance, recipientBalanceBefore + netPrizeWei);
+        assertEq(player1.balance, playerBalanceBefore);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_A), causeCutWei);
+        assertTrue(game.getPlayer(gameId, player1).claimed);
+    }
+
+    function testThirdPartyCanTriggerWinnerClaimForWinnerAddress() public {
+        uint256 gameId = _advanceDefaultGameToCommit();
+
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_1, player2, PrisonersDaollema.Choice.Share, SALT_2
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId, player1, PrisonersDaollema.Choice.Share, SALT_3, player2, PrisonersDaollema.Choice.Share, SALT_4
+        );
+        _resolveCurrentRoundTwoPlayers(
+            gameId,
+            player1,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(305)),
+            player2,
+            PrisonersDaollema.Choice.Share,
+            bytes32(uint256(306))
+        );
+
+        (, uint256 causeCutWei, uint256 netPrizeWei, bool availableNow) = game.previewWinnerClaim(gameId, player1);
+        assertTrue(availableNow);
+
+        address caller = makeAddr("claim-for-caller");
+        uint256 playerBalanceBefore = player1.balance;
+        uint256 callerBalanceBefore = caller.balance;
+
+        vm.prank(caller);
+        game.claimFor(gameId, player1);
+
+        assertEq(player1.balance, playerBalanceBefore + netPrizeWei);
+        assertEq(caller.balance, callerBalanceBefore);
+        assertEq(game.gameCauseRoutedAmount(gameId, CAUSE_A), causeCutWei);
+        assertTrue(game.getPlayer(gameId, player1).claimed);
+    }
+
     function testCancelledGameRefundsEntryFeeAndPreventsDoubleRefund() public {
         uint256 gameId = _createGame();
         _joinPlayer(gameId, player1, PLAYER1_AGENT, keccak256("nonce-refund-1"), CAUSE_A);
@@ -1182,6 +1356,24 @@ contract PrisonersDaollemaTest is Test {
         assertEq(causeBRecipient.balance, causeBBalanceBefore + causeBAmountWei);
         assertEq(game.gameCauseClaimableAmount(gameId, CAUSE_B), 0);
         assertEq(game.gameCauseWithdrawnAmount(gameId, CAUSE_B), causeBAmountWei);
+    }
+
+    function testHighCardinalityNoWinnerSettlementRoutesAcrossCauses() public {
+        PrisonersDaollema highCardinalityGame = _deployGame(_configWith(0.001 ether, 2, 128, 3));
+        _whitelistDefaultCauses(highCardinalityGame);
+
+        vm.prank(owner);
+        uint256 gameId = highCardinalityGame.createGame();
+
+        uint256 entryFeeWei = highCardinalityGame.getGame(gameId).entryFeeWei;
+        _joinHighCardinalityRoster(highCardinalityGame, gameId, 128, entryFeeWei);
+
+        vm.warp(highCardinalityGame.getGame(gameId).joinDeadline + 1);
+        highCardinalityGame.advancePhase(gameId);
+        _commitRevealAllCatch(highCardinalityGame, gameId, 128);
+        highCardinalityGame.advancePhase(gameId);
+
+        _assertHighCardinalityNoWinnerSettlement(highCardinalityGame, gameId);
     }
 
     function testNoWinnerSettlementRoutesRoundingDustToTreasury() public {
@@ -1699,6 +1891,89 @@ contract PrisonersDaollemaTest is Test {
         uint256 entryFeeWei = game.getGame(gameId).entryFeeWei;
         vm.prank(wallet_);
         game.join{ value: entryFeeWei }(gameId, causeId);
+    }
+
+    function _joinHighCardinalityRoster(PrisonersDaollema targetGame, uint256 gameId, uint256 playerCount, uint256 entryFeeWei)
+        internal
+    {
+        for (uint256 index = 0; index < playerCount; ++index) {
+            address wallet = vm.addr(30_000 + index);
+            bytes32 agentKey = keccak256(abi.encodePacked("no-winner-agent-", index));
+            bytes32 nonce = keccak256(abi.encodePacked("no-winner-nonce-", index));
+            uint16 causeId = index % 3 == 0 ? CAUSE_A : (index % 3 == 1 ? CAUSE_B : CAUSE_C);
+
+            vm.deal(wallet, 2 ether);
+            _registerWallet(wallet, agentKey, uint64(vm.getBlockTimestamp() + 1 hours), nonce);
+
+            vm.prank(wallet);
+            targetGame.join{ value: entryFeeWei }(gameId, causeId);
+        }
+    }
+
+    function _commitRevealAllCatch(PrisonersDaollema targetGame, uint256 gameId, uint256 playerCount) internal {
+        uint32 round = targetGame.getGame(gameId).round;
+
+        for (uint256 index = 0; index < playerCount; ++index) {
+            address wallet = vm.addr(30_000 + index);
+            bytes32 salt = bytes32(uint256(40_000 + index));
+            bytes32 commitment = targetGame.computeCommitment(gameId, round, wallet, PrisonersDaollema.Choice.Catch, salt);
+
+            vm.prank(wallet);
+            targetGame.commit(gameId, commitment);
+        }
+
+        targetGame.advancePhase(gameId);
+
+        for (uint256 index = 0; index < playerCount; ++index) {
+            address wallet = vm.addr(30_000 + index);
+            bytes32 salt = bytes32(uint256(40_000 + index));
+
+            vm.prank(wallet);
+            targetGame.reveal(gameId, PrisonersDaollema.Choice.Catch, salt);
+        }
+    }
+
+    function _assertHighCardinalityNoWinnerSettlement(PrisonersDaollema targetGame, uint256 gameId) internal view {
+        PrisonersDaollema.GameSnapshot memory snapshot = targetGame.getGame(gameId);
+        PrisonersDaollema.SettlementState memory settlement = targetGame.getSettlement(gameId);
+        HighCardinalityNoWinnerExpectation memory expected =
+            _buildHighCardinalityNoWinnerExpectation(targetGame.getGame(gameId).entryFeeWei);
+
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+        assertEq(snapshot.joinedCount, 128);
+        assertEq(snapshot.aliveCount, 0);
+        assertEq(settlement.totalPotWei, expected.totalPotWei);
+        assertEq(settlement.creatorFeeWei, expected.creatorFeeWei);
+        assertEq(settlement.noWinnerCausePoolWei, expected.noWinnerCausePoolWei);
+        assertEq(settlement.noWinnerCauseDistributedWei, expected.noWinnerCauseDistributedWei);
+        assertEq(settlement.treasuryAccruedWei, expected.treasuryAccruedWei);
+
+        assertEq(targetGame.gameCauseRoutedAmount(gameId, CAUSE_A), expected.causeAAmountWei);
+        assertEq(targetGame.gameCauseRoutedAmount(gameId, CAUSE_B), expected.causeBAmountWei);
+        assertEq(targetGame.gameCauseRoutedAmount(gameId, CAUSE_C), expected.causeCAmountWei);
+        assertEq(targetGame.treasuryClaimableAmount(gameId), expected.treasuryAccruedWei);
+    }
+
+    function _buildHighCardinalityNoWinnerExpectation(uint256 entryFeeWei)
+        internal
+        pure
+        returns (HighCardinalityNoWinnerExpectation memory expected)
+    {
+        uint256 playerCount = 128;
+        uint256 causeACount = 43;
+        uint256 causeBCount = 43;
+        uint256 causeCCount = 42;
+
+        expected.totalPotWei = playerCount * entryFeeWei;
+        expected.creatorFeeWei = expected.totalPotWei / 100;
+        expected.noWinnerCausePoolWei = (expected.totalPotWei - expected.creatorFeeWei) * 9_000 / 10_000;
+        expected.causeAAmountWei = expected.noWinnerCausePoolWei * causeACount / playerCount;
+        expected.causeBAmountWei = expected.noWinnerCausePoolWei * causeBCount / playerCount;
+        expected.causeCAmountWei = expected.noWinnerCausePoolWei * causeCCount / playerCount;
+        expected.noWinnerCauseDistributedWei =
+            expected.causeAAmountWei + expected.causeBAmountWei + expected.causeCAmountWei;
+        expected.treasuryAccruedWei = expected.totalPotWei - expected.noWinnerCauseDistributedWei;
     }
 
     function _commitmentFor(uint256 gameId, address wallet_, PrisonersDaollema.Choice choice_, bytes32 salt_)

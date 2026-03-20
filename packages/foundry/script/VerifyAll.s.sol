@@ -24,15 +24,23 @@ contract VerifyAll is Script {
     uint96 currTransactionIdx;
 
     function run() external {
-        string memory root = vm.projectRoot();
-        string memory path =
-            string.concat(root, "/broadcast/Deploy.s.sol/", vm.toString(block.chainid), "/run-latest.json");
+        string memory path = _broadcastPath();
+        console.logString(string.concat("Using verify broadcast file: ", path));
         string memory content = vm.readFile(path);
 
         while (nextTransaction(content)) {
             _verifyIfContractDeployment(content);
             currTransactionIdx++;
         }
+    }
+
+    function _broadcastPath() internal view returns (string memory) {
+        if (vm.envExists("VERIFY_BROADCAST_FILE")) {
+            return vm.envString("VERIFY_BROADCAST_FILE");
+        }
+
+        string memory root = vm.projectRoot();
+        return string.concat(root, "/broadcast/Deploy.s.sol/", vm.toString(block.chainid), "/run-latest.json");
     }
 
     function _verifyIfContractDeployment(string memory content) internal {
@@ -69,13 +77,16 @@ contract VerifyAll is Script {
 
         FfiResult memory f = tempVm(address(vm)).tryFfi(inputs);
 
-        if (f.stderr.length != 0) {
-            console.logString(string.concat("Submitting verification for contract: ", vm.toString(contractAddr)));
-            console.logString(string(f.stderr));
-        } else {
+        if (f.stdout.length != 0) {
             console.logString(string(f.stdout));
         }
-        return;
+        if (f.stderr.length != 0) {
+            console.logString(string(f.stderr));
+        }
+
+        if (f.exit_code != 0) {
+            revert(string.concat("Verification failed for ", contractName, " at ", vm.toString(contractAddr)));
+        }
     }
 
     function nextTransaction(string memory content) internal view returns (bool) {

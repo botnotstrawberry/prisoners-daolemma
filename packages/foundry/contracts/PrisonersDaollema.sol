@@ -522,35 +522,15 @@ contract PrisonersDaollema is Ownable, ReentrancyGuard {
     }
 
     function claim(uint256 gameId) external nonReentrant {
-        GameSnapshot storage game = _games[gameId];
-        if (!_gameExists(gameId)) revert MissingGame();
-        if (game.phase != Phase.Ended || game.outcome != Outcome.Winners) revert ClaimUnavailable();
+        _claimPrize(gameId, msg.sender, msg.sender);
+    }
 
-        PlayerState storage player = _players[gameId][msg.sender];
-        if (!player.joined) revert PlayerNotJoined();
-        if (!player.alive) revert ClaimUnavailable();
-        if (player.claimed) revert AlreadyClaimed();
-        if (player.refunded) revert AlreadyRefunded();
+    function claimTo(uint256 gameId, address recipient) external nonReentrant {
+        _claimPrize(gameId, msg.sender, recipient);
+    }
 
-        SettlementState memory settlement = _settlements[gameId];
-        if (!settlement.finalized || settlement.winnerCount == 0) revert ClaimUnavailable();
-
-        player.claimed = true;
-
-        uint256 grossPrizeWei = settlement.winnerShareWei;
-        GameCauseState storage causeState = _gameCauses[gameId][player.causeId];
-        uint256 causeCutWei = grossPrizeWei * uint256(game.causeFeeBps) / BPS_DENOMINATOR;
-        uint256 netPrizeWei = grossPrizeWei - causeCutWei;
-
-        if (causeCutWei != 0) {
-            _gameCauseRoutedWei[gameId][player.causeId] += causeCutWei;
-        }
-
-        _payout(msg.sender, netPrizeWei);
-
-        emit PrizeClaimed(
-            gameId, msg.sender, player.causeId, grossPrizeWei, causeCutWei, netPrizeWei, causeState.recipient
-        );
+    function claimFor(uint256 gameId, address winner) external nonReentrant {
+        _claimPrize(gameId, winner, winner);
     }
 
     function claimRefund(uint256 gameId) external nonReentrant {
@@ -1219,6 +1199,36 @@ contract PrisonersDaollema is Ownable, ReentrancyGuard {
         emit SettlementFinalized(
             gameId, Outcome.Cancelled, settlement.totalPotWei, 0, 0, 0, settlement.refundPerPlayerWei, 0, 0
         );
+    }
+
+    function _claimPrize(uint256 gameId, address winner, address recipient) internal {
+        GameSnapshot storage game = _games[gameId];
+        if (!_gameExists(gameId)) revert MissingGame();
+        if (game.phase != Phase.Ended || game.outcome != Outcome.Winners) revert ClaimUnavailable();
+
+        PlayerState storage player = _players[gameId][winner];
+        if (!player.joined) revert PlayerNotJoined();
+        if (!player.alive) revert ClaimUnavailable();
+        if (player.claimed) revert AlreadyClaimed();
+        if (player.refunded) revert AlreadyRefunded();
+
+        SettlementState memory settlement = _settlements[gameId];
+        if (!settlement.finalized || settlement.winnerCount == 0) revert ClaimUnavailable();
+
+        player.claimed = true;
+
+        uint256 grossPrizeWei = settlement.winnerShareWei;
+        GameCauseState storage causeState = _gameCauses[gameId][player.causeId];
+        uint256 causeCutWei = grossPrizeWei * uint256(game.causeFeeBps) / BPS_DENOMINATOR;
+        uint256 netPrizeWei = grossPrizeWei - causeCutWei;
+
+        if (causeCutWei != 0) {
+            _gameCauseRoutedWei[gameId][player.causeId] += causeCutWei;
+        }
+
+        _payout(recipient, netPrizeWei);
+
+        emit PrizeClaimed(gameId, winner, player.causeId, grossPrizeWei, causeCutWei, netPrizeWei, causeState.recipient);
     }
 
     function _payout(address recipient, uint256 amountWei) internal {

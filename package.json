@@ -128,7 +128,10 @@
     "verify": "yarn foundry:verify",
     "prod:size:check": "bash scripts/check-production-size.sh",
     "prod:gates": "bash scripts/run-production-gates.sh",
-    "prod:sepolia:fresh-rehearsal": "bash scripts/run-fresh-sepolia-production-rehearsal.sh"
+    "prod:sepolia:fresh-rehearsal": "mkdir -p .mainnet-readiness && bash scripts/run-fresh-sepolia-production-rehearsal.sh",
+    "prod:base:preflight": "bash scripts/run-base-mainnet-preflight.sh",
+    "prod:base:deploy": "bash scripts/run-base-mainnet-deploy.sh",
+    "prod:base:verify": "bash scripts/run-base-mainnet-verify.sh"
   },
   "packageManager": "yarn@3.2.3",
   "engines": {

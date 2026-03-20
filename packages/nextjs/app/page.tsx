@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
-import { baseSepolia, hardhat } from "viem/chains";
+import { base, baseSepolia, hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
 import { BugAntIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
@@ -35,7 +35,12 @@ const Home: NextPage = () => {
             }
           />
           <p className="text-sm opacity-70 mt-2">
-            Default target network: {targetNetwork.id === baseSepolia.id ? "Base Sepolia" : targetNetwork.name}
+            Configured target network:{" "}
+            {targetNetwork.id === base.id
+              ? "Base Mainnet"
+              : targetNetwork.id === baseSepolia.id
+                ? "Base Sepolia"
+                : targetNetwork.name}
           </p>
         </div>
       </div>

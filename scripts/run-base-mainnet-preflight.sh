@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+FOUNDRY_DIR="$ROOT/packages/foundry"
+DEPLOYER_KEYSTORE="${DEPLOYER_KEYSTORE:-botnotstrawberry-base-wallet}"
+DEPLOYER_PASSWORD_FILE="${DEPLOYER_PASSWORD_FILE:-/root/.secrets/botnotstrawberry-base-wallet.pass}"
+RPC_URL="${RPC_URL:-https://mainnet.base.org}"
+CHAIN_ID_EXPECTED=8453
+MAX_PLAYER_CAP=256
+MAX_CAUSE_CAP=16
+MAX_FEE_BPS=500
+OUT_DIR="${OUT_DIR:-$ROOT/.mainnet-readiness/$(date -u +%Y%m%dT%H%M%SZ)-base-mainnet-preflight}"
+mkdir -p "$OUT_DIR"
+
+export FOUNDRY_PROFILE=production
+
+fail() {
+  echo "FAIL: $*" >&2
+  exit 1
+}
+
+if [[ -f "$FOUNDRY_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$FOUNDRY_DIR/.env"
+  set +a
+fi
+
+if [[ -f /root/.secrets/openclaw.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source /root/.secrets/openclaw.env
+  set +a
+fi
+
+require_env() {
+  local key="$1"
+  if [[ -z "${!key:-}" ]]; then
+    fail "missing required env ${key}"
+  fi
+}
+
+require_uint() {
+  local key="$1"
+  local value="${!key:-}"
+  if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+    fail "${key} must be an unsigned integer, got: ${value}"
+  fi
+}
+
+validate_address() {
+  local key="$1"
+  local value="${!key}"
+  if ! checksum=$(cast to-check-sum-address "$value" 2>/dev/null); then
+    fail "${key} is not a valid address: ${value}"
+  fi
+  if [[ "$checksum" == "0x0000000000000000000000000000000000000000" ]]; then
+    fail "${key} cannot be the zero address"
+  fi
+  echo "${checksum}"
+}
+
+for key in \
+  PRISONERS_OWNER \
+  PRISONERS_TREASURY \
+  PRISONERS_AUTH_VERIFIER \
+  PRISONERS_ENTRY_FEE_WEI \
+  PRISONERS_CREATOR_FEE_BPS \
+  PRISONERS_CAUSE_FEE_BPS \
+  PRISONERS_JOIN_DURATION_SECONDS \
+  PRISONERS_COMMIT_DURATION_BLOCKS \
+  PRISONERS_REVEAL_DURATION_BLOCKS \
+  PRISONERS_MIN_PLAYERS \
+  PRISONERS_MAX_PLAYERS \
+  PRISONERS_MAX_CAUSES \
+  BASESCAN_API_KEY
+  do
+  require_env "$key"
+done
+
+for key in \
+  PRISONERS_ENTRY_FEE_WEI \
+  PRISONERS_CREATOR_FEE_BPS \
+  PRISONERS_CAUSE_FEE_BPS \
+  PRISONERS_JOIN_DURATION_SECONDS \
+  PRISONERS_COMMIT_DURATION_BLOCKS \
+  PRISONERS_REVEAL_DURATION_BLOCKS \
+  PRISONERS_MIN_PLAYERS \
+  PRISONERS_MAX_PLAYERS \
+  PRISONERS_MAX_CAUSES
+  do
+  require_uint "$key"
+done
+
+OWNER_CHECKSUM=$(validate_address PRISONERS_OWNER)
+echo "$OWNER_CHECKSUM" | tee "$OUT_DIR/owner.txt" >/dev/null
+TREASURY_CHECKSUM=$(validate_address PRISONERS_TREASURY)
+echo "$TREASURY_CHECKSUM" | tee "$OUT_DIR/treasury.txt" >/dev/null
+AUTH_VERIFIER_CHECKSUM=$(validate_address PRISONERS_AUTH_VERIFIER)
+echo "$AUTH_VERIFIER_CHECKSUM" | tee "$OUT_DIR/auth-verifier.txt" >/dev/null
+
+ENTRY_FEE_WEI="$PRISONERS_ENTRY_FEE_WEI"
+CREATOR_FEE_BPS="$PRISONERS_CREATOR_FEE_BPS"
+CAUSE_FEE_BPS="$PRISONERS_CAUSE_FEE_BPS"
+JOIN_DURATION_SECONDS="$PRISONERS_JOIN_DURATION_SECONDS"
+COMMIT_DURATION_BLOCKS="$PRISONERS_COMMIT_DURATION_BLOCKS"
+REVEAL_DURATION_BLOCKS="$PRISONERS_REVEAL_DURATION_BLOCKS"
+MIN_PLAYERS="$PRISONERS_MIN_PLAYERS"
+MAX_PLAYERS="$PRISONERS_MAX_PLAYERS"
+MAX_CAUSES="$PRISONERS_MAX_CAUSES"
+
+(( ENTRY_FEE_WEI > 0 )) || fail "PRISONERS_ENTRY_FEE_WEI must be > 0"
+(( JOIN_DURATION_SECONDS > 0 )) || fail "PRISONERS_JOIN_DURATION_SECONDS must be > 0"
+(( COMMIT_DURATION_BLOCKS > 0 )) || fail "PRISONERS_COMMIT_DURATION_BLOCKS must be > 0"
+(( REVEAL_DURATION_BLOCKS > 0 )) || fail "PRISONERS_REVEAL_DURATION_BLOCKS must be > 0"
+(( MIN_PLAYERS >= 2 )) || fail "PRISONERS_MIN_PLAYERS must be >= 2"
+(( MAX_PLAYERS > 0 )) || fail "PRISONERS_MAX_PLAYERS must be > 0"
+(( MAX_CAUSES > 0 )) || fail "PRISONERS_MAX_CAUSES must be > 0"
+(( MIN_PLAYERS <= MAX_PLAYERS )) || fail "PRISONERS_MIN_PLAYERS cannot exceed PRISONERS_MAX_PLAYERS"
+(( MAX_PLAYERS <= MAX_PLAYER_CAP )) || fail "PRISONERS_MAX_PLAYERS cannot exceed ${MAX_PLAYER_CAP}"
+(( MAX_CAUSES <= MAX_CAUSE_CAP )) || fail "PRISONERS_MAX_CAUSES cannot exceed ${MAX_CAUSE_CAP}"
+(( MAX_CAUSES <= MAX_PLAYERS )) || fail "PRISONERS_MAX_CAUSES cannot exceed PRISONERS_MAX_PLAYERS"
+(( CREATOR_FEE_BPS <= MAX_FEE_BPS )) || fail "PRISONERS_CREATOR_FEE_BPS cannot exceed ${MAX_FEE_BPS}"
+(( CAUSE_FEE_BPS <= MAX_FEE_BPS )) || fail "PRISONERS_CAUSE_FEE_BPS cannot exceed ${MAX_FEE_BPS}"
+
+cat > "$OUT_DIR/launch-config.txt" <<EOF
+PRISONERS_OWNER=${OWNER_CHECKSUM}
+PRISONERS_TREASURY=${TREASURY_CHECKSUM}
+PRISONERS_AUTH_VERIFIER=${AUTH_VERIFIER_CHECKSUM}
+PRISONERS_ENTRY_FEE_WEI=${ENTRY_FEE_WEI}
+PRISONERS_CREATOR_FEE_BPS=${CREATOR_FEE_BPS}
+PRISONERS_CAUSE_FEE_BPS=${CAUSE_FEE_BPS}
+PRISONERS_JOIN_DURATION_SECONDS=${JOIN_DURATION_SECONDS}
+PRISONERS_COMMIT_DURATION_BLOCKS=${COMMIT_DURATION_BLOCKS}
+PRISONERS_REVEAL_DURATION_BLOCKS=${REVEAL_DURATION_BLOCKS}
+PRISONERS_MIN_PLAYERS=${MIN_PLAYERS}
+PRISONERS_MAX_PLAYERS=${MAX_PLAYERS}
+PRISONERS_MAX_CAUSES=${MAX_CAUSES}
+EOF
+
+jq -n \
+  --arg owner "$OWNER_CHECKSUM" \
+  --arg treasury "$TREASURY_CHECKSUM" \
+  --arg authVerifier "$AUTH_VERIFIER_CHECKSUM" \
+  --arg entryFeeWei "$ENTRY_FEE_WEI" \
+  --argjson creatorFeeBps "$CREATOR_FEE_BPS" \
+  --argjson causeFeeBps "$CAUSE_FEE_BPS" \
+  --argjson joinDurationSeconds "$JOIN_DURATION_SECONDS" \
+  --argjson commitDurationBlocks "$COMMIT_DURATION_BLOCKS" \
+  --argjson revealDurationBlocks "$REVEAL_DURATION_BLOCKS" \
+  --argjson minPlayers "$MIN_PLAYERS" \
+  --argjson maxPlayers "$MAX_PLAYERS" \
+  --argjson maxCauses "$MAX_CAUSES" \
+  --arg foundryProfile "$FOUNDRY_PROFILE" \
+  --arg rpcUrl "$RPC_URL" \
+  --arg deployerKeystore "$DEPLOYER_KEYSTORE" \
+  '{
+    owner: $owner,
+    treasury: $treasury,
+    authVerifier: $authVerifier,
+    config: {
+      entryFeeWei: $entryFeeWei,
+      creatorFeeBps: $creatorFeeBps,
+      causeFeeBps: $causeFeeBps,
+      joinDurationSeconds: $joinDurationSeconds,
+      commitDurationBlocks: $commitDurationBlocks,
+      revealDurationBlocks: $revealDurationBlocks,
+      minPlayers: $minPlayers,
+      maxPlayers: $maxPlayers,
+      maxCauses: $maxCauses
+    },
+    environment: {
+      foundryProfile: $foundryProfile,
+      rpcUrl: $rpcUrl,
+      deployerKeystore: $deployerKeystore
+    },
+    bounds: {
+      maxPlayerCap: 256,
+      maxCauseCap: 16,
+      maxFeeBps: 500
+    }
+  }' > "$OUT_DIR/launch-config.json"
+
+if git -C "$ROOT" rev-parse HEAD >/dev/null 2>&1; then
+  git -C "$ROOT" rev-parse HEAD > "$OUT_DIR/git-commit.txt"
+  git -C "$ROOT" status --short > "$OUT_DIR/git-status.txt"
+  git -C "$ROOT" diff --stat > "$OUT_DIR/git-diffstat.txt"
+fi
+
+DEPLOYER_ADDR=$(cast wallet address --keystore "/root/.foundry/keystores/${DEPLOYER_KEYSTORE}" --password-file "$DEPLOYER_PASSWORD_FILE")
+echo "$DEPLOYER_ADDR" | tee "$OUT_DIR/deployer-address.txt" >/dev/null
+printf '%s
+' "$DEPLOYER_KEYSTORE" > "$OUT_DIR/deployer-keystore.txt"
+printf '%s
+' "$RPC_URL" > "$OUT_DIR/rpc-url.txt"
+
+CHAIN_ID=$(cast chain-id --rpc-url "$RPC_URL")
+if [[ "$CHAIN_ID" != "$CHAIN_ID_EXPECTED" ]]; then
+  fail "expected Base mainnet chain id ${CHAIN_ID_EXPECTED}, got ${CHAIN_ID}"
+fi
+
+echo "$CHAIN_ID" | tee "$OUT_DIR/chain-id.txt" >/dev/null
+
+BALANCE_WEI=$(cast balance "$DEPLOYER_ADDR" --rpc-url "$RPC_URL")
+echo "$BALANCE_WEI" | tee "$OUT_DIR/deployer-balance-wei.txt" >/dev/null
+
+if [[ "$BALANCE_WEI" == "0" ]]; then
+  fail "deployer wallet has zero Base mainnet ETH"
+fi
+
+echo "FOUNDRY_PROFILE=${FOUNDRY_PROFILE}" | tee "$OUT_DIR/foundry-profile.txt" >/dev/null
+cd "$FOUNDRY_DIR"
+mkdir -p deployments
+FOUNDRY_PROFILE=production forge build --sizes --skip test | tee "$OUT_DIR/production-build-sizes.log" >/dev/null
+
+echo "PASS: Base mainnet preflight checks passed" | tee "$OUT_DIR/status.txt"

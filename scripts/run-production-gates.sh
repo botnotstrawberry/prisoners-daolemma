@@ -23,9 +23,18 @@ run() {
     echo "FAIL: ${name}"
     return "$status"
   fi
+  return 0
 }
 
 cd "$ROOT"
+if git -C "$ROOT" rev-parse HEAD >/dev/null 2>&1; then
+  git -C "$ROOT" rev-parse HEAD > "$OUT_DIR/git-commit.txt"
+  git -C "$ROOT" status --short > "$OUT_DIR/git-status.txt"
+  git -C "$ROOT" diff --stat > "$OUT_DIR/git-diffstat.txt"
+fi
+printf '%s
+' "$FOUNDRY_PROFILE" > "$OUT_DIR/foundry-profile.txt"
+
 run 01-yarn-test yarn test
 run 02-yarn-next-check-types yarn next:check-types
 run 03-yarn-smoke-integration yarn smoke:integration

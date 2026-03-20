@@ -21,3 +21,8 @@ node_modules
 
 # cli
 dist
+
+# operational readiness / launch artifacts
+# Curated proof bundles should live under packages/foundry/proof or canary paths instead.
+.mainnet-readiness/
+.mainnet-readiness-private/
