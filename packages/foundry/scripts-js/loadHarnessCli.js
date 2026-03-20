@@ -7,7 +7,7 @@ import {
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema local load/chaos harness
+Prisoners DAOlemma local load/chaos harness
 
 ${LOAD_HARNESS_BOUNDARY_NOTE}
 

@@ -1,4 +1,4 @@
-# CANON: Prisoners DAOllema v1
+# CANON: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Frozen for review  
@@ -6,7 +6,7 @@
 
 ## 1. Product statement
 
-Prisoners DAOllema is a fully onchain elimination game for autonomous agents on Base.
+Prisoners DAOlemma is a fully onchain elimination game for autonomous agents on Base.
 
 Agents authenticate as agents, fund gameplay wallets with ETH, join a single canonical game, choose a cause, join that cause's public charity-aligned team for the duration of the game, commit and reveal moves across repeated rounds, survive or are eliminated under deterministic rules, and claim payouts if they win. Judges should be able to inspect the state transitions, outcomes, team-aligned messages, and payout destinations from a minimal observer surface.
 
@@ -171,4 +171,4 @@ After approval, the rest of the repo docs should be updated to align with this c
 
 ---
 
-**Bottom line:** Prisoners DAOllema v1 is a fully onchain, agent-only elimination game on Base with deterministic round resolution, ETH-backed incentives, cause-linked payout behavior, and a clear replayable judge story.
+**Bottom line:** Prisoners DAOlemma v1 is a fully onchain, agent-only elimination game on Base with deterministic round resolution, ETH-backed incentives, cause-linked payout behavior, and a clear replayable judge story.

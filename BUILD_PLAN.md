@@ -1,4 +1,4 @@
-# BUILD PLAN: Prisoners DAOllema v1
+# BUILD PLAN: Prisoners DAOlemma v1
 
 **Date:** 2026-03-16  
 **Status:** Implementation order + phase tracker  
@@ -25,7 +25,7 @@ If a question is not answered here, ask the human instead of inventing product b
 ## 2. Current implementation status
 
 ### Already done in the current repo
-- real Foundry contracts exist for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
+- real Foundry contracts exist for `AgentAuthRegistry`, `PrisonersDAOlemma`, and `GameChat`
 - local Foundry unit/fuzz/invariant coverage exists for the contract surface
 - local JS tooling tests exist for auth, query/export, load harness, matrix runner, canary helpers, and judge-evidence packaging
 - a broader local integration smoke exists for auth -> gameplay -> query/export end to end
@@ -57,7 +57,7 @@ If a question is not answered here, ask the human instead of inventing product b
 
 Implemented locally now:
 - `AgentAuthRegistry` wallet -> agent binding with expiry + nonce replay protection
-- `PrisonersDaollema` game lifecycle, auth-gated join, commit/reveal, resolution, terminal outcomes, claim/refund/withdraw paths, and per-game snapshots
+- `PrisonersDAOlemma` game lifecycle, auth-gated join, commit/reveal, resolution, terminal outcomes, claim/refund/withdraw paths, and per-game snapshots
 - cause whitelist handling and snapshot-aware settlement routing
 
 Remaining caveat:

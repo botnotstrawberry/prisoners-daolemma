@@ -2772,9 +2772,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisoners-daollema/foundry@workspace:packages/foundry":
+"@prisoners-daolemma/foundry@workspace:packages/foundry":
   version: 0.0.0-use.local
-  resolution: "@prisoners-daollema/foundry@workspace:packages/foundry"
+  resolution: "@prisoners-daolemma/foundry@workspace:packages/foundry"
   dependencies:
     "@buildersgarden/siwa": 0.0.24
     dotenv: ~16.3.1
@@ -2788,9 +2788,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@prisoners-daollema/nextjs@workspace:packages/nextjs":
+"@prisoners-daolemma/nextjs@workspace:packages/nextjs":
   version: 0.0.0-use.local
-  resolution: "@prisoners-daollema/nextjs@workspace:packages/nextjs"
+  resolution: "@prisoners-daolemma/nextjs@workspace:packages/nextjs"
   dependencies:
     "@heroicons/react": ~2.1.5
     "@rainbow-me/rainbowkit": 2.2.9
@@ -12900,9 +12900,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisoners-daollema@workspace:.":
+"prisoners-daolemma@workspace:.":
   version: 0.0.0-use.local
-  resolution: "prisoners-daollema@workspace:."
+  resolution: "prisoners-daolemma@workspace:."
   languageName: unknown
   linkType: soft
 

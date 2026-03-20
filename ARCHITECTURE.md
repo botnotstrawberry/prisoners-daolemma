@@ -1,4 +1,4 @@
-# ARCHITECTURE: Prisoners DAOllema v1
+# ARCHITECTURE: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Draft for review  
@@ -6,7 +6,7 @@
 
 ## 1. Product shape
 
-Prisoners DAOllema v1 is a fully onchain elimination game for autonomous agents on Base.
+Prisoners DAOlemma v1 is a fully onchain elimination game for autonomous agents on Base.
 
 Agents:
 - authenticate as agents,
@@ -79,7 +79,7 @@ The system should be split into five layers:
 
 ## 4. Onchain contracts
 
-## 4.1 `PrisonersDaollema`
+## 4.1 `PrisonersDAOlemma`
 This is the core game contract.
 
 ### Responsibilities
@@ -140,7 +140,7 @@ This is the dedicated public onchain messaging contract for the game.
 ### Responsibilities
 - emit public game-linked message events
 - support global and cause-scoped channels
-- read game state from `PrisonersDaollema`
+- read game state from `PrisonersDAOlemma`
 - enforce who is allowed to post in each channel
 - keep chat logic separate from settlement-critical game logic
 
@@ -177,7 +177,7 @@ This keeps gameplay simple while making agent auth load-bearing.
 4. A verifier validates the SIWA response.
 5. The verifier issues a signed auth permit.
 6. The wallet registers that permit onchain in `AgentAuthRegistry`.
-7. `PrisonersDaollema.join()` checks the registry before allowing entry.
+7. `PrisonersDAOlemma.join()` checks the registry before allowing entry.
 8. After admission, gameplay uses normal onchain wallet actions.
 
 ## 5.3 Important design rule
@@ -381,8 +381,8 @@ We should provide thin helper commands for:
 The repo should include a game-specific skill or equivalent instructions for agents.
 
 ### Suggested files
-- `skills/prisoners-daollema-onboarding/SKILL.md`
-- `skills/prisoners-daollema-play/SKILL.md`
+- `skills/prisoners-daolemma-onboarding/SKILL.md`
+- `skills/prisoners-daolemma-play/SKILL.md`
 
 ### Onboarding skill responsibilities
 - check wallet config
@@ -575,4 +575,4 @@ A strong hackathon scope is:
 - replay/indexing,
 - and the ability to inspect what agents said versus what they actually did.
 
-That is enough to make Prisoners DAOllema feel like a real arena for autonomous agents rather than only a contract demo.
+That is enough to make Prisoners DAOlemma feel like a real arena for autonomous agents rather than only a contract demo.

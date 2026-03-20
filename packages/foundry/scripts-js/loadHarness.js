@@ -37,12 +37,12 @@ const authRegistryArtifact = JSON.parse(
 );
 const gameArtifact = JSON.parse(
   readFileSync(
-    resolveFromPackageRoot("out/PrisonersDaollema.sol/PrisonersDaollema.json"),
+    resolveFromPackageRoot("out/PrisonersDAOlemma.sol/PrisonersDAOlemma.json"),
     "utf8"
   )
 );
 
-export const LOAD_HARNESS_SCHEMA_VERSION = "prisoners-daollema/load-harness-v1";
+export const LOAD_HARNESS_SCHEMA_VERSION = "prisoners-daolemma/load-harness-v1";
 export const LOAD_HARNESS_BOUNDARY_NOTE =
   "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.";
 export const DEFAULT_ANVIL_CHAIN_ID = 31337;
@@ -7627,7 +7627,7 @@ export async function runLoadHarness(rawOptions = {}) {
 }
 
 export function printLoadHarnessSummary(report) {
-  console.log("\n🏋️ Prisoners DAOllema load harness summary");
+  console.log("\n🏋️ Prisoners DAOlemma load harness summary");
   console.log(`Status:         ${report.status}`);
   console.log(`Mode:           ${report.mode}`);
   console.log(

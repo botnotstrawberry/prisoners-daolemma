@@ -1,7 +1,7 @@
-# Prisoners DAOllema Audit Packet Index
+# Prisoners DAOlemma Audit Packet Index
 
 Date: 2026-03-20 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 
 ## Purpose
 

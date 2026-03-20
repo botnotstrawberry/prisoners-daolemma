@@ -1615,7 +1615,7 @@ async function resolveGameContext(options = {}) {
   const chainId = Number(network.chainId);
   const gameAddress = resolveContractRef(options.game, {
     chainId,
-    defaultName: "PrisonersDaollema",
+    defaultName: "PrisonersDAOlemma",
     required: true,
     label: "game",
   });
@@ -2219,7 +2219,7 @@ export async function collectGameEvidence(options = {}) {
   });
 
   const summary = {
-    schemaVersion: "prisoners-daollema/evidence-v0",
+    schemaVersion: "prisoners-daolemma/evidence-v0",
     boundaryNote: QUERY_BOUNDARY_NOTE,
     gameId: context.gameId,
     chainId: context.chainId,
@@ -2387,7 +2387,7 @@ export async function exportGameEvidence(options = {}) {
   }
 
   const manifest = {
-    schemaVersion: "prisoners-daollema/evidence-v0",
+    schemaVersion: "prisoners-daolemma/evidence-v0",
     boundaryNote: QUERY_BOUNDARY_NOTE,
     evidenceWindow: evidence.evidenceWindow,
     outputDir,
@@ -2418,7 +2418,7 @@ export async function exportGameEvidence(options = {}) {
 }
 
 export function printEvidenceSummary(summary) {
-  console.log("\n🔎 Prisoners DAOllema evidence summary");
+  console.log("\n🔎 Prisoners DAOlemma evidence summary");
   console.log(`Game ID:        ${summary.gameId}`);
   console.log(`Chain ID:       ${summary.chainId}`);
   console.log(`Game:           ${summary.addresses.game}`);

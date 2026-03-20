@@ -4,16 +4,16 @@ pragma solidity ^0.8.23;
 import { Test } from "forge-std/Test.sol";
 
 import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
-import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
+import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
-contract PrisonersDaollemaFuzzTest is Test {
+contract PrisonersDAOlemmaFuzzTest is Test {
     uint16 internal constant CAUSE_A = 1;
     uint16 internal constant CAUSE_B = 2;
     uint256 internal ownerPk = 0xA11CE;
     uint256 internal verifierPk = 0xB0B;
 
     AgentAuthRegistry internal registry;
-    PrisonersDaollema internal game;
+    PrisonersDAOlemma internal game;
 
     address internal owner;
     address internal verifier;
@@ -35,7 +35,7 @@ contract PrisonersDaollemaFuzzTest is Test {
 
     struct GameExpectation {
         uint256 gameId;
-        PrisonersDaollema.Outcome outcome;
+        PrisonersDAOlemma.Outcome outcome;
         uint256 entryFeeWei;
         uint16 creatorFeeBps;
         uint16 causeFeeBps;
@@ -97,7 +97,7 @@ contract PrisonersDaollemaFuzzTest is Test {
         }
 
         registry = new AgentAuthRegistry(owner, verifier);
-        game = new PrisonersDaollema(owner, treasury, address(registry), _defaultConfig());
+        game = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
 
         vm.startPrank(owner);
         game.whitelistCause(CAUSE_A, causeARecipient, keccak256("cause-a"));
@@ -117,15 +117,15 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 playerCount = bound(uint256(playerCountSeed), 2, 4);
         uint256 gameId = _createAndFillGame(playerCount, causeMask);
 
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 1);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 2);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 3);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 1);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 2);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 3);
 
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
 
-        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
-        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDAOlemma.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Winners));
         assertEq(settlement.winnerCount, playerCount);
         assertEq(
             settlement.winnerShareWei * uint256(settlement.winnerCount) + settlement.treasuryAccruedWei,
@@ -152,7 +152,7 @@ contract PrisonersDaollemaFuzzTest is Test {
             vm.prank(wallet);
             game.claim(gameId);
 
-            vm.expectRevert(PrisonersDaollema.AlreadyClaimed.selector);
+            vm.expectRevert(PrisonersDAOlemma.AlreadyClaimed.selector);
             vm.prank(wallet);
             game.claim(gameId);
 
@@ -183,10 +183,10 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 playerCount = bound(uint256(playerCountSeed), 2, 4);
         uint256 gameId = _createAndFillGame(playerCount, causeMask);
 
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Catch, 9);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Catch, 9);
 
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
 
         uint256 causeAEntrants;
         uint256 causeBEntrants;
@@ -203,8 +203,8 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 totalCauseRoutedWei =
             game.gameCauseRoutedAmount(gameId, CAUSE_A) + game.gameCauseRoutedAmount(gameId, CAUSE_B);
 
-        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
-        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDAOlemma.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.NoWinners));
         assertEq(snapshot.aliveCount, 0);
         assertEq(settlement.winnerCount, 0);
         assertEq(settlement.winnerShareWei, 0);
@@ -287,7 +287,7 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 noWinnerCauseMaskSeed,
         uint256 actionSeed
     ) internal returns (MixedGameSet memory gameSet) {
-        PrisonersDaollema.Outcome[3] memory outcomeOrder = _mixedOutcomePermutation(permutationSeed);
+        PrisonersDAOlemma.Outcome[3] memory outcomeOrder = _mixedOutcomePermutation(permutationSeed);
         uint256[3] memory adminSeeds;
         adminSeeds[0] = adminSeed1;
         adminSeeds[1] = adminSeed2;
@@ -296,10 +296,10 @@ contract PrisonersDaollemaFuzzTest is Test {
         for (uint256 slot = 0; slot < outcomeOrder.length; ++slot) {
             _applyMixedGameAdmin(slot, adminSeeds[slot]);
 
-            if (outcomeOrder[slot] == PrisonersDaollema.Outcome.Cancelled) {
+            if (outcomeOrder[slot] == PrisonersDAOlemma.Outcome.Cancelled) {
                 gameSet.expectations[slot] = _createCancelledMixedGame(actionSeed >> slot);
                 gameSet.cancelledIndex = slot;
-            } else if (outcomeOrder[slot] == PrisonersDaollema.Outcome.Winners) {
+            } else if (outcomeOrder[slot] == PrisonersDAOlemma.Outcome.Winners) {
                 gameSet.expectations[slot] = _createWinnerMixedGame(winnerCauseMaskSeed);
                 gameSet.winnerIndex = slot;
             } else {
@@ -447,13 +447,13 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 causeMask = _balancedCauseMask(causeMaskSeed, playerCount);
 
         _joinFilledGame(gameId, playerCount, causeMask);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 41);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 42);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, 43);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 41);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 42);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, 43);
 
         expected = _baseMixedGameExpectation(gameId);
 
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
         expected.winnerShareWei = settlement.winnerShareWei;
         expected.causeCutWei = settlement.winnerShareWei * uint256(expected.causeFeeBps) / 10_000;
         expected.netPrizeWei = expected.winnerShareWei - expected.causeCutWei;
@@ -473,7 +473,7 @@ contract PrisonersDaollemaFuzzTest is Test {
         uint256 causeMask = _balancedCauseMask(causeMaskSeed, playerCount);
 
         _joinFilledGame(gameId, playerCount, causeMask);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Catch, 51);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Catch, 51);
 
         expected = _baseMixedGameExpectation(gameId);
 
@@ -485,7 +485,7 @@ contract PrisonersDaollemaFuzzTest is Test {
     }
 
     function _baseMixedGameExpectation(uint256 gameId) internal view returns (GameExpectation memory expected) {
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
 
         expected.gameId = gameId;
         expected.outcome = snapshot.outcome;
@@ -611,8 +611,8 @@ contract PrisonersDaollemaFuzzTest is Test {
     }
 
     function _assertMixedGameExpectation(GameExpectation memory expected) internal view {
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(expected.gameId);
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(expected.gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(expected.gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(expected.gameId);
 
         assertEq(snapshot.entryFeeWei, expected.entryFeeWei);
         assertEq(snapshot.creatorFeeBps, expected.creatorFeeBps);
@@ -622,9 +622,9 @@ contract PrisonersDaollemaFuzzTest is Test {
         assertEq(
             uint256(snapshot.phase),
             uint256(
-                expected.outcome == PrisonersDaollema.Outcome.Cancelled
-                    ? PrisonersDaollema.Phase.Cancelled
-                    : PrisonersDaollema.Phase.Ended
+                expected.outcome == PrisonersDAOlemma.Outcome.Cancelled
+                    ? PrisonersDAOlemma.Phase.Cancelled
+                    : PrisonersDAOlemma.Phase.Ended
             )
         );
         assertEq(game.playerCount(expected.gameId), _joinedCount(expected));
@@ -638,12 +638,12 @@ contract PrisonersDaollemaFuzzTest is Test {
         assertEq(game.gameCauseRoutedAmount(expected.gameId, CAUSE_A), expected.causeARoutedWei);
         assertEq(game.gameCauseRoutedAmount(expected.gameId, CAUSE_B), expected.causeBRoutedWei);
 
-        if (expected.outcome == PrisonersDaollema.Outcome.Winners) {
+        if (expected.outcome == PrisonersDAOlemma.Outcome.Winners) {
             assertEq(settlement.refundPerPlayerWei, 0);
             assertEq(settlement.winnerShareWei, expected.winnerShareWei);
             assertEq(settlement.noWinnerCausePoolWei, 0);
             assertEq(settlement.noWinnerCauseDistributedWei, 0);
-        } else if (expected.outcome == PrisonersDaollema.Outcome.NoWinners) {
+        } else if (expected.outcome == PrisonersDAOlemma.Outcome.NoWinners) {
             assertEq(settlement.refundPerPlayerWei, 0);
             assertEq(settlement.winnerShareWei, 0);
             assertEq(settlement.noWinnerCauseDistributedWei, expected.causeARoutedWei + expected.causeBRoutedWei);
@@ -655,7 +655,7 @@ contract PrisonersDaollemaFuzzTest is Test {
         }
 
         for (uint256 index = 0; index < players.length; ++index) {
-            PrisonersDaollema.PlayerState memory player = game.getPlayer(expected.gameId, players[index]);
+            PrisonersDAOlemma.PlayerState memory player = game.getPlayer(expected.gameId, players[index]);
             (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool claimAvailable) =
                 game.previewWinnerClaim(expected.gameId, players[index]);
             (uint256 refundWei, bool refundAvailable) = game.previewRefund(expected.gameId, players[index]);
@@ -667,7 +667,7 @@ contract PrisonersDaollemaFuzzTest is Test {
             assertEq(player.causeId, expected.causeIds[index]);
 
             if (
-                expected.outcome == PrisonersDaollema.Outcome.Winners && expected.joined[index] && expected.alive[index]
+                expected.outcome == PrisonersDAOlemma.Outcome.Winners && expected.joined[index] && expected.alive[index]
             ) {
                 assertEq(grossPrizeWei, expected.winnerShareWei);
                 assertEq(causeCutWei, expected.causeCutWei);
@@ -675,7 +675,7 @@ contract PrisonersDaollemaFuzzTest is Test {
                 assertEq(claimAvailable, !expected.claimed[index] && !expected.refunded[index]);
                 assertEq(refundWei, 0);
                 assertFalse(refundAvailable);
-            } else if (expected.outcome == PrisonersDaollema.Outcome.Cancelled && expected.joined[index]) {
+            } else if (expected.outcome == PrisonersDAOlemma.Outcome.Cancelled && expected.joined[index]) {
                 assertEq(grossPrizeWei, 0);
                 assertEq(causeCutWei, 0);
                 assertEq(netPrizeWei, 0);
@@ -710,33 +710,33 @@ contract PrisonersDaollemaFuzzTest is Test {
         }
     }
 
-    function _mixedOutcomePermutation(uint8 seed) internal pure returns (PrisonersDaollema.Outcome[3] memory outcomes) {
+    function _mixedOutcomePermutation(uint8 seed) internal pure returns (PrisonersDAOlemma.Outcome[3] memory outcomes) {
         uint8 permutation = seed % 6;
 
         if (permutation == 0) {
-            outcomes[0] = PrisonersDaollema.Outcome.Cancelled;
-            outcomes[1] = PrisonersDaollema.Outcome.Winners;
-            outcomes[2] = PrisonersDaollema.Outcome.NoWinners;
+            outcomes[0] = PrisonersDAOlemma.Outcome.Cancelled;
+            outcomes[1] = PrisonersDAOlemma.Outcome.Winners;
+            outcomes[2] = PrisonersDAOlemma.Outcome.NoWinners;
         } else if (permutation == 1) {
-            outcomes[0] = PrisonersDaollema.Outcome.Cancelled;
-            outcomes[1] = PrisonersDaollema.Outcome.NoWinners;
-            outcomes[2] = PrisonersDaollema.Outcome.Winners;
+            outcomes[0] = PrisonersDAOlemma.Outcome.Cancelled;
+            outcomes[1] = PrisonersDAOlemma.Outcome.NoWinners;
+            outcomes[2] = PrisonersDAOlemma.Outcome.Winners;
         } else if (permutation == 2) {
-            outcomes[0] = PrisonersDaollema.Outcome.Winners;
-            outcomes[1] = PrisonersDaollema.Outcome.Cancelled;
-            outcomes[2] = PrisonersDaollema.Outcome.NoWinners;
+            outcomes[0] = PrisonersDAOlemma.Outcome.Winners;
+            outcomes[1] = PrisonersDAOlemma.Outcome.Cancelled;
+            outcomes[2] = PrisonersDAOlemma.Outcome.NoWinners;
         } else if (permutation == 3) {
-            outcomes[0] = PrisonersDaollema.Outcome.Winners;
-            outcomes[1] = PrisonersDaollema.Outcome.NoWinners;
-            outcomes[2] = PrisonersDaollema.Outcome.Cancelled;
+            outcomes[0] = PrisonersDAOlemma.Outcome.Winners;
+            outcomes[1] = PrisonersDAOlemma.Outcome.NoWinners;
+            outcomes[2] = PrisonersDAOlemma.Outcome.Cancelled;
         } else if (permutation == 4) {
-            outcomes[0] = PrisonersDaollema.Outcome.NoWinners;
-            outcomes[1] = PrisonersDaollema.Outcome.Cancelled;
-            outcomes[2] = PrisonersDaollema.Outcome.Winners;
+            outcomes[0] = PrisonersDAOlemma.Outcome.NoWinners;
+            outcomes[1] = PrisonersDAOlemma.Outcome.Cancelled;
+            outcomes[2] = PrisonersDAOlemma.Outcome.Winners;
         } else {
-            outcomes[0] = PrisonersDaollema.Outcome.NoWinners;
-            outcomes[1] = PrisonersDaollema.Outcome.Winners;
-            outcomes[2] = PrisonersDaollema.Outcome.Cancelled;
+            outcomes[0] = PrisonersDAOlemma.Outcome.NoWinners;
+            outcomes[1] = PrisonersDAOlemma.Outcome.Winners;
+            outcomes[2] = PrisonersDAOlemma.Outcome.Cancelled;
         }
     }
 
@@ -809,9 +809,9 @@ contract PrisonersDaollemaFuzzTest is Test {
         game.configureDefaults(_configWithFees(entryFeeWei, creatorFeeBps, causeFeeBps));
 
         gameId = _createAndFillGame(playerCount, causeMask);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase + 1);
-        _resolveUniformRound(gameId, playerCount, PrisonersDaollema.Choice.Share, saltBase + 2);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, saltBase);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, saltBase + 1);
+        _resolveUniformRound(gameId, playerCount, PrisonersDAOlemma.Choice.Share, saltBase + 2);
 
         _assertWinnerGameSnapshotAndSettlement(
             gameId, entryFeeWei, creatorFeeBps, causeFeeBps, expectedTreasury, playerCount
@@ -835,8 +835,8 @@ contract PrisonersDaollemaFuzzTest is Test {
         internal
         returns (uint256 causeARoutedWei, uint256 causeBRoutedWei)
     {
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
 
         for (uint256 index = 0; index < snapshot.joinedCount; ++index) {
             address wallet = game.playerAt(gameId, index);
@@ -908,8 +908,8 @@ contract PrisonersDaollemaFuzzTest is Test {
         address expectedTreasury,
         uint256 expectedPlayerCount
     ) internal view {
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
 
         uint256 totalPotWei = expectedEntryFeeWei * expectedPlayerCount;
         uint256 creatorFeeWei = totalPotWei * uint256(expectedCreatorFeeBps) / 10_000;
@@ -921,8 +921,8 @@ contract PrisonersDaollemaFuzzTest is Test {
         assertEq(snapshot.creatorFeeBps, expectedCreatorFeeBps);
         assertEq(snapshot.causeFeeBps, expectedCauseFeeBps);
         assertEq(snapshot.treasury, expectedTreasury);
-        assertEq(uint256(snapshot.phase), uint256(PrisonersDaollema.Phase.Ended));
-        assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Winners));
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDAOlemma.Phase.Ended));
+        assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Winners));
         assertEq(uint256(snapshot.joinedCount), expectedPlayerCount);
         assertEq(uint256(snapshot.aliveCount), expectedPlayerCount);
         assertEq(settlement.totalPotWei, totalPotWei);
@@ -964,7 +964,7 @@ contract PrisonersDaollemaFuzzTest is Test {
     function _resolveUniformRound(
         uint256 gameId,
         uint256 playerCount,
-        PrisonersDaollema.Choice choice,
+        PrisonersDAOlemma.Choice choice,
         uint256 saltDomain
     ) internal {
         for (uint256 index = 0; index < playerCount; ++index) {
@@ -995,17 +995,17 @@ contract PrisonersDaollemaFuzzTest is Test {
     function _configWithFees(uint256 entryFeeWei, uint16 creatorFeeBps, uint16 causeFeeBps)
         internal
         pure
-        returns (PrisonersDaollema.GameConfig memory)
+        returns (PrisonersDAOlemma.GameConfig memory)
     {
-        PrisonersDaollema.GameConfig memory config = _defaultConfig();
+        PrisonersDAOlemma.GameConfig memory config = _defaultConfig();
         config.entryFeeWei = entryFeeWei;
         config.creatorFeeBps = creatorFeeBps;
         config.causeFeeBps = causeFeeBps;
         return config;
     }
 
-    function _defaultConfig() internal pure returns (PrisonersDaollema.GameConfig memory) {
-        return PrisonersDaollema.GameConfig({
+    function _defaultConfig() internal pure returns (PrisonersDAOlemma.GameConfig memory) {
+        return PrisonersDAOlemma.GameConfig({
             entryFeeWei: 0.001 ether,
             creatorFeeBps: 100,
             causeFeeBps: 100,

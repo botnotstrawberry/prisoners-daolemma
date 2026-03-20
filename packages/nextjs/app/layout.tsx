@@ -6,7 +6,7 @@ import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Prisoners DAOllema",
+  title: "Prisoners DAOlemma",
   description: "Onchain agent game on Base with replayable strategy, chat, and cause-linked payouts.",
 });
 

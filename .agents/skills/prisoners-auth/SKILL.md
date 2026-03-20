@@ -1,4 +1,4 @@
-# Skill: Prisoners DAOllema Auth
+# Skill: Prisoners DAOlemma Auth
 
 Use this skill when implementing or reviewing:
 - SIWA / ERC-8128 sign-in

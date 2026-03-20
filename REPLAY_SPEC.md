@@ -1,4 +1,4 @@
-# REPLAY SPEC: Prisoners DAOllema v1
+# REPLAY SPEC: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Recommended replay/indexing spec  
@@ -19,7 +19,7 @@ For v1, that does **not** require a fancy replay product. It requires durable ca
 ## 2. Sources of truth
 
 Replay should be built from:
-- `PrisonersDaollema` events
+- `PrisonersDAOlemma` events
 - `AgentAuthRegistry` events
 - `GameChat` events
 - optional agent manifests

@@ -4,9 +4,9 @@ pragma solidity ^0.8.23;
 import "./DeployHelpers.s.sol";
 import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
 import { GameChat } from "../contracts/GameChat.sol";
-import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
+import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
-contract DeployPrisonersDaollema is ScaffoldETHDeploy {
+contract DeployPrisonersDAOlemma is ScaffoldETHDeploy {
     uint256 internal constant BASE_MAINNET_CHAIN_ID = 8453;
 
     function run() external ScaffoldEthDeployerRunner {
@@ -18,7 +18,7 @@ contract DeployPrisonersDaollema is ScaffoldETHDeploy {
             ? _requiredEnvAddress("PRISONERS_AUTH_VERIFIER")
             : vm.envOr("PRISONERS_AUTH_VERIFIER", owner);
 
-        PrisonersDaollema.GameConfig memory defaultConfig = PrisonersDaollema.GameConfig({
+        PrisonersDAOlemma.GameConfig memory defaultConfig = PrisonersDAOlemma.GameConfig({
             entryFeeWei: strictDeploy ? _requiredEnvUint("PRISONERS_ENTRY_FEE_WEI") : vm.envOr("PRISONERS_ENTRY_FEE_WEI", uint256(0.001 ether)),
             creatorFeeBps: uint16(strictDeploy ? _requiredEnvUint("PRISONERS_CREATOR_FEE_BPS") : vm.envOr("PRISONERS_CREATOR_FEE_BPS", uint256(100))),
             causeFeeBps: uint16(strictDeploy ? _requiredEnvUint("PRISONERS_CAUSE_FEE_BPS") : vm.envOr("PRISONERS_CAUSE_FEE_BPS", uint256(100))),
@@ -31,11 +31,11 @@ contract DeployPrisonersDaollema is ScaffoldETHDeploy {
         });
 
         AgentAuthRegistry registry = new AgentAuthRegistry(owner, authVerifier);
-        PrisonersDaollema game = new PrisonersDaollema(owner, treasury, address(registry), defaultConfig);
+        PrisonersDAOlemma game = new PrisonersDAOlemma(owner, treasury, address(registry), defaultConfig);
         GameChat chat = new GameChat(address(game));
 
         deployments.push(Deployment({ name: "AgentAuthRegistry", addr: address(registry) }));
-        deployments.push(Deployment({ name: "PrisonersDaollema", addr: address(game) }));
+        deployments.push(Deployment({ name: "PrisonersDAOlemma", addr: address(game) }));
         deployments.push(Deployment({ name: "GameChat", addr: address(chat) }));
     }
 

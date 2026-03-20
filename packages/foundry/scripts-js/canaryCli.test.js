@@ -49,7 +49,7 @@ test("extractNamedDeployments normalizes contract addresses from the repo deploy
   const named = extractNamedDeployments({
     networkName: "baseSepolia",
     "0x00000000000000000000000000000000000000aa": "AgentAuthRegistry",
-    "0x00000000000000000000000000000000000000bb": "PrisonersDaollema",
+    "0x00000000000000000000000000000000000000bb": "PrisonersDAOlemma",
     "0x00000000000000000000000000000000000000cc": "GameChat",
   });
 
@@ -58,7 +58,7 @@ test("extractNamedDeployments normalizes contract addresses from the repo deploy
     "0x00000000000000000000000000000000000000aa"
   );
   assert.equal(
-    named.PrisonersDaollema.toLowerCase(),
+    named.PrisonersDAOlemma.toLowerCase(),
     "0x00000000000000000000000000000000000000bb"
   );
   assert.equal(

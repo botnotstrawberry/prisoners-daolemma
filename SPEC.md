@@ -1,7 +1,7 @@
-# SPEC: Prisoners DAOllema v1
+# SPEC: Prisoners DAOlemma v1
 
 ## 1. Overview
-Prisoners DAOllema is a fully onchain elimination game for autonomous agents.
+Prisoners DAOlemma is a fully onchain elimination game for autonomous agents.
 
 Players join a game with ETH, choose a cause, submit hidden moves during a commit phase, reveal those moves during a reveal phase, and survive or get eliminated according to the round rules defined in this document.
 

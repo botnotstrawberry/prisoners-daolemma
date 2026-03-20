@@ -1,4 +1,4 @@
-# Prisoners DAOllema
+# Prisoners DAOlemma
 
 Hackathon build of an onchain elimination game for autonomous agents on Base.
 
@@ -57,7 +57,7 @@ A preserved raw host-local saturation proof bundle now also exists at `packages/
 
 The repo now contains:
 
-- Foundry contracts for `AgentAuthRegistry`, `PrisonersDaollema`, and `GameChat`
+- Foundry contracts for `AgentAuthRegistry`, `PrisonersDAOlemma`, and `GameChat`
 - Foundry unit, fuzz, and invariant coverage for auth registration, join gating, gameplay/settlement rules, chat posting rules, plus a broader local integration smoke that stitches auth CLI -> gameplay/operator CLI -> evidence export together
 - CLI-first auth tooling for the local SIWA -> permit -> register path
 - CLI-first gameplay/operator tooling for cause whitelisting plus create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
@@ -75,7 +75,7 @@ The repo now contains:
 Current implemented contract slice:
 
 - `AgentAuthRegistry` stores verifier-signed wallet -> agent bindings with expiry + nonce replay protection
-- `PrisonersDaollema` implements config, cause whitelist snapshots, game creation, auth-gated join, commit/reveal, deterministic round resolution, eliminations, winner/no-winner/cancelled terminal outcomes, winner claims, cancelled refunds, and pull-based treasury/cause withdrawals
+- `PrisonersDAOlemma` implements config, cause whitelist snapshots, game creation, auth-gated join, commit/reveal, deterministic round resolution, eliminations, winner/no-winner/cancelled terminal outcomes, winner claims, cancelled refunds, and pull-based treasury/cause withdrawals
 - `GameChat` emits global and cause-scoped public message events tied to game truth
 - the query/export tooling exposes settlement-aware evidence directly from current onchain state/events, including terminal outcome metadata, claim/refund previews, prize/refund/withdrawal events, no-winner routing, and explicit notes when a field remains unavailable in the current contracts or selected evidence window
 
@@ -138,7 +138,7 @@ The repo includes CLI-first gameplay/operator tooling under `packages/foundry/sc
 
 Current boundary:
 
-- wraps the live onchain `PrisonersDaollema` + `GameChat` write surface only
+- wraps the live onchain `PrisonersDAOlemma` + `GameChat` write surface only
 - covers `whitelist-cause`, `create`, `advance`, `cancel-if-insufficient`, `join`, `prepare-commit`, `commit`, `reveal`, `claim`, `refund`, `withdraw-treasury`, `withdraw-cause`, `post-global`, and `post-cause`
 - `prepare-commit` generates a local bundle containing the round, choice, salt, and commitment so `commit` and `reveal` can share one auditable input file
 - the read/evidence side stays intentionally separate in `queryCli.js`
@@ -165,8 +165,8 @@ Useful commands:
 Typical local flow after auth:
 
 1. on a fresh deployment, whitelist at least one cause first:
-   - `yarn game:whitelist-cause -- --rpc-url localhost --game <PrisonersDaollema> --cause-id 1 --recipient <cause-recipient> --metadata-text "cause-alpha" --wallet-keystore <owner-keystore> ...`
-2. run `yarn game:create -- --rpc-url localhost --game <PrisonersDaollema> --wallet-keystore <owner-keystore> ...`
+   - `yarn game:whitelist-cause -- --rpc-url localhost --game <PrisonersDAOlemma> --cause-id 1 --recipient <cause-recipient> --metadata-text "cause-alpha" --wallet-keystore <owner-keystore> ...`
+2. run `yarn game:create -- --rpc-url localhost --game <PrisonersDAOlemma> --wallet-keystore <owner-keystore> ...`
 3. run `yarn game:join -- --rpc-url localhost --game-id 1 --cause-id 1 --wallet-keystore <player-keystore> ...`
 4. run `yarn game:advance -- --rpc-url localhost --game-id 1 --wallet-keystore <owner-keystore> ...` after the join window closes
 5. run `yarn game:prepare-commit -- --rpc-url localhost --game-id 1 --choice share --wallet-keystore <player-keystore> ... --out commit-bundles/p1-r1.json`
@@ -187,7 +187,7 @@ The repo now includes a local load/chaos/adversarial harness under `packages/fou
 
 Current boundary:
 
-- local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys fresh `AgentAuthRegistry` + `PrisonersDaollema` contracts for each run
+- local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys fresh `AgentAuthRegistry` + `PrisonersDAOlemma` contracts for each run
 - if you point it at an existing RPC instead of letting it spawn Anvil, that RPC still needs to be a local dev chain compatible with the selected mnemonic-derived owner/verifier/player accounts
 - reuses the current repo-native auth/game/query surface instead of inventing a parallel benchmark API:
   - verifier-approved permit/register via `authTooling.js`
@@ -482,7 +482,7 @@ yarn start
 - Base is the target launch chain
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
-- deployment currently creates a fresh `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio per run
+- deployment currently creates a fresh `AgentAuthRegistry` + `PrisonersDAOlemma` + `GameChat` trio per run
 - the local auth + SIWA path already exists; what is still missing is real Base Sepolia execution and preserved live artifacts
 
 ## Base Sepolia canary readiness

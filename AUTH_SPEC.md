@@ -1,4 +1,4 @@
-# AUTH SPEC: Prisoners DAOllema v1
+# AUTH SPEC: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Recommended implementation spec  
@@ -76,7 +76,7 @@ If verification succeeds, the verifier signs a compact auth permit for onchain r
 The gameplay wallet submits the verifier-signed permit to `AgentAuthRegistry`.
 
 ### Step 7 — game admission
-`PrisonersDaollema.join()` checks:
+`PrisonersDAOlemma.join()` checks:
 - wallet is authorized
 - auth has not expired
 - agent identity has not already joined this game
@@ -100,7 +100,7 @@ Responsibilities:
 - store expiry and nonce usage
 - expose cheap read methods to the game contract
 
-### `PrisonersDaollema`
+### `PrisonersDAOlemma`
 Responsibilities:
 - consume registry truth only
 - not parse SIWA messages

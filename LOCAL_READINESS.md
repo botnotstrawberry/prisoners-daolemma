@@ -8,7 +8,7 @@
 
 - The current contract slice is load-bearing on a local dev chain:
   - `AgentAuthRegistry` supports verifier-signed wallet/agent binding with expiry + nonce replay protection.
-  - `PrisonersDaollema` supports create/join/commit/reveal/resolve/claim/refund/withdraw flows, winner/no-winner/cancelled terminal paths, and per-game settlement snapshots.
+  - `PrisonersDAOlemma` supports create/join/commit/reveal/resolve/claim/refund/withdraw flows, winner/no-winner/cancelled terminal paths, and per-game settlement snapshots.
   - `GameChat` supports global and cause-scoped message posting gated by game truth.
 - Automated local test layers exist in-repo:
   - Foundry unit tests
@@ -54,7 +54,7 @@
 1. `yarn test`
 2. `yarn next:check-types`
 3. `yarn smoke:integration`
-4. `yarn workspace @prisoners-daollema/foundry load:harness:auth-expiry`
+4. `yarn workspace @prisoners-daolemma/foundry load:harness:auth-expiry`
 5. `yarn load:harness:matrix:broader`
 6. `yarn load:harness:matrix -- --preset broader-local --instance-concurrency 6`
 7. `yarn load:harness:matrix:xlarge`

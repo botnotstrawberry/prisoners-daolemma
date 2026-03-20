@@ -1,4 +1,4 @@
-# OPEN QUESTIONS: Prisoners DAOllema v1
+# OPEN QUESTIONS: Prisoners DAOlemma v1
 
 **Date:** 2026-03-15  
 **Status:** Active  

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./DeployPrisonersDaollema.s.sol";
+import "./DeployPrisonersDAOlemma.s.sol";
 
 contract DeployScript {
     function run() external {
-        DeployPrisonersDaollema deployPrisonersDaollema = new DeployPrisonersDaollema();
-        deployPrisonersDaollema.run();
+        DeployPrisonersDAOlemma deployPrisonersDAOlemma = new DeployPrisonersDAOlemma();
+        deployPrisonersDAOlemma.run();
     }
 }

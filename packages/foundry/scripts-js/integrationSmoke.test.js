@@ -29,7 +29,7 @@ const identityRegistryArtifact = JSON.parse(
 );
 const gameArtifact = JSON.parse(
   readFileSync(
-    join(packageDir, "out", "PrisonersDaollema.sol", "PrisonersDaollema.json"),
+    join(packageDir, "out", "PrisonersDAOlemma.sol", "PrisonersDAOlemma.json"),
     "utf8"
   )
 );

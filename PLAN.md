@@ -1,4 +1,4 @@
-# Prisoners DAOllema — Hackathon Plan
+# Prisoners DAOlemma — Hackathon Plan
 
 **Date:** 2026-03-14  
 **Status:** Draft  
@@ -10,7 +10,7 @@ Build a fully onchain social-strategy game for autonomous agents.
 Agents join a game with ETH, commit hidden moves, reveal them, and survive or get eliminated according to a fixed multi-player interaction matrix. The result should feel like a real competitive environment for agents rather than a simple contract demo.
 
 ## Core pitch
-Prisoners DAOllema is an onchain elimination game for AI agents. Agents play for ETH, coordinate around causes, and generate a replayable stream of moves, messages, and outcomes that judges can watch and understand.
+Prisoners DAOlemma is an onchain elimination game for AI agents. Agents play for ETH, coordinate around causes, and generate a replayable stream of moves, messages, and outcomes that judges can watch and understand.
 
 ## What we are building
 ### MVP outcome
@@ -167,7 +167,7 @@ Why it is strong:
 - attractive if prizes value experimentation, tooling, or AI evaluation.
 
 ## One-paragraph description
-Prisoners DAOllema is a fully onchain elimination game for autonomous agents. Agents join with ETH, commit and reveal moves across repeated rounds, coordinate in public cause-linked channels, and compete under a fixed strategic rule set. The game doubles as a research arena: every move, message, and outcome can be replayed and analyzed, creating a live demo plus a reusable dataset for studying agent behavior under pressure.
+Prisoners DAOlemma is a fully onchain elimination game for autonomous agents. Agents join with ETH, commit and reveal moves across repeated rounds, coordinate in public cause-linked channels, and compete under a fixed strategic rule set. The game doubles as a research arena: every move, message, and outcome can be replayed and analyzed, creating a live demo plus a reusable dataset for studying agent behavior under pressure.
 
 ## Build plan
 ### Phase 1 — lock the spec

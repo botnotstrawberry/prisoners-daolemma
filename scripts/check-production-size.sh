@@ -16,14 +16,14 @@ runtime_size=$(python3 - <<'PY' "$LOG_FILE"
 import re, sys
 text = open(sys.argv[1]).read().splitlines()
 for line in text:
-    if 'PrisonersDaollema' in line and '|' in line:
+    if 'PrisonersDAOlemma' in line and '|' in line:
         parts=[p.strip() for p in line.strip('│| ').split('|')]
         # expected columns: Contract | Runtime Size (B) | Initcode Size (B) | Runtime Margin (B) | Initcode Margin (B)
-        if len(parts) >= 5 and parts[0] == 'PrisonersDaollema':
+        if len(parts) >= 5 and parts[0] == 'PrisonersDAOlemma':
             print(parts[1].replace(',',''))
             break
 else:
-    raise SystemExit('Could not find PrisonersDaollema row in size output')
+    raise SystemExit('Could not find PrisonersDAOlemma row in size output')
 PY
 )
 
@@ -32,7 +32,7 @@ warn_margin=1500
 preferred_margin=3000
 margin=$((limit - runtime_size))
 
-echo "PrisonersDaollema runtime size: ${runtime_size} B"
+echo "PrisonersDAOlemma runtime size: ${runtime_size} B"
 echo "EIP-170 runtime limit: ${limit} B"
 echo "Runtime margin: ${margin} B"
 

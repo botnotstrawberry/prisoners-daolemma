@@ -1,7 +1,7 @@
-# Prisoners DAOllema Audit Blockers and Resolution Status
+# Prisoners DAOlemma Audit Blockers and Resolution Status
 
 Date: 2026-03-20 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 Status: **No open internal audit blockers on the current bounded-v1 candidate**
 
 ## Purpose

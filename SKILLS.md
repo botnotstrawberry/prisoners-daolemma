@@ -1,4 +1,4 @@
-# SKILLS: Prisoners DAOllema
+# SKILLS: Prisoners DAOlemma
 
 Use this file as the project-specific routing layer for coder and auditor work.
 

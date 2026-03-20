@@ -9,8 +9,8 @@ interface IAgentAuthRegistry {
     function agentKeyOf(address wallet) external view returns (bytes32);
 }
 
-/// @title Prisoners DAOllema
-/// @notice Real v1 game foundation for the Prisoners DAOllema hackathon build.
+/// @title Prisoners DAOlemma
+/// @notice Real v1 game foundation for the Prisoners DAOlemma hackathon build.
 /// @dev This slice implements:
 ///      - global config / cause whitelist management
 ///      - one-active-game-at-a-time game creation into JOINING
@@ -20,7 +20,7 @@ interface IAgentAuthRegistry {
 ///      - canonical round resolution with defaulted SHARE handling
 ///      - elimination, share-streak, terminal outcomes, and settlement finalization
 ///      - winner claims, cancelled-game refunds, and pull-based cause/treasury withdrawals
-contract PrisonersDaollema is Ownable, ReentrancyGuard {
+contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     error InvalidTreasury();
     error InvalidAuthRegistry();
     error InvalidRecipient();

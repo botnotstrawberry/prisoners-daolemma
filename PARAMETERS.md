@@ -1,4 +1,4 @@
-# PARAMETERS: Prisoners DAOllema v1
+# PARAMETERS: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Recommended defaults and launch profiles  

@@ -1,7 +1,7 @@
-# Prisoners DAOllema Scaling Strategy
+# Prisoners DAOlemma Scaling Strategy
 
 Date: 2026-03-19 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 
 ## Purpose
 

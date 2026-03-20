@@ -1,4 +1,4 @@
-# LAUNCH PLAN: Prisoners DAOllema v1
+# LAUNCH PLAN: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Active planning document  

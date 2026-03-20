@@ -5,9 +5,9 @@ import { StdInvariant } from "forge-std/StdInvariant.sol";
 import { Test } from "forge-std/Test.sol";
 
 import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
-import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
+import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
-contract PrisonersDaollemaHandler is Test {
+contract PrisonersDAOlemmaHandler is Test {
     uint16 internal constant CAUSE_A = 1;
     uint16 internal constant CAUSE_B = 2;
     uint16 internal constant CAUSE_C = 3;
@@ -17,7 +17,7 @@ contract PrisonersDaollemaHandler is Test {
     uint256 internal verifierPk = 0xB0B;
 
     AgentAuthRegistry public registry;
-    PrisonersDaollema public game;
+    PrisonersDAOlemma public game;
 
     address public owner;
     address public verifier;
@@ -53,7 +53,7 @@ contract PrisonersDaollemaHandler is Test {
 
     mapping(uint256 gameId => uint8 phase) internal _lastObservedPhase;
     mapping(uint256 gameId => mapping(uint32 round => mapping(address wallet => bytes32 salt))) internal _salts;
-    mapping(uint256 gameId => mapping(uint32 round => mapping(address wallet => PrisonersDaollema.Choice choice)))
+    mapping(uint256 gameId => mapping(uint32 round => mapping(address wallet => PrisonersDAOlemma.Choice choice)))
         internal _choices;
     mapping(uint256 gameId => ExpectedGameSnapshot snapshot) internal _expectedGameSnapshots;
     mapping(uint256 gameId => mapping(uint16 causeId => address recipient)) internal _expectedGameCauseRecipients;
@@ -69,7 +69,7 @@ contract PrisonersDaollemaHandler is Test {
         causeCRecipient = makeAddr("invariant-cause-c");
 
         registry = new AgentAuthRegistry(owner, verifier);
-        game = new PrisonersDaollema(owner, treasury, address(registry), _defaultConfig());
+        game = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
 
         vm.startPrank(owner);
         game.whitelistCause(CAUSE_A, causeARecipient, keccak256("cause-a"));
@@ -109,7 +109,7 @@ contract PrisonersDaollemaHandler is Test {
         if (game.currentGameId() >= MAX_TRACKED_GAMES) return;
         if (game.activeCauseCount() == 0) return;
 
-        PrisonersDaollema.GameConfig memory config = game.getDefaultConfig();
+        PrisonersDAOlemma.GameConfig memory config = game.getDefaultConfig();
         address snapshottedTreasury = game.treasury();
 
         vm.prank(owner);
@@ -136,20 +136,20 @@ contract PrisonersDaollemaHandler is Test {
         uint256 gameId = game.activeGameId();
         if (gameId == 0) return;
 
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        if (snapshot.phase != PrisonersDaollema.Phase.Joining) return;
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        if (snapshot.phase != PrisonersDAOlemma.Phase.Joining) return;
         if (block.timestamp > snapshot.joinDeadline) return;
         if (snapshot.joinedCount >= snapshot.maxPlayers) return;
 
         address wallet = _wallets[walletSeed % _wallets.length];
-        PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+        PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
         if (player.joined) return;
 
         uint16 causeId = _causeIds[causeSeed % _causeIds.length];
-        PrisonersDaollema.CauseDefinition memory cause = game.getCause(causeId);
+        PrisonersDAOlemma.CauseDefinition memory cause = game.getCause(causeId);
         if (!cause.active) return;
 
-        PrisonersDaollema.GameCauseState memory gameCause = game.getGameCause(gameId, causeId);
+        PrisonersDAOlemma.GameCauseState memory gameCause = game.getGameCause(gameId, causeId);
         if (!gameCause.used && snapshot.usedCauseCount >= snapshot.maxCauses) return;
 
         if (!gameCause.used) {
@@ -167,20 +167,20 @@ contract PrisonersDaollemaHandler is Test {
         uint256 gameId = game.activeGameId();
         if (gameId == 0) return;
 
-        PrisonersDaollema.GameSnapshot memory beforeSnapshot = game.getGame(gameId);
+        PrisonersDAOlemma.GameSnapshot memory beforeSnapshot = game.getGame(gameId);
 
-        if (beforeSnapshot.phase == PrisonersDaollema.Phase.Joining) {
+        if (beforeSnapshot.phase == PrisonersDAOlemma.Phase.Joining) {
             if (block.timestamp <= beforeSnapshot.joinDeadline) {
                 vm.warp(beforeSnapshot.joinDeadline + 1);
             }
-        } else if (beforeSnapshot.phase == PrisonersDaollema.Phase.Commit) {
+        } else if (beforeSnapshot.phase == PrisonersDAOlemma.Phase.Commit) {
             if (
                 beforeSnapshot.committedCount != beforeSnapshot.aliveCount
                     && block.number <= beforeSnapshot.commitDeadlineBlock
             ) {
                 vm.roll(beforeSnapshot.commitDeadlineBlock + 1);
             }
-        } else if (beforeSnapshot.phase == PrisonersDaollema.Phase.Reveal) {
+        } else if (beforeSnapshot.phase == PrisonersDAOlemma.Phase.Reveal) {
             if (
                 beforeSnapshot.revealedCount != beforeSnapshot.committedCount
                     && block.number <= beforeSnapshot.revealDeadlineBlock
@@ -195,7 +195,7 @@ contract PrisonersDaollemaHandler is Test {
 
         game.advancePhase(gameId);
 
-        if (beforeSnapshot.phase == PrisonersDaollema.Phase.Reveal) {
+        if (beforeSnapshot.phase == PrisonersDAOlemma.Phase.Reveal) {
             _checkResolvedRound(gameId, beforeSnapshot);
         }
 
@@ -206,15 +206,15 @@ contract PrisonersDaollemaHandler is Test {
         uint256 gameId = game.activeGameId();
         if (gameId == 0) return;
 
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        if (snapshot.phase != PrisonersDaollema.Phase.Commit) return;
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        if (snapshot.phase != PrisonersDAOlemma.Phase.Commit) return;
         if (block.number > snapshot.commitDeadlineBlock) return;
 
         address wallet = _wallets[walletSeed % _wallets.length];
-        PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+        PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
         if (!player.joined || !player.alive || player.committedThisRound) return;
 
-        PrisonersDaollema.Choice choice = PrisonersDaollema.Choice((choiceSeed % 3) + 1);
+        PrisonersDAOlemma.Choice choice = PrisonersDAOlemma.Choice((choiceSeed % 3) + 1);
         bytes32 salt = keccak256(abi.encode(gameId, snapshot.round, wallet, saltSeed));
         bytes32 commitment = game.computeCommitment(gameId, snapshot.round, wallet, choice, salt);
 
@@ -231,17 +231,17 @@ contract PrisonersDaollemaHandler is Test {
         uint256 gameId = game.activeGameId();
         if (gameId == 0) return;
 
-        PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-        if (snapshot.phase != PrisonersDaollema.Phase.Reveal) return;
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        if (snapshot.phase != PrisonersDAOlemma.Phase.Reveal) return;
         if (block.number > snapshot.revealDeadlineBlock) return;
 
         address wallet = _wallets[walletSeed % _wallets.length];
-        PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+        PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
         if (!player.joined || !player.alive || !player.committedThisRound || player.revealedThisRound) return;
 
         bytes32 salt = _salts[gameId][snapshot.round][wallet];
-        PrisonersDaollema.Choice choice = _choices[gameId][snapshot.round][wallet];
-        if (salt == bytes32(0) || choice == PrisonersDaollema.Choice.Unset) return;
+        PrisonersDAOlemma.Choice choice = _choices[gameId][snapshot.round][wallet];
+        if (salt == bytes32(0) || choice == PrisonersDAOlemma.Choice.Unset) return;
 
         vm.prank(wallet);
         game.reveal(gameId, choice, salt);
@@ -301,25 +301,25 @@ contract PrisonersDaollemaHandler is Test {
         if (gameId == 0) return;
 
         address wallet = _wallets[walletSeed % _wallets.length];
-        PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+        PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
 
         if (player.claimed) {
             vm.prank(wallet);
-            (bool claimSucceeded,) = address(game).call(abi.encodeCall(PrisonersDaollema.claim, (gameId)));
+            (bool claimSucceeded,) = address(game).call(abi.encodeCall(PrisonersDAOlemma.claim, (gameId)));
             if (claimSucceeded) duplicatePayoutObserved = true;
 
             vm.prank(wallet);
-            (bool refundSucceeded,) = address(game).call(abi.encodeCall(PrisonersDaollema.claimRefund, (gameId)));
+            (bool refundSucceeded,) = address(game).call(abi.encodeCall(PrisonersDAOlemma.claimRefund, (gameId)));
             if (refundSucceeded) crossPayoutObserved = true;
         }
 
         if (player.refunded) {
             vm.prank(wallet);
-            (bool refundSucceeded,) = address(game).call(abi.encodeCall(PrisonersDaollema.claimRefund, (gameId)));
+            (bool refundSucceeded,) = address(game).call(abi.encodeCall(PrisonersDAOlemma.claimRefund, (gameId)));
             if (refundSucceeded) duplicatePayoutObserved = true;
 
             vm.prank(wallet);
-            (bool claimSucceeded,) = address(game).call(abi.encodeCall(PrisonersDaollema.claim, (gameId)));
+            (bool claimSucceeded,) = address(game).call(abi.encodeCall(PrisonersDAOlemma.claim, (gameId)));
             if (claimSucceeded) crossPayoutObserved = true;
         }
     }
@@ -335,7 +335,7 @@ contract PrisonersDaollemaHandler is Test {
         uint16 maxCausesUpper = activeCauseCount < maxPlayers ? activeCauseCount : maxPlayers;
         uint16 maxCauses = uint16(bound((configSeed >> 16) & 0xff, 1, maxCausesUpper));
 
-        PrisonersDaollema.GameConfig memory config = PrisonersDaollema.GameConfig({
+        PrisonersDAOlemma.GameConfig memory config = PrisonersDAOlemma.GameConfig({
             entryFeeWei: bound((configSeed >> 24) & type(uint96).max, 1, 1 ether),
             creatorFeeBps: uint16(bound((configSeed >> 120) & 0xffff, 0, 500)),
             causeFeeBps: uint16(bound((configSeed >> 136) & 0xffff, 0, 500)),
@@ -376,7 +376,7 @@ contract PrisonersDaollemaHandler is Test {
         if (game.activeGameId() != 0) return;
 
         uint16 causeId = _causeIds[causeSeed % _causeIds.length];
-        PrisonersDaollema.CauseDefinition memory cause = game.getCause(causeId);
+        PrisonersDAOlemma.CauseDefinition memory cause = game.getCause(causeId);
 
         if (cause.active) {
             if (game.activeCauseCount() <= 1) return;
@@ -449,11 +449,11 @@ contract PrisonersDaollemaHandler is Test {
     function _isAllowedTransition(uint8 previousPhase, uint8 currentPhase) internal pure returns (bool) {
         if (previousPhase == currentPhase) return true;
 
-        uint8 joining = uint8(PrisonersDaollema.Phase.Joining);
-        uint8 commitPhase = uint8(PrisonersDaollema.Phase.Commit);
-        uint8 revealPhase = uint8(PrisonersDaollema.Phase.Reveal);
-        uint8 ended = uint8(PrisonersDaollema.Phase.Ended);
-        uint8 cancelled = uint8(PrisonersDaollema.Phase.Cancelled);
+        uint8 joining = uint8(PrisonersDAOlemma.Phase.Joining);
+        uint8 commitPhase = uint8(PrisonersDAOlemma.Phase.Commit);
+        uint8 revealPhase = uint8(PrisonersDAOlemma.Phase.Reveal);
+        uint8 ended = uint8(PrisonersDAOlemma.Phase.Ended);
+        uint8 cancelled = uint8(PrisonersDAOlemma.Phase.Cancelled);
 
         if (previousPhase == joining) {
             return currentPhase == commitPhase || currentPhase == cancelled;
@@ -474,7 +474,7 @@ contract PrisonersDaollemaHandler is Test {
         return false;
     }
 
-    function _checkResolvedRound(uint256 gameId, PrisonersDaollema.GameSnapshot memory beforeSnapshot) internal {
+    function _checkResolvedRound(uint256 gameId, PrisonersDAOlemma.GameSnapshot memory beforeSnapshot) internal {
         uint32 resolvedRound = beforeSnapshot.round;
         uint256 rosterLength = game.playerCount(gameId);
 
@@ -485,16 +485,16 @@ contract PrisonersDaollemaHandler is Test {
 
         for (uint256 index = 0; index < rosterLength; ++index) {
             address wallet = game.playerAt(gameId, index);
-            PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+            PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
             if (player.lastChoiceRound != resolvedRound) continue;
 
             sawChoice = true;
 
-            if (player.effectiveChoice == PrisonersDaollema.Choice.Share) {
+            if (player.effectiveChoice == PrisonersDAOlemma.Choice.Share) {
                 hasShare = true;
-            } else if (player.effectiveChoice == PrisonersDaollema.Choice.Catch) {
+            } else if (player.effectiveChoice == PrisonersDAOlemma.Choice.Catch) {
                 hasCatch = true;
-            } else if (player.effectiveChoice == PrisonersDaollema.Choice.Steal) {
+            } else if (player.effectiveChoice == PrisonersDAOlemma.Choice.Steal) {
                 hasSteal = true;
             }
         }
@@ -510,8 +510,8 @@ contract PrisonersDaollemaHandler is Test {
         }
     }
 
-    function _defaultConfig() internal pure returns (PrisonersDaollema.GameConfig memory) {
-        return PrisonersDaollema.GameConfig({
+    function _defaultConfig() internal pure returns (PrisonersDAOlemma.GameConfig memory) {
+        return PrisonersDAOlemma.GameConfig({
             entryFeeWei: 0.001 ether,
             creatorFeeBps: 100,
             causeFeeBps: 100,
@@ -544,29 +544,29 @@ contract PrisonersDaollemaHandler is Test {
     }
 }
 
-contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
-    PrisonersDaollemaHandler internal handler;
-    PrisonersDaollema internal game;
+contract PrisonersDAOlemmaInvariantTest is StdInvariant, Test {
+    PrisonersDAOlemmaHandler internal handler;
+    PrisonersDAOlemma internal game;
 
     function setUp() public {
-        handler = new PrisonersDaollemaHandler();
-        game = PrisonersDaollema(address(handler.game()));
+        handler = new PrisonersDAOlemmaHandler();
+        game = PrisonersDAOlemma(address(handler.game()));
 
         bytes4[] memory selectors = new bytes4[](14);
-        selectors[0] = PrisonersDaollemaHandler.createGame.selector;
-        selectors[1] = PrisonersDaollemaHandler.configureDefaults.selector;
-        selectors[2] = PrisonersDaollemaHandler.setTreasury.selector;
-        selectors[3] = PrisonersDaollemaHandler.reconfigureCause.selector;
-        selectors[4] = PrisonersDaollemaHandler.toggleCause.selector;
-        selectors[5] = PrisonersDaollemaHandler.join.selector;
-        selectors[6] = PrisonersDaollemaHandler.advanceActiveGame.selector;
-        selectors[7] = PrisonersDaollemaHandler.commit.selector;
-        selectors[8] = PrisonersDaollemaHandler.reveal.selector;
-        selectors[9] = PrisonersDaollemaHandler.claim.selector;
-        selectors[10] = PrisonersDaollemaHandler.claimRefund.selector;
-        selectors[11] = PrisonersDaollemaHandler.withdrawTreasury.selector;
-        selectors[12] = PrisonersDaollemaHandler.withdrawCause.selector;
-        selectors[13] = PrisonersDaollemaHandler.probeDuplicatePayouts.selector;
+        selectors[0] = PrisonersDAOlemmaHandler.createGame.selector;
+        selectors[1] = PrisonersDAOlemmaHandler.configureDefaults.selector;
+        selectors[2] = PrisonersDAOlemmaHandler.setTreasury.selector;
+        selectors[3] = PrisonersDAOlemmaHandler.reconfigureCause.selector;
+        selectors[4] = PrisonersDAOlemmaHandler.toggleCause.selector;
+        selectors[5] = PrisonersDAOlemmaHandler.join.selector;
+        selectors[6] = PrisonersDAOlemmaHandler.advanceActiveGame.selector;
+        selectors[7] = PrisonersDAOlemmaHandler.commit.selector;
+        selectors[8] = PrisonersDAOlemmaHandler.reveal.selector;
+        selectors[9] = PrisonersDAOlemmaHandler.claim.selector;
+        selectors[10] = PrisonersDAOlemmaHandler.claimRefund.selector;
+        selectors[11] = PrisonersDAOlemmaHandler.withdrawTreasury.selector;
+        selectors[12] = PrisonersDAOlemmaHandler.withdrawCause.selector;
+        selectors[13] = PrisonersDAOlemmaHandler.probeDuplicatePayouts.selector;
 
         targetContract(address(handler));
         targetSelector(FuzzSelector({ addr: address(handler), selectors: selectors }));
@@ -581,31 +581,31 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         uint256 nonTerminalGames;
 
         for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
-            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
 
             if (
-                snapshot.phase == PrisonersDaollema.Phase.Joining || snapshot.phase == PrisonersDaollema.Phase.Commit
-                    || snapshot.phase == PrisonersDaollema.Phase.Reveal
+                snapshot.phase == PrisonersDAOlemma.Phase.Joining || snapshot.phase == PrisonersDAOlemma.Phase.Commit
+                    || snapshot.phase == PrisonersDAOlemma.Phase.Reveal
             ) {
                 nonTerminalGames += 1;
-                assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Unset));
+                assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Unset));
                 assertEq(activeGameId, gameId);
-            } else if (snapshot.phase == PrisonersDaollema.Phase.Ended) {
+            } else if (snapshot.phase == PrisonersDAOlemma.Phase.Ended) {
                 assertTrue(
-                    snapshot.outcome == PrisonersDaollema.Outcome.Winners
-                        || snapshot.outcome == PrisonersDaollema.Outcome.NoWinners
+                    snapshot.outcome == PrisonersDAOlemma.Outcome.Winners
+                        || snapshot.outcome == PrisonersDAOlemma.Outcome.NoWinners
                 );
                 assertTrue(activeGameId != gameId);
 
-                if (snapshot.outcome == PrisonersDaollema.Outcome.Winners) {
+                if (snapshot.outcome == PrisonersDAOlemma.Outcome.Winners) {
                     assertGt(snapshot.aliveCount, 0);
                 }
 
-                if (snapshot.outcome == PrisonersDaollema.Outcome.NoWinners) {
+                if (snapshot.outcome == PrisonersDAOlemma.Outcome.NoWinners) {
                     assertEq(snapshot.aliveCount, 0);
                 }
-            } else if (snapshot.phase == PrisonersDaollema.Phase.Cancelled) {
-                assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Cancelled));
+            } else if (snapshot.phase == PrisonersDAOlemma.Phase.Cancelled) {
+                assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Cancelled));
                 assertTrue(activeGameId != gameId);
                 assertLt(snapshot.joinedCount, snapshot.minPlayers);
             }
@@ -619,7 +619,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         uint256 totalGames = game.currentGameId();
 
         for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
-            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
             uint256 rosterLength = game.playerCount(gameId);
             uint256 usedCauseLength = game.gameCauseCount(gameId);
             uint256 aliveCount;
@@ -630,7 +630,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
             for (uint256 i = 0; i < rosterLength; ++i) {
                 address wallet = game.playerAt(gameId, i);
-                PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+                PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
 
                 assertTrue(player.joined);
                 assertTrue(player.agentKey != bytes32(0));
@@ -641,7 +641,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
                 for (uint256 j = i + 1; j < rosterLength; ++j) {
                     address otherWallet = game.playerAt(gameId, j);
-                    PrisonersDaollema.PlayerState memory otherPlayer = game.getPlayer(gameId, otherWallet);
+                    PrisonersDAOlemma.PlayerState memory otherPlayer = game.getPlayer(gameId, otherWallet);
 
                     assertTrue(wallet != otherWallet);
                     assertTrue(player.agentKey != otherPlayer.agentKey);
@@ -650,7 +650,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
             for (uint256 index = 0; index < usedCauseLength; ++index) {
                 uint16 causeId = game.gameCauseAt(gameId, index);
-                PrisonersDaollema.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
+                PrisonersDAOlemma.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
 
                 assertTrue(causeState.used);
                 entrantSum += causeState.entrantCount;
@@ -665,8 +665,8 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         uint256 totalGames = game.currentGameId();
 
         for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
-            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-            PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+            PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
             uint256 rosterLength = game.playerCount(gameId);
             uint256 usedCauseLength = game.gameCauseCount(gameId);
 
@@ -688,7 +688,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
             for (uint256 index = 0; index < rosterLength; ++index) {
                 address wallet = game.playerAt(gameId, index);
-                PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+                PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
 
                 assertFalse(player.claimed && player.refunded);
 
@@ -705,10 +705,10 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
             }
 
             if (
-                snapshot.phase == PrisonersDaollema.Phase.Joining || snapshot.phase == PrisonersDaollema.Phase.Commit
-                    || snapshot.phase == PrisonersDaollema.Phase.Reveal
+                snapshot.phase == PrisonersDAOlemma.Phase.Joining || snapshot.phase == PrisonersDAOlemma.Phase.Commit
+                    || snapshot.phase == PrisonersDAOlemma.Phase.Reveal
             ) {
-                assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Unset));
+                assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Unset));
                 assertFalse(settlement.finalized);
                 continue;
             }
@@ -716,8 +716,8 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
             assertTrue(settlement.finalized);
             assertEq(settlement.totalPotWei, snapshot.entryFeeWei * uint256(snapshot.joinedCount));
 
-            if (snapshot.phase == PrisonersDaollema.Phase.Cancelled) {
-                assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.Cancelled));
+            if (snapshot.phase == PrisonersDAOlemma.Phase.Cancelled) {
+                assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.Cancelled));
                 assertEq(claimedCount, 0);
                 assertEq(totalCauseRoutedWei, 0);
                 assertEq(settlement.creatorFeeWei, 0);
@@ -732,7 +732,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
             assertEq(refundedCount, 0);
             assertEq(settlement.refundPerPlayerWei, 0);
 
-            if (snapshot.outcome == PrisonersDaollema.Outcome.Winners) {
+            if (snapshot.outcome == PrisonersDAOlemma.Outcome.Winners) {
                 uint256 winnerPoolWei = settlement.winnerShareWei * uint256(settlement.winnerCount);
 
                 assertEq(settlement.winnerCount, snapshot.aliveCount);
@@ -743,7 +743,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
                 assertLe(claimedCount, settlement.winnerCount);
                 assertLe(claimedNetWei + totalCauseRoutedWei + settlement.treasuryAccruedWei, settlement.totalPotWei);
             } else {
-                assertEq(uint256(snapshot.outcome), uint256(PrisonersDaollema.Outcome.NoWinners));
+                assertEq(uint256(snapshot.outcome), uint256(PrisonersDAOlemma.Outcome.NoWinners));
                 assertEq(snapshot.aliveCount, 0);
                 assertEq(settlement.winnerCount, 0);
                 assertEq(settlement.winnerShareWei, 0);
@@ -758,8 +758,8 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         uint256 totalGames = game.currentGameId();
 
         for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
-            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
-            PrisonersDaollema.SettlementState memory settlement = game.getSettlement(gameId);
+            PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDAOlemma.SettlementState memory settlement = game.getSettlement(gameId);
 
             _assertConservativeCauseClaimables(gameId, snapshot, settlement);
             _assertConservativePlayerPreviews(gameId, snapshot, settlement);
@@ -768,8 +768,8 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
     function _assertConservativeCauseClaimables(
         uint256 gameId,
-        PrisonersDaollema.GameSnapshot memory snapshot,
-        PrisonersDaollema.SettlementState memory settlement
+        PrisonersDAOlemma.GameSnapshot memory snapshot,
+        PrisonersDAOlemma.SettlementState memory settlement
     ) internal view {
         uint256 usedCauseLength = game.gameCauseCount(gameId);
 
@@ -787,20 +787,20 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
     function _expectedCauseRoutedWei(
         uint256 gameId,
-        PrisonersDaollema.GameSnapshot memory snapshot,
-        PrisonersDaollema.SettlementState memory settlement,
+        PrisonersDAOlemma.GameSnapshot memory snapshot,
+        PrisonersDAOlemma.SettlementState memory settlement,
         uint16 causeId
     ) internal view returns (uint256 expectedRoutedWei) {
         if (!settlement.finalized) {
             return 0;
         }
 
-        if (snapshot.outcome == PrisonersDaollema.Outcome.NoWinners) {
-            PrisonersDaollema.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
+        if (snapshot.outcome == PrisonersDAOlemma.Outcome.NoWinners) {
+            PrisonersDAOlemma.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
             return settlement.noWinnerCausePoolWei * uint256(causeState.entrantCount) / uint256(snapshot.joinedCount);
         }
 
-        if (snapshot.outcome != PrisonersDaollema.Outcome.Winners) {
+        if (snapshot.outcome != PrisonersDAOlemma.Outcome.Winners) {
             return 0;
         }
 
@@ -809,7 +809,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
         for (uint256 playerIndex = 0; playerIndex < rosterLength; ++playerIndex) {
             address wallet = game.playerAt(gameId, playerIndex);
-            PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+            PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
 
             if (player.joined && player.alive && player.claimed && player.causeId == causeId) {
                 expectedRoutedWei += causeCutPerWinner;
@@ -819,27 +819,27 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
     function _assertConservativePlayerPreviews(
         uint256 gameId,
-        PrisonersDaollema.GameSnapshot memory snapshot,
-        PrisonersDaollema.SettlementState memory settlement
+        PrisonersDAOlemma.GameSnapshot memory snapshot,
+        PrisonersDAOlemma.SettlementState memory settlement
     ) internal view {
         uint256 rosterLength = game.playerCount(gameId);
         uint256 causeCutPerWinner = settlement.winnerShareWei * uint256(snapshot.causeFeeBps) / 10_000;
 
         for (uint256 playerIndex = 0; playerIndex < rosterLength; ++playerIndex) {
             address wallet = game.playerAt(gameId, playerIndex);
-            PrisonersDaollema.PlayerState memory player = game.getPlayer(gameId, wallet);
+            PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, wallet);
             (uint256 grossPrizeWei, uint256 causeCutWei, uint256 netPrizeWei, bool claimAvailable) =
                 game.previewWinnerClaim(gameId, wallet);
             (uint256 refundWei, bool refundAvailable) = game.previewRefund(gameId, wallet);
 
-            if (snapshot.outcome == PrisonersDaollema.Outcome.Winners && settlement.finalized && player.alive) {
+            if (snapshot.outcome == PrisonersDAOlemma.Outcome.Winners && settlement.finalized && player.alive) {
                 assertEq(grossPrizeWei, settlement.winnerShareWei);
                 assertEq(causeCutWei, causeCutPerWinner);
                 assertEq(netPrizeWei, settlement.winnerShareWei - causeCutPerWinner);
                 assertEq(claimAvailable, !player.claimed && !player.refunded);
                 assertEq(refundWei, 0);
                 assertFalse(refundAvailable);
-            } else if (snapshot.outcome == PrisonersDaollema.Outcome.Cancelled && settlement.finalized) {
+            } else if (snapshot.outcome == PrisonersDAOlemma.Outcome.Cancelled && settlement.finalized) {
                 assertEq(grossPrizeWei, 0);
                 assertEq(causeCutWei, 0);
                 assertEq(netPrizeWei, 0);
@@ -861,8 +861,8 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
         uint256 totalGames = game.currentGameId();
 
         for (uint256 gameId = 1; gameId <= totalGames; ++gameId) {
-            PrisonersDaollemaHandler.ExpectedGameSnapshot memory expected = handler.expectedGameSnapshot(gameId);
-            PrisonersDaollema.GameSnapshot memory snapshot = game.getGame(gameId);
+            PrisonersDAOlemmaHandler.ExpectedGameSnapshot memory expected = handler.expectedGameSnapshot(gameId);
+            PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
             uint256 usedCauseLength = game.gameCauseCount(gameId);
 
             assertTrue(expected.recorded);
@@ -879,7 +879,7 @@ contract PrisonersDaollemaInvariantTest is StdInvariant, Test {
 
             for (uint256 index = 0; index < usedCauseLength; ++index) {
                 uint16 causeId = game.gameCauseAt(gameId, index);
-                PrisonersDaollema.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
+                PrisonersDAOlemma.GameCauseState memory causeState = game.getGameCause(gameId, causeId);
 
                 assertTrue(causeState.used);
                 assertEq(causeState.recipient, handler.expectedGameCauseRecipient(gameId, causeId));

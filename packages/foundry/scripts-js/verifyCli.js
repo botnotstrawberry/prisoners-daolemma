@@ -4,7 +4,7 @@ import { parseCliArgs, resolveRpcTarget } from "./authTooling.js";
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema verification helper
+Prisoners DAOlemma verification helper
 
 Usage:
   node scripts-js/verifyCli.js [--network <name> | --rpc-url <url|network>] [--help]

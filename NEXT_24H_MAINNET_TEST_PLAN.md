@@ -1,7 +1,7 @@
 # Next 24 Hours — Mainnet Readiness Test Plan
 
 Date: 2026-03-19 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 
 ## Purpose
 
@@ -85,13 +85,13 @@ Run the important local gates with the same compile mode required for public dep
 Recommended commands:
 
 ```bash
-cd /root/projects/prisoners-daollema
+cd /root/projects/prisoners-daolemma
 export FOUNDRY_PROFILE=production
 
 yarn test
 yarn next:check-types
 yarn smoke:integration
-yarn workspace @prisoners-daollema/foundry load:harness:auth-expiry
+yarn workspace @prisoners-daolemma/foundry load:harness:auth-expiry
 ```
 
 Pass criteria:
@@ -108,16 +108,16 @@ Run the size audit on the launch candidate under the production profile.
 Recommended command:
 
 ```bash
-cd /root/projects/prisoners-daollema/packages/foundry
+cd /root/projects/prisoners-daolemma/packages/foundry
 FOUNDRY_PROFILE=production forge build --sizes --skip test
 ```
 
 Current known size:
-- `PrisonersDaollema` runtime ≈ `19,809 B`
+- `PrisonersDAOlemma` runtime ≈ `19,809 B`
 - margin to EVM limit ≈ `4,767 B`
 
 Pass criteria:
-- `PrisonersDaollema` runtime stays below `24,576 B`
+- `PrisonersDAOlemma` runtime stays below `24,576 B`
 - no unexpected size regression from the validated canary build
 
 Operational rule:
@@ -209,7 +209,7 @@ Do at least one meaningful broader/local stress run under the production profile
 Recommended commands:
 
 ```bash
-cd /root/projects/prisoners-daollema
+cd /root/projects/prisoners-daolemma
 export FOUNDRY_PROFILE=production
 
 yarn load:harness:matrix:broader

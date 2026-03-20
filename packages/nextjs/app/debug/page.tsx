@@ -4,7 +4,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "Debug Contracts",
-  description: "Inspect and interact with deployed Prisoners DAOllema contracts.",
+  description: "Inspect and interact with deployed Prisoners DAOlemma contracts.",
 });
 
 const Debug: NextPage = () => {

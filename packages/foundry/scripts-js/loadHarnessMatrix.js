@@ -5,7 +5,7 @@ import { resolveFromPackageRoot } from "./authTooling.js";
 import { LOAD_HARNESS_BOUNDARY_NOTE, runLoadHarness } from "./loadHarness.js";
 
 export const LOAD_HARNESS_MATRIX_SCHEMA_VERSION =
-  "prisoners-daollema/load-harness-matrix-v1";
+  "prisoners-daolemma/load-harness-matrix-v1";
 export const LOAD_HARNESS_MATRIX_BOUNDARY_NOTE = `${LOAD_HARNESS_BOUNDARY_NOTE} This matrix runner automates multiple local harness runs and aggregates their local-dev results. When instanceConcurrency is greater than 1, it coordinates multiple isolated harness + Anvil instances in parallel on one host. That is still synthetic host-local stress only: it does not add live-network realism, public mempool contention, or distributed-agent behavior.`;
 export const DEFAULT_LOAD_HARNESS_MATRIX_PRESET = "broader-local";
 
@@ -1526,7 +1526,7 @@ function renderLoadHarnessMatrixRunMarkdown(run) {
 
 export function renderLoadHarnessMatrixMarkdown(report) {
   const lines = [
-    "# Prisoners DAOllema local soak matrix",
+    "# Prisoners DAOlemma local soak matrix",
     "",
     report.boundaryNote,
     "",
@@ -1678,7 +1678,7 @@ export function renderLoadHarnessMatrixMarkdown(report) {
 }
 
 export function printLoadHarnessMatrixSummary(report) {
-  console.log("\n🏋️ Prisoners DAOllema load harness matrix summary");
+  console.log("\n🏋️ Prisoners DAOlemma load harness matrix summary");
   console.log(`Status:         ${report.status}`);
   console.log(`Preset:         ${report.preset.label}`);
   console.log(`Run dir:        ${report.paths.runDir}`);

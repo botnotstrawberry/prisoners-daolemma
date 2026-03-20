@@ -1,12 +1,12 @@
-# Prisoners DAOllema Audit Readiness
+# Prisoners DAOlemma Audit Readiness
 
 Date: 2026-03-20 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 Status: **Internal audit-complete candidate prepared**
 
 ## Purpose
 
-This document is the practical handoff/checklist for getting Prisoners DAOllema into a state where smart contract security researchers and auditors can review it efficiently.
+This document is the practical handoff/checklist for getting Prisoners DAOlemma into a state where smart contract security researchers and auditors can review it efficiently.
 
 This is **not** a launch authorization.
 It is a readiness and packaging note.
@@ -37,7 +37,7 @@ What this means:
 These are the contracts/files I would hand to smart contract auditors as the primary review set.
 
 ### Core contracts
-- `packages/foundry/contracts/PrisonersDaollema.sol`
+- `packages/foundry/contracts/PrisonersDAOlemma.sol`
 - `packages/foundry/contracts/AgentAuthRegistry.sol`
 - `packages/foundry/contracts/GameChat.sol`
 
@@ -45,7 +45,7 @@ These are the contracts/files I would hand to smart contract auditors as the pri
 - `packages/foundry/contracts/interfaces/IGameChatHost.sol`
 
 ### Deployment/config surface to review alongside contracts
-- `packages/foundry/script/DeployPrisonersDaollema.s.sol`
+- `packages/foundry/script/DeployPrisonersDAOlemma.s.sol`
 - `packages/foundry/script/DeployHelpers.s.sol`
 - `packages/foundry/script/VerifyAll.s.sol`
 - `packages/foundry/.env.mainnet.example`
@@ -55,9 +55,9 @@ These are the contracts/files I would hand to smart contract auditors as the pri
 - `scripts/run-production-gates.sh`
 
 ### High-value test coverage for auditors to inspect
-- `packages/foundry/test/PrisonersDaollema.t.sol`
-- `packages/foundry/test/PrisonersDaollemaFuzz.t.sol`
-- `packages/foundry/test/PrisonersDaollemaInvariant.t.sol`
+- `packages/foundry/test/PrisonersDAOlemma.t.sol`
+- `packages/foundry/test/PrisonersDAOlemmaFuzz.t.sol`
+- `packages/foundry/test/PrisonersDAOlemmaInvariant.t.sol`
 - `packages/foundry/test/AgentAuthRegistry.t.sol`
 - `packages/foundry/test/GameChat.t.sol`
 - `packages/foundry/scripts-js/integrationSmoke.test.js`
@@ -95,8 +95,8 @@ This repo should be reviewed as more than “just a game contract.” The most i
    - default / no-reveal / no-commit behavior
 
 5. **Cross-contract assumptions**
-   - `PrisonersDaollema` ↔ `AgentAuthRegistry`
-   - `PrisonersDaollema` ↔ `GameChat`
+   - `PrisonersDAOlemma` ↔ `AgentAuthRegistry`
+   - `PrisonersDAOlemma` ↔ `GameChat`
    - read-only assumptions in chat
    - settlement-critical state snapshot behavior
 
@@ -120,7 +120,7 @@ The production-gates bundle passed:
 - `yarn test`
 - `yarn next:check-types`
 - `yarn smoke:integration`
-- `yarn workspace @prisoners-daollema/foundry load:harness:auth-expiry`
+- `yarn workspace @prisoners-daolemma/foundry load:harness:auth-expiry`
 - production size check
 
 ### Sepolia / live-path evidence
@@ -144,7 +144,7 @@ Supportive, not primary freeze-pinned evidence:
 - `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`
 
 ### Current production size result
-- `PrisonersDaollema` runtime size: **19,939 B**
+- `PrisonersDAOlemma` runtime size: **19,939 B**
 - EIP-170 limit: **24,576 B**
 - margin: **4,637 B**
 

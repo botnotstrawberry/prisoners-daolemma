@@ -1,4 +1,4 @@
-# TEST PLAN: Prisoners DAOllema v1
+# TEST PLAN: Prisoners DAOlemma v1
 
 **Date:** 2026-03-16  
 **Status:** Active validation plan + local status tracker  
@@ -6,7 +6,7 @@
 
 ## 1. Test philosophy
 
-Prisoners DAOllema cannot be considered ready because the happy path works once.
+Prisoners DAOlemma cannot be considered ready because the happy path works once.
 
 We need to prove five things:
 1. the rules are correct,

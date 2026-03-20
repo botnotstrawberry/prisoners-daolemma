@@ -11,7 +11,7 @@ import {
 
 function printMainHelp() {
   console.log(`
-Prisoners DAOllema evidence/query tooling
+Prisoners DAOlemma evidence/query tooling
 
 ${QUERY_BOUNDARY_NOTE}
 
@@ -31,7 +31,7 @@ Run a command with --help for details.
 function printSharedOptions() {
   return `Common options:
   --rpc-url <url|network>     Required unless AUTH_RPC_URL/RPC_URL is set.
-  --game <address|name>       Game contract address or deployment name. Defaults to deployed PrisonersDaollema for the connected chain when available.
+  --game <address|name>       Game contract address or deployment name. Defaults to deployed PrisonersDAOlemma for the connected chain when available.
   --game-id <uint256>         Optional. Defaults to activeGameId, then currentGameId.
   --registry <address|name>   Optional override. Defaults to game.authRegistry().
   --chat <address|name>       Optional GameChat contract address or deployment name. Defaults to deployed GameChat for the connected chain when available.

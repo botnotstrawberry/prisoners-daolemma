@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "prisoners-daolemma/base-sepolia-canary-preflight-v0",
+  "target": {
+    "rpcTarget": "baseSepolia",
+    "chainId": 84532,
+    "latestBlock": {
+      "number": 39136836,
+      "timestamp": 1774041960
+    }
+  },
+  "deployerKeystore": {
+    "provided": "botnotstrawberry-base-wallet",
+    "resolvedPath": "/root/.foundry/keystores/botnotstrawberry-base-wallet",
+    "exists": true,
+    "address": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408"
+  },
+  "expectedRoles": {
+    "owner": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "treasury": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "authVerifier": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    }
+  },
+  "profile": {
+    "schemaVersion": "prisoners-daolemma/base-sepolia-canary-profile-v0",
+    "entryFeeWei": "1000000000000000",
+    "creatorFeeBps": 100,
+    "causeFeeBps": 100,
+    "joinDurationSeconds": 120,
+    "commitDurationBlocks": 40,
+    "revealDurationBlocks": 40,
+    "minPlayers": 3,
+    "maxPlayers": 32,
+    "maxCauses": 8
+  },
+  "profileComparison": {
+    "matchesRecommendedProfile": false,
+    "mismatches": [
+      {
+        "field": "joinDurationSeconds",
+        "actual": "120",
+        "expected": "900"
+      },
+      {
+        "field": "commitDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      },
+      {
+        "field": "revealDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      }
+    ]
+  },
+  "verification": {
+    "baseScanApiKeyPresent": true
+  },
+  "warnings": [
+    "Deploy config joinDurationSeconds=120 differs from the recommended Base Sepolia canary value 900.",
+    "Deploy config commitDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+    "Deploy config revealDurationBlocks=40 differs from the recommended Base Sepolia canary value 20."
+  ]
+}

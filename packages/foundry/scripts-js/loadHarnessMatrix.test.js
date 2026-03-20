@@ -663,7 +663,7 @@ test(
     assert.equal(report.paths.report, reportPath);
     assert.equal(report.paths.summary, summaryPath);
     const markdown = readFileSync(summaryPath, "utf8");
-    assert.match(markdown, /# Prisoners DAOllema local soak matrix/);
+    assert.match(markdown, /# Prisoners DAOlemma local soak matrix/);
     assert.match(markdown, /## Aggregate breakage signals/);
     assert.match(markdown, /medium-local/);
     assert.match(markdown, /medium-mixed-a/);

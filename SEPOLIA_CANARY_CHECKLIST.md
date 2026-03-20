@@ -25,7 +25,7 @@ Use this alongside `SEPOLIA_CANARY_RUNBOOK.md`.
 - [ ] Copy `packages/foundry/deployments/84532.json` into the artifact directory
 - [ ] Run `yarn canary:deployment -- --rpc-url baseSepolia --out <artifact>/deployment-summary.json`
 - [ ] Confirm `GameChat.game()` matches the deployed game address
-- [ ] Confirm `PrisonersDaollema.authRegistry()` matches the deployed registry address
+- [ ] Confirm `PrisonersDAOlemma.authRegistry()` matches the deployed registry address
 - [ ] Confirm onchain owner matches intended `PRISONERS_OWNER`
 - [ ] Confirm onchain treasury matches intended `PRISONERS_TREASURY`
 - [ ] Confirm onchain verifier matches intended `PRISONERS_AUTH_VERIFIER`

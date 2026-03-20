@@ -24,7 +24,7 @@ const AUTH_FLOW_BOUNDARY_NOTE =
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema local auth flow wrapper
+Prisoners DAOlemma local auth flow wrapper
 
 ${AUTH_FLOW_BOUNDARY_NOTE}
 

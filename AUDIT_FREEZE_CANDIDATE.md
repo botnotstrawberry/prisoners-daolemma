@@ -1,7 +1,7 @@
-# Prisoners DAOllema Audit Freeze Candidate
+# Prisoners DAOlemma Audit Freeze Candidate
 
 Date: 2026-03-20 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 Purpose: identify the current bounded-v1 audit-freeze candidate and the evidence that should travel with it.
 
 ## Current state summary
@@ -46,11 +46,11 @@ The core bounded-v1 contract posture remains intentionally the same:
 ## Likely include in the audit-freeze candidate
 
 ### Primary onchain/deploy/config surface
-- `packages/foundry/contracts/PrisonersDaollema.sol`
+- `packages/foundry/contracts/PrisonersDAOlemma.sol`
 - `packages/foundry/contracts/AgentAuthRegistry.sol`
 - `packages/foundry/contracts/GameChat.sol`
 - `packages/foundry/contracts/interfaces/IGameChatHost.sol`
-- `packages/foundry/script/DeployPrisonersDaollema.s.sol`
+- `packages/foundry/script/DeployPrisonersDAOlemma.s.sol`
 - `packages/foundry/script/DeployHelpers.s.sol`
 - `packages/foundry/script/VerifyAll.s.sol`
 - `package.json`

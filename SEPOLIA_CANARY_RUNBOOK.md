@@ -13,7 +13,7 @@ It is intentionally conservative:
 
 A base canary should prove the current repo can do all of the following on **Base Sepolia**:
 
-1. deploy the current `AgentAuthRegistry` + `PrisonersDaollema` + `GameChat` trio
+1. deploy the current `AgentAuthRegistry` + `PrisonersDAOlemma` + `GameChat` trio
 2. confirm owner / treasury / verifier wiring onchain
 3. whitelist real causes on the live deployment
 4. admit at least a few wallets through the current auth path
@@ -149,8 +149,8 @@ yarn canary:deployment -- \
 
 What you want to confirm:
 
-- `GameChat.game()` points at the deployed `PrisonersDaollema`
-- `PrisonersDaollema.authRegistry()` points at the deployed `AgentAuthRegistry`
+- `GameChat.game()` points at the deployed `PrisonersDAOlemma`
+- `PrisonersDAOlemma.authRegistry()` points at the deployed `AgentAuthRegistry`
 - onchain owner / treasury / verifier match the intended `.env` values
 - onchain default config still matches the recommended canary profile
 - `currentGameId == 0`

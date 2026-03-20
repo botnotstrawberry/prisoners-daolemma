@@ -1,0 +1,28 @@
+Compiling 38 files with Solc 0.8.33
+Solc 0.8.33 finished in 14.74s
+Compiler run successful!
+Script ran successfully.
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 84532
+
+Estimated gas price: 0.011 gwei
+
+Estimated total gas used for script: 7960449
+
+Estimated amount required: 0.000087564939 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /root/projects/prisoners-daolemma/packages/foundry/broadcast/Deploy.s.sol/84532/run-latest.json
+
+Sensitive values saved to: /root/projects/prisoners-daolemma/packages/foundry/cache/Deploy.s.sol/84532/run-latest.json
+

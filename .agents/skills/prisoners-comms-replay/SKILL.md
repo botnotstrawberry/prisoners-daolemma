@@ -1,4 +1,4 @@
-# Skill: Prisoners DAOllema Comms & Replay
+# Skill: Prisoners DAOlemma Comms & Replay
 
 Use this skill when implementing or reviewing:
 - cause-scoped chat

@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     AgentAuthRegistry: {
-      address: "0xcabde80aa0677935c8c30f5595299f6325e3b8ed",
+      address: "0x5a892f6d6d7baf6a50e03f40d5e25998b587a94c",
       abi: [
         {
           type: "constructor",
@@ -640,10 +640,216 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39049210,
+      deployedOnBlock: 39136850,
     },
-    PrisonersDaollema: {
-      address: "0xbababfbbdbae58457e8b83aaa1b37df6e0990fff",
+    GameChat: {
+      address: "0xdab39367ad95bbe7cc9a512128f55c4b8e55d252",
+      abi: [
+        {
+          type: "constructor",
+          inputs: [
+            {
+              name: "game_",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "MAX_MESSAGE_BYTES",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint16",
+              internalType: "uint16",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "game",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "contract IGameChatHost",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "messageCount",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "postCause",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              internalType: "uint16",
+            },
+            {
+              name: "text",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "messageId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "postGlobal",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "text",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "messageId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "MessagePosted",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "messageId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+            {
+              name: "sender",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "round",
+              type: "uint32",
+              indexed: false,
+              internalType: "uint32",
+            },
+            {
+              name: "phase",
+              type: "uint8",
+              indexed: false,
+              internalType: "uint8",
+            },
+            {
+              name: "scope",
+              type: "uint8",
+              indexed: false,
+              internalType: "enum GameChat.Scope",
+            },
+            {
+              name: "causeId",
+              type: "uint16",
+              indexed: false,
+              internalType: "uint16",
+            },
+            {
+              name: "createdAt",
+              type: "uint64",
+              indexed: false,
+              internalType: "uint64",
+            },
+            {
+              name: "text",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "EmptyMessage",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidGameContract",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MessageTooLong",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "MissingGame",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotAlive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotJoined",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "WrongCause",
+          inputs: [],
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 39136850,
+    },
+    PrisonersDAOlemma: {
+      address: "0xc8860547a33e4439d3b56782dcc6baef711d9a65",
       abi: [
         {
           type: "constructor",
@@ -666,7 +872,7 @@ const deployedContracts = {
             {
               name: "defaultConfig_",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.GameConfig",
+              internalType: "struct PrisonersDAOlemma.GameConfig",
               components: [
                 {
                   name: "entryFeeWei",
@@ -981,12 +1187,48 @@ const deployedContracts = {
         },
         {
           type: "function",
+          name: "claimFor",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "winner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
           name: "claimRefund",
           inputs: [
             {
               name: "gameId",
               type: "uint256",
               internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "claimTo",
+          inputs: [
+            {
+              name: "gameId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "recipient",
+              type: "address",
+              internalType: "address",
             },
           ],
           outputs: [],
@@ -1032,7 +1274,7 @@ const deployedContracts = {
             {
               name: "choice",
               type: "uint8",
-              internalType: "enum PrisonersDaollema.Choice",
+              internalType: "enum PrisonersDAOlemma.Choice",
             },
             {
               name: "salt",
@@ -1056,7 +1298,7 @@ const deployedContracts = {
             {
               name: "newDefaultConfig",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.GameConfig",
+              internalType: "struct PrisonersDAOlemma.GameConfig",
               components: [
                 {
                   name: "entryFeeWei",
@@ -1360,7 +1602,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.CauseDefinition",
+              internalType: "struct PrisonersDAOlemma.CauseDefinition",
               components: [
                 {
                   name: "active",
@@ -1390,7 +1632,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.GameConfig",
+              internalType: "struct PrisonersDAOlemma.GameConfig",
               components: [
                 {
                   name: "entryFeeWei",
@@ -1456,7 +1698,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.GameSnapshot",
+              internalType: "struct PrisonersDAOlemma.GameSnapshot",
               components: [
                 {
                   name: "entryFeeWei",
@@ -1561,12 +1803,12 @@ const deployedContracts = {
                 {
                   name: "phase",
                   type: "uint8",
-                  internalType: "enum PrisonersDaollema.Phase",
+                  internalType: "enum PrisonersDAOlemma.Phase",
                 },
                 {
                   name: "outcome",
                   type: "uint8",
-                  internalType: "enum PrisonersDaollema.Outcome",
+                  internalType: "enum PrisonersDAOlemma.Outcome",
                 },
                 {
                   name: "treasury",
@@ -1597,7 +1839,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.GameCauseState",
+              internalType: "struct PrisonersDAOlemma.GameCauseState",
               components: [
                 {
                   name: "used",
@@ -1643,7 +1885,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.PlayerState",
+              internalType: "struct PrisonersDAOlemma.PlayerState",
               components: [
                 {
                   name: "joined",
@@ -1698,12 +1940,12 @@ const deployedContracts = {
                 {
                   name: "revealedChoice",
                   type: "uint8",
-                  internalType: "enum PrisonersDaollema.Choice",
+                  internalType: "enum PrisonersDAOlemma.Choice",
                 },
                 {
                   name: "effectiveChoice",
                   type: "uint8",
-                  internalType: "enum PrisonersDaollema.Choice",
+                  internalType: "enum PrisonersDAOlemma.Choice",
                 },
                 {
                   name: "lastChoiceRound",
@@ -1729,7 +1971,7 @@ const deployedContracts = {
             {
               name: "",
               type: "tuple",
-              internalType: "struct PrisonersDaollema.SettlementState",
+              internalType: "struct PrisonersDAOlemma.SettlementState",
               components: [
                 {
                   name: "totalPotWei",
@@ -2089,7 +2331,7 @@ const deployedContracts = {
             {
               name: "choice",
               type: "uint8",
-              internalType: "enum PrisonersDaollema.Choice",
+              internalType: "enum PrisonersDAOlemma.Choice",
             },
             {
               name: "salt",
@@ -2431,7 +2673,7 @@ const deployedContracts = {
               name: "choice",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Choice",
+              internalType: "enum PrisonersDAOlemma.Choice",
             },
             {
               name: "defaultedCommit",
@@ -2518,7 +2760,7 @@ const deployedContracts = {
               name: "outcome",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Outcome",
+              internalType: "enum PrisonersDAOlemma.Outcome",
             },
             {
               name: "round",
@@ -2605,7 +2847,7 @@ const deployedContracts = {
               name: "newPhase",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Phase",
+              internalType: "enum PrisonersDAOlemma.Phase",
             },
           ],
           anonymous: false,
@@ -2636,7 +2878,7 @@ const deployedContracts = {
               name: "choice",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Choice",
+              internalType: "enum PrisonersDAOlemma.Choice",
             },
           ],
           anonymous: false,
@@ -2778,7 +3020,7 @@ const deployedContracts = {
               name: "choice",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Choice",
+              internalType: "enum PrisonersDAOlemma.Choice",
             },
           ],
           anonymous: false,
@@ -2852,7 +3094,7 @@ const deployedContracts = {
               name: "outcome",
               type: "uint8",
               indexed: false,
-              internalType: "enum PrisonersDaollema.Outcome",
+              internalType: "enum PrisonersDAOlemma.Outcome",
             },
             {
               name: "totalPotWei",
@@ -3202,213 +3444,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39049210,
-    },
-    GameChat: {
-      address: "0x232bb450c63c9df8d8a832a02adf8349b02bfeb6",
-      abi: [
-        {
-          type: "constructor",
-          inputs: [
-            {
-              name: "game_",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "MAX_MESSAGE_BYTES",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint16",
-              internalType: "uint16",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "game",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "contract IGameChatHost",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "messageCount",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "postCause",
-          inputs: [
-            {
-              name: "gameId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "causeId",
-              type: "uint16",
-              internalType: "uint16",
-            },
-            {
-              name: "text",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [
-            {
-              name: "messageId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "postGlobal",
-          inputs: [
-            {
-              name: "gameId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "text",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [
-            {
-              name: "messageId",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "MessagePosted",
-          inputs: [
-            {
-              name: "gameId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "messageId",
-              type: "uint256",
-              indexed: true,
-              internalType: "uint256",
-            },
-            {
-              name: "sender",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "round",
-              type: "uint32",
-              indexed: false,
-              internalType: "uint32",
-            },
-            {
-              name: "phase",
-              type: "uint8",
-              indexed: false,
-              internalType: "uint8",
-            },
-            {
-              name: "scope",
-              type: "uint8",
-              indexed: false,
-              internalType: "enum GameChat.Scope",
-            },
-            {
-              name: "causeId",
-              type: "uint16",
-              indexed: false,
-              internalType: "uint16",
-            },
-            {
-              name: "createdAt",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-            {
-              name: "text",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "error",
-          name: "EmptyMessage",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidGameContract",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "MessageTooLong",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "MissingGame",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotAlive",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotJoined",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "WrongCause",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 39049210,
+      deployedOnBlock: 39136850,
     },
   },
 } as const;

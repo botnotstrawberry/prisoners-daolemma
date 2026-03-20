@@ -15,9 +15,9 @@ import {
 } from "./authTooling.js";
 
 export const JUDGE_EVIDENCE_SCHEMA =
-  "prisoners-daollema/judge-evidence-v0";
+  "prisoners-daolemma/judge-evidence-v0";
 export const LOCAL_PROOF_PACK_SCHEMA =
-  "prisoners-daollema/local-proof-pack-v1";
+  "prisoners-daolemma/local-proof-pack-v1";
 export const JUDGE_EVIDENCE_BOUNDARY_NOTE =
   "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.";
 
@@ -974,7 +974,7 @@ export function buildJudgeEvidenceIndex({
   return {
     schemaVersion: JUDGE_EVIDENCE_SCHEMA,
     generatedAt: new Date().toISOString(),
-    title: title?.trim() || "Prisoners DAOllema Judge Evidence Pack",
+    title: title?.trim() || "Prisoners DAOlemma Judge Evidence Pack",
     boundaryNote: JUDGE_EVIDENCE_BOUNDARY_NOTE,
     bundleType,
     bundleDir: displayPath(PACKAGE_ROOT, bundleDir),
@@ -1321,7 +1321,7 @@ export function printJudgeEvidenceSummary(result) {
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema judge evidence pack helper
+Prisoners DAOlemma judge evidence pack helper
 
 ${JUDGE_EVIDENCE_BOUNDARY_NOTE}
 

@@ -20,7 +20,7 @@ import {
 export const GAMEPLAY_BOUNDARY_NOTE =
   "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.";
 export const PREPARED_COMMIT_SCHEMA_VERSION =
-  "prisoners-daollema/commit-bundle-v0";
+  "prisoners-daolemma/commit-bundle-v0";
 export const PREPARED_COMMIT_SECRET_NOTE =
   "Prepared commit bundles include the salt needed for reveal. Treat the bundle as round-secret material until reveal is submitted.";
 
@@ -534,7 +534,7 @@ async function resolveGameContext(options = {}, config = {}) {
   const chainId = Number(network.chainId);
   const gameAddress = resolveContractRef(options.game, {
     chainId,
-    defaultName: "PrisonersDaollema",
+    defaultName: "PrisonersDAOlemma",
     required: true,
     label: "game",
   });

@@ -1,4 +1,4 @@
-# CONTRACT SPEC: Prisoners DAOllema v1
+# CONTRACT SPEC: Prisoners DAOlemma v1
 
 **Date:** 2026-03-14  
 **Status:** Recommended contract-level spec  
@@ -7,7 +7,7 @@
 ## 1. Contract set
 
 Recommended v1 contract set:
-- `PrisonersDaollema`
+- `PrisonersDAOlemma`
 - `AgentAuthRegistry`
 - `GameChat`
 
@@ -15,7 +15,7 @@ Optional later:
 - `AgentProfileRegistry`
 - `DelegationAdapter`
 
-## 2. `PrisonersDaollema` responsibilities
+## 2. `PrisonersDAOlemma` responsibilities
 
 The main game contract owns:
 - game lifecycle
@@ -234,7 +234,7 @@ Must never retroactively change active/ended game settlement:
 ## 12. Recommended implementation order
 
 1. `AgentAuthRegistry`
-2. `PrisonersDaollema` lifecycle + roster
+2. `PrisonersDAOlemma` lifecycle + roster
 3. commit/reveal + resolution
 4. payout/refund logic
 5. `GameChat`
@@ -243,7 +243,7 @@ Must never retroactively change active/ended game settlement:
 ## 13. Bottom line
 
 The contract architecture should keep:
-- **money/rules** in `PrisonersDaollema`
+- **money/rules** in `PrisonersDAOlemma`
 - **admission** in `AgentAuthRegistry`
 - **public messaging** in `GameChat`
 

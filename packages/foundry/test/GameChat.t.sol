@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import { Test } from "forge-std/Test.sol";
 import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
 import { GameChat } from "../contracts/GameChat.sol";
-import { PrisonersDaollema } from "../contracts/PrisonersDaollema.sol";
+import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 import { IGameChatHost } from "../contracts/interfaces/IGameChatHost.sol";
 
 contract GameChatTest is Test {
@@ -19,7 +19,7 @@ contract GameChatTest is Test {
     uint256 internal verifierPk = 0xB0B;
 
     AgentAuthRegistry internal registry;
-    PrisonersDaollema internal realGame;
+    PrisonersDAOlemma internal realGame;
     GameChat internal chat;
 
     MockGameChatHost internal mockGame;
@@ -58,7 +58,7 @@ contract GameChatTest is Test {
         vm.deal(outsider, 10 ether);
 
         registry = new AgentAuthRegistry(owner, vm.addr(verifierPk));
-        realGame = new PrisonersDaollema(owner, treasury, address(registry), _defaultConfig());
+        realGame = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
         chat = new GameChat(address(realGame));
 
         vm.startPrank(owner);
@@ -82,7 +82,7 @@ contract GameChatTest is Test {
     }
 
     function testEliminatedParticipantCanStillPostGlobal() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, false, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Reveal));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, false, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Reveal));
 
         vm.prank(player1);
         uint256 messageId = mockChat.postGlobal(MOCK_GAME_ID, "still in the public feed");
@@ -110,7 +110,7 @@ contract GameChatTest is Test {
     }
 
     function testCannotPostEmptyGlobalMessage() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Commit));
 
         vm.expectRevert(GameChat.EmptyMessage.selector);
         vm.prank(player1);
@@ -120,7 +120,7 @@ contract GameChatTest is Test {
     }
 
     function testCannotPostOversizedGlobalMessage() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Commit));
 
         string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()) + 1);
 
@@ -132,7 +132,7 @@ contract GameChatTest is Test {
     }
 
     function testMaxLengthGlobalMessageIsAllowed() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Commit));
 
         string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()));
 
@@ -162,7 +162,7 @@ contract GameChatTest is Test {
     }
 
     function testEliminatedParticipantCannotPostCauseChat() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, false, CAUSE_A, 5, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, false, CAUSE_A, 5, uint8(PrisonersDAOlemma.Phase.Commit));
 
         vm.expectRevert(GameChat.NotAlive.selector);
         vm.prank(player1);
@@ -190,7 +190,7 @@ contract GameChatTest is Test {
     }
 
     function testCannotPostEmptyCauseMessage() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Commit));
 
         vm.expectRevert(GameChat.EmptyMessage.selector);
         vm.prank(player1);
@@ -200,7 +200,7 @@ contract GameChatTest is Test {
     }
 
     function testCannotPostOversizedCauseMessage() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 3, uint8(PrisonersDAOlemma.Phase.Commit));
 
         string memory text = _messageOfLength(uint256(mockChat.MAX_MESSAGE_BYTES()) + 1);
 
@@ -212,7 +212,7 @@ contract GameChatTest is Test {
     }
 
     function testMessageEventCarriesDeterministicScopeAndGameContext() public {
-        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 7, uint8(PrisonersDaollema.Phase.Commit));
+        _seedMockPlayer(MOCK_GAME_ID, player1, true, true, CAUSE_A, 7, uint8(PrisonersDAOlemma.Phase.Commit));
 
         vm.expectEmit(true, true, true, true, address(mockChat));
         emit MessagePosted(
@@ -220,7 +220,7 @@ contract GameChatTest is Test {
             1,
             player1,
             7,
-            uint8(PrisonersDaollema.Phase.Commit),
+            uint8(PrisonersDAOlemma.Phase.Commit),
             GameChat.Scope.Global,
             0,
             uint64(block.timestamp),
@@ -236,7 +236,7 @@ contract GameChatTest is Test {
             2,
             player1,
             7,
-            uint8(PrisonersDaollema.Phase.Commit),
+            uint8(PrisonersDAOlemma.Phase.Commit),
             GameChat.Scope.Cause,
             CAUSE_A,
             uint64(block.timestamp),
@@ -298,8 +298,8 @@ contract GameChatTest is Test {
         return string(buffer);
     }
 
-    function _defaultConfig() internal pure returns (PrisonersDaollema.GameConfig memory) {
-        return PrisonersDaollema.GameConfig({
+    function _defaultConfig() internal pure returns (PrisonersDAOlemma.GameConfig memory) {
+        return PrisonersDAOlemma.GameConfig({
             entryFeeWei: 0.001 ether,
             creatorFeeBps: 100,
             causeFeeBps: 100,

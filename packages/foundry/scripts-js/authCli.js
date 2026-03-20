@@ -27,7 +27,7 @@ const MAIN_BOUNDARY_NOTE =
 
 function printMainHelp() {
   console.log(`
-Prisoners DAOllema auth tooling
+Prisoners DAOlemma auth tooling
 
 ${MAIN_BOUNDARY_NOTE}
 

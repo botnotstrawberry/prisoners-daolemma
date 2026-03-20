@@ -1,4 +1,4 @@
-# TASKS: Prisoners DAOllema
+# TASKS: Prisoners DAOlemma
 
 ## Priority guide
 - **P0** = required for a serious hackathon submission and safe pilot path

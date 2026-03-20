@@ -1,9 +1,10 @@
 {
-  "name": "@prisoners-daollema/nextjs",
+  "name": "@prisoners-daolemma/nextjs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "cd ../.. && yarn games:publish && yarn workspace @prisoners-daolemma/nextjs build:app",
+    "build:app": "next build",
     "check-types": "tsc --noEmit --incremental",
     "dev": "next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",

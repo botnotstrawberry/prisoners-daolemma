@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-global",
+  "chainId": 84532,
+  "game": "0xc8860547a33E4439D3b56782DCC6BaEf711D9a65",
+  "chat": "0xdaB39367ad95bBE7CC9A512128F55c4B8E55D252",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0xa3d714b6fec7e682af1130497e3a77798fc24f0e7e6474b0a99a0eda42c224fa",
+  "blockNumber": 39136962,
+  "messageId": 1,
+  "round": 0,
+  "phase": "Joining",
+  "phaseCode": 1,
+  "scope": "global",
+  "causeId": null,
+  "createdAt": 1774042212,
+  "text": "Fresh Sepolia rehearsal: trust, cooperation, and incentives under pressure."
+}

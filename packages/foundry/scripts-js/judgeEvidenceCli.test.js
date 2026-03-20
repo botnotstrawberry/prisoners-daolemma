@@ -80,7 +80,7 @@ test("buildJudgeEvidenceIndex summarizes compact local proof packs honestly", ()
     join(bundleDir, "local-proof-pack.json"),
     JSON.stringify(
       {
-        schemaVersion: "prisoners-daollema/local-proof-pack-v1",
+        schemaVersion: "prisoners-daolemma/local-proof-pack-v1",
         title: "Compact local proof pack",
         generatedAt: "2026-03-16T02:55:00.000Z",
         bundleBoundaryNote:

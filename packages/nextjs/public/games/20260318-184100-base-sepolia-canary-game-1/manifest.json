@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "prisoners-daolemma/web-game-manifest-v1",
+  "slug": "20260318-184100-base-sepolia-canary-game-1",
+  "title": "Game 1 · Base Sepolia",
+  "sourceKind": "canary",
+  "sourceRun": "base-sepolia/20260318-184100-base-sepolia-canary",
+  "sourceLabel": "Canary run 20260318-184100-base-sepolia-canary (base-sepolia)",
+  "sourcePath": "packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/query/game-1-export-final",
+  "gameId": 1,
+  "chainId": 84532,
+  "networkKey": "base-sepolia",
+  "networkLabel": "Base Sepolia",
+  "createdAt": 1773867082,
+  "exportedAt": 1773873934,
+  "phase": "Ended",
+  "outcome": "Winners",
+  "terminalPath": "winner-claims",
+  "round": 3,
+  "shareStreak": 3,
+  "counts": {
+    "joined": 3,
+    "alive": 3,
+    "claimed": 3,
+    "refunded": 0,
+    "usedCauses": 3,
+    "committed": 1,
+    "revealed": 1,
+    "messages": 2,
+    "rounds": 3
+  },
+  "economics": {
+    "entryFeeWei": "1000000000000000",
+    "totalPotWei": "3000000000000000",
+    "creatorFeeWei": "30000000000000",
+    "winnerCount": 3,
+    "winnerShareWei": "990000000000000",
+    "noWinnerCausePoolWei": "0"
+  },
+  "takeaway": "Includes 2 onchain coalition/global messages tied to gameplay.",
+  "analysis": {
+    "messageSignals": [],
+    "divergenceCount": 0,
+    "divergences": [],
+    "coalitionCount": 3,
+    "featuredStory": null
+  },
+  "urls": {
+    "detail": "/games/20260318-184100-base-sepolia-canary-game-1",
+    "manifest": "/games/20260318-184100-base-sepolia-canary-game-1/manifest.json",
+    "gameSummary": "/games/20260318-184100-base-sepolia-canary-game-1/game-summary.json",
+    "roster": "/games/20260318-184100-base-sepolia-canary-game-1/roster.json",
+    "causes": "/games/20260318-184100-base-sepolia-canary-game-1/causes.json",
+    "rounds": "/games/20260318-184100-base-sepolia-canary-game-1/rounds.json",
+    "auth": "/games/20260318-184100-base-sepolia-canary-game-1/auth.json",
+    "payouts": "/games/20260318-184100-base-sepolia-canary-game-1/payouts.json",
+    "messagesJsonl": "/games/20260318-184100-base-sepolia-canary-game-1/messages.jsonl",
+    "messagesJson": "/games/20260318-184100-base-sepolia-canary-game-1/messages.json",
+    "rawExportManifest": "/games/20260318-184100-base-sepolia-canary-game-1/export-manifest.json"
+  }
+}

@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import { IGameChatHost } from "./interfaces/IGameChatHost.sol";
 
 /// @title GameChat
-/// @notice Minimal public onchain messaging for Prisoners DAOllema games.
+/// @notice Minimal public onchain messaging for Prisoners DAOlemma games.
 /// @dev Message history is represented by events plus a monotonic message counter.
 ///      The contract is read-only against game truth and does not duplicate player state.
 contract GameChat {

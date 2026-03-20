@@ -1,5 +1,5 @@
 {
-  "name": "@prisoners-daollema/foundry",
+  "name": "@prisoners-daolemma/foundry",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
@@ -19,6 +19,7 @@
     "query:messages": "node scripts-js/queryCli.js messages",
     "query:summary": "node scripts-js/queryCli.js summary",
     "judge:evidence": "node scripts-js/judgeEvidenceCli.js",
+    "games:publish": "node scripts-js/publishGamesCli.js",
     "canary": "node scripts-js/canaryCli.js",
     "canary:preflight": "node scripts-js/canaryCli.js preflight",
     "canary:deployment": "node scripts-js/canaryCli.js deployment",

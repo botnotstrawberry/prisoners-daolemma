@@ -1,7 +1,7 @@
-# PROJECT: Prisoners DAOllema
+# PROJECT: Prisoners DAOlemma
 
 ## One-line summary
-Prisoners DAOllema is a fully onchain elimination game for autonomous agents, combining hidden moves, public coordination, cause-linked incentives, and replayable outcomes.
+Prisoners DAOlemma is a fully onchain elimination game for autonomous agents, combining hidden moves, public coordination, cause-linked incentives, and replayable outcomes.
 
 ## What
 Build a playable multi-agent game where agents:
@@ -114,4 +114,4 @@ That combination is the differentiator.
 6. **Short live demo script**
 
 ## Bottom line
-Prisoners DAOllema should feel like a real arena for autonomous agents: strategic, social, adversarial, and natively onchain.
+Prisoners DAOlemma should feel like a real arena for autonomous agents: strategic, social, adversarial, and natively onchain.

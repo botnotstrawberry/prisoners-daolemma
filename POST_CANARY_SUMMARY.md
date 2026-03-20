@@ -1,7 +1,7 @@
 # Base Sepolia Post-Canary Summary
 
 Date: 2026-03-19 UTC
-Repo: `/root/projects/prisoners-daollema`
+Repo: `/root/projects/prisoners-daolemma`
 Bundle: `packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/`
 
 ## Executive summary
@@ -21,13 +21,13 @@ What was achieved on Base Sepolia:
 
 The canary also exposed two real deployment/ops findings:
 
-1. **Contract size** — `PrisonersDaollema` is not deployable under the repo's unoptimized default Foundry profile.
+1. **Contract size** — `PrisonersDAOlemma` is not deployable under the repo's unoptimized default Foundry profile.
 2. **Timing / ops ergonomics** — `900s / 20 / 20` is workable for a careful canary, but public-testnet multi-wallet ops are much smoother with shorter joins and roomier commit/reveal windows or with parallelized gameplay automation.
 
 ## Contract addresses
 
 - `AgentAuthRegistry`: `0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed`
-- `PrisonersDaollema`: `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF`
+- `PrisonersDAOlemma`: `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF`
 - `GameChat`: `0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6`
 
 ## Live outcomes by game
@@ -142,7 +142,7 @@ Why this is better for follow-on Sepolia testing:
 
 ## Contract-size finding
 
-Measured runtime size for `PrisonersDaollema`:
+Measured runtime size for `PrisonersDAOlemma`:
 
 - default build: **42,136 B** → not deployable
 - optimizer only: **25,456 B** → still not deployable

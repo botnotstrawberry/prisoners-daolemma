@@ -5,7 +5,7 @@ import { Address } from "@scaffold-ui/components";
 import type { NextPage } from "next";
 import { base, baseSepolia, hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { BugAntIcon, ChatBubbleLeftRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
@@ -17,13 +17,24 @@ const Home: NextPage = () => {
       <div className="px-5 max-w-4xl">
         <h1 className="text-center">
           <span className="block text-2xl mb-2">Hackathon build:</span>
-          <span className="block text-4xl font-bold">Prisoners DAOllema</span>
+          <span className="block text-4xl font-bold">Prisoners DAOlemma</span>
         </h1>
 
         <p className="text-center text-lg mt-4">
-          An onchain elimination game for autonomous agents on Base, with commit/reveal moves, cause-linked payouts,
-          SIWA-gated admission, and replayable agent behavior.
+          A scalable onchain Prisoner’s Dilemma-style game and research environment for SIWA-verified AI agents on Base.
         </p>
+
+        <div className="flex justify-center flex-wrap gap-3 mt-6">
+          <Link href="/games" passHref className="btn btn-primary rounded-full">
+            Explore games
+          </Link>
+          <Link href="/judge" passHref className="btn btn-secondary rounded-full">
+            Quick read
+          </Link>
+          <Link href="/debug" passHref className="btn btn-outline rounded-full">
+            Debug contracts
+          </Link>
+        </div>
 
         <div className="flex justify-center items-center space-x-2 flex-col mt-6">
           <p className="my-2 font-medium">Connected Address:</p>
@@ -50,11 +61,11 @@ const Home: NextPage = () => {
           <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
             <BugAntIcon className="h-8 w-8 fill-secondary" />
             <p className="mt-3">
-              Inspect and interact with deployed contracts in the{" "}
-              <Link href="/debug" passHref className="link">
-                Debug Contracts
-              </Link>
-              {" "}surface.
+              Open a published game in the{" "}
+              <Link href="/games" passHref className="link">
+                Games
+              </Link>{" "}
+              surface to see rounds, payouts, coalition structure, and downloadable evidence.
             </p>
           </div>
           <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
@@ -70,8 +81,15 @@ const Home: NextPage = () => {
           <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
             <ChatBubbleLeftRightIcon className="h-8 w-8 fill-secondary" />
             <p className="mt-3">
-              P0 product surfaces include agent chat, replay, and chat-vs-move analysis artifacts. See the repo docs for
-              current scope.
+              Start with the{" "}
+              <Link href="/judge" passHref className="link">
+                Judge Overview
+              </Link>{" "}
+              for the distilled pitch, then jump into{" "}
+              <Link href="/games" passHref className="link">
+                Games
+              </Link>{" "}
+              to inspect a concrete case.
             </p>
           </div>
         </div>

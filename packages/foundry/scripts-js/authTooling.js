@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 loadEnv({ path: join(__dirname, "..", ".env") });
 
-export const AUTH_DOMAIN_NAME = "PrisonersDaollemaAgentAuthRegistry";
+export const AUTH_DOMAIN_NAME = "PrisonersDAOlemmaAgentAuthRegistry";
 export const AUTH_DOMAIN_VERSION = "1";
 export const LOCAL_CHAIN_IDS = new Set([31337, 1337]);
 export const VERIFIER_PK_ENV = "AUTH_VERIFIER_PRIVATE_KEY";

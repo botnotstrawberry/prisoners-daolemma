@@ -6,7 +6,7 @@ Context: Base Sepolia canary deployment from commit `c75f63e`
 ## Why this exists
 
 The first live Base Sepolia deployment attempt exposed a real deployability issue:
-`PrisonersDaollema` does **not** fit under the EVM runtime code-size limit when built with the repo's default Foundry profile.
+`PrisonersDAOlemma` does **not** fit under the EVM runtime code-size limit when built with the repo's default Foundry profile.
 
 The successful live canary deploy used:
 
@@ -21,17 +21,17 @@ That compile configuration must become the explicit production/public-deploy bas
 Measured with `forge build --sizes --skip test` variants on 2026-03-18.
 
 ### Default profile
-- `PrisonersDaollema` runtime: **42,136 B**
+- `PrisonersDAOlemma` runtime: **42,136 B**
 - EVM runtime limit margin: **-17,560 B**
 - Result: **not deployable**
 
 ### Optimized only (`optimizer=true`, `optimizer_runs=200`)
-- `PrisonersDaollema` runtime: **25,456 B**
+- `PrisonersDAOlemma` runtime: **25,456 B**
 - EVM runtime limit margin: **-880 B**
 - Result: **still not deployable**
 
 ### Optimized + via-IR (`optimizer=true`, `optimizer_runs=200`, `via_ir=true`)
-- `PrisonersDaollema` runtime: **19,809 B**
+- `PrisonersDAOlemma` runtime: **19,809 B**
 - EVM runtime limit margin: **+4,767 B**
 - Result: **deployable**
 
@@ -66,7 +66,7 @@ Goal: prove the production compile mode is not only deployable, but still behavi
 At minimum, fail readiness if production runtime size is too close to the limit.
 
 Suggested thresholds:
-- hard fail if `PrisonersDaollema` runtime size > **24,576 B**
+- hard fail if `PrisonersDAOlemma` runtime size > **24,576 B**
 - warn if runtime margin < **1,500 B**
 - preferred comfort margin: **3,000+ B**
 

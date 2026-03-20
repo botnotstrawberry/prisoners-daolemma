@@ -19,11 +19,11 @@ loadEnv({ path: join(__dirname, "..", ".env") });
 export const BASE_SEPOLIA_CHAIN_ID = 84532;
 export const BASE_SEPOLIA_NETWORK_NAME = "baseSepolia";
 export const CANARY_PROFILE_SCHEMA =
-  "prisoners-daollema/base-sepolia-canary-profile-v0";
+  "prisoners-daolemma/base-sepolia-canary-profile-v0";
 export const CANARY_PREFLIGHT_SCHEMA =
-  "prisoners-daollema/base-sepolia-canary-preflight-v0";
+  "prisoners-daolemma/base-sepolia-canary-preflight-v0";
 export const CANARY_DEPLOYMENT_SCHEMA =
-  "prisoners-daollema/base-sepolia-canary-deployment-v0";
+  "prisoners-daolemma/base-sepolia-canary-deployment-v0";
 
 export const RECOMMENDED_CANARY_PROFILE = Object.freeze({
   entryFeeWei: ethers.utils.parseEther("0.001").toString(),
@@ -62,7 +62,7 @@ const CHAT_ADMIN_ABI = [
 
 function printMainHelp() {
   console.log(`
-Prisoners DAOllema Base Sepolia canary helper
+Prisoners DAOlemma Base Sepolia canary helper
 
 Usage:
   node scripts-js/canaryCli.js <command> [options]
@@ -115,7 +115,7 @@ Options:
   --json                          Print machine-readable JSON.
 
 What it checks:
-  - deployed AgentAuthRegistry / PrisonersDaollema / GameChat addresses from the repo deployment file
+  - deployed AgentAuthRegistry / PrisonersDAOlemma / GameChat addresses from the repo deployment file
   - owner / treasury / verifier wiring onchain
   - default config against the recommended Base Sepolia canary profile
   - chat->game and game->registry linkage
@@ -518,12 +518,12 @@ async function buildDeploymentReport(args = {}) {
   const deployments = JSON.parse(readFileSync(deploymentFile, "utf8"));
   const namedDeployments = extractNamedDeployments(deployments);
   const registryAddress = namedDeployments.AgentAuthRegistry;
-  const gameAddress = namedDeployments.PrisonersDaollema;
+  const gameAddress = namedDeployments.PrisonersDAOlemma;
   const chatAddress = namedDeployments.GameChat;
 
   if (!registryAddress || !gameAddress || !chatAddress) {
     throw new Error(
-      `Deployment file ${deploymentFile} must include AgentAuthRegistry, PrisonersDaollema, and GameChat addresses.`
+      `Deployment file ${deploymentFile} must include AgentAuthRegistry, PrisonersDAOlemma, and GameChat addresses.`
     );
   }
 
@@ -593,7 +593,7 @@ async function buildDeploymentReport(args = {}) {
 
   if (authRegistry.toLowerCase() !== registryAddress.toLowerCase()) {
     warnings.push(
-      `PrisonersDaollema.authRegistry() points to ${authRegistry}, not deployment-file registry ${registryAddress}.`
+      `PrisonersDAOlemma.authRegistry() points to ${authRegistry}, not deployment-file registry ${registryAddress}.`
     );
   }
   if (linkedGame.toLowerCase() !== gameAddress.toLowerCase()) {

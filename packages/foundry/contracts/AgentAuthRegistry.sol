@@ -6,7 +6,7 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 /// @title AgentAuthRegistry
-/// @notice Verifier-signed admission registry for Prisoners DAOllema v1.
+/// @notice Verifier-signed admission registry for Prisoners DAOlemma v1.
 /// @dev SIWA verification stays offchain. The verifier signs a compact permit and the gameplay wallet
 ///      registers it onchain. The game contract consumes only cheap registry reads.
 contract AgentAuthRegistry is Ownable, EIP712 {
@@ -61,7 +61,7 @@ contract AgentAuthRegistry is Ownable, EIP712 {
     );
     event AuthRevoked(address indexed wallet, bytes32 indexed agentKey);
 
-    constructor(address owner_, address verifier_) Ownable(owner_) EIP712("PrisonersDaollemaAgentAuthRegistry", "1") {
+    constructor(address owner_, address verifier_) Ownable(owner_) EIP712("PrisonersDAOlemmaAgentAuthRegistry", "1") {
         if (verifier_ == address(0)) revert InvalidVerifier();
         verifier = verifier_;
         emit VerifierUpdated(address(0), verifier_);

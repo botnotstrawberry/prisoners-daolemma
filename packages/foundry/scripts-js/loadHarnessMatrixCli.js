@@ -9,7 +9,7 @@ import {
 
 function printHelp() {
   console.log(`
-Prisoners DAOllema load harness matrix runner
+Prisoners DAOlemma load harness matrix runner
 
 ${LOAD_HARNESS_MATRIX_BOUNDARY_NOTE}
 

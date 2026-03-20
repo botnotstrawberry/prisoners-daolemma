@@ -21,7 +21,7 @@ import {
 
 function printMainHelp() {
   console.log(`
-Prisoners DAOllema gameplay/operator CLI
+Prisoners DAOlemma gameplay/operator CLI
 
 ${GAMEPLAY_BOUNDARY_NOTE}
 
@@ -66,7 +66,7 @@ function sharedSignerOptions() {
 function sharedGameOptions({ includeGameId = true, includeChat = false } = {}) {
   return `Common contract options:
   --rpc-url <url|network>                 Required unless AUTH_RPC_URL/RPC_URL is set.
-  --game <address|name>                   Game contract address or deployment name. Defaults to deployed PrisonersDaollema for the connected chain when available.
+  --game <address|name>                   Game contract address or deployment name. Defaults to deployed PrisonersDAOlemma for the connected chain when available.
 ${
   includeGameId
     ? "  --game-id <uint256>                     Optional. Defaults to activeGameId, then currentGameId.\n"
