@@ -1,38 +1,57 @@
 # Prisoners DAOllema Audit Freeze Candidate
 
-Date: 2026-03-19 UTC
+Date: 2026-03-20 UTC
 Repo: `/root/projects/prisoners-daollema`
-Purpose: identify what should likely be part of the next **audit-freeze candidate** versus what should stay out as generated evidence or secondary changes.
+Purpose: identify the current bounded-v1 audit-freeze candidate and the evidence that should travel with it.
 
 ## Current state summary
 
-A local audit-freeze candidate has now been prepared and committed.
+A new local audit-freeze candidate has been prepared to supersede the earlier bounded-v1 freeze candidate.
 
 Chosen local freeze candidate:
-- `2267ce521548cae9cce7cfb5ad001d936470c627`
+- `f8e0555ca932b32fa61701402784f324c54ba08d`
 
-### Important observation
-The working tree is no longer just deploy-script movement.
+Local tag:
+- `audit-freeze-candidate-20260320-mainnet-provenance`
 
-The most important onchain/deploy deltas now appear to be:
-- `packages/foundry/contracts/PrisonersDaollema.sol`
-- `packages/foundry/script/DeployPrisonersDaollema.s.sol`
-- `packages/foundry/script/VerifyAll.s.sol`
+Why this supersedes the earlier candidate:
+- it preserves the bounded-v1 contract posture
+- it tightens the mainnet-facing deploy/auth provenance path
+- it closes the dirty-tree / mutable-artifact audit blocker on the deploy/auth boundary
 
-The new contract-side delta is targeted rather than architectural:
+## What changed in this candidate
+
+The most important files added/updated relative to the earlier candidate are:
+- `scripts/run-base-mainnet-preflight.sh`
+- `scripts/run-base-mainnet-deploy.sh`
+- `scripts/run-base-mainnet-verify.sh`
+- `scripts/run-production-gates.sh`
+- `packages/foundry/.env.mainnet.example`
+
+Key deltas:
+- clean-tree provenance enforcement by default for mainnet-facing scripts
+- optional explicit head pinning via `EXPECTED_GIT_COMMIT`
+- explicit verifier-signer acknowledgment via `PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=true`
+- explicit `uint32` bound checks for duration fields in preflight
+- explicit `VERIFY_BROADCAST_FILE` requirement for verify provenance
+
+The core bounded-v1 contract posture remains intentionally the same:
 - bounded-v1 winner payout recovery helpers (`claimTo`, `claimFor`)
 - no protocol cap increase
 - no large-N redesign
+- hard `maxPlayers <= 256` posture remains unchanged
 
 ---
 
 ## Likely include in the audit-freeze candidate
 
-These files are the strongest candidates to include in the next launch/audit freeze commit.
-
 ### Primary onchain/deploy/config surface
 - `packages/foundry/contracts/PrisonersDaollema.sol`
+- `packages/foundry/contracts/AgentAuthRegistry.sol`
+- `packages/foundry/contracts/GameChat.sol`
+- `packages/foundry/contracts/interfaces/IGameChatHost.sol`
 - `packages/foundry/script/DeployPrisonersDaollema.s.sol`
+- `packages/foundry/script/DeployHelpers.s.sol`
 - `packages/foundry/script/VerifyAll.s.sol`
 - `package.json`
 - `scripts/run-production-gates.sh`
@@ -47,10 +66,12 @@ These files are the strongest candidates to include in the next launch/audit fre
 ### Audit prep docs
 - `AUDIT_READINESS.md`
 - `AUDIT_FREEZE_CANDIDATE.md`
+- `AUDIT_BLOCKERS.md`
+- `AUDIT_PACKET_INDEX.md`
 
 ---
 
-## Probably keep out of the audit-freeze commit
+## Keep out of the code freeze commit
 
 These are useful as evidence, but they should not be blindly mixed into the code freeze unless you explicitly want to version them.
 
@@ -64,92 +85,47 @@ These are useful as evidence, but they should not be blindly mixed into the code
 Reason:
 - they are evidence artifacts, not launch-candidate source code
 - they create noise when auditors want a stable code snapshot
-- they can still be handed to auditors separately as supporting evidence
+- they can be handed to auditors separately as supporting evidence
 
 ---
 
-## Secondary / not primary for the first contract-focused audit freeze
+## Candidate-pinned evidence to hand reviewers
 
-These changes matter for launch readiness, but they are not the first thing I would optimize for in a contract-security freeze.
+Primary clean bundles for this candidate:
+- `.mainnet-readiness/20260320T114449Z-production-gates/`
+- `.mainnet-readiness/20260320T115420Z-bounded-v1-audit-targets/`
 
-### Frontend / app-layer changes
-- `packages/nextjs/app/page.tsx`
-- `packages/nextjs/hooks/scaffold-eth/useScaffoldWatchContractEvent.ts`
-- `packages/nextjs/hooks/scaffold-eth/useTransactor.tsx`
-- `packages/nextjs/scaffold.config.ts`
-- `packages/nextjs/utils/scaffold-eth/contract.ts`
-- `packages/nextjs/.env.mainnet.example`
-
-Current read:
-- these look **launch-relevant** because they support explicit Base mainnet cutover and a few frontend type/runtime fixes
-- they are still **audit-secondary** relative to the contracts + deploy/auth boundary
-
-If the immediate goal is **smart contract security review**, these can be staged after or adjacent to the onchain freeze rather than blocking it.
+Supportive but secondary evidence:
+- `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
+- `packages/foundry/proof/local/20260316-auth-expiry-matrix-proof/`
+- `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`
+- `packages/foundry/canary/base-sepolia/20260318-184100-base-sepolia-canary/`
 
 ---
 
-## Decision points before freezing
+## Decision points that are now settled
 
-### 1) Keep or revert deploy-script hardening?
-The current deploy script appears to add:
-- strict env enforcement on Base mainnet
-- required explicit role/config addresses
-- required explicit numeric game config values
+### Keep the deploy/auth hardening diff?
+Current recommendation: **keep it**.
 
-Current recommendation after diff review:
-- **keep this change**
-- it is good deployment safety hardening
-- it reduces the chance of silently deploying with unsafe defaults on Base mainnet
+Why:
+- it tightens provenance and reviewer trust
+- it reduces misconfiguration risk in the live deploy path
+- it resolves the earlier audit blocker around mutable/dirty evidence provenance
 
-### 2) Reconcile parameter guidance
-Current docs/templates are closer to aligned now, but final launch values still remain an operator decision.
+### Audit scope shape?
+Current recommendation: **contracts + deploy/auth boundary**.
 
-Current state:
-- `packages/foundry/.env.mainnet.example` now uses a conservative example first-canary `PRISONERS_MAX_PLAYERS=5`
-- separately, the **hard v1 protocol cap remains `256`** and is intended to stay unchanged for v1
-- final first-game values should still be chosen deliberately at launch time
-
-This is mostly a **launch-parameter/template** issue rather than a contract-logic blocker.
-
-### 3) Decide audit scope shape
-Choose one:
-- **contracts-first audit freeze**
-- **contracts + deploy/auth system audit freeze**
-
-My recommendation:
-- use **contracts + deploy/auth boundary** as the first serious audit scope
-
-### 4) Decide how to handle frontend mainnet-cutover changes
-Current frontend diffs appear to do two things:
-- support explicit Base mainnet targeting in the app config/UI
-- fix a few type/runtime sharp edges
-
-Current recommendation after diff review:
-- treat these as **launch-adjacent but audit-secondary**
-- they do not need to block a contract/deploy/auth freeze
-- they can be merged alongside the freeze or immediately after, but should not be confused with core contract-review scope
-
----
-
-## Proposed next freeze sequence
-
-1. Decide whether the current deploy-script hardening stays.
-2. Reconcile `.env.mainnet.example` and mainnet parameter guidance.
-3. Separate code/config files from generated evidence artifacts.
-4. Pick the exact audit candidate commit.
-5. Re-run production gates on that exact commit if anything changed.
-6. Hand auditors:
-   - the frozen commit hash
-   - `AUDIT_READINESS.md`
-   - core design/testing docs
-   - latest passing production-gates bundle
-   - latest fresh Sepolia rehearsal bundle
+Why:
+- that matches the actual risk surface that still mattered after the contract-side bounded-v1 hardening
+- it avoids pretending the app/frontend are the primary security freeze target
 
 ---
 
 ## Practical recommendation
 
-If the goal is to get auditors looking soon, the best path is:
-- **do not wait for every frontend/detail to be perfect**
-- freeze the **contracts + deploy/auth boundary** first
-- keep evidence bundles adjacent, but not tangled into the audit commit
+If the goal is to get external reviewers looking soon, the right handoff is now:
+- use the freeze candidate above as the code target
+- keep the evidence bundles adjacent, not tangled into the code commit
+- say plainly that the internal bounded-v1 audit pass is complete on this candidate
+- keep operator-owned launch decisions separate from the audit-complete claim
