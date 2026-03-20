@@ -10,7 +10,11 @@ CHAIN_ID_EXPECTED=8453
 MAX_PLAYER_CAP=256
 MAX_CAUSE_CAP=16
 MAX_FEE_BPS=500
+MAX_UINT32=4294967295
 OUT_DIR="${OUT_DIR:-$ROOT/.mainnet-readiness/$(date -u +%Y%m%dT%H%M%SZ)-base-mainnet-preflight}"
+REQUIRE_CLEAN_GIT="${REQUIRE_CLEAN_GIT:-true}"
+EXPECTED_GIT_COMMIT="${EXPECTED_GIT_COMMIT:-}"
+PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER="${PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER:-false}"
 mkdir -p "$OUT_DIR"
 
 export FOUNDRY_PROFILE=production
@@ -18,6 +22,38 @@ export FOUNDRY_PROFILE=production
 fail() {
   echo "FAIL: $*" >&2
   exit 1
+}
+
+record_git_provenance() {
+  if git -C "$ROOT" rev-parse HEAD >/dev/null 2>&1; then
+    git -C "$ROOT" rev-parse HEAD > "$OUT_DIR/git-commit.txt"
+    git -C "$ROOT" status --short > "$OUT_DIR/git-status.txt"
+    git -C "$ROOT" diff --stat > "$OUT_DIR/git-diffstat.txt"
+  fi
+}
+
+require_clean_git() {
+  if [[ "$REQUIRE_CLEAN_GIT" != "true" ]]; then
+    return 0
+  fi
+
+  if ! git -C "$ROOT" rev-parse HEAD >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local head status
+  head="$(git -C "$ROOT" rev-parse HEAD)"
+  status="$(git -C "$ROOT" status --porcelain=v1)"
+
+  if [[ -n "$EXPECTED_GIT_COMMIT" && "$head" != "$EXPECTED_GIT_COMMIT" ]]; then
+    record_git_provenance
+    fail "expected git HEAD $EXPECTED_GIT_COMMIT but found $head"
+  fi
+
+  if [[ -n "$status" ]]; then
+    record_git_provenance
+    fail "git working tree must be clean before Base mainnet preflight (set REQUIRE_CLEAN_GIT=false to override intentionally)"
+  fi
 }
 
 if [[ -f "$FOUNDRY_DIR/.env" ]]; then
@@ -52,6 +88,7 @@ require_uint() {
 validate_address() {
   local key="$1"
   local value="${!key}"
+  local checksum
   if ! checksum=$(cast to-check-sum-address "$value" 2>/dev/null); then
     fail "${key} is not a valid address: ${value}"
   fi
@@ -60,6 +97,8 @@ validate_address() {
   fi
   echo "${checksum}"
 }
+
+require_clean_git
 
 for key in \
   PRISONERS_OWNER \
@@ -123,6 +162,10 @@ MAX_CAUSES="$PRISONERS_MAX_CAUSES"
 (( MAX_CAUSES <= MAX_PLAYERS )) || fail "PRISONERS_MAX_CAUSES cannot exceed PRISONERS_MAX_PLAYERS"
 (( CREATOR_FEE_BPS <= MAX_FEE_BPS )) || fail "PRISONERS_CREATOR_FEE_BPS cannot exceed ${MAX_FEE_BPS}"
 (( CAUSE_FEE_BPS <= MAX_FEE_BPS )) || fail "PRISONERS_CAUSE_FEE_BPS cannot exceed ${MAX_FEE_BPS}"
+(( JOIN_DURATION_SECONDS <= MAX_UINT32 )) || fail "PRISONERS_JOIN_DURATION_SECONDS cannot exceed ${MAX_UINT32} (uint32 max)"
+(( COMMIT_DURATION_BLOCKS <= MAX_UINT32 )) || fail "PRISONERS_COMMIT_DURATION_BLOCKS cannot exceed ${MAX_UINT32} (uint32 max)"
+(( REVEAL_DURATION_BLOCKS <= MAX_UINT32 )) || fail "PRISONERS_REVEAL_DURATION_BLOCKS cannot exceed ${MAX_UINT32} (uint32 max)"
+[[ "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" == "true" ]] || fail "set PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=true after confirming PRISONERS_AUTH_VERIFIER is an EOA with an available signing key"
 
 cat > "$OUT_DIR/launch-config.txt" <<EOF
 PRISONERS_OWNER=${OWNER_CHECKSUM}
@@ -137,6 +180,7 @@ PRISONERS_REVEAL_DURATION_BLOCKS=${REVEAL_DURATION_BLOCKS}
 PRISONERS_MIN_PLAYERS=${MIN_PLAYERS}
 PRISONERS_MAX_PLAYERS=${MAX_PLAYERS}
 PRISONERS_MAX_CAUSES=${MAX_CAUSES}
+PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=${PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER}
 EOF
 
 jq -n \
@@ -155,6 +199,8 @@ jq -n \
   --arg foundryProfile "$FOUNDRY_PROFILE" \
   --arg rpcUrl "$RPC_URL" \
   --arg deployerKeystore "$DEPLOYER_KEYSTORE" \
+  --arg authVerifierConfirmEoaSigner "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" \
+  --arg expectedGitCommit "$EXPECTED_GIT_COMMIT" \
   '{
     owner: $owner,
     treasury: $treasury,
@@ -173,27 +219,24 @@ jq -n \
     environment: {
       foundryProfile: $foundryProfile,
       rpcUrl: $rpcUrl,
-      deployerKeystore: $deployerKeystore
+      deployerKeystore: $deployerKeystore,
+      authVerifierConfirmEoaSigner: $authVerifierConfirmEoaSigner,
+      expectedGitCommit: $expectedGitCommit
     },
     bounds: {
       maxPlayerCap: 256,
       maxCauseCap: 16,
-      maxFeeBps: 500
+      maxFeeBps: 500,
+      maxUint32: 4294967295
     }
   }' > "$OUT_DIR/launch-config.json"
 
-if git -C "$ROOT" rev-parse HEAD >/dev/null 2>&1; then
-  git -C "$ROOT" rev-parse HEAD > "$OUT_DIR/git-commit.txt"
-  git -C "$ROOT" status --short > "$OUT_DIR/git-status.txt"
-  git -C "$ROOT" diff --stat > "$OUT_DIR/git-diffstat.txt"
-fi
+record_git_provenance
 
 DEPLOYER_ADDR=$(cast wallet address --keystore "/root/.foundry/keystores/${DEPLOYER_KEYSTORE}" --password-file "$DEPLOYER_PASSWORD_FILE")
 echo "$DEPLOYER_ADDR" | tee "$OUT_DIR/deployer-address.txt" >/dev/null
-printf '%s
-' "$DEPLOYER_KEYSTORE" > "$OUT_DIR/deployer-keystore.txt"
-printf '%s
-' "$RPC_URL" > "$OUT_DIR/rpc-url.txt"
+printf '%s\n' "$DEPLOYER_KEYSTORE" > "$OUT_DIR/deployer-keystore.txt"
+printf '%s\n' "$RPC_URL" > "$OUT_DIR/rpc-url.txt"
 
 CHAIN_ID=$(cast chain-id --rpc-url "$RPC_URL")
 if [[ "$CHAIN_ID" != "$CHAIN_ID_EXPECTED" ]]; then
@@ -201,6 +244,12 @@ if [[ "$CHAIN_ID" != "$CHAIN_ID_EXPECTED" ]]; then
 fi
 
 echo "$CHAIN_ID" | tee "$OUT_DIR/chain-id.txt" >/dev/null
+
+AUTH_VERIFIER_CODE=$(cast code "$AUTH_VERIFIER_CHECKSUM" --rpc-url "$RPC_URL")
+if [[ "$AUTH_VERIFIER_CODE" != "0x" && "$AUTH_VERIFIER_CODE" != "0x0" ]]; then
+  fail "PRISONERS_AUTH_VERIFIER must be an EOA signer address; contract code detected at ${AUTH_VERIFIER_CHECKSUM}"
+fi
+printf '%s\n' 'Confirmed: PRISONERS_AUTH_VERIFIER is expected to be an EOA with an available signing key; contract verifiers (e.g. Safe / EIP-1271) are not supported by the current AgentAuthRegistry ECDSA flow.' > "$OUT_DIR/auth-verifier-requirements.txt"
 
 BALANCE_WEI=$(cast balance "$DEPLOYER_ADDR" --rpc-url "$RPC_URL")
 echo "$BALANCE_WEI" | tee "$OUT_DIR/deployer-balance-wei.txt" >/dev/null
@@ -214,4 +263,10 @@ cd "$FOUNDRY_DIR"
 mkdir -p deployments
 FOUNDRY_PROFILE=production forge build --sizes --skip test | tee "$OUT_DIR/production-build-sizes.log" >/dev/null
 
-echo "PASS: Base mainnet preflight checks passed" | tee "$OUT_DIR/status.txt"
+cat > "$OUT_DIR/first-game-readiness.txt" <<EOF
+This preflight validates deploy-time config, provenance, chain, signer shape, and buildability.
+It does NOT prove the first game can be opened yet.
+Before createGame(), make sure at least one cause has been whitelisted onchain.
+EOF
+
+echo "PASS: Base mainnet deploy preflight checks passed (cause whitelist still must be configured before createGame)" | tee "$OUT_DIR/status.txt"
