@@ -166,5 +166,9 @@ export function formatWeiToEth(wei?: string | null) {
   if (!Number.isFinite(numeric)) return wei;
   if (numeric === 0) return "0 ETH";
   if (numeric < 0.001) return `${numeric.toPrecision(2)} ETH`;
-  return `${numeric.toFixed(numeric < 0.1 ? 4 : 3)} ETH`;
+
+  const formatted = (numeric < 0.1 ? numeric.toFixed(4) : numeric.toFixed(3))
+    .replace(/\.0+$/, "")
+    .replace(/(\.\d*?)0+$/, "$1");
+  return `${formatted} ETH`;
 }

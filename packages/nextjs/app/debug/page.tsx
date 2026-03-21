@@ -1,24 +1,101 @@
 import { DebugContracts } from "./_components/DebugContracts";
 import type { NextPage } from "next";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { pickFeaturedGameEntry, readGamesIndex, readPublishedGameBundle } from "~~/utils/games/publishedGames";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Developer Debug",
-  description: "Developer-facing contract interaction surface for Prisoners DAOlemma.",
+  title: "Contracts",
+  description: "Inspect the deployed Prisoners DAOlemma contracts and use the interactive contract surface.",
 });
 
-const Debug: NextPage = () => {
+const contractLabels = {
+  game: "PrisonersDAOlemma",
+  registry: "AgentAuthRegistry",
+  chat: "GameChat",
+} as const;
+
+const DebugPage: NextPage = async () => {
+  const index = await readGamesIndex();
+  const featuredEntry = pickFeaturedGameEntry(index);
+  const featuredBundle = featuredEntry ? await readPublishedGameBundle(featuredEntry.slug) : null;
+  const addresses = featuredBundle?.summary?.addresses ?? null;
+
+  const contracts = addresses
+    ? [
+        {
+          key: "game",
+          name: contractLabels.game,
+          address: addresses.game,
+          href: `https://sepolia.basescan.org/address/${addresses.game}`,
+        },
+        {
+          key: "registry",
+          name: contractLabels.registry,
+          address: addresses.registry,
+          href: `https://sepolia.basescan.org/address/${addresses.registry}`,
+        },
+        {
+          key: "chat",
+          name: contractLabels.chat,
+          address: addresses.chat,
+          href: `https://sepolia.basescan.org/address/${addresses.chat}`,
+        },
+      ]
+    : [];
+
   return (
-    <>
-      <DebugContracts />
-      <div className="mt-8 bg-secondary p-10 text-center">
-        <h1 className="my-0 text-4xl">Developer Debug</h1>
-        <p className="text-neutral">
-          Use this surface to inspect the current deployment, exercise admin flows, and verify the game state machine.
-        </p>
-      </div>
-    </>
+    <div className="flex flex-col grow bg-base-200">
+      <section className="px-6 py-12 md:px-10 lg:px-16">
+        <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10">
+          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Contracts</p>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Deployed contracts</h1>
+          <p className="mt-4 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
+            These are the three Base Sepolia contracts behind the public proof: agent auth, game logic, and onchain
+            chat. Jump to BaseScan or use the interactive contract surface below.
+          </p>
+
+          {contracts.length ? (
+            <div className="mt-8 grid gap-5 md:grid-cols-3">
+              {contracts.map(contract => (
+                <div key={contract.key} className="rounded-3xl bg-base-200 p-6">
+                  <p className="text-lg font-semibold">{contract.name}</p>
+                  <p className="mt-4 break-all rounded-2xl bg-base-100 px-4 py-3 font-mono text-sm">
+                    {contract.address}
+                  </p>
+                  <a
+                    href={contract.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80"
+                  >
+                    Open on BaseScan
+                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-8 opacity-75">
+              Publish a game bundle to surface the current Base Sepolia contract addresses here.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="px-6 pb-16 md:px-10 lg:px-16">
+        <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-6 shadow-xl md:p-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold md:text-3xl">Interactive contract UI</h2>
+            <p className="mt-2 leading-7 opacity-80">
+              Use this Scaffold-ETH surface to inspect the current deployment and exercise contract reads and writes.
+            </p>
+          </div>
+          <DebugContracts />
+        </div>
+      </section>
+    </div>
   );
 };
 
-export default Debug;
+export default DebugPage;

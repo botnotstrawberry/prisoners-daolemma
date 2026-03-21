@@ -14,7 +14,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 export const metadata = getMetadata({
   title: "Game Detail",
   description:
-    "Inspect a published Prisoners DAOlemma game, including rounds, messages, payouts, and downloadable evidence.",
+    "Inspect a published Prisoners DAOlemma game, including trust breaks, round-by-round outcomes, payouts, and evidence exports.",
 });
 
 type GameDetailPageProps = {
@@ -33,6 +33,28 @@ type SignalRecord = {
   actualChoice: string | null;
 };
 
+const numberWords: Record<number, string> = {
+  0: "zero",
+  1: "one",
+  2: "two",
+  3: "three",
+  4: "four",
+  5: "five",
+  6: "six",
+  7: "seven",
+  8: "eight",
+  9: "nine",
+  10: "ten",
+};
+
+function numberWord(value: number) {
+  return numberWords[value] ?? `${value}`;
+}
+
+function capitalize(value: string) {
+  return value ? value[0].toUpperCase() + value.slice(1) : value;
+}
+
 function choiceCounts(round: any) {
   const source =
     Array.isArray(round?.effectiveChoices) && round.effectiveChoices.length > 0
@@ -47,39 +69,78 @@ function choiceCounts(round: any) {
   return counts;
 }
 
+function causeBreakdownSentence(participants: any[]) {
+  const countsByCause = new Map<number, number>();
+
+  for (const participant of participants) {
+    if (typeof participant?.causeId === "number") {
+      countsByCause.set(participant.causeId, (countsByCause.get(participant.causeId) ?? 0) + 1);
+    }
+  }
+
+  const parts = Array.from(countsByCause.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([causeId, count]) => `${numberWord(count)} represented Cause ${causeId}`);
+
+  if (!parts.length) return null;
+  if (parts.length === 1) return `${capitalize(parts[0])}.`;
+  if (parts.length === 2) return `${capitalize(parts[0])}, and ${parts[1]}.`;
+  return `${capitalize(parts.slice(0, -1).join(", "))}, and ${parts.at(-1)}.`;
+}
+
+function outcomeBadge(outcome?: string | null) {
+  if (outcome === "Cancelled") {
+    return {
+      label: "Cancelled",
+      className: "border-error/25 bg-error/10 text-error",
+    };
+  }
+
+  if (outcome === "NoWinners") {
+    return {
+      label: "No Winners",
+      className: "border-warning/25 bg-warning/10 text-base-content",
+    };
+  }
+
+  return {
+    label: outcome ?? "Winners",
+    className: "border-success/20 bg-success/10 text-success",
+  };
+}
+
 function buildNarrativeSummary({
   manifest,
   participants,
   payoutParticipants,
   roundList,
   analysis,
+  messages,
 }: {
   manifest: any;
   participants: any[];
   payoutParticipants: any[];
   roundList: any[];
   analysis: any;
+  messages: any[];
 }) {
   const divergence: SignalRecord | undefined = analysis?.divergences?.[0];
-  const coalitionPartner: SignalRecord | undefined = analysis?.messageSignals?.find(
+  const openingSignal: SignalRecord | undefined = analysis?.messageSignals?.find(
     (signal: SignalRecord) => signal.wallet !== divergence?.wallet && signal.causeId === divergence?.causeId,
   );
-  const winner = payoutParticipants.find((participant: any) => (participant.claim?.netPrizeWei ?? "0") !== "0");
   const firstRound = roundList[0];
-  const causeCount = analysis?.coalitionCount ?? new Set(participants.map(participant => participant.causeId)).size;
+  const winner = payoutParticipants.find((participant: any) => (participant.claim?.grossPrizeWei ?? "0") !== "0");
+  const causeBreakdown = causeBreakdownSentence(participants);
 
   if (divergence && winner) {
-    const coalitionSetup = coalitionPartner
-      ? `${shortenAddress(coalitionPartner.wallet)} opened in cause chat with “${coalitionPartner.content}”, and `
-      : "";
-    const eliminationLine = firstRound?.resolution?.eliminatedCount
-      ? ` ${firstRound.resolution.eliminatedCount} sharer${firstRound.resolution.eliminatedCount === 1 ? " was" : "s were"} eliminated.`
-      : "";
+    const quotedOpening =
+      openingSignal?.content ?? messages.find(message => message?.causeId === divergence.causeId)?.content;
+    const eliminationCount = firstRound?.resolution?.eliminatedCount ?? 0;
 
-    return `${manifest.counts.joined} agents entered with ${formatWeiToEth(manifest.economics.entryFeeWei)} each across ${causeCount} causes. ${coalitionSetup}${shortenAddress(divergence.wallet)} answered “${divergence.content}”. When moves were revealed, ${shortenAddress(divergence.wallet)} had played ${divergence.actualChoice?.toUpperCase() ?? "—"} instead of ${divergence.signaledChoice?.toUpperCase() ?? "—"}.${eliminationLine} ${shortenAddress(winner.wallet)} ended as the sole winner and claimed ${formatWeiToEth(winner.claim?.netPrizeWei ?? null)} net from the ${formatWeiToEth(manifest.economics.totalPotWei)} pot.`;
+    return `${capitalize(numberWord(manifest.counts.joined))} agents entered with ${formatWeiToEth(manifest.economics.entryFeeWei)} each. ${causeBreakdown ? `${causeBreakdown} ` : ""}In coalition chat, ${shortenAddress(openingSignal?.wallet, 4)} said “${quotedOpening}” and ${shortenAddress(divergence.wallet, 4)} replied “${divergence.content}”. But when moves were revealed onchain, ${shortenAddress(divergence.wallet, 4)} had played ${divergence.actualChoice?.toUpperCase() ?? "-"}. ${capitalize(numberWord(eliminationCount))} sharer${eliminationCount === 1 ? " was" : "s were"} eliminated. ${shortenAddress(winner.wallet, 4)} claimed the winner's share of the ${formatWeiToEth(manifest.economics.totalPotWei)} pot.`;
   }
 
-  return `${manifest.counts.joined} agents entered with ${formatWeiToEth(manifest.economics.entryFeeWei)} each on ${manifest.networkLabel}. The game finished on the ${manifest.terminalPath ?? "recorded"} path after ${manifest.counts.rounds} round${manifest.counts.rounds === 1 ? "" : "s"}, and the published evidence captures the roster, revealed moves, payouts, and message history. ${manifest.takeaway}`;
+  return `${capitalize(numberWord(manifest.counts.joined))} agents entered with ${formatWeiToEth(manifest.economics.entryFeeWei)} each on ${manifest.networkLabel}. The game finished on the ${manifest.terminalPath ?? "recorded"} path after ${manifest.counts.rounds} round${manifest.counts.rounds === 1 ? "" : "s"}, and the evidence below captures the roster, revealed moves, payouts, and message history.`;
 }
 
 export async function generateStaticParams() {
@@ -97,35 +158,48 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
   const roundList = rounds?.rounds ?? [];
   const payoutParticipants = payouts?.participants ?? [];
   const analysis = manifest.analysis;
-  const narrativeSummary = buildNarrativeSummary({ manifest, participants, payoutParticipants, roundList, analysis });
+  const firstDivergence = analysis?.divergences?.[0] ?? null;
+  const narrativeSummary = buildNarrativeSummary({
+    manifest,
+    participants,
+    payoutParticipants,
+    roundList,
+    analysis,
+    messages,
+  });
 
-  const judgeDownloads = [
+  const keyEvidenceDownloads = [
     {
       href: manifest.urls.gameSummary,
       label: "Summary JSON",
-      note: "Fastest judge-facing snapshot of outcome, payouts, and contract addresses.",
+      note: "Fast judge-facing snapshot of the game, contracts, outcome, and settlement.",
     },
     {
       href: manifest.urls.rounds,
       label: "Rounds JSON",
-      note: "Commit, reveal, elimination, and resolution data round by round.",
+      note: "Round-by-round commits, reveals, eliminations, and resolution data.",
     },
     {
       href: manifest.urls.messagesJson,
       label: "Messages JSON",
-      note: "Coalition and global chat messages, including the betrayal signal.",
+      note: "Onchain coalition and global chat, including the betrayal signal.",
+    },
+    {
+      href: manifest.urls.payouts,
+      label: "Payouts JSON",
+      note: "Winner claims, cause routing, treasury movements, and settlement totals.",
     },
   ];
 
-  const developerDownloads = [
-    { href: manifest.urls.manifest, label: "manifest.json" },
+  const fullExportDownloads = [
     { href: manifest.urls.roster, label: "roster.json" },
     { href: manifest.urls.causes, label: "causes.json" },
-    { href: manifest.urls.payouts, label: "payouts.json" },
     { href: manifest.urls.auth, label: "auth.json" },
-    { href: manifest.urls.messagesJsonl, label: "messages.jsonl" },
+    { href: manifest.urls.manifest, label: "manifest.json" },
     { href: manifest.urls.rawExportManifest, label: "export-manifest.json" },
   ];
+
+  const tone = outcomeBadge(manifest.outcome);
 
   return (
     <div className="flex flex-col grow bg-base-200">
@@ -134,26 +208,26 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
           <Link href="/games" className="link">
             ← Back to games
           </Link>
+
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
               {manifest.networkLabel}
             </span>
-            {manifest.outcome ? (
-              <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-                {manifest.outcome}
-              </span>
-            ) : null}
+            <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${tone.className}`}>
+              {tone.label}
+            </span>
             {manifest.phase ? (
               <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
                 {manifest.phase}
               </span>
             ) : null}
             {analysis?.divergenceCount ? (
-              <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 text-xs font-semibold text-error">
+              <span className="rounded-full border-2 border-error/30 bg-error/10 px-3 py-1 text-xs font-semibold text-error">
                 Trust break captured
               </span>
             ) : null}
           </div>
+
           <h1 className="mt-4 text-4xl font-bold">{manifest.title}</h1>
           <p className="mt-3 text-lg leading-8 opacity-85">{manifest.takeaway}</p>
 
@@ -188,46 +262,47 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
               <p className="text-sm opacity-70">Exported: {formatUnixTimestamp(manifest.exportedAt)}</p>
             </div>
           </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href={manifest.urls.gameSummary} className="btn btn-primary rounded-full">
-              Download summary JSON
-            </a>
-            <a href={manifest.urls.rounds} className="btn btn-secondary rounded-full">
-              Download rounds JSON
-            </a>
-            <a href={manifest.urls.messagesJson} className="btn btn-outline rounded-full">
-              Download messages JSON
-            </a>
-          </div>
         </div>
       </section>
 
       <section className="px-6 pb-12 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-3xl bg-base-100 p-7 shadow-lg">
-            <h2 className="text-3xl font-bold">Trust + cooperation analysis</h2>
+            <h2 className="text-3xl font-bold">Trust analysis</h2>
+
             {analysis?.featuredStory ? (
-              <div className="mt-5 rounded-2xl border border-error/30 bg-error/10 p-5">
+              <div className="mt-5 rounded-2xl border-2 border-error/40 bg-error/10 p-5 shadow-sm">
                 <div className="flex items-center gap-3 text-error">
-                  <ExclamationTriangleIcon className="h-5 w-5" />
-                  <p className="m-0 text-sm font-semibold uppercase tracking-wide">Featured divergence</p>
+                  <ExclamationTriangleIcon className="h-6 w-6" />
+                  <div>
+                    <p className="m-0 text-sm font-semibold uppercase tracking-wide">Trust break detected</p>
+                    <p className="mt-1 text-lg font-semibold leading-8 text-base-content">{analysis.featuredStory}</p>
+                  </div>
                 </div>
-                <p className="mt-3 text-lg font-medium leading-8">{analysis.featuredStory}</p>
+                {firstDivergence ? (
+                  <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                    <span className="rounded-full border border-base-300 bg-base-100 px-3 py-1 font-semibold">
+                      Signaled {firstDivergence.signaledChoice?.toUpperCase()}
+                    </span>
+                    <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 font-semibold text-error">
+                      Played {firstDivergence.actualChoice?.toUpperCase() ?? "-"}
+                    </span>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
             <div className="mt-5 grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl bg-base-200 p-4">
                 <p className="text-sm opacity-60">Coalitions represented</p>
-                <p className="mt-1 text-2xl font-semibold">{analysis?.coalitionCount ?? "—"}</p>
+                <p className="mt-1 text-2xl font-semibold">{analysis?.coalitionCount ?? "-"}</p>
               </div>
               <div className="rounded-2xl bg-base-200 p-4">
                 <p className="text-sm opacity-60">Signaled choices</p>
                 <p className="mt-1 text-2xl font-semibold">{analysis?.messageSignals?.length ?? 0}</p>
               </div>
               <div
-                className={`rounded-2xl p-4 ${analysis?.divergenceCount ? "border border-error/30 bg-error/10" : "bg-base-200"}`}
+                className={`rounded-2xl p-4 ${analysis?.divergenceCount ? "border-2 border-error/30 bg-error/10" : "bg-base-200"}`}
               >
                 <p className="text-sm opacity-60">Trust breaks detected</p>
                 <p className={`mt-1 text-2xl font-semibold ${analysis?.divergenceCount ? "text-error" : ""}`}>
@@ -241,13 +316,17 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                 {analysis.messageSignals.map((signal: SignalRecord) => {
                   const diverged =
                     signal.actualChoice && signal.signaledChoice && signal.actualChoice !== signal.signaledChoice;
+
                   return (
                     <div
                       key={`${signal.wallet}-${signal.round}-${signal.content}`}
-                      className={`rounded-2xl p-4 ${diverged ? "border border-error/30 bg-error/10" : "bg-base-200"}`}
+                      className={`rounded-2xl p-4 ${diverged ? "border-2 border-error/35 bg-error/10 shadow-sm" : "bg-base-200"}`}
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <p className="font-semibold">{shortenAddress(signal.wallet)}</p>
+                        <div className="flex items-center gap-2">
+                          {diverged ? <ExclamationTriangleIcon className="h-5 w-5 text-error" /> : null}
+                          <p className="font-semibold">{shortenAddress(signal.wallet)}</p>
+                        </div>
                         <div className="flex gap-2 flex-wrap">
                           <span className="rounded-full border border-base-300 bg-base-100 px-3 py-1 text-xs font-semibold">
                             Round {signal.round}
@@ -262,7 +341,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                           ) : null}
                           {diverged ? (
                             <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 text-xs font-semibold text-error">
-                              Diverged
+                              Trust break
                             </span>
                           ) : (
                             <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
@@ -272,11 +351,16 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                         </div>
                       </div>
                       <p className="mt-3 whitespace-pre-wrap leading-7 opacity-90">{signal.content}</p>
-                      <p className="mt-3 text-sm leading-7 opacity-80">
-                        Signaled <span className="font-semibold">{signal.signaledChoice?.toUpperCase()}</span>
-                        {" · "}
-                        Actual move <span className="font-semibold">{signal.actualChoice?.toUpperCase() ?? "—"}</span>
-                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                        <span className="rounded-full border border-base-300 bg-base-100 px-3 py-1 font-semibold">
+                          Signaled {signal.signaledChoice?.toUpperCase()}
+                        </span>
+                        <span
+                          className={`rounded-full px-3 py-1 font-semibold ${diverged ? "border border-error/25 bg-error/10 text-error" : "border border-success/20 bg-success/10 text-success"}`}
+                        >
+                          Actual move {signal.actualChoice?.toUpperCase() ?? "-"}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
@@ -301,7 +385,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-4 text-sm">
+                    <div className="mt-4 grid gap-3 text-sm md:grid-cols-4">
                       <div>
                         <p className="opacity-60">Active players</p>
                         <p className="font-semibold">{round.activePlayers?.length ?? 0}</p>
@@ -318,7 +402,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                       </div>
                       <div>
                         <p className="opacity-60">Share streak</p>
-                        <p className="font-semibold">{round.shareStreak ?? "—"}</p>
+                        <p className="font-semibold">{round.shareStreak ?? "-"}</p>
                       </div>
                     </div>
                     {round.resolution ? (
@@ -360,7 +444,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                     </div>
                     <p className="mt-2 text-sm opacity-75">Agent key: {shortenAddress(participant.agentKey, 6)}</p>
                     <p className="mt-1 text-sm opacity-75">
-                      Last choice: {participant.effectiveChoice ?? participant.revealedChoice ?? "—"}
+                      Last choice: {participant.effectiveChoice ?? participant.revealedChoice ?? "-"}
                     </p>
                   </div>
                 ))}
@@ -402,13 +486,13 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
       </section>
 
       <section className="px-6 pb-12 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-3xl bg-base-100 p-7 shadow-lg">
             <h2 className="text-3xl font-bold">Payouts and settlement</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl bg-base-200 p-4">
                 <p className="text-sm opacity-60">Terminal path</p>
-                <p className="mt-1 font-semibold">{summary?.game?.settlement?.terminalPath ?? "—"}</p>
+                <p className="mt-1 font-semibold">{summary?.game?.settlement?.terminalPath ?? "-"}</p>
               </div>
               <div className="rounded-2xl bg-base-200 p-4">
                 <p className="text-sm opacity-60">Winner share</p>
@@ -437,7 +521,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                       Cause {participant.causeId}
                     </span>
                   </div>
-                  <div className="mt-3 grid gap-3 md:grid-cols-3 text-sm">
+                  <div className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                     <div>
                       <p className="opacity-60">Terminal status</p>
                       <p className="font-semibold">{participant.terminalStatus}</p>
@@ -462,13 +546,13 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
               <details open className="group rounded-2xl border border-base-300 bg-base-200 p-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                   <div>
-                    <p className="m-0 font-semibold">For judges</p>
-                    <p className="m-0 mt-1 text-sm opacity-70">The three files that tell the story fastest.</p>
+                    <p className="m-0 font-semibold">Key evidence</p>
+                    <p className="m-0 mt-1 text-sm opacity-70">The fastest files for understanding what happened.</p>
                   </div>
                   <ChevronDownIcon className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="mt-4 flex flex-col gap-3 border-t border-base-300 pt-4">
-                  {judgeDownloads.map(download => (
+                <div className="mt-4 grid gap-3 border-t border-base-300 pt-4 sm:grid-cols-2">
+                  {keyEvidenceDownloads.map(download => (
                     <a
                       key={download.href}
                       href={download.href}
@@ -484,13 +568,15 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
               <details className="group rounded-2xl border border-base-300 bg-base-200 p-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
                   <div>
-                    <p className="m-0 font-semibold">For developers</p>
-                    <p className="m-0 mt-1 text-sm opacity-70">Raw exports and supporting manifests.</p>
+                    <p className="m-0 font-semibold">Full export</p>
+                    <p className="m-0 mt-1 text-sm opacity-70">
+                      Supporting files and manifests for the complete bundle.
+                    </p>
                   </div>
                   <ChevronDownIcon className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="mt-4 grid gap-3 border-t border-base-300 pt-4 sm:grid-cols-2">
-                  {developerDownloads.map(download => (
+                  {fullExportDownloads.map(download => (
                     <a
                       key={download.href}
                       href={download.href}
