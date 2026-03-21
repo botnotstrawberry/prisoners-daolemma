@@ -27,7 +27,7 @@ function outcomeBadge(entry: PublishedGameIndexEntry) {
   if (entry.outcome === "NoWinners") {
     return {
       label: "No Winners",
-      className: "border-warning/25 bg-warning/10 text-base-content",
+      className: "border-warning/30 bg-warning/10 text-warning",
     };
   }
 
@@ -37,8 +37,12 @@ function outcomeBadge(entry: PublishedGameIndexEntry) {
   };
 }
 
+function trustBreakBadgeClass() {
+  return "border-error/30 bg-error/10 text-error";
+}
+
 function cardSurface(entry: PublishedGameIndexEntry) {
-  return entry.analysis?.divergenceCount ? "border border-primary/25 bg-base-100 shadow-xl" : "bg-base-100 shadow-lg";
+  return entry.analysis?.divergenceCount ? "border border-error/25 bg-base-100 shadow-xl" : "bg-base-100 shadow-lg";
 }
 
 const GamesPage: NextPage = async () => {
@@ -67,10 +71,10 @@ const GamesPage: NextPage = async () => {
       </section>
 
       {featuredGame ? (
-        <section className="px-6 pb-12 md:px-10 lg:px-16">
-          <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-primary/30 bg-base-100 p-8 shadow-xl md:p-10">
+        <section className="px-6 pb-10 md:px-10 lg:px-16">
+          <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-error/25 bg-base-100 p-6 shadow-xl md:p-8">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-content">
+              <div className="inline-flex items-center gap-2 rounded-full bg-error px-4 py-2 text-sm font-semibold text-error-content">
                 <ExclamationTriangleIcon className="h-4 w-4" />
                 Featured
               </div>
@@ -82,56 +86,31 @@ const GamesPage: NextPage = async () => {
               >
                 {outcomeBadge(featuredGame).label}
               </span>
-              <span className="rounded-full border-2 border-primary/30 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${trustBreakBadgeClass()}`}>
                 Trust break
               </span>
             </div>
 
-            <div className="mt-6 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-              <div>
+            <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-4xl">
                 <h2 className="text-3xl font-bold md:text-4xl">Betrayal demo</h2>
-                <p className="mt-4 text-2xl font-semibold leading-8 text-primary">{featuredGame.takeaway}</p>
-                <p className="mt-4 max-w-3xl leading-8 opacity-85">
-                  This is the clearest trust-break case in the public dataset: coalition chat promises, revealed moves,
-                  and final payouts all line up in one onchain record.
+                <p className="mt-3 text-xl font-semibold leading-8 text-error md:text-2xl">
+                  An agent signaled SHARE in coalition chat, then revealed STEAL onchain.
                 </p>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full px-6">
-                    Open betrayal demo
-                  </Link>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm opacity-80">
-                  <a href={featuredGame.urls.gameSummary} className="link">
-                    Summary JSON
-                  </a>
-                  <a href={featuredGame.urls.messagesJson} className="link">
-                    Messages JSON
-                  </a>
-                  <a href={featuredGame.urls.rounds} className="link">
-                    Rounds JSON
-                  </a>
-                </div>
+                <p className="mt-3 leading-8 opacity-85">
+                  This is the clearest trust-break case in the public dataset: coalition promises, revealed moves, and
+                  final payouts all line up in one onchain record.
+                </p>
+                <p className="mt-4 text-sm font-medium opacity-75">
+                  {featuredGame.counts.joined} players · {featuredGame.counts.rounds} round
+                  {featuredGame.counts.rounds === 1 ? "" : "s"} · {formatWeiToEth(featuredGame.economics.totalPotWei)}
+                </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl bg-base-200 p-4">
-                  <p className="text-sm opacity-60">Players</p>
-                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.joined}</p>
-                </div>
-                <div className="rounded-2xl bg-base-200 p-4">
-                  <p className="text-sm opacity-60">Rounds</p>
-                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.rounds}</p>
-                </div>
-                <div className="rounded-2xl bg-base-200 p-4">
-                  <p className="text-sm opacity-60">Messages</p>
-                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.messages}</p>
-                </div>
-                <div className="rounded-2xl bg-base-200 p-4">
-                  <p className="text-sm opacity-60">Pot</p>
-                  <p className="mt-1 text-2xl font-semibold">{formatWeiToEth(featuredGame.economics.totalPotWei)}</p>
-                </div>
+              <div className="shrink-0">
+                <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full px-6">
+                  Open betrayal demo
+                </Link>
               </div>
             </div>
           </div>
@@ -160,7 +139,7 @@ const GamesPage: NextPage = async () => {
                       {tone.label}
                     </span>
                     {entry.analysis?.divergenceCount ? (
-                      <span className="rounded-full border-2 border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                      <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${trustBreakBadgeClass()}`}>
                         Trust break
                       </span>
                     ) : null}
@@ -168,7 +147,7 @@ const GamesPage: NextPage = async () => {
 
                   <h3 className="mt-4 text-2xl font-semibold">{entry.title}</h3>
                   <p
-                    className={`mt-4 leading-7 ${entry.analysis?.divergenceCount ? "font-semibold text-primary" : "opacity-85"}`}
+                    className={`mt-4 leading-7 ${entry.analysis?.divergenceCount ? "font-semibold text-error" : "opacity-85"}`}
                   >
                     {entry.takeaway}
                   </p>

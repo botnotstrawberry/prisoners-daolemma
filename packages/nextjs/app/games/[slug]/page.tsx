@@ -99,7 +99,7 @@ function outcomeBadge(outcome?: string | null) {
   if (outcome === "NoWinners") {
     return {
       label: "No Winners",
-      className: "border-warning/25 bg-warning/10 text-base-content",
+      className: "border-warning/30 bg-warning/10 text-warning",
     };
   }
 
@@ -107,6 +107,13 @@ function outcomeBadge(outcome?: string | null) {
     label: outcome ?? "Winners",
     className: "border-success/20 bg-success/10 text-success",
   };
+}
+
+function choiceBadgeClass(choice?: string | null) {
+  if (choice === "Share") return "border-success/25 bg-success/10 text-success";
+  if (choice === "Catch") return "border-warning/30 bg-warning/10 text-warning";
+  if (choice === "Steal") return "border-error/25 bg-error/10 text-error";
+  return "border-base-300 bg-base-100 text-base-content";
 }
 
 function buildNarrativeSummary({
@@ -281,10 +288,14 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                 </div>
                 {firstDivergence ? (
                   <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                    <span className="rounded-full border border-base-300 bg-base-100 px-3 py-1 font-semibold">
+                    <span
+                      className={`rounded-full border px-3 py-1 font-semibold ${choiceBadgeClass(firstDivergence.signaledChoice)}`}
+                    >
                       Signaled {firstDivergence.signaledChoice?.toUpperCase()}
                     </span>
-                    <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 font-semibold text-error">
+                    <span
+                      className={`rounded-full border px-3 py-1 font-semibold ${choiceBadgeClass(firstDivergence.actualChoice)}`}
+                    >
                       Played {firstDivergence.actualChoice?.toUpperCase() ?? "-"}
                     </span>
                   </div>
@@ -352,11 +363,13 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                       </div>
                       <p className="mt-3 whitespace-pre-wrap leading-7 opacity-90">{signal.content}</p>
                       <div className="mt-3 flex flex-wrap gap-2 text-sm">
-                        <span className="rounded-full border border-base-300 bg-base-100 px-3 py-1 font-semibold">
+                        <span
+                          className={`rounded-full border px-3 py-1 font-semibold ${choiceBadgeClass(signal.signaledChoice)}`}
+                        >
                           Signaled {signal.signaledChoice?.toUpperCase()}
                         </span>
                         <span
-                          className={`rounded-full px-3 py-1 font-semibold ${diverged ? "border border-error/25 bg-error/10 text-error" : "border border-success/20 bg-success/10 text-success"}`}
+                          className={`rounded-full border px-3 py-1 font-semibold ${choiceBadgeClass(signal.actualChoice)}`}
                         >
                           Actual move {signal.actualChoice?.toUpperCase() ?? "-"}
                         </span>
@@ -391,10 +404,24 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
                         <p className="font-semibold">{round.activePlayers?.length ?? 0}</p>
                       </div>
                       <div>
-                        <p className="opacity-60">Share / Catch / Steal</p>
-                        <p className="font-semibold">
-                          {counts.Share} / {counts.Catch} / {counts.Steal}
-                        </p>
+                        <p className="opacity-60">Moves</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          <span
+                            className={`rounded-full border px-2 py-1 text-xs font-semibold ${choiceBadgeClass("Share")}`}
+                          >
+                            SHARE {counts.Share}
+                          </span>
+                          <span
+                            className={`rounded-full border px-2 py-1 text-xs font-semibold ${choiceBadgeClass("Catch")}`}
+                          >
+                            CATCH {counts.Catch}
+                          </span>
+                          <span
+                            className={`rounded-full border px-2 py-1 text-xs font-semibold ${choiceBadgeClass("Steal")}`}
+                          >
+                            STEAL {counts.Steal}
+                          </span>
+                        </div>
                       </div>
                       <div>
                         <p className="opacity-60">Eliminated</p>

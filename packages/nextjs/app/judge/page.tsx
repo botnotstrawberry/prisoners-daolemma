@@ -97,7 +97,7 @@ const JudgePage: NextPage = async () => {
       <section className="px-6 py-12 md:px-10 lg:px-16 lg:py-14">
         <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10 lg:p-12">
           <p className="text-sm uppercase tracking-[0.25em] opacity-60">How It Works</p>
-          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Start Here</h1>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Judge Quick Start</h1>
           <p className="mt-4 max-w-4xl text-lg leading-8 opacity-85">
             If you only have a few minutes, use these three links in order.
           </p>
@@ -135,7 +135,7 @@ const JudgePage: NextPage = async () => {
                     href={contractLinks[0].href}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn btn-primary btn-sm rounded-full"
+                    className="btn btn-outline btn-sm rounded-full"
                   >
                     {contractLinks[0].shortLabel}
                   </a>
