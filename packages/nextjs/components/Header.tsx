@@ -4,36 +4,34 @@ import React, { useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hardhat } from "viem/chains";
-import { Bars3Icon, CommandLineIcon, DocumentTextIcon, HomeIcon, QueueListIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, QueueListIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
+
+const githubRepoUrl = "https://github.com/botnotstrawberry/prisoners-daolemma";
 
 type HeaderMenuLink = {
   label: string;
   href: string;
+  external?: boolean;
   icon?: React.ReactNode;
 };
 
 export const menuLinks: HeaderMenuLink[] = [
-  {
-    label: "Home",
-    href: "/",
-    icon: <HomeIcon className="h-4 w-4" />,
-  },
   {
     label: "Games",
     href: "/games",
     icon: <QueueListIcon className="h-4 w-4" />,
   },
   {
-    label: "Judge Overview",
-    href: "/judge",
-    icon: <DocumentTextIcon className="h-4 w-4" />,
+    label: "How to Play",
+    href: "/#how-it-works",
+    icon: <SparklesIcon className="h-4 w-4" />,
   },
   {
-    label: "Contracts",
-    href: "/debug",
-    icon: <CommandLineIcon className="h-4 w-4" />,
+    label: "GitHub",
+    href: githubRepoUrl,
+    external: true,
   },
 ];
 
@@ -42,22 +40,27 @@ export const HeaderMenuLinks = () => {
 
   return (
     <>
-      {menuLinks.map(({ label, href, icon }) => {
-        const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+      {menuLinks.map(({ label, href, icon, external }) => {
+        const isActive = !external && (pathname === href || (href !== "/" && pathname.startsWith(href)));
+        const className = `grid grid-flow-col items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors ${
+          isActive
+            ? "bg-primary text-primary-content shadow-md"
+            : "hover:bg-secondary focus:!bg-secondary active:!text-neutral"
+        }`;
+
         return (
           <li key={href}>
-            <Link
-              href={href}
-              passHref
-              className={`grid grid-flow-col items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors ${
-                isActive
-                  ? "bg-primary text-primary-content shadow-md"
-                  : "hover:bg-secondary focus:!bg-secondary active:!text-neutral"
-              }`}
-            >
-              {icon}
-              <span>{label}</span>
-            </Link>
+            {external ? (
+              <a href={href} target="_blank" rel="noreferrer" className={className}>
+                {icon}
+                <span>{label}</span>
+              </a>
+            ) : (
+              <Link href={href} passHref className={className}>
+                {icon}
+                <span>{label}</span>
+              </Link>
+            )}
           </li>
         );
       })}
