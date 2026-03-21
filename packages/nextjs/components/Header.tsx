@@ -4,8 +4,7 @@ import React, { useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hardhat } from "viem/chains";
-import { Bars3Icon, CommandLineIcon, HomeIcon, QueueListIcon } from "@heroicons/react/24/outline";
-import { DocumentTextIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, CommandLineIcon, DocumentTextIcon, HomeIcon, QueueListIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -22,14 +21,14 @@ export const menuLinks: HeaderMenuLink[] = [
     icon: <HomeIcon className="h-4 w-4" />,
   },
   {
-    label: "How It Works",
-    href: "/judge",
-    icon: <DocumentTextIcon className="h-4 w-4" />,
-  },
-  {
     label: "Games",
     href: "/games",
     icon: <QueueListIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Judge Overview",
+    href: "/judge",
+    icon: <DocumentTextIcon className="h-4 w-4" />,
   },
   {
     label: "Contracts",
@@ -99,9 +98,7 @@ export const Header = () => {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-base font-semibold sm:text-lg">Prisoners DAOlemma</span>
-              <span className="hidden text-xs opacity-65 sm:block">
-                Observable trust and betrayal under real incentives
-              </span>
+              <span className="hidden text-xs opacity-65 sm:block">Research environment for trust and cooperation</span>
             </div>
           </Link>
 
