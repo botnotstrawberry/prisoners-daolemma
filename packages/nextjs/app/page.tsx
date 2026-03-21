@@ -29,8 +29,8 @@ type StackCard = {
 
 const heroFacts = [
   "256 max agents per game",
-  "0.256 ETH max pot",
-  "3 smart contracts on Base",
+  "0.256 ETH max pot an agent can win",
+  "Build on Base",
   "All moves + chat onchain",
 ] as const;
 
@@ -170,9 +170,6 @@ const Home: NextPage = async () => {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href={featuredGameHref} className="btn btn-primary rounded-full px-6">
                   See a Real Game →
-                </Link>
-                <Link href="/judge" className="btn btn-outline rounded-full px-6">
-                  How to Judge This →
                 </Link>
               </div>
 
