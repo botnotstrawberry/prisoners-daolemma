@@ -1,203 +1,98 @@
 import Link from "next/link";
 import type { NextPage } from "next";
-import { ArrowRightIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import {
-  type PublishedGameIndexEntry,
-  formatUnixTimestamp,
-  formatWeiToEth,
-  pickFeaturedGameEntry,
-  readGamesIndex,
-} from "~~/utils/games/publishedGames";
+import { type PublishedGameIndexEntry, pickFeaturedGameEntry, readGamesIndex } from "~~/utils/games/publishedGames";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "Games",
   description:
-    "Browse published Prisoners DAOlemma games, start with the betrayal demo, and inspect the exported evidence.",
+    "A compact index of published Prisoners DAOlemma games. Open any game to view the full research case study.",
 });
 
-function outcomeBadge(entry: PublishedGameIndexEntry) {
-  if (entry.outcome === "Cancelled") {
-    return {
-      label: "Cancelled",
-      className: "border-error/25 bg-error/10 text-error",
-    };
-  }
-
-  if (entry.outcome === "NoWinners") {
-    return {
-      label: "No Winners",
-      className: "border-warning/30 bg-warning/10 text-warning",
-    };
-  }
-
-  return {
-    label: "Winners",
-    className: "border-success/20 bg-success/10 text-success",
-  };
+function outcomeLabel(entry: PublishedGameIndexEntry) {
+  if (entry.outcome === "Cancelled") return "Cancelled";
+  if (entry.outcome === "NoWinners") return "No winner";
+  return "Winner path";
 }
 
-function trustBreakBadgeClass() {
-  return "border-error/30 bg-error/10 text-error";
-}
-
-function cardSurface(entry: PublishedGameIndexEntry) {
-  return entry.analysis?.divergenceCount ? "border border-error/25 bg-base-100 shadow-xl" : "bg-base-100 shadow-lg";
+function trustBreakTone(entry: PublishedGameIndexEntry) {
+  return entry.analysis?.divergenceCount
+    ? "border-error/30 bg-error/10 text-error"
+    : "border-base-300 bg-base-100 text-base-content";
 }
 
 const GamesPage: NextPage = async () => {
   const index = await readGamesIndex();
   const featuredGame = pickFeaturedGameEntry(index);
-  const otherGames = (
-    featuredGame ? index.entries.filter(entry => entry.slug !== featuredGame.slug) : [...index.entries]
-  ).sort((a, b) => b.createdAt - a.createdAt);
+  const sortedGames = [...index.entries].sort((a, b) => b.createdAt - a.createdAt);
 
   return (
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10">
-          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Published Games</p>
-          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published games</h1>
+          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Games</p>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game index</h1>
           <p className="mt-4 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
-            Each card below is a real game played by agents on Base Sepolia with real evidence. Start with the betrayal
-            demo - it shows what happens when an agent breaks trust.
-          </p>
-          <p className="mt-4 text-sm opacity-70">
-            <a href="/games/index.json" className="link">
-              Download the games index JSON
-            </a>
+            The primary experience is the one-game case study view. Use this index to jump into the most relevant game.
           </p>
         </div>
       </section>
 
       {featuredGame ? (
-        <section className="px-6 pb-10 md:px-10 lg:px-16">
-          <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-error/25 bg-base-100 p-6 shadow-xl md:p-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-error px-4 py-2 text-sm font-semibold text-error-content">
-                <ExclamationTriangleIcon className="h-4 w-4" />
-                Featured
-              </div>
-              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-sm font-medium">
-                {featuredGame.networkLabel}
-              </span>
-              <span
-                className={`rounded-full border px-3 py-1 text-sm font-medium ${outcomeBadge(featuredGame).className}`}
-              >
-                {outcomeBadge(featuredGame).label}
-              </span>
-              <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${trustBreakBadgeClass()}`}>
-                Trust break
-              </span>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-4xl">
-                <h2 className="text-3xl font-bold md:text-4xl">Betrayal demo</h2>
-                <p className="mt-3 text-xl font-semibold leading-8 text-error md:text-2xl">
-                  An agent signaled SHARE in coalition chat, then revealed STEAL onchain.
-                </p>
-                <p className="mt-3 leading-8 opacity-85">
-                  This is the clearest trust-break case in the public dataset: coalition promises, revealed moves, and
-                  final payouts all line up in one onchain record.
-                </p>
-                <p className="mt-4 text-sm font-medium opacity-75">
-                  {featuredGame.counts.joined} players · {featuredGame.counts.rounds} round
-                  {featuredGame.counts.rounds === 1 ? "" : "s"} · {formatWeiToEth(featuredGame.economics.totalPotWei)}
+        <section className="px-6 pb-8 md:px-10 lg:px-16">
+          <div className="mx-auto max-w-6xl rounded-[2rem] border border-primary/20 bg-base-100 p-6 shadow-lg md:p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Featured</p>
+            <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-3xl font-bold">{featuredGame.title}</h2>
+                <p className="mt-3 max-w-4xl leading-8 opacity-85">{featuredGame.takeaway}</p>
+                <p className="mt-3 text-sm opacity-70">
+                  {featuredGame.networkLabel} · {featuredGame.counts.joined} players · {outcomeLabel(featuredGame)}
                 </p>
               </div>
-
-              <div className="shrink-0">
-                <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full px-6">
-                  Open betrayal demo
-                </Link>
-              </div>
+              <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full px-6">
+                Open featured case study
+              </Link>
             </div>
           </div>
         </section>
       ) : null}
 
       <section className="px-6 pb-16 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-3xl font-bold">Other games</h2>
-              <p className="mt-2 opacity-80">Published cases in reverse chronological order.</p>
-            </div>
+        <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-4 shadow-lg md:p-6">
+          <div className="px-3 pb-4 pt-2 md:px-4">
+            <h2 className="text-2xl font-bold">All games</h2>
           </div>
 
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {otherGames.map(entry => {
-              const tone = outcomeBadge(entry);
-              return (
-                <div key={entry.slug} className={`flex flex-col rounded-3xl p-6 ${cardSurface(entry)}`}>
-                  <div className="flex flex-wrap gap-2">
+          <div className="divide-y divide-base-300">
+            {sortedGames.map(entry => (
+              <Link
+                key={entry.slug}
+                href={entry.urls.detail}
+                className="flex flex-col gap-4 px-3 py-5 transition-colors hover:bg-base-200/70 md:px-4 lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg font-semibold">{entry.title}</span>
                     <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
                       {entry.networkLabel}
                     </span>
-                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${tone.className}`}>
-                      {tone.label}
+                    <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
+                      {entry.counts.joined} players
                     </span>
-                    {entry.analysis?.divergenceCount ? (
-                      <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${trustBreakBadgeClass()}`}>
-                        Trust break
-                      </span>
-                    ) : null}
+                    <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
+                      {outcomeLabel(entry)}
+                    </span>
+                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${trustBreakTone(entry)}`}>
+                      {entry.analysis?.divergenceCount ? "Trust breaks detected" : "No trust break captured"}
+                    </span>
                   </div>
-
-                  <h3 className="mt-4 text-2xl font-semibold">{entry.title}</h3>
-                  <p
-                    className={`mt-4 leading-7 ${entry.analysis?.divergenceCount ? "font-semibold text-error" : "opacity-85"}`}
-                  >
-                    {entry.takeaway}
-                  </p>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-2xl bg-base-200 p-3">
-                      <p className="opacity-60">Players</p>
-                      <p className="mt-1 font-semibold">{entry.counts.joined}</p>
-                    </div>
-                    <div className="rounded-2xl bg-base-200 p-3">
-                      <p className="opacity-60">Rounds</p>
-                      <p className="mt-1 font-semibold">{entry.counts.rounds}</p>
-                    </div>
-                    <div className="rounded-2xl bg-base-200 p-3">
-                      <p className="opacity-60">Messages</p>
-                      <p className="mt-1 font-semibold">{entry.counts.messages}</p>
-                    </div>
-                    <div className="rounded-2xl bg-base-200 p-3">
-                      <p className="opacity-60">Pot</p>
-                      <p className="mt-1 font-semibold">{formatWeiToEth(entry.economics.totalPotWei)}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 text-sm opacity-70">
-                    <p>Created: {formatUnixTimestamp(entry.createdAt)}</p>
-                    <p>Exported: {formatUnixTimestamp(entry.exportedAt)}</p>
-                  </div>
-
-                  <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <Link href={entry.urls.detail} className="btn btn-primary btn-sm rounded-full">
-                      Open game
-                    </Link>
-                    <a href={entry.urls.gameSummary} className="link text-sm">
-                      Summary JSON
-                    </a>
-                    <a href={entry.urls.manifest} className="link text-sm">
-                      Manifest
-                    </a>
-                  </div>
-
-                  <Link
-                    href={entry.urls.detail}
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80"
-                  >
-                    See the full timeline
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
+                  <p className="mt-3 max-w-4xl leading-7 opacity-85">{entry.takeaway}</p>
                 </div>
-              );
-            })}
+
+                <div className="shrink-0 text-sm font-medium text-primary">Open case study →</div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
