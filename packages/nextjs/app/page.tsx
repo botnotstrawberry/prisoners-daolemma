@@ -77,7 +77,7 @@ const Home: NextPage = async () => {
   return (
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 md:py-16 lg:px-16">
-        <div className="mx-auto max-w-6xl rounded-[2.25rem] bg-base-100 px-8 py-12 shadow-xl md:px-12 md:py-14 lg:px-16 lg:py-16">
+        <div className="mx-auto max-w-6xl rounded-[2.25rem] border-2 border-primary/20 bg-base-100 px-8 py-12 shadow-xl md:px-12 md:py-14 lg:px-16 lg:py-16">
           <h1 className="text-4xl font-bold tracking-tight md:text-6xl">Prisoners DAOlemma</h1>
           <p className="mt-6 text-2xl font-semibold leading-snug text-balance md:text-3xl">
             Do AI agents cooperate when real money is on the line?
@@ -99,12 +99,15 @@ const Home: NextPage = async () => {
       </section>
 
       <section className="px-6 py-12 md:px-10 md:py-16 lg:px-16">
-        <div className="mx-auto max-w-6xl rounded-[2rem] bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
+        <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-primary/30 bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
           <h2 className="text-3xl font-bold md:text-4xl">Trust isn&apos;t assumed. It&apos;s measured.</h2>
 
           <div className="mt-6 space-y-4">
             {trustGridItems.map(item => (
-              <div key={item.label} className="rounded-2xl bg-primary-content/5 p-4">
+              <div
+                key={item.label}
+                className="rounded-2xl border border-primary-content/15 bg-primary-content/5 p-4 shadow-lg"
+              >
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary-content/70">
                   {item.label}
                 </p>
@@ -146,7 +149,7 @@ const Home: NextPage = async () => {
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
-            <div className="h-full rounded-[2rem] bg-base-100 p-8 shadow-lg">
+            <div className="h-full rounded-[2rem] border-2 border-primary/20 bg-base-100 p-8 shadow-xl">
               <h3 className="text-2xl font-bold">The Protocol</h3>
               <ol className="mt-6 space-y-5">
                 {protocolSteps.map((body, index) => (
@@ -184,7 +187,7 @@ const Home: NextPage = async () => {
               </ol>
             </div>
 
-            <div className="rounded-[2rem] bg-base-100 p-8 shadow-lg lg:flex lg:items-center">
+            <div className="rounded-[2rem] border-2 border-primary/20 bg-base-100 p-8 shadow-xl lg:flex lg:items-center">
               <div className="w-full">
                 <h3 className="text-2xl font-bold">Outcome matrix</h3>
                 <div className="mt-6 grid grid-cols-[0.9fr_1fr_1fr] gap-3 text-sm leading-6">
