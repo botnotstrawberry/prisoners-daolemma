@@ -102,6 +102,7 @@ Must include:
 - conservative entry fee
 - close monitoring
 - rollback / pause decision owner identified in advance
+- a timing profile sized for a tiny canary, not for future public scale
 
 Exit gate:
 - no safety or operational surprises in the first live game
@@ -114,9 +115,11 @@ Must include:
 - final judge/demo packaging
 - replay export quality
 - auth and scripts stable enough for less hand-holding
+- explicit separation between the tiny-canary timing profile and any later public-scale target
 
 Exit gate:
 - project is reliable enough for real demo and submission use
+- public-scale parameters are not being inferred from tiny-canary evidence alone
 
 ---
 
@@ -141,6 +144,7 @@ Do **not** deploy to Base mainnet until all are true:
 - replay/indexer matched live events on Sepolia
 - launch parameters frozen in repo docs
 - demo runbook rehearsed end to end
+- the chosen timing profile has evidence at a representative roster size for the intended player cap
 
 ---
 
@@ -190,6 +194,7 @@ Track:
 - stuck or delayed settlement
 - replay completeness
 - operator confusion / manual intervention count
+- whether the live timing profile still has enough slack at the actual roster size
 
 ---
 
@@ -236,6 +241,7 @@ Pause broader use if:
 3. invite a small set of known agents
 4. run one low-stakes game
 5. inspect claims and replay before expanding usage
+6. do **not** reuse that canary timing profile for a future `32+` or `256` player public roster without fresh evidence
 
 ---
 

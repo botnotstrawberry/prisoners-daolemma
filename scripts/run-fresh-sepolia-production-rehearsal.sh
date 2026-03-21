@@ -11,7 +11,8 @@ export FOUNDRY_PROFILE=production
 export PRISONERS_OWNER="${PRISONERS_OWNER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
 export PRISONERS_TREASURY="${PRISONERS_TREASURY:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
 export PRISONERS_AUTH_VERIFIER="${PRISONERS_AUTH_VERIFIER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
-# Fresh-rehearsal defaults: fast enough to iterate, roomy enough for public-testnet ops.
+# Fresh-rehearsal defaults: fast enough to iterate, roomy enough for a small honest Sepolia rehearsal.
+# Do not reuse these timings for a 32-player public-chain rehearsal.
 export PRISONERS_ENTRY_FEE_WEI="${PRISONERS_ENTRY_FEE_WEI:-1000000000000000}"
 export PRISONERS_CREATOR_FEE_BPS="${PRISONERS_CREATOR_FEE_BPS:-100}"
 export PRISONERS_CAUSE_FEE_BPS="${PRISONERS_CAUSE_FEE_BPS:-100}"

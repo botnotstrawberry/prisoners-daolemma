@@ -11,6 +11,10 @@ MAX_PLAYER_CAP=256
 MAX_CAUSE_CAP=16
 MAX_FEE_BPS=500
 MAX_UINT32=4294967295
+TIMING_GUARDRAIL_JOIN_SECONDS=0
+TIMING_GUARDRAIL_COMMIT_BLOCKS=0
+TIMING_GUARDRAIL_REVEAL_BLOCKS=0
+TIMING_GUARDRAIL_REASON=""
 OUT_DIR="${OUT_DIR:-$ROOT/.mainnet-readiness/$(date -u +%Y%m%dT%H%M%SZ)-base-mainnet-preflight}"
 REQUIRE_CLEAN_GIT="${REQUIRE_CLEAN_GIT:-true}"
 EXPECTED_GIT_COMMIT="${EXPECTED_GIT_COMMIT:-}"
@@ -165,6 +169,28 @@ MAX_CAUSES="$PRISONERS_MAX_CAUSES"
 (( JOIN_DURATION_SECONDS <= MAX_UINT32 )) || fail "PRISONERS_JOIN_DURATION_SECONDS cannot exceed ${MAX_UINT32} (uint32 max)"
 (( COMMIT_DURATION_BLOCKS <= MAX_UINT32 )) || fail "PRISONERS_COMMIT_DURATION_BLOCKS cannot exceed ${MAX_UINT32} (uint32 max)"
 (( REVEAL_DURATION_BLOCKS <= MAX_UINT32 )) || fail "PRISONERS_REVEAL_DURATION_BLOCKS cannot exceed ${MAX_UINT32} (uint32 max)"
+
+if (( MAX_PLAYERS <= 8 )); then
+  TIMING_GUARDRAIL_JOIN_SECONDS=300
+  TIMING_GUARDRAIL_COMMIT_BLOCKS=60
+  TIMING_GUARDRAIL_REVEAL_BLOCKS=60
+  TIMING_GUARDRAIL_REASON="tiny mainnet canary floor"
+elif (( MAX_PLAYERS <= 32 )); then
+  TIMING_GUARDRAIL_JOIN_SECONDS=300
+  TIMING_GUARDRAIL_COMMIT_BLOCKS=120
+  TIMING_GUARDRAIL_REVEAL_BLOCKS=120
+  TIMING_GUARDRAIL_REASON="32-player live Base Sepolia evidence showed 40-block windows were too tight"
+else
+  TIMING_GUARDRAIL_JOIN_SECONDS=600
+  TIMING_GUARDRAIL_COMMIT_BLOCKS=320
+  TIMING_GUARDRAIL_REVEAL_BLOCKS=320
+  TIMING_GUARDRAIL_REASON="256-player local proof used 320/320/320 and no live-chain evidence yet justifies a tighter public-scale floor"
+fi
+
+(( JOIN_DURATION_SECONDS >= TIMING_GUARDRAIL_JOIN_SECONDS )) || fail "PRISONERS_JOIN_DURATION_SECONDS=${JOIN_DURATION_SECONDS} is below the mainnet safety floor ${TIMING_GUARDRAIL_JOIN_SECONDS} for maxPlayers=${MAX_PLAYERS} (${TIMING_GUARDRAIL_REASON})"
+(( COMMIT_DURATION_BLOCKS >= TIMING_GUARDRAIL_COMMIT_BLOCKS )) || fail "PRISONERS_COMMIT_DURATION_BLOCKS=${COMMIT_DURATION_BLOCKS} is below the mainnet safety floor ${TIMING_GUARDRAIL_COMMIT_BLOCKS} for maxPlayers=${MAX_PLAYERS} (${TIMING_GUARDRAIL_REASON})"
+(( REVEAL_DURATION_BLOCKS >= TIMING_GUARDRAIL_REVEAL_BLOCKS )) || fail "PRISONERS_REVEAL_DURATION_BLOCKS=${REVEAL_DURATION_BLOCKS} is below the mainnet safety floor ${TIMING_GUARDRAIL_REVEAL_BLOCKS} for maxPlayers=${MAX_PLAYERS} (${TIMING_GUARDRAIL_REASON})"
+
 [[ "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" == "true" ]] || fail "set PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=true after confirming PRISONERS_AUTH_VERIFIER is an EOA with an available signing key"
 
 cat > "$OUT_DIR/launch-config.txt" <<EOF
@@ -181,6 +207,10 @@ PRISONERS_MIN_PLAYERS=${MIN_PLAYERS}
 PRISONERS_MAX_PLAYERS=${MAX_PLAYERS}
 PRISONERS_MAX_CAUSES=${MAX_CAUSES}
 PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=${PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER}
+TIMING_GUARDRAIL_JOIN_SECONDS=${TIMING_GUARDRAIL_JOIN_SECONDS}
+TIMING_GUARDRAIL_COMMIT_BLOCKS=${TIMING_GUARDRAIL_COMMIT_BLOCKS}
+TIMING_GUARDRAIL_REVEAL_BLOCKS=${TIMING_GUARDRAIL_REVEAL_BLOCKS}
+TIMING_GUARDRAIL_REASON=${TIMING_GUARDRAIL_REASON}
 EOF
 
 jq -n \
@@ -201,6 +231,10 @@ jq -n \
   --arg deployerKeystore "$DEPLOYER_KEYSTORE" \
   --arg authVerifierConfirmEoaSigner "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" \
   --arg expectedGitCommit "$EXPECTED_GIT_COMMIT" \
+  --arg timingGuardrailReason "$TIMING_GUARDRAIL_REASON" \
+  --argjson timingGuardrailJoinSeconds "$TIMING_GUARDRAIL_JOIN_SECONDS" \
+  --argjson timingGuardrailCommitBlocks "$TIMING_GUARDRAIL_COMMIT_BLOCKS" \
+  --argjson timingGuardrailRevealBlocks "$TIMING_GUARDRAIL_REVEAL_BLOCKS" \
   '{
     owner: $owner,
     treasury: $treasury,
@@ -228,8 +262,16 @@ jq -n \
       maxCauseCap: 16,
       maxFeeBps: 500,
       maxUint32: 4294967295
+    },
+    timingGuardrails: {
+      joinSecondsFloor: $timingGuardrailJoinSeconds,
+      commitBlocksFloor: $timingGuardrailCommitBlocks,
+      revealBlocksFloor: $timingGuardrailRevealBlocks,
+      reason: $timingGuardrailReason
     }
   }' > "$OUT_DIR/launch-config.json"
+
+printf '%s\n' "joinSecondsFloor=${TIMING_GUARDRAIL_JOIN_SECONDS}" "commitBlocksFloor=${TIMING_GUARDRAIL_COMMIT_BLOCKS}" "revealBlocksFloor=${TIMING_GUARDRAIL_REVEAL_BLOCKS}" "reason=${TIMING_GUARDRAIL_REASON}" > "$OUT_DIR/timing-guardrails.txt"
 
 record_git_provenance
 
@@ -264,9 +306,10 @@ mkdir -p deployments
 FOUNDRY_PROFILE=production forge build --sizes --skip test | tee "$OUT_DIR/production-build-sizes.log" >/dev/null
 
 cat > "$OUT_DIR/first-game-readiness.txt" <<EOF
-This preflight validates deploy-time config, provenance, chain, signer shape, and buildability.
+This preflight validates deploy-time config, provenance, chain, signer shape, buildability, and roster-aware timing floors.
 It does NOT prove the first game can be opened yet.
 Before createGame(), make sure at least one cause has been whitelisted onchain.
+Do not interpret a tiny-canary timing profile as authorization for a later public-scale roster.
 EOF
 
 echo "PASS: Base mainnet deploy preflight checks passed (cause whitelist still must be configured before createGame)" | tee "$OUT_DIR/status.txt"

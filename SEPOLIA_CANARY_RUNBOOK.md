@@ -31,6 +31,20 @@ Before execution, this repo still does **not** have live proof for:
 
 Treat those as open until captured in artifacts.
 
+## 2.1 Live timing lesson captured on 2026-03-21
+A later 32-player Base Sepolia design rehearsal added an important operational lesson:
+
+- Base Sepolia and Base mainnet both sampled at **~2.0 seconds / block**
+- `40` blocks is only about **80 seconds** in practice
+- a live `32`-player roster can join successfully on Base Sepolia
+- but `40`-block commit/reveal windows are too tight for a full 32-wallet prepare+commit burst
+
+Operational rule from that evidence:
+- keep the tiny canary small (`3-6` agents)
+- do **not** reuse `20/20` or `40/40` timings for larger public-chain rehearsals
+- for the next full `32`-player Sepolia rehearsal, use the slower prepared profile (`join 300s`, `commit 120`, `reveal 120`)
+- do **not** infer that a tiny mainnet canary timing profile is safe for a future `256`-player public roster
+
 ## 3. Recommended artifact directory
 
 Use one timestamped directory per canary run so every output is easy to find later.
@@ -84,7 +98,7 @@ For the canary, set these explicitly:
 - `PRISONERS_TREASURY`
 - `PRISONERS_AUTH_VERIFIER`
 
-The deployment profile in `.env.example` already matches the recommended Base Sepolia canary profile from `PARAMETERS.md`:
+The deployment profile in `.env.example` already matches the recommended **tiny-canary** Base Sepolia profile from `PARAMETERS.md`:
 
 - entry fee: `1000000000000000` wei (`0.001 ETH`)
 - creator fee: `100` bps
@@ -95,6 +109,11 @@ The deployment profile in `.env.example` already matches the recommended Base Se
 - min players: `3`
 - max players: `32`
 - max causes: `8`
+
+Important scope note:
+- those timings are fine for the first small honest canary (`3-6` agents)
+- they are **not** the right defaults for a full `32`-player public-chain rehearsal
+- for the prepared slower `32`-player profile, use `join 300s / commit 120 / reveal 120`
 
 If you intentionally override any of those, treat it as a canary deviation and record the reason.
 
@@ -277,6 +296,8 @@ Recommended first game shape:
   - treasury withdrawal
   - cause withdrawals
 
+Do not treat this tiny canary as sufficient timing evidence for a future `32`, `64`, or `256` player live roster. Scale rehearsals need their own parameter sheet and their own artifacts.
+
 ### 11.1 Create the game
 
 ```bash
@@ -434,3 +455,4 @@ It is **not** good enough yet if any of these remain true:
 - the game never reached a terminal state
 - evidence export is missing or contradictory
 - explorer verification was expected but not actually confirmed
+- the observed timing profile is being extrapolated beyond the roster size it actually proved

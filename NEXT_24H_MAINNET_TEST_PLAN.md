@@ -189,11 +189,13 @@ Suggested initial mainnet canary profile:
 - reveal `60` blocks
 - min players `3`
 - low entry fee
+- tiny-canary roster only
 
 Rationale:
 - gives enough operational slack without returning to an overly slow 15-minute join
 - keeps the game human-observable during the first real-money run
 - avoids the fragility of 20-block live rounds
+- should not be mistaken for a public-scale timing profile
 
 Pass criteria:
 - owner / treasury / verifier / cause recipients independently verified
@@ -253,6 +255,7 @@ Recommended shape:
 - low stake only
 - one game at a time
 - direct monitoring throughout
+- explicitly **not** the `256`-player public target profile
 
 ## T11. Mainnet pause criteria
 Pause immediately if any of the following happen:
@@ -262,6 +265,7 @@ Pause immediately if any of the following happen:
 - replay/export disagreement with onchain state
 - any stuck payout or withdrawal path
 - any unexpected revert in the live game path
+- the roster/timing combination is materially larger than what Sepolia actually proved
 
 ## T12. Mainnet evidence capture from the first live run
 For the first mainnet run, preserve the same artifact structure as the Sepolia bundle:

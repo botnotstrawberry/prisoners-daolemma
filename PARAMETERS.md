@@ -93,6 +93,27 @@ This is important because:
 - it reduces user frustration in live play
 - it still preserves a safe upper bound if not everyone is ready
 
+## 4.4 Live-chain timing calibration (Base / Base Sepolia)
+Observed on 2026-03-21 from direct chain sampling:
+- Base Sepolia: **~2.0 seconds / block**
+- Base mainnet: **~2.0 seconds / block**
+
+Practical translation:
+- `40` blocks ≈ **80s**
+- `60` blocks ≈ **120s**
+- `120` blocks ≈ **240s**
+- `320` blocks ≈ **640s** (~10.7 min)
+
+Live lesson from the 32-player Base Sepolia design dataset:
+- all `32` players successfully joined a live game
+- `40`-block commit/reveal windows were too tight for a full 32-wallet prepare+commit burst
+- the game only reached terminal because missed commits/reveals defaulted to `SHARE`
+
+Interpretation:
+- tiny-canary timings must **not** be reused for larger public rosters
+- Sepolia timing is useful for calibrating Base mainnet because the observed block cadence is materially similar
+- for any intended live cap above the tiny-canary range, widen timing first and only tighten after evidence
+
 ---
 
 ## 5. Recommended environment profiles
@@ -132,7 +153,7 @@ Notes:
 - can be reused for sequential and multi-instance stress
 
 ## 5.3 Base Sepolia canary profile
-Use for first live-chain end-to-end validation.
+Use for the **first small honest live-chain validation**, not for scale rehearsal.
 
 - `joinDurationSeconds`: **900** (15 min)
 - `commitDurationBlocks`: **20**
@@ -145,34 +166,36 @@ Use for first live-chain end-to-end validation.
 - `causeFeeBps`: **100**
 
 Notes:
-- generous enough for initial live debugging
+- good for initial live debugging with `3-6` agents
 - low-stakes enough to reduce operator friction
+- do **not** reuse `20/20` timings for larger public rehearsals
 
-## 5.4 Base Sepolia pilot/soak profile
-Use for repeated rehearsals and demo hardening.
+## 5.4 Base Sepolia 32-player rehearsal profile
+Use for the first serious live-chain rehearsal above the tiny-canary range.
 
-- `joinDurationSeconds`: **1800** (30 min)
-- `commitDurationBlocks`: **30**
-- `revealDurationBlocks`: **30**
-- `minPlayers`: **6**
-- `maxPlayers`: **64**
+- `joinDurationSeconds`: **300** (5 min)
+- `commitDurationBlocks`: **120**
+- `revealDurationBlocks`: **120**
+- `minPlayers`: **3**
+- `maxPlayers`: **32**
 - `maxCauses`: **8**
-- `entryFeeWei`: **0.001 ETH** to **0.002 ETH**
+- `entryFeeWei`: **0.001 ETH**
 - `creatorFeeBps`: **100**
 - `causeFeeBps`: **100**
 
 Notes:
-- slower and safer than local tests
-- better for real network conditions and multi-agent coordination
+- prepared from the 2026-03-21 live Sepolia lesson that `40/40` was too tight for a 32-wallet burst
+- intended to prove a clean terminal path for a full 32-player public-chain roster
+- this is the current floor before attempting any larger public roster on Base
 
-## 5.5 Base mainnet pilot profile
-Use for the first real-money production game.
+## 5.5 Base mainnet canary profile
+Use for the **first real-money production canary**, not for the eventual public 256-player target.
 
-- `joinDurationSeconds`: **7200** (2 hours)
-- `commitDurationBlocks`: **30**
-- `revealDurationBlocks`: **30**
-- `minPlayers`: **8**
-- `maxPlayers`: **64**
+- `joinDurationSeconds`: **300** to **600**
+- `commitDurationBlocks`: **60**
+- `revealDurationBlocks`: **60**
+- `minPlayers`: **3**
+- `maxPlayers`: **8**
 - `maxCauses`: **8**
 - `entryFeeWei`: **0.001 ETH**
 - `creatorFeeBps`: **100**
@@ -180,8 +203,27 @@ Use for the first real-money production game.
 
 Notes:
 - one active game only
-- use invited/known agents first
-- do not increase maxPlayers until stress + Sepolia results justify it
+- low-stakes only
+- direct monitoring throughout
+- these timings are only for a tiny mainnet canary and must not be treated as authorization for a broader public roster
+
+## 5.6 Base mainnet public-scale target profile (**not launch-authorized yet**)
+Use only after additional live-chain evidence at representative roster sizes.
+
+- `joinDurationSeconds`: **600** to **1800**
+- `commitDurationBlocks`: **320**
+- `revealDurationBlocks`: **320**
+- `minPlayers`: **16**
+- `maxPlayers`: **256**
+- `maxCauses`: **16**
+- `entryFeeWei`: **0.001 ETH**
+- `creatorFeeBps`: **100**
+- `causeFeeBps`: **100**
+
+Notes:
+- this matches the preserved 250-player local proof's `320 / 320 / 320` timing budget
+- current repo evidence does **not** justify using anything tighter for a public 256-player mainnet target
+- before using this profile, step up live evidence gradually (for example: clean `32` -> `64` -> higher-roster rehearsals)
 
 ---
 
@@ -291,6 +333,7 @@ For every live profile, retain:
 Before Base mainnet launch:
 - freeze the launch candidate parameters in the repo
 - review them against Sepolia observations
+- if `maxPlayers` changes materially, re-evaluate timing floors instead of reusing the old canary windows
 - do not improvise fee/timing changes during launch without updating the docs and runbook
 
 ---
