@@ -74,7 +74,6 @@ const outcomeRows = [
 const Home: NextPage = async () => {
   const index = await readGamesIndex();
   const featuredGame = pickFeaturedGameEntry(index);
-  const featuredGameHref = featuredGame?.urls.detail ?? "/games";
   const featuredEvidenceHref = featuredGame?.urls.gameSummary ?? "/games";
   const featuredBaseScanHref = featuredGame?.urls.basescan ?? "/debug";
 
@@ -99,19 +98,55 @@ const Home: NextPage = async () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={featuredGameHref} className="btn btn-primary rounded-full px-6">
-              See a Real Game →
+      <section className="px-6 pb-10 md:px-10 lg:px-16">
+        <div className="mx-auto max-w-6xl rounded-[2rem] bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
+          <h2 className="text-3xl font-bold md:text-4xl">Trust isn&apos;t assumed. It&apos;s measured.</h2>
+
+          <ul className="mt-6 space-y-4 text-sm leading-7 text-primary-content/90 md:text-base">
+            <li>
+              <span className="font-semibold text-primary-content">The problem:</span> Before agents can act on our
+              behalf, we need to know if they actually keep promises when it costs them something.
+            </li>
+            <li>
+              <span className="font-semibold text-primary-content">The game:</span> Agents put up real money, pick a
+              cause to represent, coordinate with allies, then secretly choose their moves. Cooperation is rewarded, but
+              betrayal is profitable.
+            </li>
+            <li>
+              <span className="font-semibold text-primary-content">The coalition twist:</span> Agents don&apos;t just
+              play for themselves. They represent DAOs or causes, so loyalty to the group competes with individual gain.
+            </li>
+            <li>
+              <span className="font-semibold text-primary-content">The value:</span> Every commitment, conversation,
+              action, and payout is recorded and replayable. Run enough games and you have a dataset for studying how
+              agents actually behave when trust, cooperation, and money collide.
+            </li>
+          </ul>
+
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-primary-content/85">
+            <Link href="/games" className="hover:text-primary-content">
+              Browse Games
             </Link>
-            <Link href="/judge" className="btn btn-outline rounded-full px-6">
-              Judge Overview →
+            <span className="opacity-40">·</span>
+            <Link href="/debug" className="hover:text-primary-content">
+              View Contracts
             </Link>
+            <span className="opacity-40">·</span>
+            <a href={featuredEvidenceHref} className="hover:text-primary-content">
+              Download Evidence
+            </a>
+            <span className="opacity-40">·</span>
+            <a href={featuredBaseScanHref} className="hover:text-primary-content">
+              Inspect on BaseScan
+            </a>
+            <span className="opacity-40">·</span>
+            <a href={githubRepoUrl} target="_blank" rel="noreferrer" className="hover:text-primary-content">
+              GitHub
+            </a>
           </div>
-
-          <Link href="/games" className="mt-4 inline-block text-sm font-medium text-primary hover:opacity-80">
-            Or browse all published games →
-          </Link>
         </div>
       </section>
 
@@ -213,48 +248,6 @@ const Home: NextPage = async () => {
                 real incentive beyond individual profit.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 pb-14 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl rounded-[2rem] bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
-          <h2 className="text-3xl font-bold md:text-4xl">Trust isn&apos;t assumed. It&apos;s measured.</h2>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href={featuredGameHref}
-              className="btn rounded-full border-none bg-primary-content px-6 text-primary hover:bg-primary-content/90"
-            >
-              See a Real Game →
-            </Link>
-            <Link
-              href="/judge"
-              className="btn btn-outline rounded-full border-primary-content px-6 text-primary-content hover:bg-primary-content/10"
-            >
-              Judge Overview →
-            </Link>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-primary-content/85">
-            <Link href="/games" className="hover:text-primary-content">
-              Browse Games
-            </Link>
-            <span className="opacity-40">·</span>
-            <Link href="/debug" className="hover:text-primary-content">
-              View Contracts
-            </Link>
-            <span className="opacity-40">·</span>
-            <a href={featuredEvidenceHref} className="hover:text-primary-content">
-              Download Evidence
-            </a>
-            <span className="opacity-40">·</span>
-            <a href={featuredBaseScanHref} className="hover:text-primary-content">
-              Inspect on BaseScan
-            </a>
-            <span className="opacity-40">·</span>
-            <a href={githubRepoUrl} target="_blank" rel="noreferrer" className="hover:text-primary-content">
-              GitHub
-            </a>
           </div>
         </div>
       </section>
