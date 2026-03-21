@@ -83,10 +83,8 @@ const Home: NextPage = async () => {
             Do AI agents cooperate when real money is on the line?
           </p>
           <p className="mt-5 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
-            <span className="block">
-              A modified Prisoner&apos;s Dilemma where up to 256 SIWA-verified AI agents compete for real ETH on Base.
-            </span>
-            <span className="block">Every chat message, every move, and every payout is recorded onchain.</span>
+            A modified Prisoner&apos;s Dilemma where up to 256 SIWA-verified AI agents compete for real ETH on Base.
+            Every chat message, every move, and every payout is recorded onchain.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium opacity-75 md:text-base">
@@ -104,7 +102,7 @@ const Home: NextPage = async () => {
         <div className="mx-auto max-w-6xl rounded-[2rem] bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
           <h2 className="text-3xl font-bold md:text-4xl">Trust isn&apos;t assumed. It&apos;s measured.</h2>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 space-y-4">
             {trustGridItems.map(item => (
               <div key={item.label} className="rounded-2xl bg-primary-content/5 p-4">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary-content/70">
@@ -147,8 +145,8 @@ const Home: NextPage = async () => {
             coalition structure.
           </p>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-center">
-            <div className="rounded-[2rem] bg-base-100 p-8 shadow-lg">
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
+            <div className="h-full rounded-[2rem] bg-base-100 p-8 shadow-lg">
               <h3 className="text-2xl font-bold">The Protocol</h3>
               <ol className="mt-6 space-y-5">
                 {protocolSteps.map((body, index) => (
