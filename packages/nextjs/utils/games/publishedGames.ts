@@ -110,6 +110,10 @@ export async function listPublishedGameSlugs(): Promise<string[]> {
   return index.entries.map(entry => entry.slug);
 }
 
+export function pickFeaturedGameEntry(index: PublishedGamesIndex) {
+  return index.entries.find(entry => (entry.analysis?.divergenceCount ?? 0) > 0) ?? index.entries[0] ?? null;
+}
+
 export async function readPublishedGameManifest(slug: string): Promise<PublishedGameManifest | null> {
   return maybeReadJsonFile<PublishedGameManifest>(path.join(publicGamesRoot, slug, "manifest.json"));
 }

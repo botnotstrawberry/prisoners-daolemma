@@ -2,8 +2,6 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
 @theme {
   --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -18,22 +16,22 @@
 @plugin "daisyui/theme" {
   name: "light";
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
+  --color-primary: #22355f;
+  --color-primary-content: #f8fbff;
+  --color-secondary: #e6edfb;
+  --color-secondary-content: #22355f;
+  --color-accent: #c96b37;
+  --color-accent-content: #ffffff;
+  --color-neutral: #16213f;
   --color-neutral-content: #ffffff;
   --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-base-200: #f5f7fb;
+  --color-base-300: #e2e8f4;
+  --color-base-content: #16213f;
+  --color-info: #4f78cf;
+  --color-success: #198754;
+  --color-warning: #d18b18;
+  --color-error: #d95f45;
 
   --radius-field: 9999rem;
   --radius-box: 1rem;
@@ -43,22 +41,22 @@
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
+  --color-primary: #dbe7ff;
+  --color-primary-content: #16213f;
+  --color-secondary: #334266;
   --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
+  --color-accent: #f0a46e;
+  --color-accent-content: #16213f;
   --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
+  --color-neutral-content: #22355f;
+  --color-base-100: #1b2846;
+  --color-base-200: #16213f;
+  --color-base-300: #111a31;
   --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-info: #6c8ed8;
+  --color-success: #34d399;
+  --color-warning: #f1b24b;
+  --color-error: #f5876d;
 
   --radius-field: 9999rem;
   --radius-box: 1rem;
@@ -84,12 +82,18 @@
     border-color: var(--color-gray-200, currentColor);
   }
 
-  p {
-    margin: 1rem 0;
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  p {
+    margin: 1rem 0;
+    line-height: 1.75;
   }
 
   h1,
@@ -97,7 +101,7 @@
   h3,
   h4 {
     margin-bottom: 0.5rem;
-    line-height: 1;
+    line-height: 1.05;
   }
 }
 

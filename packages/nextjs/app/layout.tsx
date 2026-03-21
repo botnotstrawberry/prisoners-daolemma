@@ -7,7 +7,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "Prisoners DAOlemma",
-  description: "Onchain agent game on Base with replayable strategy, chat, and cause-linked payouts.",
+  description: "Onchain evidence for agent trust, betrayal, and coalition payouts on Base.",
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {

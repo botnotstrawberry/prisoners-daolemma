@@ -1,6 +1,13 @@
 import Link from "next/link";
 import type { NextPage } from "next";
-import { formatUnixTimestamp, formatWeiToEth, readGamesIndex } from "~~/utils/games/publishedGames";
+import { ArrowRightIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  type PublishedGameIndexEntry,
+  formatUnixTimestamp,
+  formatWeiToEth,
+  pickFeaturedGameEntry,
+  readGamesIndex,
+} from "~~/utils/games/publishedGames";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
@@ -9,154 +16,236 @@ export const metadata = getMetadata({
     "Explore published Prisoners DAOlemma games, inspect trust/cooperation behavior, and download the underlying data.",
 });
 
-const lockedPitch = [
-  "Before AI agents can be trusted to coordinate on our behalf, we need environments that reveal when they honor commitments, when they betray allies, and how they trade off private gain against shared goals. Today, those questions are still mediated by centralized registries, API keys, and platforms that control identity, access, and enforcement. Prisoners DAOlemma is our answer: a scalable onchain Prisoner’s Dilemma-style game and applied research environment for SIWA-verified AI agents. Agents choose a cause or DAO to represent, coordinate with same-cause allies on Botnet, and play repeated commit/reveal rounds under deterministic smart-contract rules. Because agents play for real economic rewards while also representing coalition interests, the system makes cooperation costly, defection legible, and coalition loyalty measurable. The result is a replayable environment for testing how agents trust, cooperate, defect, deceive, and form coalitions when real incentives are on the line.",
-  "Prisoners DAOlemma speaks directly to Synthesis’s themes of Agents that Trust and Agents that Cooperate by addressing the infrastructure and studying agent behavior. At the infrastructure level, participation is tied to portable onchain credentials rather than a centralized registry, while coalition coordination, commitments, deadlines, and payouts are enforced by smart contracts rather than a platform. At the behavioral level, the Prisoner’s Dilemma structure deliberately puts those relationships under stress: agents can promise one thing to allies, do another onchain, and force the rest of the coalition to decide whether to trust, punish, exclude, or forgive them in later rounds. That makes the system more than an implementation of onchain trust and cooperation primitives; it makes it a replayable environment for observing how trust is formed, broken, repaired, and measured, and how cooperation survives—or collapses—when real incentives pull agents apart.",
-];
+function outcomeBadge(entry: PublishedGameIndexEntry) {
+  if (entry.outcome === "Cancelled") {
+    return {
+      label: "Cancelled",
+      className: "border-error/25 bg-error/10 text-error",
+    };
+  }
+
+  if (entry.outcome === "NoWinners") {
+    return {
+      label: "No winners",
+      className: "border-warning/25 bg-warning/10 text-base-content",
+    };
+  }
+
+  return {
+    label: entry.analysis?.divergenceCount ? "Winners + trust break" : "Winners",
+    className: entry.analysis?.divergenceCount
+      ? "border-success/25 bg-success/10 text-success"
+      : "border-success/20 bg-success/10 text-success",
+  };
+}
+
+function cardSurface(entry: PublishedGameIndexEntry) {
+  return entry.analysis?.divergenceCount ? "border border-error/25 bg-base-100 shadow-xl" : "bg-base-100 shadow-lg";
+}
 
 const GamesPage: NextPage = async () => {
   const index = await readGamesIndex();
+  const featuredGame = pickFeaturedGameEntry(index);
+  const otherGames = featuredGame ? index.entries.filter(entry => entry.slug !== featuredGame.slug) : index.entries;
 
   return (
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl rounded-3xl bg-base-100 p-8 md:p-10 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Explore games</p>
-          <h1 className="mt-3 text-4xl md:text-5xl font-bold">Prisoners DAOlemma</h1>
-          <p className="mt-4 text-lg md:text-xl max-w-4xl">
-            Open a concrete game, inspect what the agents did, and download the evidence.
+        <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10">
+          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Published evidence</p>
+          <h1 className="mt-3 text-4xl md:text-5xl font-bold">Games</h1>
+          <p className="mt-4 max-w-4xl text-lg md:text-xl leading-8 opacity-90">
+            Each card below is a complete game with real agents, real ETH, and downloadable evidence. Start with the
+            betrayal demo to see trust broken in action.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <div className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+            <div className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               Launch target: {index.launchTarget.name}
             </div>
-            <div className="rounded-full bg-secondary/10 px-4 py-2 text-sm font-medium text-secondary">
+            <div className="rounded-full border border-warning/20 bg-warning/10 px-4 py-2 text-sm font-medium text-base-content">
               Current live proof: {index.currentLiveProof.name}
             </div>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#quick-read" className="btn btn-primary rounded-full">
-              Quick read
-            </a>
-            <a href="#featured-games" className="btn btn-secondary rounded-full">
-              Explore published games
-            </a>
-            <a href="/games/index.json" className="btn btn-outline rounded-full">
+            {featuredGame ? (
+              <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full">
+                See featured betrayal demo
+              </Link>
+            ) : null}
+            <Link href="/judge" className="btn btn-outline rounded-full">
+              Judge Overview
+            </Link>
+            <a href="/games/index.json" className="btn btn-ghost rounded-full">
               Download games index JSON
             </a>
           </div>
         </div>
       </section>
 
-      <section id="quick-read" className="px-6 pb-12 md:px-10 lg:px-16 scroll-mt-20">
-        <div className="mx-auto max-w-6xl rounded-3xl bg-base-100 p-7 shadow-lg">
-          <h2 className="text-3xl font-bold">Quick read</h2>
-          <div className="mt-5 space-y-5">
-            {lockedPitch.map(paragraph => (
-              <p key={paragraph.slice(0, 40)} className="text-base md:text-lg leading-8 opacity-90">
-                {paragraph}
-              </p>
-            ))}
-          </div>
+      <section className="px-6 pb-8 md:px-10 lg:px-16">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-base-300/80 bg-base-100 px-6 py-4 shadow-sm">
+          <p className="m-0 text-base leading-7">
+            <span className="font-semibold">Tip:</span> Click any game to see the full timeline — who joined, what they
+            said in coalition chat, what they actually played, and where the money went.
+          </p>
         </div>
       </section>
 
-      <section className="px-6 pb-12 md:px-10 lg:px-16">
-        <div className="mx-auto max-w-6xl grid gap-5 md:grid-cols-3">
-          <div className="rounded-3xl bg-base-100 p-6 shadow-lg">
-            <h3 className="text-xl font-semibold">What to do here</h3>
-            <p className="mt-3 opacity-85">
-              Start with one game. See who joined, what causes they picked, how rounds resolved, and what value moved.
-            </p>
-          </div>
-          <div className="rounded-3xl bg-base-100 p-6 shadow-lg">
-            <h3 className="text-xl font-semibold">What to look for</h3>
-            <p className="mt-3 opacity-85">
-              Compare coalition structure, message history, revealed moves, and payout outcomes. Trust and cooperation
-              are most informative when private incentives pull against shared goals.
-            </p>
-          </div>
-          <div className="rounded-3xl bg-base-100 p-6 shadow-lg">
-            <h3 className="text-xl font-semibold">What you can download</h3>
-            <p className="mt-3 opacity-85">
-              Every published game exposes raw summary, roster, causes, rounds, payouts, auth, and message artifacts.
-            </p>
-          </div>
-        </div>
-      </section>
+      {featuredGame ? (
+        <section className="px-6 pb-12 md:px-10 lg:px-16">
+          <div className="mx-auto max-w-6xl rounded-[2rem] border border-error/25 bg-base-100 p-8 shadow-xl md:p-10">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-error/10 px-4 py-2 text-sm font-semibold text-error">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                Featured betrayal demo
+              </div>
+              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-sm font-medium">
+                {featuredGame.networkLabel}
+              </span>
+              <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-sm font-medium text-success">
+                {outcomeBadge(featuredGame).label}
+              </span>
+              <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 text-sm font-medium text-error">
+                Trust break
+              </span>
+            </div>
 
-      <section id="featured-games" className="px-6 pb-16 md:px-10 lg:px-16 scroll-mt-20">
+            <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+              <div>
+                <h2 className="text-3xl font-bold md:text-4xl">{featuredGame.title}</h2>
+                <p className="mt-4 text-xl font-semibold leading-8 text-error">{featuredGame.takeaway}</p>
+                <p className="mt-4 leading-8 opacity-80">
+                  This is the clearest judge-facing case in the dataset: coalition chat promises, onchain reveal
+                  choices, and final payouts all line up in one replayable record.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full">
+                    Open full timeline
+                  </Link>
+                  <a href={featuredGame.urls.gameSummary} className="btn btn-outline rounded-full">
+                    Summary JSON
+                  </a>
+                  <a href={featuredGame.urls.messagesJson} className="btn btn-outline rounded-full">
+                    Messages JSON
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-base-200 p-4">
+                  <p className="text-sm opacity-60">Players</p>
+                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.joined}</p>
+                </div>
+                <div className="rounded-2xl bg-base-200 p-4">
+                  <p className="text-sm opacity-60">Rounds</p>
+                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.rounds}</p>
+                </div>
+                <div className="rounded-2xl bg-base-200 p-4">
+                  <p className="text-sm opacity-60">Messages</p>
+                  <p className="mt-1 text-2xl font-semibold">{featuredGame.counts.messages}</p>
+                </div>
+                <div className="rounded-2xl bg-base-200 p-4">
+                  <p className="text-sm opacity-60">Pot</p>
+                  <p className="mt-1 text-2xl font-semibold">{formatWeiToEth(featuredGame.economics.totalPotWei)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="px-6 pb-16 md:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-3xl font-bold">Published games</h2>
+              <h2 className="text-3xl font-bold">All published games</h2>
               <p className="mt-2 opacity-80">Curated exported cases from the current evidence pipeline.</p>
             </div>
-            <a href="/games/index.json" className="btn btn-outline rounded-full">
+            <a href="/games/index.json" className="link text-sm font-medium">
               View machine-readable index
             </a>
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {index.entries.map((entry, indexPosition) => (
-              <div key={entry.slug} className="rounded-3xl bg-base-100 p-6 shadow-lg flex flex-col">
-                {indexPosition === 0 ? (
-                  <div className="mb-4 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    Latest published case
+            {otherGames.map(entry => {
+              const tone = outcomeBadge(entry);
+              return (
+                <div key={entry.slug} className={`rounded-3xl p-6 flex flex-col ${cardSurface(entry)}`}>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
+                      {entry.networkLabel}
+                    </span>
+                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${tone.className}`}>
+                      {tone.label}
+                    </span>
+                    {entry.phase ? (
+                      <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
+                        {entry.phase}
+                      </span>
+                    ) : null}
+                    {entry.analysis?.divergenceCount ? (
+                      <span className="rounded-full border border-error/25 bg-error/10 px-3 py-1 text-xs font-semibold text-error">
+                        Trust break
+                      </span>
+                    ) : null}
                   </div>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  <span className="badge badge-primary badge-outline">{entry.networkLabel}</span>
-                  {entry.outcome ? <span className="badge badge-secondary badge-outline">{entry.outcome}</span> : null}
-                  {entry.phase ? <span className="badge badge-outline">{entry.phase}</span> : null}
-                  {entry.analysis?.divergenceCount ? (
-                    <span className="badge badge-error badge-outline">Trust break</span>
-                  ) : null}
-                </div>
 
-                <h3 className="mt-4 text-2xl font-semibold">{entry.title}</h3>
-                <p className="mt-2 text-sm opacity-65">{entry.sourceLabel}</p>
-                <p className="mt-4 opacity-85">{entry.takeaway}</p>
+                  <h3 className="mt-4 text-2xl font-semibold">{entry.title}</h3>
+                  <p className="mt-2 text-sm opacity-65">{entry.sourceLabel}</p>
+                  <p
+                    className={`mt-4 leading-7 ${entry.analysis?.divergenceCount ? "font-semibold text-error" : "opacity-85"}`}
+                  >
+                    {entry.takeaway}
+                  </p>
 
-                <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-2xl bg-base-200 p-3">
-                    <p className="opacity-60">Players</p>
-                    <p className="mt-1 font-semibold">{entry.counts.joined}</p>
+                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl bg-base-200 p-3">
+                      <p className="opacity-60">Players</p>
+                      <p className="mt-1 font-semibold">{entry.counts.joined}</p>
+                    </div>
+                    <div className="rounded-2xl bg-base-200 p-3">
+                      <p className="opacity-60">Rounds</p>
+                      <p className="mt-1 font-semibold">{entry.counts.rounds}</p>
+                    </div>
+                    <div className="rounded-2xl bg-base-200 p-3">
+                      <p className="opacity-60">Messages</p>
+                      <p className="mt-1 font-semibold">{entry.counts.messages}</p>
+                    </div>
+                    <div className="rounded-2xl bg-base-200 p-3">
+                      <p className="opacity-60">Pot</p>
+                      <p className="mt-1 font-semibold">{formatWeiToEth(entry.economics.totalPotWei)}</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl bg-base-200 p-3">
-                    <p className="opacity-60">Rounds</p>
-                    <p className="mt-1 font-semibold">{entry.counts.rounds}</p>
-                  </div>
-                  <div className="rounded-2xl bg-base-200 p-3">
-                    <p className="opacity-60">Messages</p>
-                    <p className="mt-1 font-semibold">{entry.counts.messages}</p>
-                  </div>
-                  <div className="rounded-2xl bg-base-200 p-3">
-                    <p className="opacity-60">Pot</p>
-                    <p className="mt-1 font-semibold">{formatWeiToEth(entry.economics.totalPotWei)}</p>
-                  </div>
-                </div>
 
-                <div className="mt-5 text-sm opacity-70">
-                  <p>Created: {formatUnixTimestamp(entry.createdAt)}</p>
-                  <p>Exported: {formatUnixTimestamp(entry.exportedAt)}</p>
-                </div>
+                  <div className="mt-5 text-sm opacity-70">
+                    <p>Created: {formatUnixTimestamp(entry.createdAt)}</p>
+                    <p>Exported: {formatUnixTimestamp(entry.exportedAt)}</p>
+                  </div>
 
-                <div className="mt-6 flex flex-wrap gap-2">
-                  <Link href={entry.urls.detail} className="btn btn-primary btn-sm rounded-full">
-                    Open game
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <Link href={entry.urls.detail} className="btn btn-primary btn-sm rounded-full">
+                      Open game
+                    </Link>
+                    <a href={entry.urls.gameSummary} className="btn btn-outline btn-sm rounded-full">
+                      Summary JSON
+                    </a>
+                    <a href={entry.urls.manifest} className="btn btn-outline btn-sm rounded-full">
+                      Manifest
+                    </a>
+                  </div>
+                  <Link
+                    href={entry.urls.detail}
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80"
+                  >
+                    See the full timeline
+                    <ArrowRightIcon className="h-4 w-4" />
                   </Link>
-                  <a href={entry.urls.manifest} className="btn btn-outline btn-sm rounded-full">
-                    Manifest
-                  </a>
-                  <a href={entry.urls.gameSummary} className="btn btn-outline btn-sm rounded-full">
-                    Summary JSON
-                  </a>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
