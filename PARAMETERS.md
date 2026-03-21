@@ -118,6 +118,8 @@ Interpretation:
 
 ## 5. Recommended environment profiles
 
+If you are using these profiles to reason about the eventual public `256`-player target, also read `MAINNET_256_READINESS.md`. The tiny-canary and public-scale questions are intentionally separated.
+
 ## 5.1 Anvil smoke profile
 Use for quick local correctness and demo rehearsal.
 

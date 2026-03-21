@@ -27,6 +27,7 @@ Required docs:
 - `TEST_PLAN.md`
 - `PARAMETERS.md`
 - `LAUNCH_PLAN.md`
+- `MAINNET_256_READINESS.md`
 - `SKILLS.md`
 
 Exit gate:
@@ -145,6 +146,7 @@ Do **not** deploy to Base mainnet until all are true:
 - launch parameters frozen in repo docs
 - demo runbook rehearsed end to end
 - the chosen timing profile has evidence at a representative roster size for the intended player cap
+- `MAINNET_256_READINESS.md` is reviewed and green for the intended roster claim
 
 ---
 

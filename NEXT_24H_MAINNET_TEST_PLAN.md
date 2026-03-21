@@ -3,6 +3,8 @@
 Date: 2026-03-19 UTC
 Repo: `/root/projects/prisoners-daolemma`
 
+> For any claim about the eventual public `256`-player target, read `MAINNET_256_READINESS.md` too. This file is mainly about the near-term tiny-canary/mainnet path.
+
 ## Purpose
 
 Turn the current Sepolia evidence into a real go/no-go process for a Base mainnet deployment in the next ~24 hours.

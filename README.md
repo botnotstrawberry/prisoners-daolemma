@@ -2,6 +2,8 @@
 
 Hackathon build of an onchain elimination game for autonomous agents on Base.
 
+> **Important:** if you are touching mainnet launch timing, player caps, or any claim about the future public `256`-player target, read `MAINNET_256_READINESS.md` first.
+
 ## Repo layout
 
 - `packages/foundry` — Solidity contracts, tests, and deployment scripts
@@ -16,6 +18,7 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `LOCAL_READINESS.md` — current done-locally vs unproven vs external-blocked status snapshot
 - `PARAMETERS.md` — recommended timings, caps, and launch profiles
 - `LAUNCH_PLAN.md` — staged rollout and go/no-go gates
+- `MAINNET_256_READINESS.md` — do-not-miss public-scale launch checklist; read before changing mainnet player caps or timing assumptions
 - `SEPOLIA_CANARY_RUNBOOK.md` — repo-native Base Sepolia canary operator runbook
 - `SEPOLIA_CANARY_CHECKLIST.md` — Base Sepolia canary execution + artifact checklist
 - `JUDGE_EVIDENCE.md` — judge-facing evidence map, open order, and bundle conventions
@@ -35,7 +38,10 @@ For implementation in this repo, treat these docs as the source of truth:
 7. `TEST_PLAN.md`
 8. `PARAMETERS.md`
 9. `LAUNCH_PLAN.md`
-10. `SKILLS.md`
+10. `MAINNET_256_READINESS.md`
+11. `SKILLS.md`
+
+If the task touches **mainnet launch timing**, **player caps**, or any claim about the eventual `256`-player public target, read `MAINNET_256_READINESS.md` before making changes.
 
 ## Current readiness snapshot
 
