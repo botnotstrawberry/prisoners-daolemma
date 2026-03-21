@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "prisoners-daolemma/base-sepolia-canary-deployment-v0",
+  "target": {
+    "rpcTarget": "https://sepolia.base.org",
+    "chainId": 84532,
+    "latestBlock": {
+      "number": 39171214,
+      "timestamp": 1774110716
+    }
+  },
+  "deploymentFile": "/root/projects/prisoners-daolemma/packages/foundry/deployments/84532.json",
+  "deploymentNetworkName": "base-sepolia",
+  "addresses": {
+    "registry": "0x5C9f948f6DCf29FBD3817b7D37eb06E395B8fF2E",
+    "game": "0x38A247A8659a0fAaD081D6751aC7f90367874efd",
+    "chat": "0x89EC1885D81379070c349512C832a268F56a0F82"
+  },
+  "expectedRoles": {
+    "owner": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "treasury": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    },
+    "authVerifier": {
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+      "source": "env"
+    }
+  },
+  "onchain": {
+    "registryOwner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "gameOwner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "treasury": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "authRegistry": "0x5C9f948f6DCf29FBD3817b7D37eb06E395B8fF2E",
+    "linkedGame": "0x38A247A8659a0fAaD081D6751aC7f90367874efd",
+    "defaultConfig": {
+      "entryFeeWei": "1000000000000000",
+      "creatorFeeBps": 100,
+      "causeFeeBps": 100,
+      "joinDurationSeconds": 120,
+      "commitDurationBlocks": 40,
+      "revealDurationBlocks": 40,
+      "minPlayers": 3,
+      "maxPlayers": 32,
+      "maxCauses": 8
+    },
+    "currentGameId": 0,
+    "activeGameId": 0,
+    "messageCount": 0,
+    "knownCauseCount": 0,
+    "activeCauseCount": 0,
+    "causes": []
+  },
+  "profileComparison": {
+    "matchesRecommendedProfile": false,
+    "mismatches": [
+      {
+        "field": "joinDurationSeconds",
+        "actual": "120",
+        "expected": "900"
+      },
+      {
+        "field": "commitDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      },
+      {
+        "field": "revealDurationBlocks",
+        "actual": "40",
+        "expected": "20"
+      }
+    ]
+  },
+  "warnings": [
+    "Onchain default config joinDurationSeconds=120 differs from the recommended Base Sepolia canary value 900.",
+    "Onchain default config commitDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+    "Onchain default config revealDurationBlocks=40 differs from the recommended Base Sepolia canary value 20.",
+    "No active causes are currently whitelisted, so createGame() will revert until the owner whitelists at least one cause."
+  ]
+}

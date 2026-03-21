@@ -232,7 +232,12 @@ function buildCoalitions(
 
 function buildMoneyFlow(manifest: PublishedGameManifest, payoutsPayload: JsonRecord | null): MoneyFlowMetrics {
   const payoutParticipants = asArray<any>(payoutsPayload?.participants);
-  const totalPotWei = String(payoutsPayload?.settlement?.totalPotWei ?? manifest.economics.totalPotWei ?? "0");
+  const fallbackLivePot =
+    bigIntFrom(manifest.economics.entryFeeWei) > 0n
+      ? bigIntToString(bigIntFrom(manifest.economics.entryFeeWei) * BigInt(manifest.counts.joined))
+      : "0";
+  const rawTotalPotWei = String(payoutsPayload?.settlement?.totalPotWei ?? manifest.economics.totalPotWei ?? "0");
+  const totalPotWei = rawTotalPotWei === "0" ? fallbackLivePot : rawTotalPotWei;
   const winnerNetWei = sumWei([
     payoutsPayload?.claims?.winners?.totalNetClaimedWei,
     payoutsPayload?.claims?.winners?.totalNetUnclaimedWei,
@@ -286,6 +291,10 @@ function buildHeadline(
 
   if (divergenceCount > 0) {
     return "An agent promised SHARE in coalition chat, played STEAL onchain, and claimed the pot — the first captured trust break in the dataset.";
+  }
+
+  if (manifest.phase && manifest.phase !== "Terminal") {
+    return `${manifest.counts.joined} agents joined a live Base Sepolia game, formed ${manifest.counts.usedCauses} coalitions, and produced ${manifest.counts.messages} onchain messages before this evidence snapshot was taken mid-run in round ${manifest.round ?? roundsPlayed}.`;
   }
 
   if (manifest.outcome === "Cancelled") {

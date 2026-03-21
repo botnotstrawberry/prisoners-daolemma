@@ -28,7 +28,14 @@ type GameDetailPageProps = {
   }>;
 };
 
-function outcomeBadge(outcome?: string | null) {
+function outcomeBadge(outcome?: string | null, phase?: string | null) {
+  if (phase && phase !== "Terminal") {
+    return {
+      label: "In Progress",
+      className: "border-primary/25 bg-primary/10 text-primary",
+    };
+  }
+
   if (outcome === "Cancelled") {
     return {
       label: "Cancelled",
@@ -76,7 +83,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
   const nextEntry = currentIndex > 0 ? sortedEntries[currentIndex - 1] : null;
 
   const metrics = buildCaseStudyMetrics(bundle);
-  const tone = outcomeBadge(bundle.manifest.outcome);
+  const tone = outcomeBadge(bundle.manifest.outcome, bundle.manifest.phase);
   const basescanUrl = bundle.summary?.addresses?.game
     ? `https://sepolia.basescan.org/address/${bundle.summary.addresses.game}`
     : null;
@@ -298,7 +305,12 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
           <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-3xl bg-base-200 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] opacity-60">Economic stakes</p>
-              {metrics.moneyFlow.topWinner ? (
+              {bundle.manifest.phase && bundle.manifest.phase !== "Terminal" ? (
+                <p className="mt-4 leading-8 opacity-85">
+                  This game was exported mid-run while still in the {bundle.manifest.phase.toLowerCase()} phase. Final
+                  settlement, claims, and treasury/cause withdrawals have not happened yet.
+                </p>
+              ) : metrics.moneyFlow.topWinner ? (
                 <div className="mt-4 space-y-2 leading-8">
                   <p>
                     {metrics.moneyFlow.winnerCount > 1

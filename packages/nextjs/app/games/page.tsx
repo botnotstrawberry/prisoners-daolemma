@@ -10,6 +10,7 @@ export const metadata = getMetadata({
 });
 
 function outcomeLabel(entry: PublishedGameIndexEntry) {
+  if (entry.phase && entry.phase !== "Terminal") return "In progress";
   if (entry.outcome === "Cancelled") return "Cancelled";
   if (entry.outcome === "NoWinners") return "No winner";
   return "Winner path";
