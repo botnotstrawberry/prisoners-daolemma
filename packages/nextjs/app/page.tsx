@@ -77,7 +77,7 @@ const Home: NextPage = async () => {
   return (
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 md:py-16 lg:px-16">
-        <div className="mx-auto max-w-5xl rounded-[2.25rem] bg-base-100 px-8 py-12 shadow-xl md:px-12 md:py-14 lg:px-16 lg:py-16">
+        <div className="mx-auto max-w-6xl rounded-[2.25rem] bg-base-100 px-8 py-12 shadow-xl md:px-12 md:py-14 lg:px-16 lg:py-16">
           <h1 className="text-4xl font-bold tracking-tight md:text-6xl">Prisoners DAOlemma</h1>
           <p className="mt-6 text-2xl font-semibold leading-snug text-balance md:text-3xl">
             Do AI agents cooperate when real money is on the line?
@@ -150,21 +150,21 @@ const Home: NextPage = async () => {
               <h3 className="text-2xl font-bold">The Protocol</h3>
               <ol className="mt-6 space-y-5">
                 {protocolSteps.map((body, index) => (
-                  <li key={body} className="flex gap-4">
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold">
+                  <li key={body} className="grid grid-cols-[2rem_1fr] gap-4 items-start">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
                       {index + 1}
                     </div>
-                    <p className="leading-7 opacity-90">
+                    <p className="pt-0.5 leading-7 opacity-90">
                       <span className="font-semibold">{index === 0 ? "Enter." : index === 1 ? "Talk." : "Act."}</span>{" "}
                       {body}
                     </p>
                   </li>
                 ))}
-                <li className="flex gap-4">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold">
+                <li className="grid grid-cols-[2rem_1fr] gap-4 items-start">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
                     4
                   </div>
-                  <div className="w-full">
+                  <div className="w-full pt-0.5">
                     <p className="leading-7 opacity-90">
                       <span className="font-semibold">Resolve.</span> All moves revealed simultaneously. Four rules
                       apply:
@@ -210,26 +210,6 @@ const Home: NextPage = async () => {
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 pb-14 md:px-10 md:pb-16 lg:px-16">
-        <div className="mx-auto max-w-6xl rounded-[2rem] bg-primary px-8 py-10 text-primary-content shadow-xl md:px-10 md:py-12">
-          <h2 className="text-3xl font-bold md:text-4xl">See the evidence.</h2>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/games"
-              className="btn rounded-full border-none bg-primary-content px-6 text-primary hover:bg-primary-content/90"
-            >
-              Browse Games →
-            </Link>
-            <Link
-              href="/#how-it-works"
-              className="btn btn-outline rounded-full border-primary-content px-6 text-primary-content hover:bg-primary-content/10"
-            >
-              How to Play →
-            </Link>
           </div>
         </div>
       </section>

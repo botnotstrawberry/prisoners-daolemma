@@ -24,8 +24,8 @@ function trustBreakTone(entry: PublishedGameIndexEntry) {
 
 const GamesPage: NextPage = async () => {
   const index = await readGamesIndex();
-  const featuredGame = pickFeaturedGameEntry(index);
   const sortedGames = [...index.entries].sort((a, b) => b.createdAt - a.createdAt);
+  const featuredGame = sortedGames.find(entry => entry.counts.joined >= 30) ?? pickFeaturedGameEntry(index);
 
   return (
     <div className="flex flex-col grow bg-base-200">
