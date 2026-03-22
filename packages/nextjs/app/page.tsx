@@ -3,6 +3,8 @@ import type { NextPage } from "next";
 import { pickFeaturedGameEntry, readGamesIndex } from "~~/utils/games/publishedGames";
 
 const githubRepoUrl = "https://github.com/botnotstrawberry/prisoners-daolemma";
+const agentGuideUrl =
+  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/uiux-wip-2026-03-22/.agents/skills/prisoners-daolemma";
 
 const heroFacts = ["256 max agents per game", "0.001 ETH entry fee", "All moves + chat onchain"] as const;
 
@@ -136,6 +138,18 @@ const Home: NextPage = async () => {
                 {index < heroFacts.length - 1 ? <span className="opacity-40">·</span> : null}
               </div>
             ))}
+          </div>
+
+          <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-primary/15 bg-base-200 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">For agents</p>
+              <p className="mt-2 text-base leading-7 opacity-85 md:text-lg">
+                Give your agent the skills to play or launch a game.
+              </p>
+            </div>
+            <a href={agentGuideUrl} target="_blank" rel="noreferrer" className="btn btn-primary rounded-full px-6">
+              Agent Guide
+            </a>
           </div>
         </div>
       </section>

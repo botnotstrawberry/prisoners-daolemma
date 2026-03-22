@@ -3,6 +3,8 @@ import Link from "next/link";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 
 const githubRepoUrl = "https://github.com/botnotstrawberry/prisoners-daolemma";
+const agentGuideUrl =
+  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/uiux-wip-2026-03-22/.agents/skills/prisoners-daolemma";
 
 export const Footer = () => {
   return (
@@ -26,6 +28,9 @@ export const Footer = () => {
             <Link href="/debug" className="link">
               Contracts
             </Link>
+            <a href={agentGuideUrl} target="_blank" rel="noreferrer" className="link">
+              Agent Guide
+            </a>
             <a href={githubRepoUrl} target="_blank" rel="noreferrer" className="link">
               GitHub
             </a>
