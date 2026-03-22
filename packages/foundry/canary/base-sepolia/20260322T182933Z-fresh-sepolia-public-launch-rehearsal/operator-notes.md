@@ -1,0 +1,21 @@
+# Fresh Sepolia Public Launch Rehearsal
+
+- Run ID: `20260322T182933Z-fresh-sepolia-public-launch-rehearsal`
+- Purpose: validate the new public `launchGameAndJoin(...)` path on the latest contract candidate before mainnet.
+- Candidate commit: `659ceb3`
+- Chain: Base Sepolia
+- Registry: `0xa343C17E44614fB549f32ECFfb2bF2813ECa8AB7`
+- Game: `0xB6F0382e6809e013C8D9772a2DA5bF3F204cBB37`
+- Chat: `0xa9bB6E2DBd3b483f89Aa8C42A6e477cfCaE52606`
+- Profile:
+  - join `300`
+  - commit `60`
+  - reveal `60`
+  - min `9`
+  - max `9`
+  - max causes `2`
+  - entry fee `0.001 ETH`
+- Launch path exercised: admitted player wallet launched the game through the new public launch entrypoint and auto-joined in the same transaction.
+- Final outcome: `Ended` / `Winners` / round `3` / terminal path `winner-claims`
+- Totals: `9 joined`, `9 committed`, `9 revealed`, `9 claimed`
+- Notes: this is the latest contract-validation Sepolia proof and supersedes the older deprecated-contract published run for website purposes.

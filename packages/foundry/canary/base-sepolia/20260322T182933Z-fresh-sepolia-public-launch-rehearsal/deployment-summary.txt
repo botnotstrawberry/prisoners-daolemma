@@ -1,0 +1,14 @@
+Fresh Sepolia Public Launch Rehearsal
+Run ID: 20260322T182933Z-fresh-sepolia-public-launch-rehearsal
+Candidate commit: 659ceb3
+Registry: 0xa343C17E44614fB549f32ECFfb2bF2813ECa8AB7
+Game: 0xB6F0382e6809e013C8D9772a2DA5bF3F204cBB37
+Chat: 0xa9bB6E2DBd3b483f89Aa8C42A6e477cfCaE52606
+Join duration seconds: 300
+Commit duration blocks: 60
+Reveal duration blocks: 60
+Min players: 9
+Max players: 9
+Max causes: 2
+Entry fee: 0.001 ETH
+Outcome: Ended / Winners / round 3 / winner-claims

@@ -1,0 +1,482 @@
+{
+  "gameId": 1,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 39218294,
+      "timestamp": 1774204876
+    },
+    "logRange": {
+      "requestedFromBlock": 39217948,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 39217948,
+      "resolvedToBlock": 39218294,
+      "coversFullHistoryToStateSnapshot": false,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "terminalOutcome": {
+    "terminal": true,
+    "terminalPath": "winner-claims",
+    "phase": "Ended",
+    "phaseCode": 4,
+    "outcome": "Winners",
+    "outcomeCode": 1,
+    "round": 3,
+    "shareStreak": 3,
+    "aliveCount": 9,
+    "winnerCount": 9,
+    "gameEndedEvent": {
+      "outcome": "Winners",
+      "outcomeCode": 1,
+      "round": 3,
+      "winnerCount": 9,
+      "shareStreak": 3,
+      "blockNumber": 39218265,
+      "txHash": "0x81f43d4b57bfb86c1d0b601863553c9b6e7c67e14ba0e4631915cd02e0f7c24b",
+      "timestamp": 1774204818
+    },
+    "gameCancelledEvent": null,
+    "settlementFinalizedEvent": {
+      "outcome": "Winners",
+      "outcomeCode": 1,
+      "totalPotWei": "9000000000000000",
+      "creatorFeeWei": "90000000000000",
+      "winnerCount": 9,
+      "winnerShareWei": "990000000000000",
+      "refundPerPlayerWei": "0",
+      "noWinnerCausePoolWei": "0",
+      "treasuryAccruedWei": "90000000000000",
+      "blockNumber": 39218265,
+      "txHash": "0x81f43d4b57bfb86c1d0b601863553c9b6e7c67e14ba0e4631915cd02e0f7c24b",
+      "timestamp": 1774204818
+    },
+    "notes": []
+  },
+  "settlement": {
+    "finalized": true,
+    "terminalPath": "winner-claims",
+    "totalPotWei": "9000000000000000",
+    "creatorFeeWei": "90000000000000",
+    "treasuryRecipient": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "treasuryAccruedWei": "90000000000000",
+    "treasuryAccruedExcludingCreatorFeeWei": "0",
+    "treasuryWithdrawnWei": "90000000000000",
+    "treasuryClaimableWei": "0",
+    "winnerCount": 9,
+    "winnerShareWei": "990000000000000",
+    "refundPerPlayerWei": "0",
+    "noWinnerCausePoolWei": "0",
+    "noWinnerCauseDistributedWei": "0",
+    "claimPathAvailable": true,
+    "refundPathAvailable": false,
+    "noWinnerPathAvailable": false
+  },
+  "claims": {
+    "winners": {
+      "claimPathAvailable": true,
+      "eligibleWinnerCount": 9,
+      "claimedWinnerCount": 9,
+      "unclaimedWinnerCount": 0,
+      "grossPrizePerWinnerWei": "990000000000000",
+      "causeCutPerWinnerWei": "9900000000000",
+      "netPrizePerWinnerWei": "980100000000000",
+      "totalGrossClaimedWei": "8910000000000000",
+      "totalGrossUnclaimedWei": "0",
+      "totalNetClaimedWei": "8820900000000000",
+      "totalNetUnclaimedWei": "0",
+      "totalCauseCutClaimedWei": "89100000000000",
+      "totalCauseCutPendingWei": "0"
+    },
+    "refunds": {
+      "refundPathAvailable": false,
+      "eligibleRefundCount": 0,
+      "refundedCount": 0,
+      "pendingRefundCount": 0,
+      "refundPerPlayerWei": "0",
+      "totalRefundedWei": "0",
+      "totalRefundPendingWei": "0"
+    }
+  },
+  "treasury": {
+    "recipient": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "creatorFeeWei": "90000000000000",
+    "nonCreatorAccruedWei": "0",
+    "accruedWei": "90000000000000",
+    "withdrawnWei": "90000000000000",
+    "claimableWei": "0",
+    "winnerResidualWei": "0",
+    "noWinnerRouteWei": "0"
+  },
+  "noWinner": {
+    "applicable": false,
+    "causePoolWei": "0",
+    "distributedWei": "0",
+    "undistributedWei": "0",
+    "treasuryRouteWei": "0"
+  },
+  "participants": [
+    {
+      "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xc5AB7152c9ea027c753589D343934c4E5CD5d305",
+      "causeId": 2,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "causeId": 2,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+      "causeId": 2,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xC52D960200545832167756854c178fD724A5565b",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0xBD592997601d44dfC40B7fD3B7FA5b506392B6A7",
+      "causeId": 1,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    },
+    {
+      "wallet": "0x1d0E244a40D59eB6eCF9c62ec0c07Ed77723a35c",
+      "causeId": 2,
+      "joined": true,
+      "alive": true,
+      "claimed": true,
+      "refunded": false,
+      "terminalStatus": "winner-claimed",
+      "claim": {
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "availableNow": false
+      },
+      "refund": {
+        "refundWei": "0",
+        "availableNow": false
+      }
+    }
+  ],
+  "causes": [
+    {
+      "causeId": 1,
+      "entrantCount": 5,
+      "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+      "routedFromGameWei": "49500000000000",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "49500000000000",
+      "winnerCount": 5,
+      "claimedWinnerCount": 5,
+      "unclaimedWinnerCount": 0,
+      "claimedWinnerCauseCutWei": "49500000000000",
+      "pendingWinnerCauseCutWei": "0"
+    },
+    {
+      "causeId": 2,
+      "entrantCount": 4,
+      "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+      "routedFromGameWei": "39600000000000",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "39600000000000",
+      "winnerCount": 4,
+      "claimedWinnerCount": 4,
+      "unclaimedWinnerCount": 0,
+      "claimedWinnerCauseCutWei": "39600000000000",
+      "pendingWinnerCauseCutWei": "0"
+    }
+  ],
+  "events": {
+    "settlementFinalized": [
+      {
+        "outcome": "Winners",
+        "outcomeCode": 1,
+        "totalPotWei": "9000000000000000",
+        "creatorFeeWei": "90000000000000",
+        "winnerCount": 9,
+        "winnerShareWei": "990000000000000",
+        "refundPerPlayerWei": "0",
+        "noWinnerCausePoolWei": "0",
+        "treasuryAccruedWei": "90000000000000",
+        "blockNumber": 39218265,
+        "txHash": "0x81f43d4b57bfb86c1d0b601863553c9b6e7c67e14ba0e4631915cd02e0f7c24b",
+        "timestamp": 1774204818
+      }
+    ],
+    "prizeClaims": [
+      {
+        "wallet": "0x99026D4196D093F6a315408775b00312Fc1F5797",
+        "causeId": 2,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "blockNumber": 39218274,
+        "txHash": "0x3f271b01898f1608ff00b37ea8d155136b5c0b0cb9ebcab52c8ec361088dfb08",
+        "timestamp": 1774204836
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "blockNumber": 39218274,
+        "txHash": "0x87107a5beb6546f1a9c1cb5d38faf7fc54b1875f41ef6cc515a3b91c5dba80d3",
+        "timestamp": 1774204836
+      },
+      {
+        "wallet": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "causeId": 2,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "blockNumber": 39218274,
+        "txHash": "0x5bb50e466ff9c6e65a8b7c3dbdaa9c7cbabff3764cf40b8e4e379de84c6458e7",
+        "timestamp": 1774204836
+      },
+      {
+        "wallet": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+        "causeId": 1,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "blockNumber": 39218274,
+        "txHash": "0x5cca34ee556a02bb698bba4e8916b85834510e3facaaf57431707b82468449d4",
+        "timestamp": 1774204836
+      },
+      {
+        "wallet": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+        "causeId": 1,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "blockNumber": 39218274,
+        "txHash": "0x6383ec6a38d074300bdd7c1cac5d1a24b58e8e9c8062b72f579d469305cb974f",
+        "timestamp": 1774204836
+      },
+      {
+        "wallet": "0xBD592997601d44dfC40B7fD3B7FA5b506392B6A7",
+        "causeId": 1,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "blockNumber": 39218278,
+        "txHash": "0xf069bf5c4c330734cf5e05677e5cfcf3ea1a422ec8a729cc23742d98e561f4a7",
+        "timestamp": 1774204844
+      },
+      {
+        "wallet": "0x1d0E244a40D59eB6eCF9c62ec0c07Ed77723a35c",
+        "causeId": 2,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "blockNumber": 39218278,
+        "txHash": "0xd2999f5054e7bb33d53cbeafcb545e795715779196aba3f8b41d20b1cc627cf4",
+        "timestamp": 1774204844
+      },
+      {
+        "wallet": "0xC52D960200545832167756854c178fD724A5565b",
+        "causeId": 1,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "blockNumber": 39218278,
+        "txHash": "0x044e729c9b2dd2d914d2dca3f4b38cdbe6e5ed25a27cab6d746adbe3f2e86c1f",
+        "timestamp": 1774204844
+      },
+      {
+        "wallet": "0xc5AB7152c9ea027c753589D343934c4E5CD5d305",
+        "causeId": 2,
+        "grossPrizeWei": "990000000000000",
+        "causeCutWei": "9900000000000",
+        "netPrizeWei": "980100000000000",
+        "causeRecipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "blockNumber": 39218278,
+        "txHash": "0x591df1971dd858f543354131aac8ce7c9fa134550931b6353c1b7b363a2b49ab",
+        "timestamp": 1774204844
+      }
+    ],
+    "refundClaims": [],
+    "noWinnerDistributions": [],
+    "treasuryAccruals": [
+      {
+        "treasury": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+        "amountWei": "90000000000000",
+        "blockNumber": 39218265,
+        "txHash": "0x81f43d4b57bfb86c1d0b601863553c9b6e7c67e14ba0e4631915cd02e0f7c24b",
+        "timestamp": 1774204818
+      }
+    ],
+    "treasuryWithdrawals": [
+      {
+        "recipient": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+        "amountWei": "90000000000000",
+        "blockNumber": 39218282,
+        "txHash": "0xdd7fbdf6b4d03dcc45c24769fee39b64e7d61cc8b94f5450f401f0c1e3a6f092",
+        "timestamp": 1774204852
+      }
+    ],
+    "causeWithdrawals": [
+      {
+        "causeId": 1,
+        "recipient": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "amountWei": "49500000000000",
+        "blockNumber": 39218285,
+        "txHash": "0x680cdd40e6c2b8a8f7712217368a64259089d928c3b2466a6574094483555db7",
+        "timestamp": 1774204858
+      },
+      {
+        "causeId": 2,
+        "recipient": "0xd5B820002455D9E19044b2830Bb30eD813bf3424",
+        "amountWei": "39600000000000",
+        "blockNumber": 39218289,
+        "txHash": "0xf559d6e9f81822a320df07e3faf9af8b8824cd7ba269069e714925af216759a1",
+        "timestamp": 1774204866
+      }
+    ]
+  },
+  "notes": [
+    "routedFromGameWei fields are game-specific lifetime routing totals exposed by the current contract state.",
+    "claimableFromGameWei and treasuryClaimableWei fields are the selected game's current outstanding pull-based amounts at the chosen state snapshot block.",
+    "withdrawnFromGameWei and withdrawal events are per-game counters/events, so they remain attributable even after recipients pull funds later.",
+    "Winner-path cause routing only moves on actual claim transactions; pendingWinnerCauseCutWei fields are derived from the current winner roster, immutable cause choices, and claim flags at the selected state snapshot.",
+    "TreasuryWithdrawal and CauseWithdrawal events expose recipient + amount + txHash, but the current contract does not emit a dedicated caller field inside those event payloads."
+  ]
+}
