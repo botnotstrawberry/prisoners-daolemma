@@ -1,0 +1,347 @@
+{
+  "schemaVersion": "prisoners-daolemma/judge-evidence-v0",
+  "generatedAt": "2026-03-22T09:54:45.265Z",
+  "title": "Prisoners DAOlemma Judge Evidence Pack",
+  "boundaryNote": "This helper does not create new proof. It only indexes artifacts that already exist in a local load-harness run, a compact local proof pack, or a Base Sepolia canary bundle, then writes a compact judge-facing guide plus a machine-readable inventory.",
+  "bundleType": "base-sepolia-canary",
+  "bundleDir": "canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower",
+  "outputDir": "canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower",
+  "generatedArtifacts": {
+    "humanGuide": "JUDGE_README.md",
+    "machineIndex": "judge-evidence-index.json"
+  },
+  "localProof": {
+    "kind": "load-harness",
+    "status": "missing",
+    "reportPath": null,
+    "txLogPath": null,
+    "report": null,
+    "exports": [],
+    "outcomes": [],
+    "claims": [],
+    "packManifestPath": null,
+    "packReadmePath": null,
+    "pack": null,
+    "matrixBundles": []
+  },
+  "liveSepoliaProof": {
+    "status": "present",
+    "preflightPath": "preflight.json",
+    "deploymentSummaryPath": "deployment-summary.json",
+    "deploymentFilePath": "deployments-84532.json",
+    "verifyLogPath": "verify.log",
+    "operatorNotesPath": null,
+    "createPath": null,
+    "querySummaryPath": "query/game-summary-live.json",
+    "preflight": {
+      "chainId": 84532,
+      "latestBlock": {
+        "number": 39201833,
+        "timestamp": 1774171954
+      },
+      "warnings": [
+        "Deploy config joinDurationSeconds=300 differs from the recommended Base Sepolia canary value 900.",
+        "Deploy config commitDurationBlocks=120 differs from the recommended Base Sepolia canary value 20.",
+        "Deploy config revealDurationBlocks=120 differs from the recommended Base Sepolia canary value 20."
+      ],
+      "matchesRecommendedProfile": false
+    },
+    "deployment": {
+      "chainId": 84532,
+      "latestBlock": {
+        "number": 39201855,
+        "timestamp": 1774171998
+      },
+      "currentGameId": 0,
+      "activeGameId": 0,
+      "messageCount": 0,
+      "activeCauseCount": 0,
+      "warnings": [
+        "Onchain default config joinDurationSeconds=300 differs from the recommended Base Sepolia canary value 900.",
+        "Onchain default config commitDurationBlocks=120 differs from the recommended Base Sepolia canary value 20.",
+        "Onchain default config revealDurationBlocks=120 differs from the recommended Base Sepolia canary value 20.",
+        "No active causes are currently whitelisted, so createGame() will revert until the owner whitelists at least one cause."
+      ],
+      "matchesRecommendedProfile": false,
+      "addresses": {
+        "registry": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+        "game": "0x9CAa81E9278E32318f95D9F55875f84eea0241cA",
+        "chat": "0x33DC1e703440c41834eA831184518eCCe815334b"
+      }
+    },
+    "querySummary": {
+      "gameId": 1,
+      "chainId": 84532,
+      "outcome": "Winners",
+      "terminalPath": "winner-claims",
+      "counts": {
+        "joined": 32,
+        "alive": 32,
+        "claimed": 32,
+        "refunded": 0,
+        "usedCauses": 8,
+        "committed": 32,
+        "revealed": 32,
+        "messages": 9
+      },
+      "notes": [
+        "Event-derived sections only cover logs from block 39201841 through 39202459. Treat this as a bounded evidence slice, not a complete replay export for the whole game.",
+        "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+        "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+        "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state."
+      ],
+      "addresses": {
+        "game": "0x9CAa81E9278E32318f95D9F55875f84eea0241cA",
+        "registry": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+        "chat": "0x33DC1e703440c41834eA831184518eCCe815334b"
+      },
+      "evidenceWindow": {
+        "stateSnapshot": {
+          "blockNumber": 39202459,
+          "timestamp": 1774173206
+        },
+        "logRange": {
+          "requestedFromBlock": 39201841,
+          "requestedToBlock": "latest",
+          "resolvedFromBlock": 39201841,
+          "resolvedToBlock": 39202459,
+          "coversFullHistoryToStateSnapshot": false,
+          "isHybridAgainstStateSnapshot": false
+        }
+      }
+    },
+    "queryExport": null,
+    "auth": {
+      "authStatusCount": 32,
+      "authPermitCount": 32,
+      "authStatusPaths": [
+        "auth/player-1/auth-status.json",
+        "auth/player-10/auth-status.json",
+        "auth/player-11/auth-status.json",
+        "auth/player-12/auth-status.json",
+        "auth/player-13/auth-status.json",
+        "auth/player-14/auth-status.json",
+        "auth/player-15/auth-status.json",
+        "auth/player-16/auth-status.json",
+        "auth/player-17/auth-status.json",
+        "auth/player-18/auth-status.json",
+        "auth/player-19/auth-status.json",
+        "auth/player-2/auth-status.json",
+        "auth/player-20/auth-status.json",
+        "auth/player-21/auth-status.json",
+        "auth/player-22/auth-status.json",
+        "auth/player-23/auth-status.json",
+        "auth/player-24/auth-status.json",
+        "auth/player-25/auth-status.json",
+        "auth/player-26/auth-status.json",
+        "auth/player-27/auth-status.json",
+        "auth/player-28/auth-status.json",
+        "auth/player-29/auth-status.json",
+        "auth/player-3/auth-status.json",
+        "auth/player-30/auth-status.json",
+        "auth/player-31/auth-status.json",
+        "auth/player-32/auth-status.json",
+        "auth/player-4/auth-status.json",
+        "auth/player-5/auth-status.json",
+        "auth/player-6/auth-status.json",
+        "auth/player-7/auth-status.json",
+        "auth/player-8/auth-status.json",
+        "auth/player-9/auth-status.json"
+      ],
+      "authPermitPaths": [
+        "auth/player-1/auth-permit.json",
+        "auth/player-10/auth-permit.json",
+        "auth/player-11/auth-permit.json",
+        "auth/player-12/auth-permit.json",
+        "auth/player-13/auth-permit.json",
+        "auth/player-14/auth-permit.json",
+        "auth/player-15/auth-permit.json",
+        "auth/player-16/auth-permit.json",
+        "auth/player-17/auth-permit.json",
+        "auth/player-18/auth-permit.json",
+        "auth/player-19/auth-permit.json",
+        "auth/player-2/auth-permit.json",
+        "auth/player-20/auth-permit.json",
+        "auth/player-21/auth-permit.json",
+        "auth/player-22/auth-permit.json",
+        "auth/player-23/auth-permit.json",
+        "auth/player-24/auth-permit.json",
+        "auth/player-25/auth-permit.json",
+        "auth/player-26/auth-permit.json",
+        "auth/player-27/auth-permit.json",
+        "auth/player-28/auth-permit.json",
+        "auth/player-29/auth-permit.json",
+        "auth/player-3/auth-permit.json",
+        "auth/player-30/auth-permit.json",
+        "auth/player-31/auth-permit.json",
+        "auth/player-32/auth-permit.json",
+        "auth/player-4/auth-permit.json",
+        "auth/player-5/auth-permit.json",
+        "auth/player-6/auth-permit.json",
+        "auth/player-7/auth-permit.json",
+        "auth/player-8/auth-permit.json",
+        "auth/player-9/auth-permit.json"
+      ]
+    },
+    "operatorNotes": {
+      "txHashCount": 0
+    },
+    "screenshots": [],
+    "claims": [
+      "Preflight inputs were captured for chain 84532 before deployment.",
+      "An onchain deployment summary is present, so owner/treasury/verifier wiring and default config can be inspected after deployment.",
+      "32 saved auth status artifact(s) are present for admitted gameplay wallets."
+    ]
+  },
+  "recommendedOpenOrder": [
+    {
+      "path": "preflight.json",
+      "why": "Expected Base Sepolia deploy inputs before the live run."
+    },
+    {
+      "path": "deployment-summary.json",
+      "why": "Onchain wiring, default config, and deployment freshness after deploy."
+    },
+    {
+      "path": "auth/player-1/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-10/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-11/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-12/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-13/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-14/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-15/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-16/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-17/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-18/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-19/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-2/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-20/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-21/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-22/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-23/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-24/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-25/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-26/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-27/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-28/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-29/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-3/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-30/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-31/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-32/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-4/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-5/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-6/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-7/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-8/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "auth/player-9/auth-status.json",
+      "why": "Saved auth status for a wallet admitted to the live canary."
+    },
+    {
+      "path": "query/game-summary-live.json",
+      "why": "Live game summary exported directly from the deployed contracts."
+    }
+  ],
+  "missingImportantArtifacts": [
+    "Live bundle is missing query/export/export-manifest.json, so the full repo-native evidence export is incomplete.",
+    "Live bundle is missing operator-notes.md, so tx hashes and manual run notes are not packaged yet.",
+    "No screenshots were found under screenshots/, so there is no bundled visual companion to the JSON evidence yet."
+  ],
+  "unknowns": [],
+  "nextCapturePriorities": [
+    "Add screenshots/ if you want a more judge-friendly visual companion to the live JSON bundle."
+  ]
+}

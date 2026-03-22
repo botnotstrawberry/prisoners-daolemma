@@ -1,0 +1,32 @@
+{
+  "registry": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+  "wallet": "0x5326aAB2630aD92dd19485643075632E5856B621",
+  "chainId": 84532,
+  "latestBlockNumber": 39201972,
+  "latestBlockTimestamp": 1774172232,
+  "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+  "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+  "isAuthorized": true,
+  "hasRecord": true,
+  "expired": false,
+  "nonceChecked": "0xbb4a8cf13489401e9ef4b3eac4d314a0217625a4523da1948075c99618677113",
+  "nonceUsed": true,
+  "record": {
+    "agentKey": "0x8c8073c45b23c77b240fa7f2011c11567ebfac384cc2d879e30fe855ca3ce0e6",
+    "manifestHash": "0xffb9437c539d5c74a60e685ee50d2c90b2bb3f9f8ec4ba40f621aad266a3663a",
+    "issuedAt": 1774172224,
+    "expiresAt": 1774186624,
+    "issuer": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "active": true
+  },
+  "bundleInspection": {
+    "registerable": false,
+    "recoveredSigner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "bundleVerifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "bundleRegistry": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+    "bundleDomainVerifyingContract": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+    "problems": [
+      "Permit nonce 0xbb4a8cf13489401e9ef4b3eac4d314a0217625a4523da1948075c99618677113 was already used on registry 0xA4c5a48cE3735A25556ca3D391983cfED0e979ec."
+    ]
+  }
+}

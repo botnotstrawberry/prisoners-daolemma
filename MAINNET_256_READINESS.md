@@ -151,8 +151,8 @@ These are the minimum evidence gates for discussing a public `256`-player Base m
 - [ ] local evidence does not require materially tighter windows than the public-scale target profile
 
 ### 5.3 Public-chain evidence
-- [ ] slower `32`-player Sepolia rerun passes
-- [ ] at least one representative larger-roster live-chain step beyond the tiny canary is reviewed and written down
+- [x] slower `32`-player Sepolia rerun passes
+- [x] at least one representative larger-roster live-chain step beyond the tiny canary is reviewed and written down
 - [ ] no unresolved live-chain timing surprises remain unexplained
 
 ### 5.4 Operational readiness

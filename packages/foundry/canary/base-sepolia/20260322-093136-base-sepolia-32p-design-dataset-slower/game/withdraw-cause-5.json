@@ -1,0 +1,14 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "withdraw-cause",
+  "chainId": 84532,
+  "game": "0x9CAa81E9278E32318f95D9F55875f84eea0241cA",
+  "wallet": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+  "gameId": 1,
+  "causeId": 5,
+  "txHash": "0x41cf9415fcafbfa1c1ba8b83d97cc9db4137dc4c8c21eadd5d81cbad3e6e4a35",
+  "blockNumber": 39202450,
+  "recipient": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+  "amountWei": "39600000000000",
+  "remainingClaimableWei": "0"
+}

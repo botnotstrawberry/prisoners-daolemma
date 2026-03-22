@@ -1,7 +1,7 @@
 {
   "schemaVersion": "prisoners-daolemma/web-game-manifest-v1",
   "slug": "20260321-163032-base-sepolia-32p-design-dataset-game-1",
-  "title": "32-Player Cooperative Design Dataset · Base Sepolia",
+  "title": "Game 1 · Base Sepolia",
   "sourceKind": "canary",
   "sourceRun": "base-sepolia/20260321-163032-base-sepolia-32p-design-dataset",
   "sourceLabel": "Canary run 20260321-163032-base-sepolia-32p-design-dataset (base-sepolia)",
@@ -36,7 +36,7 @@
     "winnerShareWei": "990000000000000",
     "noWinnerCausePoolWei": "0"
   },
-  "takeaway": "32 players across 8 causes completed a 3-round all-SHARE live Base Sepolia game with 9 onchain coalition/global messages.",
+  "takeaway": "Includes 9 onchain coalition/global messages tied to gameplay.",
   "analysis": {
     "messageSignals": [
       {

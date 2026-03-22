@@ -1,0 +1,24 @@
+{
+  "boundaryNote": "This command signs and submits verifier-approved auth inputs. It does not parse or verify SIWA payloads itself; use siwa-nonce, siwa-sign, and siwa-verify first if you need a real local SIWA verification step.",
+  "registry": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec",
+  "chainId": 84532,
+  "verifier": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+  "domain": {
+    "name": "PrisonersDAOlemmaAgentAuthRegistry",
+    "version": "1",
+    "chainId": 84532,
+    "verifyingContract": "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec"
+  },
+  "permit": {
+    "wallet": "0x1899BD66aF9b1C98cc243aC5537b8D73eae950cF",
+    "agentKey": "0x426fd4afbf2b02c308bcc114bf57926d7456c1f7554ebdc8654c20bfede685d7",
+    "manifestHash": "0x4f31b73d92cd31b00dfb8e42d465866ef5afb52934804c2d3cbb2473fd2e2e35",
+    "chainId": 84532,
+    "gameNamespace": "0x667349334cd9b5c99879778182049ead21ca6364eb748adad9161c7faf8c2810",
+    "issuedAt": 1774172164,
+    "expiresAt": 1774186564,
+    "nonce": "0x73762010e9d840b533969ace7e3b121b578a0590761cb13dfe88294b265791e9"
+  },
+  "digest": "0x83886a193572aa88760b3e6fdcf156adb6660b1875ba06875ed181d02481279c",
+  "signature": "0x16c25e94b562a202a2e02b9e5809e41e8cffd658eff43ace48c140369480e1413305dba6fe15387f88fb64ac9d12fbd8da37bae312770b201c6177616ce580bf1c"
+}

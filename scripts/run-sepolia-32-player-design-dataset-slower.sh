@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Prepared slower 32-player Base Sepolia profile.
-# Intentionally NOT run automatically.
-# Usage when explicitly approved:
+# Wrapper for the underlying run script using the slower 32-player timing budget.
+# Usage:
 #   bash scripts/run-sepolia-32-player-design-dataset-slower.sh
 
 export RUN_ID="${RUN_ID:-$(date -u +%Y%m%d-%H%M%S)-base-sepolia-32p-design-dataset-slower}"

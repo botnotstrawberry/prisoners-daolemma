@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x9CAa81E9278E32318f95D9F55875f84eea0241cA",
+  "chat": "0x33DC1e703440c41834eA831184518eCCe815334b",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0x58474e5f47fdd881ca99f8792b997f85378d04ecfb9daa495118dc67520cb3ff",
+  "blockNumber": 39202077,
+  "messageId": 4,
+  "round": 0,
+  "phase": "Joining",
+  "phaseCode": 1,
+  "scope": "cause",
+  "causeId": 1,
+  "createdAt": 1774172442,
+  "text": "Cause 1: SHARE for three rounds. Preserve trust and split the pot."
+}

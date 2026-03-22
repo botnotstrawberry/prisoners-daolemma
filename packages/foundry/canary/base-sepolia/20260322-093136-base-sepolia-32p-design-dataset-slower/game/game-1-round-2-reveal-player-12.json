@@ -1,0 +1,18 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "reveal",
+  "chainId": 84532,
+  "game": "0x9CAa81E9278E32318f95D9F55875f84eea0241cA",
+  "wallet": "0x75c0B76AdC78eb2Ca867BbecDaFF2EB31f18c492",
+  "gameId": 1,
+  "round": 2,
+  "choice": "Share",
+  "choiceCode": 1,
+  "salt": "0xcdd34ee0be2390d5f8072f7b40354b6354e29b147d01372ad130a4c7ca59ed34",
+  "commitment": "0xf3f2f87dc2c3cd880cdd147db433dca95b7edeb6e239ef053fc3a8db3747eb4f",
+  "txHash": "0x212203019625cd89c633f35eb47ccba0afc90afdc139dddb2c7e1f6d084a73e2",
+  "blockNumber": 39202311,
+  "phase": "Reveal",
+  "revealedThisRound": false,
+  "revealedCount": 0
+}

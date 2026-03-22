@@ -1,0 +1,9 @@
+
+🧾 Judge evidence pack written.
+Bundle:        canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower
+Output:        canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower
+Bundle type:   base-sepolia-canary
+Local proof:   missing
+Live Sepolia: present
+Guide:         canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower/JUDGE_README.md
+Index:         canary/base-sepolia/20260322-093136-base-sepolia-32p-design-dataset-slower/judge-evidence-index.json

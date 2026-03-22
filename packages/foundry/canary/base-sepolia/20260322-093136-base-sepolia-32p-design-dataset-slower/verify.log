@@ -1,0 +1,38 @@
+Compiling 2 files with Solc 0.8.33
+Solc 0.8.33 finished in 1.82s
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to pure
+   --> script/VerifyAll.s.sol:131:5:
+    |
+131 |     function _logFfiResult(FfiResult memory f) internal view {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Script ran successfully.
+
+== Logs ==
+  Using verify broadcast file: /root/projects/prisoners-daolemma/packages/foundry/broadcast/Deploy.s.sol/84532/run-latest.json
+  Start verifying contract `0xA4c5a48cE3735A25556ca3D391983cfED0e979ec` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408
+
+Contract [contracts/AgentAuthRegistry.sol:AgentAuthRegistry] "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec" is already verified. Skipping verification.
+  Start verifying contract `0x9CAa81E9278E32318f95D9F55875f84eea0241cA` deployed on base-sepolia
+Constructor args: 0x000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000db463b29c82138188d5e425ede5e0fcbb09f1408000000000000000000000000a4c5a48ce3735a25556ca3d391983cfed0e979ec00000000000000000000000000000000000000000000000000038d7ea4c6800000000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000000012c00000000000000000000000000000000000000000000000000000000000000780000000000000000000000000000000000000000000000000000000000000078000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008
+
+Submitting verification for [contracts/PrisonersDAOlemma.sol:PrisonersDAOlemma] 0x9CAa81E9278E32318f95D9F55875f84eea0241cA.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `fntu1idrhdvcjrcdyu4eqkh5xt7nvuac6vhcz15tf3nfdsgrkq`
+	URL: https://sepolia.basescan.org/address/0x9caa81e9278e32318f95d9f55875f84eea0241ca
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+  Warning: Verification is still pending...; waiting 15 seconds before trying again (7 tries remaining)
+
+  Start verifying contract `0x33DC1e703440c41834eA831184518eCCe815334b` deployed on base-sepolia
+Constructor args: 0x0000000000000000000000009caa81e9278e32318f95d9f55875f84eea0241ca
+
+Contract [contracts/GameChat.sol:GameChat] "0x33DC1e703440c41834eA831184518eCCe815334b" is already verified. Skipping verification.
