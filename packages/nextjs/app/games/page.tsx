@@ -4,9 +4,9 @@ import { type PublishedGameIndexEntry, pickFeaturedGameEntry, readGamesIndex } f
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Games",
+  title: "Game Data",
   description:
-    "A compact index of published Prisoners DAOlemma games. Open any game to view the full research case study.",
+    "A compact index of published Prisoners DAOlemma game data and case studies. Open any game to view the full research bundle.",
 });
 
 function outcomeLabel(entry: PublishedGameIndexEntry) {
@@ -25,17 +25,20 @@ function trustBreakTone(entry: PublishedGameIndexEntry) {
 const GamesPage: NextPage = async () => {
   const index = await readGamesIndex();
   const sortedGames = [...index.entries].sort((a, b) => b.createdAt - a.createdAt);
-  const featuredGame = sortedGames.find(entry => entry.counts.joined >= 30) ?? pickFeaturedGameEntry(index);
+  const featuredGame =
+    sortedGames.find(entry => entry.counts.messages > 0) ??
+    sortedGames.find(entry => entry.counts.joined >= 30) ??
+    pickFeaturedGameEntry(index);
 
   return (
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10">
-          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Games</p>
-          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game index</h1>
+          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Game Data</p>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game data</h1>
           <p className="mt-4 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
-            Browse published evidence bundles and open any game as a full case study. The featured case below is the
-            recent 30+ player Sepolia run.
+            Browse published evidence bundles and open any game as a full case study. For this design preview, the
+            featured case below highlights a run with onchain agent chat.
           </p>
         </div>
       </section>
@@ -43,15 +46,36 @@ const GamesPage: NextPage = async () => {
       {featuredGame ? (
         <section className="px-6 pb-8 md:px-10 lg:px-16">
           <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-primary/30 bg-base-100 p-6 shadow-xl md:p-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Featured</p>
-            <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h2 className="text-3xl font-bold">{featuredGame.title}</h2>
-                <p className="mt-3 max-w-4xl leading-8 opacity-85">{featuredGame.takeaway}</p>
-                <p className="mt-3 text-sm opacity-70">
-                  {featuredGame.networkLabel} · {featuredGame.counts.joined} players · {outcomeLabel(featuredGame)}
-                </p>
-              </div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Featured case study</p>
+            <div className="mt-3 max-w-4xl">
+              <h2 className="text-3xl font-bold">{featuredGame.title}</h2>
+              <p className="mt-3 leading-8 opacity-85">{featuredGame.takeaway}</p>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2 text-sm">
+              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 font-semibold">
+                {featuredGame.networkLabel}
+              </span>
+              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 font-semibold">
+                {featuredGame.counts.joined} players
+              </span>
+              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 font-semibold">
+                {featuredGame.counts.rounds} rounds
+              </span>
+              <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 font-semibold">
+                {outcomeLabel(featuredGame)}
+              </span>
+              {featuredGame.counts.messages > 0 ? (
+                <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 font-semibold text-primary">
+                  {featuredGame.counts.messages} chat messages
+                </span>
+              ) : null}
+              <span className={`rounded-full border px-3 py-1 font-semibold ${trustBreakTone(featuredGame)}`}>
+                {featuredGame.analysis?.divergenceCount ? "Trust breaks detected" : "No trust break captured"}
+              </span>
+            </div>
+
+            <div className="mt-6">
               <Link href={featuredGame.urls.detail} className="btn btn-primary rounded-full px-6">
                 Open featured case study
               </Link>
@@ -85,6 +109,11 @@ const GamesPage: NextPage = async () => {
                     <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
                       {outcomeLabel(entry)}
                     </span>
+                    {entry.counts.messages > 0 ? (
+                      <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                        {entry.counts.messages} chat messages
+                      </span>
+                    ) : null}
                     <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${trustBreakTone(entry)}`}>
                       {entry.analysis?.divergenceCount ? "Trust breaks detected" : "No trust break captured"}
                     </span>
