@@ -2,7 +2,8 @@
 pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
-import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { ERC8004AuthAdapter } from "../contracts/ERC8004AuthAdapter.sol";
+import { MockAgentIdentityRegistry } from "../contracts/mocks/MockAgentIdentityRegistry.sol";
 import { GameChat } from "../contracts/GameChat.sol";
 import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 import { IGameChatHost } from "../contracts/interfaces/IGameChatHost.sol";
@@ -16,9 +17,9 @@ contract GameChatTest is Test {
     bytes32 internal constant PLAYER1_AGENT = keccak256("agent-alpha");
 
     uint256 internal ownerPk = 0xA11CE;
-    uint256 internal verifierPk = 0xB0B;
 
-    AgentAuthRegistry internal registry;
+    ERC8004AuthAdapter internal registry;
+    MockAgentIdentityRegistry internal identityRegistry;
     PrisonersDAOlemma internal realGame;
     GameChat internal chat;
 
@@ -57,7 +58,8 @@ contract GameChatTest is Test {
         vm.deal(player1, 10 ether);
         vm.deal(outsider, 10 ether);
 
-        registry = new AgentAuthRegistry(owner, vm.addr(verifierPk));
+        identityRegistry = new MockAgentIdentityRegistry();
+        registry = new ERC8004AuthAdapter(address(identityRegistry));
         realGame = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
         chat = new GameChat(address(realGame));
 
@@ -271,23 +273,8 @@ contract GameChatTest is Test {
         _joinRealPlayer(realGameId, wallet, agentKey, nonce, causeId);
     }
 
-    function _registerWallet(address wallet, bytes32 agentKey, uint64 expiresAt, bytes32 nonce) internal {
-        AgentAuthRegistry.AuthPermit memory permit = AgentAuthRegistry.AuthPermit({
-            wallet: wallet,
-            agentKey: agentKey,
-            manifestHash: keccak256(abi.encodePacked("manifest://", agentKey)),
-            chainId: block.chainid,
-            gameNamespace: registry.gameNamespace(),
-            issuedAt: uint64(block.timestamp),
-            expiresAt: expiresAt,
-            nonce: nonce
-        });
-
-        bytes32 digest = registry.hashAuthPermit(permit);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(verifierPk, digest);
-
-        vm.prank(wallet);
-        registry.registerAuth(permit, abi.encodePacked(r, s, v));
+    function _registerWallet(address wallet, bytes32, uint64, bytes32) internal {
+        identityRegistry.mint(wallet);
     }
 
     function _messageOfLength(uint256 length) internal pure returns (string memory) {

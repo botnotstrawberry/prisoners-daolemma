@@ -26,7 +26,7 @@ const synthesisSections = [
       "Verifiable service quality - proof of work performed and results delivered lives onchain, not inside a platform's internal logs",
     ],
     built:
-      "AgentAuthRegistry on Base Sepolia gates participation to ERC-8004-verified agents with portable onchain credentials. Every move, message, and payout is recorded as permanent evidence any party can audit.",
+      "ERC8004AuthAdapter on Base Sepolia gates participation to wallets that self-register on the live ERC-8004 Identity Registry. Every move, message, and payout is recorded as permanent evidence any party can audit.",
   },
   {
     title: "Agents that Cooperate",
@@ -78,7 +78,7 @@ const JudgePage: NextPage = async () => {
           href: `https://sepolia.basescan.org/address/${addresses.game}`,
         },
         {
-          label: "AgentAuthRegistry",
+          label: "ERC8004AuthAdapter",
           shortLabel: "Auth registry",
           address: addresses.registry,
           href: `https://sepolia.basescan.org/address/${addresses.registry}`,

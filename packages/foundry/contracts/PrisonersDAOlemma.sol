@@ -5,11 +5,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-interface IAgentAuthRegistry {
-    function isAuthorized(address wallet) external view returns (bool);
-    function agentKeyOf(address wallet) external view returns (bytes32);
-}
+import { IAgentAuthRegistry } from "./interfaces/IAgentAuthRegistry.sol";
+import { IGameChatHost } from "./interfaces/IGameChatHost.sol";
 
 /// @title Prisoners DAOlemma
 /// @notice Real v1 game foundation for the Prisoners DAOlemma hackathon build.
@@ -22,7 +19,7 @@ interface IAgentAuthRegistry {
 ///      - canonical round resolution with defaulted SHARE handling
 ///      - elimination, share-streak, terminal outcomes, and settlement finalization
 ///      - winner claims, cancelled-game refunds, and pull-based cause/treasury withdrawals
-contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
+contract PrisonersDAOlemma is Ownable, ReentrancyGuard, IGameChatHost {
     using SafeERC20 for IERC20;
 
     error InvalidTreasury();
@@ -631,7 +628,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         return IAgentAuthRegistry(authRegistry).agentKeyOf(wallet);
     }
 
-    function gameExists(uint256 gameId) external view returns (bool) {
+    function gameExists(uint256 gameId) external view override returns (bool) {
         return _gameExists(gameId);
     }
 
@@ -647,7 +644,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         return _settlements[gameId];
     }
 
-    function chatContext(uint256 gameId) external view returns (uint32 round, uint8 phase) {
+    function chatContext(uint256 gameId) external view override returns (uint32 round, uint8 phase) {
         GameSnapshot memory game = _games[gameId];
         return (game.round, uint8(game.phase));
     }
@@ -696,15 +693,15 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         return _gameCauseIds[gameId][index];
     }
 
-    function isJoined(uint256 gameId, address wallet) public view returns (bool) {
+    function isJoined(uint256 gameId, address wallet) public view override returns (bool) {
         return _players[gameId][wallet].joined;
     }
 
-    function isAlive(uint256 gameId, address wallet) external view returns (bool) {
+    function isAlive(uint256 gameId, address wallet) external view override returns (bool) {
         return _players[gameId][wallet].alive;
     }
 
-    function playerCause(uint256 gameId, address wallet) external view returns (uint16) {
+    function playerCause(uint256 gameId, address wallet) external view override returns (uint16) {
         return _players[gameId][wallet].causeId;
     }
 

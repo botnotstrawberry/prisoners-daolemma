@@ -290,11 +290,10 @@ Recommended:
 ## 8.2 Auth record recommended fields
 - `agentKey`
 - `wallet`
-- `manifestHash`
-- `issuedAt`
-- `expiresAt`
-- verifier/issuer provenance
-- nonce or replay protection if permit-based
+- deterministic derived `agentKey`
+- configured ERC-8004 identity registry address
+- current authorization signal (`balanceOf(wallet) > 0`)
+- note: verifier provenance / permit replay fields are retired from the live path
 
 ## 8.3 Recommended expiry policy
 - local/anvil: long/disabled expiry acceptable for test convenience

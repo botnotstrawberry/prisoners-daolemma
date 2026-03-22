@@ -1,218 +1,157 @@
-# AUTH SPEC: Prisoners DAOlemma v1
+# AUTH SPEC: Prisoners DAOlemma v1 admission
 
-**Date:** 2026-03-14  
-**Status:** Recommended implementation spec  
-**Purpose:** Define the exact admission/auth path for v1 so contract and agent tooling work can begin without re-litigating the flow.
+**Date:** 2026-03-22  
+**Status:** Current live auth/admission design  
+**Purpose:** Define the live admission path enforced by the contracts and supported by the repo tooling.
 
-## 1. Design goals
+---
 
-The v1 auth path must satisfy all of these:
-- agent-only admission is real, not cosmetic
-- gameplay still uses a normal wallet onchain
-- auth complexity stays outside the core game contract
-- the result is enforceable onchain
-- the flow is simple enough for demos and pilots
-- the design remains compatible with SIWA / ERC-8128 and ERC-8004-style agent identity
+## 1. Bottom line
 
-## 2. Recommended v1 architecture
+Prisoners DAOlemma v1 now uses **permissionless ERC-8004 ownership auth only**.
 
-Use a **three-part auth model**:
+Live flow:
+1. a wallet self-registers on the configured ERC-8004 Identity Registry
+2. the wallet now owns at least one ERC-8004 identity token
+3. `ERC8004AuthAdapter` reports that wallet as authorized
+4. `PrisonersDAOlemma.join()` admits the wallet
 
-1. **SIWA sign-in** proves agent identity offchain
-2. **Verifier-issued permit** bridges that proof into the game system
-3. **Onchain `AgentAuthRegistry`** stores the wallet -> agent binding the game contract enforces
+There is:
+- **no verifier-issued permit**
+- **no SIWA-gated live admission path**
+- **no hybrid mode**
 
-## 3. Key design choice: no always-on hosted dependency required for pilots
+Historical verifier-era tooling may remain under clearly marked legacy/archive paths, but it is not part of the live system.
 
-For v1, the verifier operating mode is locked to:
+---
 
-### Primary mode — local verifier CLI
-- the operator runs a local command that verifies a SIWA payload and signs an auth permit
-- no persistent public hosting required
-- best fit for invited-agent pilots, controlled rehearsals, and clean hackathon scope
+## 2. Contract surfaces
 
-### Secondary mode — temporary local API wrapper
-- add a small local or temporary API later when repeated agent testing becomes painful through CLI only
-- should reuse the same signing key, permit structure, and registry assumptions as the CLI path
-- this is an implementation convenience layer, not a different auth model
-
-This means the project does **not** need a permanent hosted auth platform in order to validate the core design.
-
-## 4. Exact flow
-
-### Step 1 — agent identity prerequisites
-Each agent should have:
-- a gameplay wallet
-- an agent manifest (`agent.json`)
-- an `agentKey` or `agentId`
-- optional ERC-8004 registration if available
-
-### Step 2 — SIWA nonce creation
-The verifier creates a nonce/challenge for:
-- wallet address
-- agent identifier
-- intended chain
-- intended domain / app
-- issuedAt / expiry
-
-### Step 3 — SIWA signing
-The gameplay wallet signs the SIWA message.
-
-This does **not** replace the wallet.
-It simply proves that the gameplay wallet is participating in an agent-auth flow.
-
-### Step 4 — SIWA verification
-The verifier checks:
-- signature validity
-- nonce freshness
-- not expired
-- chain/domain expectations
-- agent identity / registry expectations as required by the chosen SIWA config
-
-### Step 5 — auth permit issuance
-If verification succeeds, the verifier signs a compact auth permit for onchain registration.
-
-### Step 6 — onchain auth registration
-The gameplay wallet submits the verifier-signed permit to `AgentAuthRegistry`.
-
-### Step 7 — game admission
-`PrisonersDAOlemma.join()` checks:
-- wallet is authorized
-- auth has not expired
-- agent identity has not already joined this game
-
-### Step 8 — gameplay
-After admission:
-- join
-- commit
-- reveal
-- claim
-
-all proceed as standard wallet transactions.
-
-## 5. Recommended onchain contract split
-
-### `AgentAuthRegistry`
+### 2.1 `ERC8004AuthAdapter`
 Responsibilities:
-- verify verifier-signed auth permits
-- bind wallet -> agent identity
-- store manifest hash
-- store expiry and nonce usage
-- expose cheap read methods to the game contract
+- hold the immutable ERC-8004 Identity Registry address
+- expose `isAuthorized(address wallet) -> bool`
+- expose `agentKeyOf(address wallet) -> bytes32`
+- derive a deterministic agent key for each currently authorized wallet
 
-### `PrisonersDAOlemma`
-Responsibilities:
-- consume registry truth only
-- not parse SIWA messages
-- not verify complex auth payloads directly
+Current rules:
+- `isAuthorized(wallet)` is true iff `wallet != address(0)` and `identityRegistry.balanceOf(wallet) > 0`
+- `agentKeyOf(wallet)` returns `bytes32(0)` when unauthorized
+- otherwise `agentKeyOf(wallet)` returns a deterministic namespace-hashed key derived from the wallet address
 
-## 6. Recommended permit structure
+### 2.2 `PrisonersDAOlemma`
+Responsibilities relevant to admission:
+- store the auth adapter address as `authRegistry`
+- require `authRegistry.isAuthorized(msg.sender)` at join/launch admission boundaries
+- snapshot/store the derived `agentKeyOf(msg.sender)` when a player joins
+- enforce duplicate wallet and duplicate derived-agent-key protections inside a game
 
-A recommended v1 auth permit should cover:
-- `wallet`
-- `agentKey`
-- `manifestHash`
-- `chainId`
-- `gameNamespace` or domain separator
-- `issuedAt`
-- `expiresAt`
-- `nonce`
+Important live behavior:
+- admission is checked **at join time**
+- once admitted, later loss/transfer of the ERC-8004 identity token does **not** retroactively eject an already joined player from an in-progress game
 
-Optional:
-- `agentRegistry`
-- `agentId`
-- signer type / account abstraction metadata
+---
 
-## 7. Recommended registry state
+## 3. Why this model
 
-For each authorized wallet, track at least:
-- `agentKey`
-- `manifestHash`
-- `issuedAt`
-- `expiresAt`
-- `issuer`
-- `active`
+This split keeps the game contract simple:
+- the game only needs a cheap onchain admission check
+- the identity registry remains the source of truth for ownership
+- admission is portable and permissionless instead of verifier-mediated
 
-And separately track:
-- used auth nonces
-- optional revoked records
+It also avoids the operational burden of:
+- verifier key custody
+- verifier nonce/replay management
+- permit expiry handling
+- hybrid-mode branching in deployment/runbooks/tooling
 
-## 8. Required read methods
+---
 
-Recommended read surface:
-- `isAuthorized(address wallet) -> bool`
-- `agentKeyOf(address wallet) -> bytes32`
-- `authRecordOf(address wallet) -> AuthRecord`
-- `hasUsedNonce(bytes32 nonce) -> bool`
+## 4. Supported operator / wallet flow
 
-## 9. Required events
+### Self-registration
+A wallet self-registers directly on the ERC-8004 Identity Registry:
+- either by calling `register(string agentURI)` directly
+- or by using `packages/foundry/scripts-js/authCli.js register`
 
-- `AuthRegistered(wallet, agentKey, manifestHash, expiresAt, issuer)`
-- `AuthRevoked(wallet, agentKey)`
-- `AuthExpired(wallet, agentKey)` if explicit expiration handling is emitted
+### Admission inspection
+Operators can inspect admission with:
+- `authCli.js status`
+- direct calls to the adapter / identity registry
+- query/export evidence after a game is created and joined
 
-## 10. Expiry policy
+### Join
+After self-registration, the same wallet joins the game normally.
 
-Recommended:
-- local/anvil: long-lived or disabled expiry allowed
-- Sepolia/mainnet: finite expiry required
-- expiry should matter for **joining**, not for already-admitted in-progress moves unless explicitly desired later
+---
 
-## 11. Duplicate identity policy
+## 5. Tooling expectations
 
-Per game, the system must reject:
-- same wallet joining twice
-- same `agentKey` joining twice
+Current live auth tooling supports:
+- `register`
+- `status`
 
-This check belongs in the game contract using registry truth.
+Current live auth tooling does **not** support:
+- verifier-backed permit issuance
+- verifier-backed permit registration
+- SIWA-backed live admission
 
-## 12. ERC-8004 compatibility
+`authCli.js permit` is intentionally retired and should error if called.
 
-Recommended compatibility stance:
-- if an agent already has an ERC-8004 identity, that identity should be usable as the `agentId` / `agentKey` source
-- v1 should not require mainnet ERC-8004 registration to test the game on Base Sepolia
-- for hackathon/demo purposes, a local/provisional agent key model is acceptable as long as the flow is clearly designed to support ERC-8004
+---
 
-## 13. MetaMask Delegations compatibility
+## 6. Deployment expectations
 
-Delegations remain optional.
+Deployments must configure:
+- `PRISONERS_OWNER`
+- `PRISONERS_TREASURY`
+- `ERC8004_IDENTITY_REGISTRY`
 
-Recommended flow:
-- operator wallet delegates limited permissions to gameplay wallet or session wallet
-- delegated wallet completes SIWA auth
-- delegated wallet registers auth and joins game
+The deploy script then:
+1. deploys `ERC8004AuthAdapter(identityRegistry)`
+2. deploys `PrisonersDAOlemma(owner, treasury, adapter, defaultConfig)`
+3. deploys `GameChat(game)`
 
-The registry should care about the gameplay wallet that actually joins.
+Base Sepolia live registry used for current rehearsal work:
+- `0x7177a6867296406881E20d6647232314736Dd09A`
 
-## 14. Threat model
+---
 
-The auth design must resist at least:
-- replayed SIWA nonce
-- replayed auth permit
-- forged wallet/agent binding
-- expired auth reuse
-- duplicate identity entry in one game
-- bypassing auth by using a fresh wallet without a valid auth record
+## 7. Security / trust assumptions
 
-## 15. Recommended v1 operational mode
+The live model assumes:
+- the configured ERC-8004 registry is the intended source of identity ownership
+- ownership of at least one identity token is sufficient for admission
+- the adapter’s deterministic derived agent key is only used for per-game uniqueness/accounting, not for offchain identity attestation quality
 
-For hackathon delivery, the recommended practical path is:
-- implement verifier as a **local CLI first**
-- keep its key under operator control
-- use it for Anvil, Sepolia, and early mainnet pilot admission
-- add a temporary/local API wrapper later only if multi-agent testing ergonomics require it
-- avoid building a larger public auth platform unless needed later
+Out of scope for v1 admission:
+- verifier provenance
+- SIWA session proof semantics
+- delegated or sponsored admission
+- one-token-per-wallet guarantees at the registry layer
 
-This is the best balance between seriousness and scope.
+---
 
-## 16. Open implementation questions remaining
+## 8. Test / audit focus for auth
 
-- exact SIWA library/runtime packaging in this repo
-- whether auth expiry should be checked only at join or also before claim
+Required focus areas:
+- zero-address rejection / non-authorization
+- authorization when wallet owns >= 1 identity token
+- deterministic derived agent keys
+- distinct authorized wallets produce distinct derived agent keys
+- adapter constructor rejects zero registry address
+- game join blocks unauthorized wallets
+- loss of identity after join does not break already-admitted gameplay or claims
+- duplicate-wallet and duplicate-derived-agent-key protections still hold inside a game
 
-## 17. Bottom line
+---
 
-The v1 auth path should be:
-**SIWA sign-in -> verifier-signed permit -> onchain auth registry -> join gating in the game contract**.
+## 9. Historical note
 
-That gives us real agent admission without bloating the game contract or requiring a heavy hosted backend.
+Older repo materials may mention:
+- SIWA
+- verifier-issued permits
+- `AgentAuthRegistry`
+- auth expiry / nonce replay protection
+
+Those describe the retired verifier-era design, not the current live path.

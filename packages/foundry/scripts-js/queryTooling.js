@@ -10,7 +10,7 @@ import {
 } from "./authTooling.js";
 
 export const QUERY_BOUNDARY_NOTE =
-  "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: auth records/events, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.";
+  "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: ERC-8004 admission status, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.";
 
 export const PHASE_NAMES = [
   "Idle",
@@ -66,11 +66,16 @@ export const GAME_QUERY_ABI = [
 ];
 
 export const REGISTRY_QUERY_ABI = [
-  "function verifier() view returns (address)",
+  "function identityRegistry() view returns (address)",
   "function isAuthorized(address wallet) view returns (bool)",
-  "function authRecordOf(address wallet) view returns ((bytes32 agentKey, bytes32 manifestHash, uint64 issuedAt, uint64 expiresAt, address issuer, bool active))",
-  "event AuthRegistered(address indexed wallet, bytes32 indexed agentKey, bytes32 manifestHash, uint64 expiresAt, address indexed issuer)",
-  "event AuthRevoked(address indexed wallet, bytes32 indexed agentKey)",
+  "function agentKeyOf(address wallet) view returns (bytes32)",
+];
+
+export const IDENTITY_REGISTRY_QUERY_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function ownerOf(uint256 agentId) view returns (address)",
+  "function tokenURI(uint256 agentId) view returns (string)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 ];
 
 export const CHAT_QUERY_ABI = [
@@ -308,32 +313,22 @@ function subtractDecimalStrings(minuend, subtrahend, label = "value") {
   return result.toString();
 }
 
-function deriveAuthStatus(record, isAuthorizedNow, latestTimestamp) {
-  const hasRecord = record.agentKey !== ethers.constants.HashZero;
-
-  if (!hasRecord) {
+function deriveAuthStatus(record, isAuthorizedNow) {
+  if (!record || record.agentKey === ethers.constants.HashZero) {
     return "missing";
   }
-  if (!record.active) {
-    return "revoked";
-  }
-  if (record.expiresAt !== 0 && record.expiresAt < latestTimestamp) {
-    return "expired";
-  }
-  if (isAuthorizedNow) {
-    return "active";
-  }
-  return "inactive";
+  return isAuthorizedNow ? "active" : "inactive";
 }
 
 function normalizeAuthRecord(rawRecord) {
+  if (!rawRecord) {
+    return null;
+  }
+
   return {
     agentKey: rawRecord.agentKey,
-    manifestHash: rawRecord.manifestHash,
-    issuedAt: toNumber(rawRecord.issuedAt, "authRecord.issuedAt"),
-    expiresAt: toNumber(rawRecord.expiresAt, "authRecord.expiresAt"),
-    issuer: rawRecord.issuer,
-    active: rawRecord.active,
+    identityBalance: toDecimalString(rawRecord.identityBalance ?? 0),
+    identityRegistry: rawRecord.identityRegistry ?? null,
   };
 }
 
@@ -405,14 +400,10 @@ function normalizeSettlementState(rawSettlement) {
   };
 }
 
-function normalizePlayerState(rawPlayer, auth, latestTimestamp) {
+function normalizePlayerState(rawPlayer, auth) {
   const authRecord = normalizeAuthRecord(auth.record);
   const isAuthorizedNow = auth.isAuthorizedNow;
-  const authStatus = deriveAuthStatus(
-    authRecord,
-    isAuthorizedNow,
-    latestTimestamp
-  );
+  const authStatus = deriveAuthStatus(authRecord, isAuthorizedNow);
 
   return {
     wallet: rawPlayer.wallet,
@@ -1469,55 +1460,48 @@ function buildRoundExports({
 }
 
 async function loadWalletAuthEvents({
-  registry,
+  identityRegistry,
   wallet,
   fromBlock,
   toBlock,
   getBlockTimestamp,
 }) {
-  const [registeredEvents, revokedEvents] = await Promise.all([
-    registry.queryFilter(
-      registry.filters.AuthRegistered(wallet, null, null),
+  if (!identityRegistry) {
+    return [];
+  }
+
+  const [incoming, outgoing] = await Promise.all([
+    identityRegistry.queryFilter(
+      identityRegistry.filters.Transfer(null, wallet, null),
       fromBlock,
       toBlock
     ),
-    registry.queryFilter(
-      registry.filters.AuthRevoked(wallet, null),
+    identityRegistry.queryFilter(
+      identityRegistry.filters.Transfer(wallet, null, null),
       fromBlock,
       toBlock
     ),
   ]);
 
-  const combined = sortEvents([...registeredEvents, ...revokedEvents]);
+  const combined = sortEvents([...incoming, ...outgoing]);
 
-  const normalized = [];
-  for (const event of combined) {
-    if (event.event === "AuthRegistered") {
-      normalized.push({
-        type: "AuthRegistered",
-        wallet: event.args.wallet,
-        agentKey: event.args.agentKey,
-        manifestHash: event.args.manifestHash,
-        expiresAt: toNumber(event.args.expiresAt, "authEvent.expiresAt"),
-        issuer: event.args.issuer,
-        blockNumber: event.blockNumber,
-        txHash: event.transactionHash,
-        timestamp: await getBlockTimestamp(event.blockNumber),
-      });
-      continue;
-    }
-
-    normalized.push({
-      type: "AuthRevoked",
-      wallet: event.args.wallet,
-      agentKey: event.args.agentKey,
+  return Promise.all(
+    combined.map(async (event) => ({
+      type:
+        event.args.from === ethers.constants.AddressZero
+          ? "IdentityRegistered"
+          : event.args.to === ethers.constants.AddressZero
+            ? "IdentityBurned"
+            : "IdentityTransferred",
+      wallet,
+      from: event.args.from,
+      to: event.args.to,
+      agentId: toDecimalString(event.args.tokenId),
       blockNumber: event.blockNumber,
       txHash: event.transactionHash,
       timestamp: await getBlockTimestamp(event.blockNumber),
-    });
-  }
-
-  return normalized;
+    }))
+  );
 }
 
 function parseMessagesJsonl(lines) {
@@ -1633,7 +1617,7 @@ async function resolveGameContext(options = {}) {
   const registryAddress = options.registry
     ? resolveContractRef(options.registry, {
         chainId,
-        defaultName: "AgentAuthRegistry",
+        defaultName: "ERC8004AuthAdapter",
         required: true,
         label: "registry",
       })
@@ -1641,6 +1625,19 @@ async function resolveGameContext(options = {}) {
   const registry = new ethers.Contract(
     registryAddress,
     REGISTRY_QUERY_ABI,
+    provider
+  );
+  const identityRegistryAddress = options.identityRegistry
+    ? resolveContractRef(options.identityRegistry, {
+        chainId,
+        defaultName: null,
+        required: true,
+        label: "identityRegistry",
+      })
+    : normalizeAddress(await registry.identityRegistry(), "identityRegistry");
+  const identityRegistry = new ethers.Contract(
+    identityRegistryAddress,
+    IDENTITY_REGISTRY_QUERY_ABI,
     provider
   );
 
@@ -1675,9 +1672,11 @@ async function resolveGameContext(options = {}) {
     chainId,
     gameAddress,
     registryAddress,
+    identityRegistryAddress,
     chatAddress,
     game,
     registry,
+    identityRegistry,
     chat,
     gameId,
     activeGameId,
@@ -1701,14 +1700,12 @@ async function collectStateAtBlock({
     rawPlayerCount,
     rawKnownCauseCount,
     rawUsedCauseCount,
-    verifier,
   ] = await Promise.all([
     context.game.getGame(context.gameId, stateReadOptions),
     context.game.getSettlement(context.gameId, stateReadOptions),
     context.game.playerCount(context.gameId, stateReadOptions),
     context.game.causeCount(stateReadOptions),
     context.game.gameCauseCount(context.gameId, stateReadOptions),
-    context.registry.verifier(stateReadOptions),
   ]);
 
   const snapshot = normalizeGameSnapshot(rawSnapshot);
@@ -1758,7 +1755,11 @@ async function collectStateAtBlock({
           wallet,
           stateReadOptions
         ),
-        record: await context.registry.authRecordOf(wallet, stateReadOptions),
+        record: {
+          agentKey: await context.registry.agentKeyOf(wallet, stateReadOptions),
+          identityBalance: await context.identityRegistry.balanceOf(wallet, stateReadOptions),
+          identityRegistry: context.identityRegistryAddress,
+        },
       }))
     ),
     Promise.all(
@@ -1850,7 +1851,7 @@ async function collectStateAtBlock({
   const authParticipants = [];
   for (const participant of participants) {
     const events = await loadWalletAuthEvents({
-      registry: context.registry,
+      identityRegistry: context.identityRegistry,
       wallet: participant.wallet,
       fromBlock,
       toBlock,
@@ -1875,7 +1876,7 @@ async function collectStateAtBlock({
     usedCauses,
     authParticipants,
     phaseHistory,
-    verifier,
+    identityRegistry: context.identityRegistryAddress,
     treasuryClaimableWei: toDecimalString(rawTreasuryClaimableAmount),
   };
 }
@@ -2111,7 +2112,7 @@ export async function collectGameEvidence(options = {}) {
     knownCauses,
     usedCauses,
     authParticipants,
-    verifier,
+    identityRegistry,
     treasuryClaimableWei,
   } = stateData;
 
@@ -2306,7 +2307,7 @@ export async function collectGameEvidence(options = {}) {
       gameId: context.gameId,
       evidenceWindow,
       registry: context.registryAddress,
-      verifier,
+      identityRegistry,
       participants: authParticipants,
     },
     payouts: {

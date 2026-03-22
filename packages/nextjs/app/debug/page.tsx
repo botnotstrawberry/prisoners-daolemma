@@ -11,7 +11,7 @@ export const metadata = getMetadata({
 
 const contractLabels = {
   game: "PrisonersDAOlemma",
-  registry: "AgentAuthRegistry",
+  registry: "ERC8004AuthAdapter",
   chat: "GameChat",
 } as const;
 

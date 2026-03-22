@@ -47,7 +47,7 @@ These are the non-negotiable system capabilities:
 ### 2.2 What makes this submission meaningfully stronger?
 These are not the bare minimum for a generic game, but they are important for the actual product story and prize competitiveness:
 
-1. **SIWA-based agent auth**
+1. **Permissionless ERC-8004 admission**
 2. **Optional delegated wallet flow**
 3. **Optional ENS identity support**
 4. **Public cause-scoped chat**
@@ -62,13 +62,13 @@ The system should be split into five layers:
 
 1. **Onchain game layer**
 2. **Onchain auth layer**
-3. **Offchain verifier + indexing layer**
+3. **Offchain indexing layer**
 4. **Agent tooling layer**
 5. **Observer / replay / analysis layer**
 
 ### High-level flow
-1. Agent wallet completes SIWA auth.
-2. Auth result is registered onchain.
+1. Agent wallet self-registers on the configured ERC-8004 Identity Registry.
+2. `ERC8004AuthAdapter` reports that wallet as authorized.
 3. Authorized wallet joins the game and pays ETH.
 4. Agent commits and reveals moves onchain.
 5. Public game-native onchain chat emits message events for global and cause-scoped coordination.
@@ -107,32 +107,26 @@ This is the core game contract.
 ### Admission integration
 `join()` must require a valid auth binding from the auth layer.
 
-The game contract should not do heavy SIWA verification directly. It should only need a simple onchain check such as:
+The game contract should not do heavy identity/admission verification directly. It should only need a simple onchain check such as:
 - is this wallet authorized?
 - what agent key is bound to it?
 - has that agent key already joined this game?
 
-## 4.2 `AgentAuthRegistry`
-This is the onchain admission and binding contract.
+## 4.2 `ERC8004AuthAdapter`
+This is the onchain admission adapter contract.
 
 ### Responsibilities
-- store which wallets are authorized as agents
-- bind an agent identity key to a gameplay wallet
-- store expiry and nonce protections
-- expose a cheap `isAuthorized(wallet)` and `agentKeyOf(wallet)` interface
-- allow future compatibility with optional delegation flows
+- hold the configured ERC-8004 Identity Registry address
+- treat any wallet with `balanceOf(wallet) > 0` on that registry as authorized
+- expose a cheap `isAuthorized(wallet)` and `agentKeyOf(wallet)` interface to the game
+- derive a deterministic agent key per authorized wallet for per-game uniqueness tracking
 
 ### Suggested stored fields
-- `wallet`
-- `agentKey` or `agentId`
-- `manifestHash`
-- `issuedAt`
-- `expiresAt`
-- `verifier` or `issuer`
-- optional metadata pointer / URI hash
+- immutable `identityRegistry`
+- no mutable verifier/expiry/nonce state in the live path
 
 ### Contract-level effect
-A wallet without a valid auth binding cannot join the game.
+A wallet without at least one ERC-8004 identity token cannot join the game.
 
 ## 4.3 `GameChat`
 This is the dedicated public onchain messaging contract for the game.
@@ -163,25 +157,22 @@ These are useful if time allows, but not required for the first playable version
 
 ---
 
-## 5. Required SIWA flow
+## 5. Required admission flow
 
-Required SIWA should gate **admission**, not every turn.
+Required admission should gate **joining**, not every turn.
 
 ## 5.1 Why
-This keeps gameplay simple while making agent auth load-bearing.
+This keeps gameplay simple while making admission load-bearing.
 
 ## 5.2 Flow
 1. Agent has a gameplay wallet.
-2. Agent requests a SIWA challenge.
-3. Agent signs the challenge with the gameplay wallet.
-4. A verifier validates the SIWA response.
-5. The verifier issues a signed auth permit.
-6. The wallet registers that permit onchain in `AgentAuthRegistry`.
-7. `PrisonersDAOlemma.join()` checks the registry before allowing entry.
-8. After admission, gameplay uses normal onchain wallet actions.
+2. The wallet self-registers on the configured ERC-8004 Identity Registry.
+3. `ERC8004AuthAdapter` observes that the wallet owns at least one identity token.
+4. `PrisonersDAOlemma.join()` checks the adapter before allowing entry.
+5. After admission, gameplay uses normal onchain wallet actions.
 
 ## 5.3 Important design rule
-SIWA is required for **joining**, but should not need to be repeated for:
+Admission is required for **joining**, but should not need to be repeated for:
 - commit
 - reveal
 - claim
@@ -204,7 +195,7 @@ It improves safety and prize fit without blocking normal participation.
 
 ### Mode B — delegated play
 - operator wallet delegates limited permissions to a gameplay or session wallet
-- delegated wallet completes SIWA auth and plays the game
+- delegated wallet completes the configured admission flow and plays the game
 - permissions can constrain spend, targets, or time windows depending on the final implementation
 
 ## 6.3 Rule
@@ -366,8 +357,7 @@ Agents should not need bespoke manual setup.
 ## 11.1 Required tools / scripts
 We should provide thin helper commands for:
 - auth status
-- SIWA challenge/sign-in flow
-- auth registration onchain
+- ERC-8004 self-registration
 - join
 - commit
 - reveal
@@ -386,7 +376,7 @@ The repo should include a game-specific skill or equivalent instructions for age
 
 ### Onboarding skill responsibilities
 - check wallet config
-- perform SIWA auth
+- perform ERC-8004 self-registration when needed
 - optionally configure ENS label usage
 - optionally configure MetaMask delegated play
 
@@ -484,8 +474,8 @@ A replay row or object should be able to combine:
 
 ## P0 — required for strong hackathon submission
 - core game contract
-- auth registry
-- required SIWA admission flow
+- ERC-8004 admission adapter
+- required permissionless ERC-8004 admission flow
 - direct wallet play
 - commit/reveal truth-table tests
 - winner / refund / cause payout tests
@@ -524,10 +514,10 @@ A replay row or object should be able to combine:
 - winner / refund logic
 
 ### Phase 2 — auth
-- SIWA verifier
-- auth registry
+- ERC-8004 identity-registry integration
+- admission adapter
 - contract join gating
-- agent auth script
+- self-registration / status tooling
 
 ### Phase 3 — agent participation
 - join / commit / reveal / claim scripts
@@ -569,7 +559,7 @@ The full v1 system should include more than the contract alone.
 
 A strong hackathon scope is:
 - onchain game contract,
-- required SIWA-gated admission,
+- required ERC-8004-gated admission,
 - agent tooling,
 - minimal public cause-scoped chat,
 - replay/indexing,

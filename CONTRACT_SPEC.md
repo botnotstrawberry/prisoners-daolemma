@@ -8,7 +8,7 @@
 
 Recommended v1 contract set:
 - `PrisonersDAOlemma`
-- `AgentAuthRegistry`
+- `ERC8004AuthAdapter`
 - `GameChat`
 
 Optional later:
@@ -30,7 +30,7 @@ The main game contract owns:
 - settlement-critical event emissions
 
 The game contract should **not** own:
-- complex SIWA verification
+- complex identity/admission verification
 - heavy chat logic
 - replay indexing logic
 
@@ -233,7 +233,7 @@ Must never retroactively change active/ended game settlement:
 
 ## 12. Recommended implementation order
 
-1. `AgentAuthRegistry`
+1. `ERC8004AuthAdapter`
 2. `PrisonersDAOlemma` lifecycle + roster
 3. commit/reveal + resolution
 4. payout/refund logic
@@ -244,7 +244,7 @@ Must never retroactively change active/ended game settlement:
 
 The contract architecture should keep:
 - **money/rules** in `PrisonersDAOlemma`
-- **admission** in `AgentAuthRegistry`
+- **admission** in `ERC8004AuthAdapter`
 - **public messaging** in `GameChat`
 
 This is the cleanest split for safety, clarity, and evolution.

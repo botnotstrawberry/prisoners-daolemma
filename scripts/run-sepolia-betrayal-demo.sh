@@ -11,7 +11,7 @@ mkdir -p "$ART_DIR" "$ART_DIR/auth" "$ART_DIR/game/commit-bundles" "$ART_DIR/que
 export FOUNDRY_PROFILE=production
 export PRISONERS_OWNER="${PRISONERS_OWNER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
 export PRISONERS_TREASURY="${PRISONERS_TREASURY:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
-export PRISONERS_AUTH_VERIFIER="${PRISONERS_AUTH_VERIFIER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
+export ERC8004_IDENTITY_REGISTRY="${ERC8004_IDENTITY_REGISTRY:-0x7177a6867296406881E20d6647232314736Dd09A}"
 export PRISONERS_ENTRY_FEE_WEI="${PRISONERS_ENTRY_FEE_WEI:-1000000000000000}"
 export PRISONERS_CREATOR_FEE_BPS="${PRISONERS_CREATOR_FEE_BPS:-100}"
 export PRISONERS_CAUSE_FEE_BPS="${PRISONERS_CAUSE_FEE_BPS:-100}"
@@ -99,19 +99,30 @@ PY
   forge script script/VerifyAll.s.sol --ffi --rpc-url "$RPC" | tee "$ART_DIR/verify.log"
 
   log "Capture deployment summary"
-  node scripts-js/canaryCli.js deployment --rpc-url "$RPC" --out "$ART_DIR_REL/deployment-summary.json" | tee "$ART_DIR/deployment-summary.txt"
+  node scripts-js/canaryCli.js deployment --rpc-url "$RPC" --out "$ART_DIR_REL/deployment-summary.json" --json > "$ART_DIR/deployment-summary.txt"
+  AUTH_REG=$(jq -r '.addresses.authRegistry' "$ART_DIR/deployment-summary.json")
+  GAME_ADDR=$(jq -r '.addresses.game' "$ART_DIR/deployment-summary.json")
+  DEPLOYED_ERC8004_REG=$(jq -r '.onchain.identityRegistry' "$ART_DIR/deployment-summary.json")
+  if [[ "${DEPLOYED_ERC8004_REG,,}" != "${ERC8004_IDENTITY_REGISTRY,,}" ]]; then
+    log "Deployment wired unexpected ERC-8004 registry: $DEPLOYED_ERC8004_REG (expected $ERC8004_IDENTITY_REGISTRY)"
+    exit 1
+  fi
 
   log "Whitelist causes"
   node scripts-js/gameCli.js whitelist-cause --rpc-url "$RPC" --cause-id 1 --recipient "$(player_addr 1)" --metadata-text "coalition-alpha" --wallet-keystore "$OWNER_KS" --wallet-keystore-password-file "$OWNER_PW" --json > "$ART_DIR/causes/whitelist-cause-1.json"
   node scripts-js/gameCli.js whitelist-cause --rpc-url "$RPC" --cause-id 2 --recipient "$(player_addr 3)" --metadata-text "coalition-beta" --wallet-keystore "$OWNER_KS" --wallet-keystore-password-file "$OWNER_PW" --json > "$ART_DIR/causes/whitelist-cause-2.json"
 
-  log "Auth 3 players"
-  REG=$(jq -r '.addresses.registry' "$ART_DIR/deployment-summary.json")
+  log "Register 3 players on ERC-8004 Identity Registry"
   for idx in 1 2 3; do
     mkdir -p "$ART_DIR/auth/player-$idx"
-    node scripts-js/authCli.js permit --rpc-url "$RPC" --registry "$REG" --wallet "$(player_addr "$idx")" --agent-key-text "sepolia-betrayal-player-$idx" --manifest-uri "manifest://sepolia-betrayal-demo/player-$idx" --ttl-seconds 14400 --nonce-text "sepolia-betrayal-player-$idx-${RUN_ID}" --verifier-keystore "$OWNER_KS" --verifier-keystore-password-file "$OWNER_PW" --out "$ART_DIR/auth/player-$idx/auth-permit.json"
-    node scripts-js/authCli.js register --rpc-url "$RPC" --permit-file "$ART_DIR/auth/player-$idx/auth-permit.json" --wallet-keystore "$(player_ks "$idx")" --wallet-keystore-password-file "$(player_pw "$idx")" --json > "$ART_DIR/auth/player-$idx/auth-register.json"
-    node scripts-js/authCli.js status --rpc-url "$RPC" --permit-file "$ART_DIR/auth/player-$idx/auth-permit.json" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
+    addr="$(player_addr "$idx")"
+    node scripts-js/authCli.js status --rpc-url "$RPC" --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
+    if [[ "$(jq -r '.isAuthorized' "$ART_DIR/auth/player-$idx/auth-status.json")" == "true" ]]; then
+      jq -n --argjson player "$idx" --arg wallet "$addr" --arg status "already_registered" '{player:$player,wallet:$wallet,status:$status}' > "$ART_DIR/auth/player-$idx/auth-register.json"
+      continue
+    fi
+    node scripts-js/authCli.js register --rpc-url "$RPC" --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --wallet-keystore "$(player_ks "$idx")" --wallet-keystore-password-file "$(player_pw "$idx")" --agent-uri "manifest://sepolia-betrayal-demo/player-$idx" --json > "$ART_DIR/auth/player-$idx/auth-register.json"
+    node scripts-js/authCli.js status --rpc-url "$RPC" --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --agent-id "$(jq -r '.agentId' "$ART_DIR/auth/player-$idx/auth-register.json")" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
   done
 
   log "Create game"

@@ -1,8 +1,6 @@
-import { config as loadEnv } from "dotenv";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { homedir } from "os";
-import { dirname, isAbsolute, join } from "path";
-import { fileURLToPath } from "url";
+#!/usr/bin/env node
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 import { ethers } from "ethers";
 import {
   createProvider,
@@ -10,861 +8,330 @@ import {
   parseCliArgs,
   printJson,
   resolveFromPackageRoot,
+  writeJson,
 } from "./authTooling.js";
 
-const moduleFilePath = fileURLToPath(import.meta.url);
-const __dirname = dirname(moduleFilePath);
-loadEnv({ path: join(__dirname, "..", ".env") });
-
-export const BASE_SEPOLIA_CHAIN_ID = 84532;
-export const BASE_SEPOLIA_NETWORK_NAME = "baseSepolia";
-export const CANARY_PROFILE_SCHEMA =
-  "prisoners-daolemma/base-sepolia-canary-profile-v0";
-export const CANARY_PREFLIGHT_SCHEMA =
-  "prisoners-daolemma/base-sepolia-canary-preflight-v0";
-export const CANARY_DEPLOYMENT_SCHEMA =
-  "prisoners-daolemma/base-sepolia-canary-deployment-v0";
-
-export const RECOMMENDED_CANARY_PROFILE = Object.freeze({
-  entryFeeWei: ethers.utils.parseEther("0.001").toString(),
-  creatorFeeBps: 100,
-  causeFeeBps: 100,
-  joinDurationSeconds: 900,
-  commitDurationBlocks: 20,
-  revealDurationBlocks: 20,
-  minPlayers: 3,
-  maxPlayers: 32,
-  maxCauses: 8,
-});
-
-const GAME_ADMIN_ABI = [
+const GAME_ABI = [
   "function owner() view returns (address)",
   "function treasury() view returns (address)",
   "function authRegistry() view returns (address)",
-  "function getDefaultConfig() view returns ((uint256 entryFeeWei,uint16 creatorFeeBps,uint16 causeFeeBps,uint32 joinDurationSeconds,uint32 commitDurationBlocks,uint32 revealDurationBlocks,uint16 minPlayers,uint16 maxPlayers,uint16 maxCauses))",
-  "function causeCount() view returns (uint256)",
-  "function causeAt(uint256 index) view returns (uint16)",
-  "function getCause(uint16 causeId) view returns ((bool active,address recipient,bytes32 metadataHash))",
-  "function activeGameId() view returns (uint256)",
-  "function currentGameId() view returns (uint256)",
 ];
-
-const REGISTRY_ADMIN_ABI = [
-  "function owner() view returns (address)",
-  "function verifier() view returns (address)",
-  "function gameNamespace() view returns (bytes32)",
+const ADAPTER_ABI = [
+  "function identityRegistry() view returns (address)",
 ];
-
-const CHAT_ADMIN_ABI = [
+const CHAT_ABI = [
   "function game() view returns (address)",
-  "function messageCount() view returns (uint256)",
 ];
 
-function printMainHelp() {
-  console.log(`
-Prisoners DAOlemma Base Sepolia canary helper
+const HELP = `
+Prisoners DAOlemma deployment canary
 
 Usage:
   node scripts-js/canaryCli.js <command> [options]
 
 Commands:
-  preflight   Check Base Sepolia canary inputs before deployment.
-  deployment  Inspect a deployed Base Sepolia canary deployment and its current admin wiring.
+  preflight   Validate expected addresses and deployment inputs.
+  deployment  Validate deployed wiring onchain against expectations.
+  help        Show this message.
 
-Run a command with --help for details.
-`);
+Shared options:
+  --rpc-url <url|network>
+  --out <file>
+  --json
+
+preflight:
+  Reads expected addresses from env when present:
+    PRISONERS_OWNER
+    PRISONERS_TREASURY
+    ERC8004_IDENTITY_REGISTRY
+
+  Missing env values are warnings, not hard failures.
+
+deployment:
+  --deployment-file <path>   Optional deployment map. Defaults to deployments/<chainId>.json.
+
+  Expected deployment names:
+    ERC8004AuthAdapter
+    PrisonersDAOlemma
+    GameChat
+`;
+
+function ok(label, message, extra = {}) {
+  return { label, ok: true, severity: "info", message, ...extra };
 }
 
-function printPreflightHelp() {
-  console.log(`
-Usage:
-  node scripts-js/canaryCli.js preflight [--rpc-url <url|network>] [--deployer-keystore <name|path>] [--out <file>] [--json]
-
-Options:
-  --rpc-url <url|network>         Optional. Defaults to baseSepolia.
-  --deployer-keystore <name|path> Optional explicit deployer keystore to validate.
-  --out <file>                    Optional JSON output path.
-  --json                          Print machine-readable JSON.
-
-What it checks:
-  - connected chain is Base Sepolia (84532)
-  - deployer keystore exists when provided
-  - expected owner / treasury / auth verifier env values or deployer fallbacks
-  - current PRISONERS_* deploy env against the recommended Base Sepolia canary profile
-  - BaseScan API key presence for explorer verification
-
-Notes:
-  - Missing PRISONERS_OWNER / PRISONERS_TREASURY / PRISONERS_AUTH_VERIFIER are warnings, not hard failures, because the deploy script falls back to deployer/owner defaults.
-  - Missing BASESCAN_API_KEY is a warning because it blocks repo-native verification later.
-  - This command never prints secrets.
-
-Example:
-  node scripts-js/canaryCli.js preflight --rpc-url baseSepolia --deployer-keystore deployer-sepolia --json
-`);
+function warn(label, message, extra = {}) {
+  return { label, ok: true, severity: "warn", message, ...extra };
 }
 
-function printDeploymentHelp() {
-  console.log(`
-Usage:
-  node scripts-js/canaryCli.js deployment [--rpc-url <url|network>] [--deployment-file <path>] [--out <file>] [--json]
-
-Options:
-  --rpc-url <url|network>         Optional. Defaults to baseSepolia.
-  --deployment-file <path>        Optional. Defaults to deployments/84532.json.
-  --out <file>                    Optional JSON output path.
-  --json                          Print machine-readable JSON.
-
-What it checks:
-  - deployed AgentAuthRegistry / PrisonersDAOlemma / GameChat addresses from the repo deployment file
-  - owner / treasury / verifier wiring onchain
-  - default config against the recommended Base Sepolia canary profile
-  - chat->game and game->registry linkage
-  - current game counters and current known cause whitelist state
-
-Notes:
-  - If active cause count is zero, createGame() will revert until causes are whitelisted.
-  - If currentGameId or messageCount are already non-zero, this is not a fresh canary deployment anymore.
-
-Example:
-  node scripts-js/canaryCli.js deployment --rpc-url baseSepolia --out canary/base-sepolia/deployment-summary.json --json
-`);
+function fail(label, message, extra = {}) {
+  return { label, ok: false, severity: "error", message, ...extra };
 }
 
-function parsePositiveIntegerFromEnv(env, key, defaultValue) {
-  const raw = env[key];
-  if (raw === undefined || raw === null || String(raw).trim().length === 0) {
-    return defaultValue;
+function statusFromChecks(checks) {
+  if (checks.some((check) => !check.ok)) {
+    return "failed";
   }
-
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${key} must be a positive integer when set.`);
+  if (checks.some((check) => check.severity === "warn")) {
+    return "warn";
   }
-  return parsed;
+  return "ok";
 }
 
-function parseNonNegativeIntegerFromEnv(env, key, defaultValue) {
-  const raw = env[key];
-  if (raw === undefined || raw === null || String(raw).trim().length === 0) {
-    return defaultValue;
+function parseOptionalEnvAddress(env, key, label) {
+  const value = env[key];
+  if (!value) {
+    return { value: null, check: warn(label, `${key} is not set.`) };
   }
 
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    throw new Error(`${key} must be a non-negative integer when set.`);
-  }
-  return parsed;
-}
-
-function parseAddressFromEnv(env, key) {
-  const raw = env[key];
-  if (raw === undefined || raw === null || String(raw).trim().length === 0) {
-    return null;
-  }
-  return normalizeAddress(String(raw).trim(), key);
-}
-
-function normalizeConfigTuple(rawConfig) {
-  return {
-    entryFeeWei: rawConfig.entryFeeWei.toString(),
-    creatorFeeBps: Number(rawConfig.creatorFeeBps),
-    causeFeeBps: Number(rawConfig.causeFeeBps),
-    joinDurationSeconds: Number(rawConfig.joinDurationSeconds),
-    commitDurationBlocks: Number(rawConfig.commitDurationBlocks),
-    revealDurationBlocks: Number(rawConfig.revealDurationBlocks),
-    minPlayers: Number(rawConfig.minPlayers),
-    maxPlayers: Number(rawConfig.maxPlayers),
-    maxCauses: Number(rawConfig.maxCauses),
-  };
-}
-
-export function resolveCanaryProfile(env = process.env) {
-  return {
-    schemaVersion: CANARY_PROFILE_SCHEMA,
-    entryFeeWei:
-      env.PRISONERS_ENTRY_FEE_WEI &&
-      String(env.PRISONERS_ENTRY_FEE_WEI).trim().length > 0
-        ? ethers.BigNumber.from(
-            String(env.PRISONERS_ENTRY_FEE_WEI).trim()
-          ).toString()
-        : RECOMMENDED_CANARY_PROFILE.entryFeeWei,
-    creatorFeeBps: parseNonNegativeIntegerFromEnv(
-      env,
-      "PRISONERS_CREATOR_FEE_BPS",
-      RECOMMENDED_CANARY_PROFILE.creatorFeeBps
-    ),
-    causeFeeBps: parseNonNegativeIntegerFromEnv(
-      env,
-      "PRISONERS_CAUSE_FEE_BPS",
-      RECOMMENDED_CANARY_PROFILE.causeFeeBps
-    ),
-    joinDurationSeconds: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_JOIN_DURATION_SECONDS",
-      RECOMMENDED_CANARY_PROFILE.joinDurationSeconds
-    ),
-    commitDurationBlocks: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_COMMIT_DURATION_BLOCKS",
-      RECOMMENDED_CANARY_PROFILE.commitDurationBlocks
-    ),
-    revealDurationBlocks: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_REVEAL_DURATION_BLOCKS",
-      RECOMMENDED_CANARY_PROFILE.revealDurationBlocks
-    ),
-    minPlayers: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_MIN_PLAYERS",
-      RECOMMENDED_CANARY_PROFILE.minPlayers
-    ),
-    maxPlayers: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_MAX_PLAYERS",
-      RECOMMENDED_CANARY_PROFILE.maxPlayers
-    ),
-    maxCauses: parsePositiveIntegerFromEnv(
-      env,
-      "PRISONERS_MAX_CAUSES",
-      RECOMMENDED_CANARY_PROFILE.maxCauses
-    ),
-  };
-}
-
-export function compareProfiles(actual, expected = RECOMMENDED_CANARY_PROFILE) {
-  const mismatches = [];
-  for (const key of Object.keys(expected)) {
-    const actualValue = String(actual[key]);
-    const expectedValue = String(expected[key]);
-    if (actualValue !== expectedValue) {
-      mismatches.push({
-        field: key,
-        actual: actualValue,
-        expected: expectedValue,
-      });
-    }
-  }
-
-  return {
-    matchesRecommendedProfile: mismatches.length === 0,
-    mismatches,
-  };
-}
-
-function resolveKeystorePath(keystore) {
-  if (typeof keystore !== "string" || keystore.trim().length === 0) {
-    return null;
-  }
-
-  const trimmed = keystore.trim();
-  const explicitPath =
-    trimmed.startsWith(".") ||
-    trimmed.startsWith("~") ||
-    trimmed.includes("/") ||
-    trimmed.includes("\\");
-
-  if (!explicitPath) {
-    return join(
-      process.env.HOME ?? homedir(),
-      ".foundry",
-      "keystores",
-      trimmed
-    );
-  }
-
-  if (trimmed === "~") {
-    return homedir();
-  }
-
-  if (trimmed.startsWith("~/")) {
-    return join(homedir(), trimmed.slice(2));
-  }
-
-  if (isAbsolute(trimmed)) {
-    return trimmed;
-  }
-
-  return resolveFromPackageRoot(trimmed);
-}
-
-export function readDeployerAddressFromKeystore(keystore) {
-  const resolvedPath = resolveKeystorePath(keystore);
-  if (!resolvedPath || !existsSync(resolvedPath)) {
-    return { resolvedPath, address: null, exists: false };
-  }
-
-  let parsed;
   try {
-    parsed = JSON.parse(readFileSync(resolvedPath, "utf8"));
+    const normalized = normalizeAddress(value, key);
+    return {
+      value: normalized,
+      check: ok(label, `${key} is set.`, { value: normalized }),
+    };
   } catch (error) {
-    throw new Error(
-      `Failed to parse deployer keystore JSON at ${resolvedPath}: ${error.message}`
-    );
+    return { value: null, check: fail(label, error.message) };
   }
+}
 
-  const rawAddress = parsed?.address;
-  if (typeof rawAddress !== "string" || rawAddress.length === 0) {
-    throw new Error(
-      `Deployer keystore at ${resolvedPath} does not expose an address field.`
-    );
+function loadDeploymentMap(filePath) {
+  const resolved = resolveFromPackageRoot(filePath);
+  if (!existsSync(resolved)) {
+    throw new Error(`Deployment file not found: ${resolved}`);
   }
-
-  const prefixed = rawAddress.startsWith("0x") ? rawAddress : `0x${rawAddress}`;
   return {
-    resolvedPath,
-    exists: true,
-    address: normalizeAddress(prefixed, "deployerKeystore.address"),
+    path: resolved,
+    value: JSON.parse(readFileSync(resolved, "utf8")),
   };
 }
 
-function resolveExpectedRoles(env, deployerAddress) {
-  const explicitOwner = parseAddressFromEnv(env, "PRISONERS_OWNER");
-  const explicitTreasury = parseAddressFromEnv(env, "PRISONERS_TREASURY");
-  const explicitVerifier = parseAddressFromEnv(env, "PRISONERS_AUTH_VERIFIER");
-
-  const owner = explicitOwner ?? deployerAddress ?? null;
-  const treasury = explicitTreasury ?? deployerAddress ?? null;
-  const authVerifier = explicitVerifier ?? owner ?? deployerAddress ?? null;
-
-  return {
-    owner: {
-      value: owner,
-      source: explicitOwner
-        ? "env"
-        : deployerAddress
-        ? "deployer-default"
-        : "unresolved-default",
-    },
-    treasury: {
-      value: treasury,
-      source: explicitTreasury
-        ? "env"
-        : deployerAddress
-        ? "deployer-default"
-        : "unresolved-default",
-    },
-    authVerifier: {
-      value: authVerifier,
-      source: explicitVerifier
-        ? "env"
-        : owner
-        ? explicitOwner
-          ? "owner-default"
-          : deployerAddress
-          ? "owner/deployer-default"
-          : "owner-default"
-        : "unresolved-default",
-    },
-  };
-}
-
-function resolveDeploymentFilePath(filePath, chainId) {
-  return resolveFromPackageRoot(
-    filePath && String(filePath).trim().length > 0
-      ? String(filePath).trim()
-      : `deployments/${chainId}.json`
-  );
-}
-
-export function extractNamedDeployments(deployments) {
-  const named = {};
-
-  for (const [address, contractName] of Object.entries(deployments ?? {})) {
+function findNamedDeployment(map, name) {
+  for (const [address, deployedName] of Object.entries(map)) {
     if (address === "networkName") {
       continue;
     }
-    named[contractName] = normalizeAddress(
-      address,
-      `${contractName} deployment address`
-    );
+    if (deployedName === name) {
+      return normalizeAddress(address, `${name} deployment`);
+    }
   }
-
-  return named;
+  return null;
 }
 
-function writeOutput(outPath, value) {
-  if (!outPath) {
-    return null;
+async function runPreflight(args) {
+  const checks = [];
+  let chainId = null;
+
+  if (args.rpcUrl || args.network || args.rpc) {
+    const provider = createProvider(args);
+    chainId = Number((await provider.getNetwork()).chainId);
+    checks.push(ok("rpc", `Connected to chain ${chainId}.`, { chainId }));
+  } else {
+    checks.push(warn("rpc", "No RPC target provided; skipping live chain connectivity check."));
   }
 
-  const resolvedPath = resolveFromPackageRoot(outPath);
-  mkdirSync(dirname(resolvedPath), { recursive: true });
-  writeFileSync(resolvedPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
-  return resolvedPath;
-}
-
-async function connectBaseSepoliaProvider(args = {}) {
-  const targetLabel =
-    args.rpcUrl ?? args.network ?? args.rpc ?? BASE_SEPOLIA_NETWORK_NAME;
-  const provider = createProvider({ ...args, rpcUrl: targetLabel });
-  const [network, latestBlock] = await Promise.all([
-    provider.getNetwork(),
-    provider.getBlock("latest"),
-  ]);
-
-  if (Number(network.chainId) !== BASE_SEPOLIA_CHAIN_ID) {
-    throw new Error(
-      `Connected chain ${network.chainId} is not Base Sepolia (${BASE_SEPOLIA_CHAIN_ID}).`
-    );
-  }
-
-  return {
-    provider,
-    targetLabel,
-    chainId: Number(network.chainId),
-    latestBlock: {
-      number: latestBlock.number,
-      timestamp: latestBlock.timestamp,
-    },
-  };
-}
-
-async function buildPreflightReport(args = {}) {
-  const connection = await connectBaseSepoliaProvider(args);
-  const warnings = [];
-  const deployerKeystore = args.deployerKeystore
-    ? readDeployerAddressFromKeystore(args.deployerKeystore)
-    : { resolvedPath: null, exists: false, address: null };
-
-  if (!args.deployerKeystore) {
-    warnings.push(
-      "No --deployer-keystore was provided, so this preflight could not independently confirm which deployer address the deploy command will use."
-    );
-  } else if (!deployerKeystore.exists) {
-    warnings.push(
-      `Deployer keystore was requested but not found at ${deployerKeystore.resolvedPath}.`
-    );
-  } else if (args.deployerKeystore === "scaffold-eth-default") {
-    warnings.push(
-      "Using scaffold-eth-default on a live network is unsafe and the deploy CLI will reject it."
-    );
-  }
-
-  const expectedRoles = resolveExpectedRoles(
+  const owner = parseOptionalEnvAddress(process.env, "PRISONERS_OWNER", "owner");
+  const treasury = parseOptionalEnvAddress(process.env, "PRISONERS_TREASURY", "treasury");
+  const identityRegistry = parseOptionalEnvAddress(
     process.env,
-    deployerKeystore.address
+    "ERC8004_IDENTITY_REGISTRY",
+    "identityRegistry"
   );
-  if (expectedRoles.owner.source !== "env") {
-    warnings.push(
-      "PRISONERS_OWNER is not set explicitly; deployment will fall back to the deployer address."
-    );
-  }
-  if (expectedRoles.treasury.source !== "env") {
-    warnings.push(
-      "PRISONERS_TREASURY is not set explicitly; deployment will fall back to the deployer address."
-    );
-  }
-  if (expectedRoles.authVerifier.source !== "env") {
-    warnings.push(
-      "PRISONERS_AUTH_VERIFIER is not set explicitly; deployment will fall back to owner/deployer defaults."
-    );
-  }
 
-  const profile = resolveCanaryProfile(process.env);
-  const profileComparison = compareProfiles(profile);
-  for (const mismatch of profileComparison.mismatches) {
-    warnings.push(
-      `Deploy config ${mismatch.field}=${mismatch.actual} differs from the recommended Base Sepolia canary value ${mismatch.expected}.`
-    );
-  }
-
-  if (
-    !process.env.BASESCAN_API_KEY ||
-    String(process.env.BASESCAN_API_KEY).trim().length === 0
-  ) {
-    warnings.push(
-      "BASESCAN_API_KEY is not set, so repo-native contract verification will fail until you add it."
-    );
-  }
+  checks.push(owner.check, treasury.check, identityRegistry.check);
 
   return {
-    schemaVersion: CANARY_PREFLIGHT_SCHEMA,
-    target: {
-      rpcTarget: connection.targetLabel,
-      chainId: connection.chainId,
-      latestBlock: connection.latestBlock,
+    status: statusFromChecks(checks),
+    chainId,
+    expected: {
+      owner: owner.value,
+      treasury: treasury.value,
+      identityRegistry: identityRegistry.value,
     },
-    deployerKeystore: {
-      provided: args.deployerKeystore ?? null,
-      resolvedPath: deployerKeystore.resolvedPath,
-      exists: deployerKeystore.exists,
-      address: deployerKeystore.address,
-    },
-    expectedRoles,
-    profile,
-    profileComparison,
-    verification: {
-      baseScanApiKeyPresent:
-        Boolean(process.env.BASESCAN_API_KEY) &&
-        String(process.env.BASESCAN_API_KEY).trim().length > 0,
-    },
-    warnings,
+    checks,
   };
 }
 
-async function buildDeploymentReport(args = {}) {
-  const connection = await connectBaseSepoliaProvider(args);
-  const deploymentFile = resolveDeploymentFilePath(
-    args.deploymentFile,
-    connection.chainId
-  );
+async function runDeployment(args) {
+  const provider = createProvider(args);
+  const chainId = Number((await provider.getNetwork()).chainId);
+  const deploymentFile = args.deploymentFile ?? join("deployments", `${chainId}.json`);
+  const deploymentMap = loadDeploymentMap(deploymentFile);
 
-  if (!existsSync(deploymentFile)) {
-    throw new Error(
-      `Deployment file not found: ${deploymentFile}. Run the repo deployment first or pass --deployment-file <path>.`
+  const authRegistryAddress = findNamedDeployment(
+    deploymentMap.value,
+    "ERC8004AuthAdapter"
+  );
+  const gameAddress = findNamedDeployment(deploymentMap.value, "PrisonersDAOlemma");
+  const chatAddress = findNamedDeployment(deploymentMap.value, "GameChat");
+
+  const checks = [];
+  if (!authRegistryAddress || !gameAddress || !chatAddress) {
+    checks.push(
+      fail(
+        "deployment-file",
+        `Deployment file ${deploymentMap.path} must include ERC8004AuthAdapter, PrisonersDAOlemma, and GameChat.`
+      )
     );
+    return {
+      status: statusFromChecks(checks),
+      chainId,
+      deploymentFile: deploymentMap.path,
+      checks,
+    };
   }
 
-  const deployments = JSON.parse(readFileSync(deploymentFile, "utf8"));
-  const namedDeployments = extractNamedDeployments(deployments);
-  const registryAddress = namedDeployments.AgentAuthRegistry;
-  const gameAddress = namedDeployments.PrisonersDAOlemma;
-  const chatAddress = namedDeployments.GameChat;
+  const game = new ethers.Contract(gameAddress, GAME_ABI, provider);
+  const adapter = new ethers.Contract(authRegistryAddress, ADAPTER_ABI, provider);
+  const chat = new ethers.Contract(chatAddress, CHAT_ABI, provider);
 
-  if (!registryAddress || !gameAddress || !chatAddress) {
-    throw new Error(
-      `Deployment file ${deploymentFile} must include AgentAuthRegistry, PrisonersDAOlemma, and GameChat addresses.`
-    );
-  }
-
-  const registry = new ethers.Contract(
-    registryAddress,
-    REGISTRY_ADMIN_ABI,
-    connection.provider
-  );
-  const game = new ethers.Contract(
-    gameAddress,
-    GAME_ADMIN_ABI,
-    connection.provider
-  );
-  const chat = new ethers.Contract(
-    chatAddress,
-    CHAT_ADMIN_ABI,
-    connection.provider
-  );
-
-  const [
-    registryOwner,
-    verifier,
-    gameNamespace,
-    gameOwner,
-    treasury,
-    authRegistry,
-    rawDefaultConfig,
-    currentGameId,
-    activeGameId,
-    rawCauseCount,
-    linkedGame,
-    rawMessageCount,
-  ] = await Promise.all([
-    registry.owner(),
-    registry.verifier(),
-    registry.gameNamespace(),
+  const [owner, treasury, gameAuthRegistry, identityRegistry, chatGame] = await Promise.all([
     game.owner(),
     game.treasury(),
     game.authRegistry(),
-    game.getDefaultConfig(),
-    game.currentGameId(),
-    game.activeGameId(),
-    game.causeCount(),
+    adapter.identityRegistry(),
     chat.game(),
-    chat.messageCount(),
   ]);
 
-  const causeCount = Number(rawCauseCount);
-  const causeIds = await Promise.all(
-    Array.from({ length: causeCount }, (_, index) => game.causeAt(index))
+  const expectedOwner = process.env.PRISONERS_OWNER
+    ? normalizeAddress(process.env.PRISONERS_OWNER, "PRISONERS_OWNER")
+    : null;
+  const expectedTreasury = process.env.PRISONERS_TREASURY
+    ? normalizeAddress(process.env.PRISONERS_TREASURY, "PRISONERS_TREASURY")
+    : null;
+  const expectedIdentityRegistry = process.env.ERC8004_IDENTITY_REGISTRY
+    ? normalizeAddress(
+        process.env.ERC8004_IDENTITY_REGISTRY,
+        "ERC8004_IDENTITY_REGISTRY"
+      )
+    : null;
+
+  checks.push(
+    normalizeAddress(gameAuthRegistry, "game.authRegistry") === authRegistryAddress
+      ? ok("game.authRegistry", "Game points at the deployed ERC8004AuthAdapter.")
+      : fail("game.authRegistry", `Game auth registry ${gameAuthRegistry} does not match deployed adapter ${authRegistryAddress}.`),
+    normalizeAddress(chatGame, "chat.game") === gameAddress
+      ? ok("chat.game", "GameChat points at the deployed game.")
+      : fail("chat.game", `GameChat.game ${chatGame} does not match deployed game ${gameAddress}.`)
   );
-  const rawCauses = await Promise.all(
-    causeIds.map((causeId) => game.getCause(Number(causeId)))
-  );
-  const causes = rawCauses.map((cause, index) => ({
-    causeId: Number(causeIds[index]),
-    active: cause.active,
-    recipient: cause.recipient,
-    metadataHash: cause.metadataHash,
-  }));
-  const activeCauses = causes.filter((cause) => cause.active);
 
-  const defaultConfig = normalizeConfigTuple(rawDefaultConfig);
-  const profileComparison = compareProfiles(defaultConfig);
-  const expectedRoles = resolveExpectedRoles(process.env, null);
-  const warnings = [];
-
-  if (authRegistry.toLowerCase() !== registryAddress.toLowerCase()) {
-    warnings.push(
-      `PrisonersDAOlemma.authRegistry() points to ${authRegistry}, not deployment-file registry ${registryAddress}.`
+  if (expectedOwner) {
+    checks.push(
+      normalizeAddress(owner, "game.owner") === expectedOwner
+        ? ok("owner", "Onchain owner matches PRISONERS_OWNER.", { value: owner })
+        : fail("owner", `Onchain owner ${owner} does not match expected owner ${expectedOwner}.`)
     );
-  }
-  if (linkedGame.toLowerCase() !== gameAddress.toLowerCase()) {
-    warnings.push(
-      `GameChat.game() points to ${linkedGame}, not deployment-file game ${gameAddress}.`
-    );
+  } else {
+    checks.push(warn("owner", "PRISONERS_OWNER is not set; owner comparison skipped.", { value: owner }));
   }
 
-  for (const mismatch of profileComparison.mismatches) {
-    warnings.push(
-      `Onchain default config ${mismatch.field}=${mismatch.actual} differs from the recommended Base Sepolia canary value ${mismatch.expected}.`
+  if (expectedTreasury) {
+    checks.push(
+      normalizeAddress(treasury, "game.treasury") === expectedTreasury
+        ? ok("treasury", "Onchain treasury matches PRISONERS_TREASURY.", { value: treasury })
+        : fail(
+            "treasury",
+            `Onchain treasury ${treasury} does not match expected treasury ${expectedTreasury}.`
+          )
+    );
+  } else {
+    checks.push(
+      warn("treasury", "PRISONERS_TREASURY is not set; treasury comparison skipped.", {
+        value: treasury,
+      })
     );
   }
 
-  if (
-    expectedRoles.owner.value &&
-    expectedRoles.owner.value.toLowerCase() !== registryOwner.toLowerCase()
-  ) {
-    warnings.push(
-      `Onchain registry owner ${registryOwner} does not match expected owner ${expectedRoles.owner.value}.`
+  if (expectedIdentityRegistry) {
+    checks.push(
+      normalizeAddress(identityRegistry, "adapter.identityRegistry") === expectedIdentityRegistry
+        ? ok(
+            "identityRegistry",
+            "Adapter identity registry matches ERC8004_IDENTITY_REGISTRY.",
+            { value: identityRegistry }
+          )
+        : fail(
+            "identityRegistry",
+            `Adapter identity registry ${identityRegistry} does not match expected ${expectedIdentityRegistry}.`
+          )
     );
-  }
-  if (
-    expectedRoles.owner.value &&
-    expectedRoles.owner.value.toLowerCase() !== gameOwner.toLowerCase()
-  ) {
-    warnings.push(
-      `Onchain game owner ${gameOwner} does not match expected owner ${expectedRoles.owner.value}.`
-    );
-  }
-  if (
-    expectedRoles.treasury.value &&
-    expectedRoles.treasury.value.toLowerCase() !== treasury.toLowerCase()
-  ) {
-    warnings.push(
-      `Onchain treasury ${treasury} does not match expected treasury ${expectedRoles.treasury.value}.`
-    );
-  }
-  if (
-    expectedRoles.authVerifier.value &&
-    expectedRoles.authVerifier.value.toLowerCase() !== verifier.toLowerCase()
-  ) {
-    warnings.push(
-      `Onchain auth verifier ${verifier} does not match expected auth verifier ${expectedRoles.authVerifier.value}.`
-    );
-  }
-
-  if (registryOwner.toLowerCase() !== gameOwner.toLowerCase()) {
-    warnings.push(
-      `Registry owner ${registryOwner} and game owner ${gameOwner} differ; this is allowed but increases operator coordination burden.`
-    );
-  }
-  if (activeCauses.length === 0) {
-    warnings.push(
-      "No active causes are currently whitelisted, so createGame() will revert until the owner whitelists at least one cause."
-    );
-  }
-  if (Number(currentGameId) !== 0) {
-    warnings.push(
-      `currentGameId is already ${Number(
-        currentGameId
-      )}, so this deployment is no longer a pristine pre-game canary instance.`
-    );
-  }
-  if (Number(activeGameId) !== 0) {
-    warnings.push(
-      `activeGameId is already ${Number(
-        activeGameId
-      )}, so there is a live game on this deployment right now.`
-    );
-  }
-  if (Number(rawMessageCount) !== 0) {
-    warnings.push(
-      `GameChat.messageCount is already ${Number(
-        rawMessageCount
-      )}, so this deployment already has chat history.`
+  } else {
+    checks.push(
+      warn(
+        "identityRegistry",
+        "ERC8004_IDENTITY_REGISTRY is not set; identity registry comparison skipped.",
+        { value: identityRegistry }
+      )
     );
   }
 
   return {
-    schemaVersion: CANARY_DEPLOYMENT_SCHEMA,
-    target: {
-      rpcTarget: connection.targetLabel,
-      chainId: connection.chainId,
-      latestBlock: connection.latestBlock,
-    },
-    deploymentFile,
-    deploymentNetworkName: deployments.networkName ?? null,
+    status: statusFromChecks(checks),
+    chainId,
+    deploymentFile: deploymentMap.path,
     addresses: {
-      registry: registryAddress,
+      authRegistry: authRegistryAddress,
       game: gameAddress,
       chat: chatAddress,
     },
-    expectedRoles,
     onchain: {
-      registryOwner,
-      verifier,
-      gameNamespace,
-      gameOwner,
+      owner,
       treasury,
-      authRegistry,
-      linkedGame,
-      defaultConfig,
-      currentGameId: Number(currentGameId),
-      activeGameId: Number(activeGameId),
-      messageCount: Number(rawMessageCount),
-      knownCauseCount: causeCount,
-      activeCauseCount: activeCauses.length,
-      causes,
+      authRegistry: gameAuthRegistry,
+      identityRegistry,
+      chatGame,
     },
-    profileComparison,
-    warnings,
+    checks,
   };
 }
 
-function formatProfileLine(profile) {
-  return [
-    `entryFeeWei=${profile.entryFeeWei}`,
-    `creatorFeeBps=${profile.creatorFeeBps}`,
-    `causeFeeBps=${profile.causeFeeBps}`,
-    `join=${profile.joinDurationSeconds}s`,
-    `commit=${profile.commitDurationBlocks} blocks`,
-    `reveal=${profile.revealDurationBlocks} blocks`,
-    `min=${profile.minPlayers}`,
-    `max=${profile.maxPlayers}`,
-    `maxCauses=${profile.maxCauses}`,
-  ].join(" | ");
-}
-
-function printWarnings(warnings = []) {
-  if (warnings.length === 0) {
-    return;
+function printSummary(report) {
+  console.log(`Status: ${report.status}`);
+  if (report.addresses) {
+    console.log(`Adapter:          ${report.addresses.authRegistry}`);
+    console.log(`Game:             ${report.addresses.game}`);
+    console.log(`GameChat:         ${report.addresses.chat}`);
   }
-
-  console.log("Warnings:");
-  for (const warning of warnings) {
-    console.log(`  - ${warning}`);
+  for (const check of report.checks) {
+    const prefix = check.ok ? (check.severity === "warn" ? "⚠️" : "✅") : "❌";
+    console.log(`${prefix} ${check.label}: ${check.message}`);
   }
 }
 
-function printPreflightSummary(report) {
-  console.log("\n🧪 Base Sepolia canary preflight");
-  console.log(`RPC target:     ${report.target.rpcTarget}`);
-  console.log(`Chain ID:       ${report.target.chainId}`);
-  console.log(`Latest block:   ${report.target.latestBlock.number}`);
-  console.log(
-    `Deployer:       ${report.deployerKeystore.address ?? "(not resolved)"}`
-  );
-  console.log(
-    `Keystore:       ${report.deployerKeystore.provided ?? "(not provided)"}`
-  );
-  console.log(
-    `Owner:          ${report.expectedRoles.owner.value ?? "(unresolved)"}`
-  );
-  console.log(
-    `Treasury:       ${report.expectedRoles.treasury.value ?? "(unresolved)"}`
-  );
-  console.log(
-    `Auth verifier:  ${
-      report.expectedRoles.authVerifier.value ?? "(unresolved)"
-    }`
-  );
-  console.log(`Profile:        ${formatProfileLine(report.profile)}`);
-  console.log(
-    `Recommended:    ${
-      report.profileComparison.matchesRecommendedProfile ? "yes" : "no"
-    }`
-  );
-  console.log(
-    `BaseScan key:   ${
-      report.verification.baseScanApiKeyPresent ? "present" : "missing"
-    }`
-  );
-  printWarnings(report.warnings);
-}
-
-function printDeploymentSummary(report) {
-  console.log("\n🧪 Base Sepolia canary deployment summary");
-  console.log(`RPC target:     ${report.target.rpcTarget}`);
-  console.log(`Chain ID:       ${report.target.chainId}`);
-  console.log(`Latest block:   ${report.target.latestBlock.number}`);
-  console.log(`Deployment:     ${report.deploymentFile}`);
-  console.log(`Registry:       ${report.addresses.registry}`);
-  console.log(`Game:           ${report.addresses.game}`);
-  console.log(`Chat:           ${report.addresses.chat}`);
-  console.log(`Registry owner: ${report.onchain.registryOwner}`);
-  console.log(`Game owner:     ${report.onchain.gameOwner}`);
-  console.log(`Treasury:       ${report.onchain.treasury}`);
-  console.log(`Verifier:       ${report.onchain.verifier}`);
-  console.log(
-    `Default config: ${formatProfileLine(report.onchain.defaultConfig)}`
-  );
-  console.log(
-    `Recommended:    ${
-      report.profileComparison.matchesRecommendedProfile ? "yes" : "no"
-    }`
-  );
-  console.log(`currentGameId:  ${report.onchain.currentGameId}`);
-  console.log(`activeGameId:   ${report.onchain.activeGameId}`);
-  console.log(`messageCount:   ${report.onchain.messageCount}`);
-  console.log(`Known causes:   ${report.onchain.knownCauseCount}`);
-  console.log(`Active causes:  ${report.onchain.activeCauseCount}`);
-  if (report.onchain.causes.length > 0) {
-    console.log("Causes:");
-    for (const cause of report.onchain.causes) {
-      console.log(
-        `  - ${cause.causeId}: ${cause.active ? "active" : "inactive"} -> ${
-          cause.recipient
-        } (${cause.metadataHash})`
-      );
-    }
-  }
-  printWarnings(report.warnings);
-}
-
-export async function main() {
+async function main() {
   const { subcommand, args } = parseCliArgs();
+  const command = subcommand ?? "help";
 
-  if (
-    !subcommand ||
-    subcommand === "--help" ||
-    subcommand === "-h" ||
-    args.help
-  ) {
-    if (subcommand === "preflight") {
-      printPreflightHelp();
-      return;
-    }
-    if (subcommand === "deployment") {
-      printDeploymentHelp();
-      return;
-    }
-    printMainHelp();
+  if (args.help || command === "help") {
+    console.log(HELP);
     return;
   }
 
-  let report;
-  if (subcommand === "preflight") {
-    report = await buildPreflightReport(args);
-  } else if (subcommand === "deployment") {
-    report = await buildDeploymentReport(args);
-  } else {
-    throw new Error(
-      `Unknown canary command '${subcommand}'. Use preflight or deployment.`
-    );
-  }
+  const report =
+    command === "preflight"
+      ? await runPreflight(args)
+      : command === "deployment"
+        ? await runDeployment(args)
+        : (() => {
+            throw new Error(`Unknown canary command '${command}'. Use preflight, deployment, or help.`);
+          })();
 
-  const outputPath = writeOutput(args.out, report);
-  if (outputPath) {
-    report.outputPath = outputPath;
+  if (args.out) {
+    writeJson(args.out, report);
   }
 
   if (args.json) {
     printJson(report);
-    return;
-  }
-
-  if (subcommand === "preflight") {
-    printPreflightSummary(report);
   } else {
-    printDeploymentSummary(report);
+    printSummary(report);
   }
 
-  if (outputPath) {
-    console.log(`Output:         ${outputPath}`);
+  if (report.status === "failed") {
+    process.exitCode = 1;
   }
 }
 
-if (process.argv[1] === moduleFilePath) {
-  main().catch((error) => {
-    console.error(`\n❌ ${error.message}`);
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  console.error(`\n❌ Canary failed: ${error.message}`);
+  process.exitCode = 1;
+});

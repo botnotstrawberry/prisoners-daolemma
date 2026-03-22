@@ -49,7 +49,7 @@ export const LOAD_HARNESS_MATRIX_CASES = {
   "smoke-auth-expiry-sweep": {
     label: "smoke-auth-expiry-sweep",
     description:
-      "Sequential winner-path auth-expiry sweep on the smoke profile: repeat bounded stale-bundle plus expired-join recovery before every game's join batch so pre-join auth-expiry coverage is broader than a single once-per-run rehearsal.",
+      "Deprecated compatibility case for historical verifier-era auth-expiry inputs. Under the live ERC-8004 path the requested auth-expiry chaos is intentionally skipped.",
     harnessOptions: {
       profile: "smoke",
       playerCount: 6,
@@ -227,7 +227,7 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
   "auth-expiry-local": {
     label: "auth-expiry-local",
     description:
-      "Two seeded repeated auth-expiry sweeps on the smoke profile, each replaying bounded stale-bundle plus expired-join recovery before every sequential winner-path game.",
+      "Deprecated compatibility preset for historical auth-expiry invocations. Under the live ERC-8004 path these runs execute with auth-expiry chaos skipped.",
     runs: [
       {
         id: "auth-expiry-a",
@@ -350,7 +350,7 @@ export const LOAD_HARNESS_MATRIX_PRESETS = {
   "broader-local": {
     label: "broader-local",
     description:
-      "Bounded broader local soak: one deterministic same-block family pass, three seeded adversarial smoke sweeps, one repeated auth-expiry sweep, and two larger scale-profile winner-path drain rehearsals.",
+      "Bounded broader local soak: one deterministic same-block family pass, three seeded adversarial smoke sweeps, a deprecated compatibility auth-expiry run (skipped under ERC-8004), and two larger scale-profile winner-path drain rehearsals.",
     runs: [
       {
         id: "same-block-family-a",

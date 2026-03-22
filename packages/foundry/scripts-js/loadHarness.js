@@ -4,9 +4,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ethers } from "ethers";
 import {
-  buildAndSignAuthPermit,
   bytes32FromUtf8,
-  registerSignedPermit,
+  deriveWalletAgentKey,
   resolveFromPackageRoot,
 } from "./authTooling.js";
 import {
@@ -29,9 +28,17 @@ import { exportGameEvidence } from "./queryTooling.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageDir = join(__dirname, "..");
 
+const identityRegistryArtifact = JSON.parse(
+  readFileSync(
+    resolveFromPackageRoot(
+      "out/MockAgentIdentityRegistry.sol/MockAgentIdentityRegistry.json"
+    ),
+    "utf8"
+  )
+);
 const authRegistryArtifact = JSON.parse(
   readFileSync(
-    resolveFromPackageRoot("out/AgentAuthRegistry.sol/AgentAuthRegistry.json"),
+    resolveFromPackageRoot("out/ERC8004AuthAdapter.sol/ERC8004AuthAdapter.json"),
     "utf8"
   )
 );
@@ -44,7 +51,7 @@ const gameArtifact = JSON.parse(
 
 export const LOAD_HARNESS_SCHEMA_VERSION = "prisoners-daolemma/load-harness-v1";
 export const LOAD_HARNESS_BOUNDARY_NOTE =
-  "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys fresh contracts, registers synthetic wallets through verifier-approved permit/register, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism, does not run the full SIWA wrapper, and does not replace broader Foundry/Sepolia validation.";
+  "This is a local Anvil-focused load/chaos/adversarial harness for the current repo-native auth/game/query surface. It deploys a mock ERC-8004 identity registry plus ERC8004AuthAdapter, self-registers synthetic wallets permissionlessly, runs scenario-driven gameplay flows with bounded chaos and adversarial probes, and writes machine-readable reports plus evidence exports. It is intended for synthetic local breakage hunting only: it does not claim live-network realism and does not replace broader Foundry/Sepolia validation.";
 export const DEFAULT_ANVIL_CHAIN_ID = 31337;
 export const DEFAULT_ANVIL_PORT = 8555;
 export const DEFAULT_ANVIL_MNEMONIC =
@@ -1579,52 +1586,20 @@ function buildCauseDefinitions({ mnemonic, playerCount, causeCount }) {
   });
 }
 
-function buildHarnessAgentKeyText(player) {
-  return `load-agent-${player.index}`;
-}
-
 function buildHarnessManifestUri(player) {
   return `manifest://load-harness/player-${player.index}`;
 }
 
-function buildHarnessAuthPermitOptions({
-  provider,
-  authRegistry,
-  verifier,
-  player,
-  nonceText,
-  ttlSeconds,
-  manifestUri,
-}) {
-  return {
-    provider,
-    registry: authRegistry.address,
-    wallet: player.wallet.address,
-    agentKeyText: buildHarnessAgentKeyText(player),
-    manifestUri: manifestUri ?? buildHarnessManifestUri(player),
-    nonceText,
-    ...(ttlSeconds !== undefined ? { ttlSeconds } : {}),
-    verifierPrivateKey: verifier.privateKey,
-    allowUnsafePrivateKey: true,
-  };
-}
-
 async function readAuthStateSnapshot(authRegistry, wallet) {
-  const [isAuthorized, record] = await Promise.all([
+  const [isAuthorized, agentKey] = await Promise.all([
     authRegistry.isAuthorized(wallet),
-    authRegistry.authRecordOf(wallet),
+    authRegistry.agentKeyOf(wallet),
   ]);
 
   return {
     isAuthorized,
-    record: {
-      agentKey: record.agentKey,
-      manifestHash: record.manifestHash,
-      issuedAt: toNumber(record.issuedAt, "authRecord.issuedAt"),
-      expiresAt: toNumber(record.expiresAt, "authRecord.expiresAt"),
-      issuer: record.issuer,
-      active: record.active,
-    },
+    agentKey,
+    derivedAgentKey: isAuthorized ? deriveWalletAgentKey(wallet) : ethers.constants.HashZero,
   };
 }
 
@@ -2134,20 +2109,33 @@ function buildObservedReplayConsistency({
 async function deployContracts({
   provider,
   owner,
-  verifier,
   treasuryRecipient,
   config,
   tracker,
 }) {
+  const identityRegistryFactory = new ethers.ContractFactory(
+    identityRegistryArtifact.abi,
+    identityRegistryArtifact.bytecode.object,
+    owner
+  );
+  const identityRegistry = await identityRegistryFactory.deploy();
+  await trackedTx(
+    tracker,
+    provider,
+    {
+      action: "deployIdentityRegistry",
+      phase: "deploy",
+    },
+    async () => identityRegistry.deployTransaction
+  );
+  await identityRegistry.deployed();
+
   const authRegistryFactory = new ethers.ContractFactory(
     authRegistryArtifact.abi,
     authRegistryArtifact.bytecode.object,
     owner
   );
-  const authRegistry = await authRegistryFactory.deploy(
-    owner.address,
-    verifier.address
-  );
+  const authRegistry = await authRegistryFactory.deploy(identityRegistry.address);
   await trackedTx(
     tracker,
     provider,
@@ -2192,6 +2180,7 @@ async function deployContracts({
   await game.deployed();
 
   return {
+    identityRegistry,
     authRegistry,
     game,
     treasuryRecipient,
@@ -2216,30 +2205,16 @@ async function whitelistCauses({ provider, game, causeDefinitions, tracker }) {
 
 async function registerPlayers({
   provider,
+  identityRegistry,
   authRegistry,
-  verifier,
   players,
   concurrency,
   tracker,
 }) {
-  const permits = await Promise.all(
-    players.map((player) =>
-      buildAndSignAuthPermit(
-        buildHarnessAuthPermitOptions({
-          provider,
-          authRegistry,
-          verifier,
-          player,
-          nonceText: `load-permit-${player.index}`,
-        })
-      )
-    )
-  );
-
   const registrationResults = await mapConcurrent(
     players,
     concurrency,
-    async (player, index) =>
+    async (player) =>
       trackedTx(
         tracker,
         provider,
@@ -2248,20 +2223,37 @@ async function registerPlayers({
           phase: "bootstrap",
           wallet: player.wallet.address,
         },
-        async () =>
-          registerSignedPermit({
-            provider,
-            bundle: permits[index],
-            walletPrivateKey: player.wallet.privateKey,
-            allowUnsafePrivateKey: true,
-          })
+        async () => {
+          const playerRegistry = identityRegistry.connect(player.wallet);
+          const predictedAgentId = await playerRegistry.callStatic.register(
+            buildHarnessManifestUri(player)
+          );
+          const tx = await playerRegistry.register(buildHarnessManifestUri(player));
+          const receipt = await tx.wait();
+          const statusAfterRegister = await readAuthStateSnapshot(
+            authRegistry,
+            player.wallet.address
+          );
+          if (!statusAfterRegister.isAuthorized) {
+            throw new Error(
+              `Identity registration for ${player.wallet.address} did not authorize the wallet.`
+            );
+          }
+          return {
+            wallet: player.wallet.address,
+            agentId: predictedAgentId.toString(),
+            txHash: tx.hash,
+            blockNumber: receipt.blockNumber,
+            statusAfterRegister,
+          };
+        }
       )
   );
 
   const failures = registrationResults.filter((result) => !result.ok);
   if (failures.length > 0) {
     throw new Error(
-      `Auth registration failed for ${
+      `Identity registration failed for ${
         failures.length
       } player(s). First failure: ${describeError(failures[0].error)}`
     );
@@ -2325,41 +2317,24 @@ function buildAuthExpiryChaosPlan({
 }
 
 async function runAuthExpiryChaos({
-  provider,
-  authRegistry,
-  verifier,
-  gameAddress,
   gameId,
   gameIndex,
-  scenarioType,
-  seed,
-  joinedPlayers,
-  causeCount,
-  config,
   authExpiryChaos,
-  tracker,
 }) {
-  const selectedForGame = authExpiryAppliesBeforeGame(
-    authExpiryChaos,
-    gameIndex
-  );
-  const summary = {
+  return {
     enabled: Boolean(authExpiryChaos?.enabled),
-    selectedForGame,
+    selectedForGame: false,
     applied: false,
-    configured: {
-      staleBundleFailures: authExpiryChaos?.staleBundleFailures ?? 0,
-      expiredJoinFailures: authExpiryChaos?.expiredJoinFailures ?? 0,
-      ttlSeconds: authExpiryChaos?.ttlSeconds ?? 0,
-      applyBeforeGameIndex: authExpiryChaos?.applyBeforeGameIndex ?? null,
-      applyBeforeGameIndexes: authExpiryChaos?.applyBeforeGameIndexes ?? [],
-    },
+    deprecated: true,
     gameIndex,
     gameId,
-    timeWarpSeconds: 0,
-    manualBlocksMined: 0,
+    skipped: authExpiryChaos?.enabled
+      ? [
+          "auth-expiry chaos was retired with the verifier-permit flow and is intentionally skipped under ERC-8004 permissionless admission.",
+        ]
+      : [],
     staleBundle: {
-      requested: authExpiryChaos?.staleBundleFailures ?? 0,
+      requested: 0,
       planned: 0,
       attempted: 0,
       failedAsExpected: 0,
@@ -2367,7 +2342,7 @@ async function runAuthExpiryChaos({
       players: [],
     },
     expiredJoin: {
-      requested: authExpiryChaos?.expiredJoinFailures ?? 0,
+      requested: 0,
       planned: 0,
       shortAuthRegistrations: 0,
       joinAttempts: 0,
@@ -2377,254 +2352,9 @@ async function runAuthExpiryChaos({
       refreshedRegistrations: 0,
       players: [],
     },
-    skipped: [],
+    timeWarpSeconds: 0,
+    manualBlocksMined: 0,
   };
-
-  if (!authExpiryChaos?.enabled || !selectedForGame) {
-    return summary;
-  }
-
-  const plan = buildAuthExpiryChaosPlan({
-    joinedPlayers,
-    seed,
-    gameIndex,
-    authExpiryChaos,
-  });
-  summary.skipped.push(...plan.skipped);
-  summary.staleBundle.planned = plan.staleBundlePlayers.length;
-  summary.expiredJoin.planned = plan.expiredJoinPlayers.length;
-
-  if (
-    plan.staleBundlePlayers.length === 0 &&
-    plan.expiredJoinPlayers.length === 0
-  ) {
-    return summary;
-  }
-
-  const staleBundles = await Promise.all(
-    plan.staleBundlePlayers.map(async (player) => ({
-      player,
-      bundle: await buildAndSignAuthPermit(
-        buildHarnessAuthPermitOptions({
-          provider,
-          authRegistry,
-          verifier,
-          player,
-          nonceText: `load-auth-expiry-stale-game-${gameIndex}-player-${player.index}`,
-          ttlSeconds: authExpiryChaos.ttlSeconds,
-          manifestUri: `${buildHarnessManifestUri(player)}/stale-bundle/game-${gameIndex}`,
-        })
-      ),
-    }))
-  );
-
-  for (const player of plan.expiredJoinPlayers) {
-    const shortBundle = await buildAndSignAuthPermit(
-      buildHarnessAuthPermitOptions({
-        provider,
-        authRegistry,
-        verifier,
-        player,
-        nonceText: `load-auth-expiry-short-game-${gameIndex}-player-${player.index}`,
-        ttlSeconds: authExpiryChaos.ttlSeconds,
-        manifestUri: `${buildHarnessManifestUri(player)}/short-auth/game-${gameIndex}`,
-      })
-    );
-
-    const registration = await trackedTx(
-      tracker,
-      provider,
-      {
-        action: "authRegister",
-        phase: "auth-chaos",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: player.wallet.address,
-      },
-      async () =>
-        registerSignedPermit({
-          provider,
-          bundle: shortBundle,
-          walletPrivateKey: player.wallet.privateKey,
-          allowUnsafePrivateKey: true,
-        })
-    );
-    const statusAfterRegister = await readAuthStateSnapshot(
-      authRegistry,
-      player.wallet.address
-    );
-    if (!statusAfterRegister.isAuthorized) {
-      throw new Error(
-        `Short-lived auth registration for ${player.wallet.address} did not leave the wallet authorized before expiry.`
-      );
-    }
-
-    summary.expiredJoin.shortAuthRegistrations += 1;
-    summary.expiredJoin.players.push({
-      index: player.index,
-      wallet: player.wallet.address,
-      causeId: assignCauseId(player.index, gameIndex, causeCount),
-      shortAuth: {
-        txHash: registration.txHash,
-        issuedAt: shortBundle.permit.issuedAt,
-        expiresAt: shortBundle.permit.expiresAt,
-        statusAfterRegister,
-      },
-      statusAfterExpiry: null,
-      joinFailure: null,
-      refreshedAuth: null,
-    });
-  }
-
-  await provider.send("evm_increaseTime", [authExpiryChaos.ttlSeconds + 1]);
-  await provider.send("evm_mine", []);
-  summary.timeWarpSeconds = authExpiryChaos.ttlSeconds + 1;
-  summary.manualBlocksMined = 1;
-  summary.applied = true;
-
-  for (const entry of staleBundles) {
-    const statusBeforeAttempt = await readAuthStateSnapshot(
-      authRegistry,
-      entry.player.wallet.address
-    );
-    const failure = await trackedExpectedFailure(
-      tracker,
-      provider,
-      {
-        action: "authRegister",
-        phase: "auth-chaos",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: entry.player.wallet.address,
-        failureLabel: "stale-bundle-before-join",
-      },
-      async () =>
-        registerSignedPermit({
-          provider,
-          bundle: entry.bundle,
-          walletPrivateKey: entry.player.wallet.privateKey,
-          allowUnsafePrivateKey: true,
-        })
-    );
-    const statusAfterFailure = await readAuthStateSnapshot(
-      authRegistry,
-      entry.player.wallet.address
-    );
-    summary.staleBundle.attempted += 1;
-    summary.staleBundle.failedAsExpected += 1;
-    summary.staleBundle.players.push({
-      index: entry.player.index,
-      wallet: entry.player.wallet.address,
-      bundleExpiresAt: entry.bundle.permit.expiresAt,
-      statusBeforeAttempt,
-      failure: failure.error,
-      statusAfterFailure,
-    });
-  }
-
-  for (const entry of summary.expiredJoin.players) {
-    entry.statusAfterExpiry = await readAuthStateSnapshot(
-      authRegistry,
-      entry.wallet
-    );
-    if (entry.statusAfterExpiry.isAuthorized) {
-      throw new Error(
-        `Auth-expiry chaos expected ${entry.wallet} to become unauthorized before join, but the registry still reports it as authorized.`
-      );
-    }
-
-    const joinFailure = await trackedExpectedFailure(
-      tracker,
-      provider,
-      {
-        action: "join",
-        phase: "joining",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: entry.wallet,
-        causeId: entry.causeId,
-        failureLabel: "expired-auth-before-join",
-      },
-      async () =>
-        sendRawGameTx({
-          gameAddress,
-          wallet: plan.expiredJoinPlayers.find(
-            (player) => player.wallet.address.toLowerCase() === entry.wallet.toLowerCase()
-          ).wallet,
-          method: "join",
-          args: [gameId, entry.causeId],
-          overrides: {
-            value: config.entryFeeWei,
-          },
-        })
-    );
-    summary.expiredJoin.joinAttempts += 1;
-    summary.expiredJoin.failedAsExpected += 1;
-    entry.joinFailure = joinFailure.error;
-
-    const player = plan.expiredJoinPlayers.find(
-      (candidate) => candidate.wallet.address.toLowerCase() === entry.wallet.toLowerCase()
-    );
-    const refreshBundle = await buildAndSignAuthPermit(
-      buildHarnessAuthPermitOptions({
-        provider,
-        authRegistry,
-        verifier,
-        player,
-        nonceText: `load-auth-expiry-refresh-game-${gameIndex}-player-${player.index}`,
-        manifestUri: `${buildHarnessManifestUri(player)}/refresh/game-${gameIndex}`,
-      })
-    );
-    const refreshed = await trackedTx(
-      tracker,
-      provider,
-      {
-        action: "authRegister",
-        phase: "auth-chaos",
-        scenarioType,
-        gameIndex,
-        gameId,
-        wallet: player.wallet.address,
-      },
-      async () =>
-        registerSignedPermit({
-          provider,
-          bundle: refreshBundle,
-          walletPrivateKey: player.wallet.privateKey,
-          allowUnsafePrivateKey: true,
-        })
-    );
-    const statusAfterRefresh = await readAuthStateSnapshot(
-      authRegistry,
-      player.wallet.address
-    );
-    if (!statusAfterRefresh.isAuthorized) {
-      throw new Error(
-        `Auth refresh for ${player.wallet.address} did not restore authorization before the main join batch.`
-      );
-    }
-    summary.expiredJoin.refreshedRegistrations += 1;
-    entry.refreshedAuth = {
-      txHash: refreshed.txHash,
-      issuedAt: refreshBundle.permit.issuedAt,
-      expiresAt: refreshBundle.permit.expiresAt,
-      statusAfterRefresh,
-    };
-  }
-
-  summary.expiredJoin.localRegisterRejections = tracker.entries.filter(
-    (entry) =>
-      entry.gameId === gameId &&
-      entry.phase === "auth-chaos" &&
-      entry.action === "authRegister" &&
-      entry.failureLabel === "expired-auth-before-join" &&
-      entry.failureClass === "expected"
-  ).length;
-
-  return summary;
 }
 
 async function runGameBatch({
@@ -6026,7 +5756,6 @@ async function buildBreakageChecks({
 async function runSingleGame({
   provider,
   owner,
-  verifier,
   authRegistry,
   gameReader,
   gameAddress,
@@ -6117,7 +5846,6 @@ async function runSingleGame({
   const authChaos = await runAuthExpiryChaos({
     provider,
     authRegistry,
-    verifier,
     gameAddress,
     gameId,
     gameIndex,
@@ -7364,12 +7092,12 @@ export async function runLoadHarness(rawOptions = {}) {
       txLog: join(options.runDir, "txs.jsonl"),
     },
     limitations: [
-      "This harness currently drives verifier-approved permit/register directly for speed; it does not rehearse the full SIWA nonce/sign/verify wrapper.",
+      "This harness exercises permissionless ERC-8004 self-registration only. It does not cover historical verifier-permit flows.",
       "The adversarial-random mode is synthetic local breakage hunting only. Invalid probes and random action mixes come from one seeded local harness, not autonomous independent agents or real network adversaries.",
       "The included automated smoke test proves only small local runs. Larger many-game or high-player stress still needs to be produced intentionally by running the harness with a larger local profile; it is not CI-proven by this patch alone.",
       "Transactions come from one local process with bounded concurrency. That is useful for contract/tooling stress, but it is not a realistic model of network latency, mempool behavior, or fully independent agents.",
       "Optional same-block probes use temporary no-automine/manual single-block mining on the local dev RPC, mostly via short ordered sequences from one caller wallet. That adds deterministic same-block contention coverage, but it still is not public mempool realism or cross-actor fee bidding.",
-      "Optional auth-expiry chaos is intentionally bounded to selected pre-join rehearsals. It covers stale permit/register attempts and expired-auth join rejection/recovery locally, and can repeat before selected games, but it does not prove mid-game expiry, unbounded mass-expiry, or full SIWA-wrapper expiry behavior.",
+      "The historical auth-expiry chaos mode is retired under ERC-8004 permissionless admission and is intentionally skipped when requested.",
     ],
   };
 
@@ -7394,7 +7122,6 @@ export async function runLoadHarness(rawOptions = {}) {
     await waitForProvider(provider);
 
     const owner = deriveWallet(options.mnemonic, 0, provider);
-    const verifier = deriveWallet(options.mnemonic, 1, provider);
     const players = Array.from({ length: options.playerCount }, (_, index) => ({
       index: index + 1,
       wallet: deriveWallet(options.mnemonic, index + 2, provider),
@@ -7417,7 +7144,6 @@ export async function runLoadHarness(rawOptions = {}) {
     const deployments = await deployContracts({
       provider,
       owner,
-      verifier,
       treasuryRecipient,
       config: options.profileConfig,
       tracker,
@@ -7430,8 +7156,8 @@ export async function runLoadHarness(rawOptions = {}) {
     });
     await registerPlayers({
       provider,
+      identityRegistry: deployments.identityRegistry,
       authRegistry: deployments.authRegistry,
-      verifier,
       players,
       concurrency: options.concurrency,
       tracker,
@@ -7450,7 +7176,6 @@ export async function runLoadHarness(rawOptions = {}) {
         await runSingleGame({
           provider,
           owner,
-          verifier,
           authRegistry: deployments.authRegistry,
           gameReader,
           gameAddress: deployments.game.address,
@@ -7506,7 +7231,7 @@ export async function runLoadHarness(rawOptions = {}) {
       },
       deployment: {
         owner: owner.address,
-        verifier: verifier.address,
+        identityRegistry: deployments.identityRegistry.address,
         authRegistry: deployments.authRegistry.address,
         game: deployments.game.address,
         treasury: deployments.treasuryRecipient,

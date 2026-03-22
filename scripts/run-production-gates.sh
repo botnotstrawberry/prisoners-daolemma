@@ -73,7 +73,7 @@ printf '%s\n' "$FOUNDRY_PROFILE" > "$OUT_DIR/foundry-profile.txt"
 run 01-yarn-test yarn test
 run 02-yarn-next-check-types yarn next:check-types
 run 03-yarn-smoke-integration yarn smoke:integration
-run 04-yarn-auth-expiry yarn workspace @prisoners-daolemma/foundry load:harness:auth-expiry
+run 04-yarn-load-harness-medium yarn workspace @prisoners-daolemma/foundry load:harness:matrix:medium
 run 05-production-size-check bash "$ROOT/scripts/check-production-size.sh"
 
 echo "PASS: all production gates completed"

@@ -4,7 +4,8 @@ pragma solidity ^0.8.23;
 import { Test } from "forge-std/Test.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { ERC8004AuthAdapter } from "../contracts/ERC8004AuthAdapter.sol";
+import { MockAgentIdentityRegistry } from "../contracts/mocks/MockAgentIdentityRegistry.sol";
 import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
 contract RescueTokenMock is ERC20 {
@@ -32,13 +33,12 @@ contract PrisonersDAOlemmaRescueTest is Test {
     bytes32 internal constant SALT_2 = keccak256("salt-2");
 
     uint256 internal ownerPk = 0xA11CE;
-    uint256 internal verifierPk = 0xB0B;
 
-    AgentAuthRegistry internal registry;
+    ERC8004AuthAdapter internal registry;
+    MockAgentIdentityRegistry internal identityRegistry;
     PrisonersDAOlemma internal game;
 
     address internal owner;
-    address internal verifier;
     address internal treasury;
     address internal causeARecipient;
     address internal causeBRecipient;
@@ -50,7 +50,6 @@ contract PrisonersDAOlemmaRescueTest is Test {
 
     function setUp() public {
         owner = vm.addr(ownerPk);
-        verifier = vm.addr(verifierPk);
         treasury = makeAddr("treasury");
         causeARecipient = makeAddr("cause-a-recipient");
         causeBRecipient = makeAddr("cause-b-recipient");
@@ -60,7 +59,8 @@ contract PrisonersDAOlemmaRescueTest is Test {
         vm.deal(player1, 10 ether);
         vm.deal(player2, 10 ether);
 
-        registry = new AgentAuthRegistry(owner, verifier);
+        identityRegistry = new MockAgentIdentityRegistry();
+        registry = new ERC8004AuthAdapter(address(identityRegistry));
         game = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
 
         vm.startPrank(owner);
@@ -414,22 +414,7 @@ contract PrisonersDAOlemmaRescueTest is Test {
         new ForceSendETH{ value: amount }(payable(target));
     }
 
-    function _registerWallet(address wallet_, bytes32 agentKey_, uint64 expiresAt_, bytes32 nonce_) internal {
-        AgentAuthRegistry.AuthPermit memory permit = AgentAuthRegistry.AuthPermit({
-            wallet: wallet_,
-            agentKey: agentKey_,
-            manifestHash: keccak256(abi.encodePacked("manifest://", agentKey_)),
-            chainId: block.chainid,
-            gameNamespace: registry.gameNamespace(),
-            issuedAt: uint64(vm.getBlockTimestamp()),
-            expiresAt: expiresAt_,
-            nonce: nonce_
-        });
-
-        bytes32 digest = registry.hashAuthPermit(permit);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(verifierPk, digest);
-
-        vm.prank(wallet_);
-        registry.registerAuth(permit, abi.encodePacked(r, s, v));
+    function _registerWallet(address wallet_, bytes32, uint64, bytes32) internal {
+        identityRegistry.mint(wallet_);
     }
 }

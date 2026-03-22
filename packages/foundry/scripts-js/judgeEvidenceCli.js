@@ -496,7 +496,7 @@ function discoverCanaryBundle(bundleDir, linkRootDir) {
   }
   if (deployment) {
     claims.push(
-      "An onchain deployment summary is present, so owner/treasury/verifier wiring and default config can be inspected after deployment."
+      "An onchain deployment summary is present, so owner/treasury/ERC-8004 identity-registry wiring and default config can be inspected after deployment."
     );
   }
   if (queryExport) {
@@ -863,7 +863,7 @@ function buildUnknowns(bundleType, liveSepoliaProof) {
     );
     pushUnique(
       unknowns,
-      "The honest live auth flavor is still open until a canary bundle records whether the run used minimal permit/register or the full SIWA-backed path."
+      "The live ERC-8004 admission path still needs a canary bundle that records self-registration artifacts and exported onchain admission status."
     );
     pushUnique(
       unknowns,

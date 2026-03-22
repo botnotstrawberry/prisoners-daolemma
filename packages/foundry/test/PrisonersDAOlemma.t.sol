@@ -2,7 +2,8 @@
 pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
-import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { ERC8004AuthAdapter } from "../contracts/ERC8004AuthAdapter.sol";
+import { MockAgentIdentityRegistry } from "../contracts/mocks/MockAgentIdentityRegistry.sol";
 import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
 contract PrisonersDAOlemmaTest is Test {
@@ -21,13 +22,12 @@ contract PrisonersDAOlemmaTest is Test {
     bytes32 internal constant SALT_4 = keccak256("salt-4");
 
     uint256 internal ownerPk = 0xA11CE;
-    uint256 internal verifierPk = 0xB0B;
 
-    AgentAuthRegistry internal registry;
+    ERC8004AuthAdapter internal registry;
+    MockAgentIdentityRegistry internal identityRegistry;
     PrisonersDAOlemma internal game;
 
     address internal owner;
-    address internal verifier;
     address internal treasury;
     address internal causeARecipient;
     address internal causeBRecipient;
@@ -37,6 +37,8 @@ contract PrisonersDAOlemmaTest is Test {
     address internal player2;
     address internal player3;
     address internal player4;
+
+    mapping(address wallet => uint256 tokenId) internal _walletIdentityTokenId;
 
     struct WinnerSequenceContext {
         uint256 gameId;
@@ -72,7 +74,6 @@ contract PrisonersDAOlemmaTest is Test {
 
     function setUp() public {
         owner = vm.addr(ownerPk);
-        verifier = vm.addr(verifierPk);
         treasury = makeAddr("treasury");
         causeARecipient = makeAddr("cause-a-recipient");
         causeBRecipient = makeAddr("cause-b-recipient");
@@ -88,7 +89,8 @@ contract PrisonersDAOlemmaTest is Test {
         vm.deal(player3, 10 ether);
         vm.deal(player4, 10 ether);
 
-        registry = new AgentAuthRegistry(owner, verifier);
+        identityRegistry = new MockAgentIdentityRegistry();
+        registry = new ERC8004AuthAdapter(address(identityRegistry));
         game = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
 
         vm.startPrank(owner);
@@ -207,7 +209,7 @@ contract PrisonersDAOlemmaTest is Test {
         assertTrue(player.joined);
         assertTrue(player.alive);
         assertEq(player.wallet, player1);
-        assertEq(player.agentKey, PLAYER1_AGENT);
+        assertEq(player.agentKey, _expectedAgentKey(player1));
         assertEq(player.causeId, CAUSE_A);
         assertEq(game.gameCauseRecipient(gameId, CAUSE_A), causeARecipient);
     }
@@ -340,7 +342,7 @@ contract PrisonersDAOlemmaTest is Test {
         _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-admission"));
 
         assertTrue(game.isAdmissionReady(player1));
-        assertEq(game.admissionAgentKey(player1), PLAYER1_AGENT);
+        assertEq(game.admissionAgentKey(player1), _expectedAgentKey(player1));
     }
 
     function testJoinRejectsUnauthorizedWallet() public {
@@ -351,39 +353,23 @@ contract PrisonersDAOlemmaTest is Test {
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
-    function testJoinRejectsExpiredAuthAndAdmissionViewTurnsFalse() public {
+    function testJoinRejectsWalletAfterIdentityRemovalAndAdmissionViewTurnsFalse() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-expired"));
-
-        vm.warp(vm.getBlockTimestamp() + 11);
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-removed"));
+        _removeIdentity(player1);
 
         assertFalse(game.isAdmissionReady(player1));
-        assertEq(game.admissionAgentKey(player1), PLAYER1_AGENT);
+        assertEq(game.admissionAgentKey(player1), bytes32(0));
 
         vm.expectRevert(PrisonersDAOlemma.UnauthorizedWallet.selector);
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
-    function testJoinRejectsRevokedAuthAndAdmissionViewTurnsFalse() public {
+    function testPostJoinIdentityLossDoesNotBlockGameplayOrClaims() public {
         uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-revoked"));
-
-        vm.prank(owner);
-        registry.revokeAuth(player1);
-
-        assertFalse(game.isAdmissionReady(player1));
-        assertEq(game.admissionAgentKey(player1), PLAYER1_AGENT);
-
-        vm.expectRevert(PrisonersDAOlemma.UnauthorizedWallet.selector);
-        vm.prank(player1);
-        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
-    }
-
-    function testPostJoinRevokedOrExpiredAuthDoesNotBlockGameplayOrClaims() public {
-        uint256 gameId = _createGame();
-        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-postjoin-revoked"));
-        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-postjoin-expired"));
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-postjoin-loss-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 10), keccak256("nonce-postjoin-loss-2"));
 
         vm.prank(player1);
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
@@ -391,8 +377,8 @@ contract PrisonersDAOlemmaTest is Test {
         vm.prank(player2);
         game.join{ value: 0.001 ether }(gameId, CAUSE_B);
 
-        vm.prank(owner);
-        registry.revokeAuth(player1);
+        _removeIdentity(player1);
+        _removeIdentity(player2);
 
         vm.warp(game.getGame(gameId).joinDeadline + 1);
 
@@ -441,19 +427,15 @@ contract PrisonersDAOlemmaTest is Test {
         game.join{ value: 0.001 ether }(gameId, CAUSE_A);
     }
 
-    function testJoinRejectsDuplicateAgentKeyPerGame() public {
-        uint256 gameId = _createGame();
-        bytes32 sharedAgentKey = keccak256("shared-agent");
+    function testAdmissionAgentKeysAreUniquePerWallet() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-1"));
+        _registerWallet(player2, PLAYER2_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-2"));
 
-        _registerWallet(player1, sharedAgentKey, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-1"));
-        _registerWallet(player2, sharedAgentKey, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-agent-2"));
-
-        vm.prank(player1);
-        game.join{ value: 0.001 ether }(gameId, CAUSE_A);
-
-        vm.expectRevert(PrisonersDAOlemma.DuplicateAgentKey.selector);
-        vm.prank(player2);
-        game.join{ value: 0.001 ether }(gameId, CAUSE_B);
+        assertTrue(game.isAdmissionReady(player1));
+        assertTrue(game.isAdmissionReady(player2));
+        assertEq(game.admissionAgentKey(player1), _expectedAgentKey(player1));
+        assertEq(game.admissionAgentKey(player2), _expectedAgentKey(player2));
+        assertTrue(game.admissionAgentKey(player1) != game.admissionAgentKey(player2));
     }
 
     function testJoinRejectsInvalidCause() public {
@@ -588,7 +570,7 @@ contract PrisonersDAOlemmaTest is Test {
         assertFalse(player.committedThisRound);
         assertFalse(player.revealedThisRound);
         assertEq(player.wallet, player1);
-        assertEq(player.agentKey, PLAYER1_AGENT);
+        assertEq(player.agentKey, _expectedAgentKey(player1));
         assertEq(player.causeId, CAUSE_A);
         assertEq(player.commitment, bytes32(0));
         assertEq(uint256(player.revealedChoice), uint256(PrisonersDAOlemma.Choice.Unset));
@@ -2172,22 +2154,26 @@ contract PrisonersDAOlemmaTest is Test {
         vm.stopPrank();
     }
 
-    function _registerWallet(address wallet_, bytes32 agentKey_, uint64 expiresAt_, bytes32 nonce_) internal {
-        AgentAuthRegistry.AuthPermit memory permit = AgentAuthRegistry.AuthPermit({
-            wallet: wallet_,
-            agentKey: agentKey_,
-            manifestHash: keccak256(abi.encodePacked("manifest://", agentKey_)),
-            chainId: block.chainid,
-            gameNamespace: registry.gameNamespace(),
-            issuedAt: uint64(vm.getBlockTimestamp()),
-            expiresAt: expiresAt_,
-            nonce: nonce_
-        });
+    function _registerWallet(address wallet_, bytes32, uint64, bytes32) internal {
+        uint256 tokenId = _walletIdentityTokenId[wallet_];
+        if (tokenId == 0) {
+            tokenId = identityRegistry.mint(wallet_);
+            _walletIdentityTokenId[wallet_] = tokenId;
+            return;
+        }
 
-        bytes32 digest = registry.hashAuthPermit(permit);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(verifierPk, digest);
+        identityRegistry.setOwner(tokenId, wallet_);
+    }
 
-        vm.prank(wallet_);
-        registry.registerAuth(permit, abi.encodePacked(r, s, v));
+    function _removeIdentity(address wallet_) internal {
+        uint256 tokenId = _walletIdentityTokenId[wallet_];
+        if (tokenId == 0) {
+            return;
+        }
+        identityRegistry.setOwner(tokenId, address(0));
+    }
+
+    function _expectedAgentKey(address wallet_) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(keccak256("erc8004-agent"), wallet_));
     }
 }

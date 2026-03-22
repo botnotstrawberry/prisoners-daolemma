@@ -4,7 +4,8 @@ pragma solidity ^0.8.23;
 import { StdInvariant } from "forge-std/StdInvariant.sol";
 import { Test } from "forge-std/Test.sol";
 
-import { AgentAuthRegistry } from "../contracts/AgentAuthRegistry.sol";
+import { ERC8004AuthAdapter } from "../contracts/ERC8004AuthAdapter.sol";
+import { MockAgentIdentityRegistry } from "../contracts/mocks/MockAgentIdentityRegistry.sol";
 import { PrisonersDAOlemma } from "../contracts/PrisonersDAOlemma.sol";
 
 contract PrisonersDAOlemmaHandler is Test {
@@ -14,13 +15,12 @@ contract PrisonersDAOlemmaHandler is Test {
     uint256 internal constant MAX_TRACKED_GAMES = 4;
 
     uint256 internal ownerPk = 0xA11CE;
-    uint256 internal verifierPk = 0xB0B;
 
-    AgentAuthRegistry public registry;
+    ERC8004AuthAdapter public registry;
+    MockAgentIdentityRegistry public identityRegistry;
     PrisonersDAOlemma public game;
 
     address public owner;
-    address public verifier;
     address public treasury;
     address public causeARecipient;
     address public causeBRecipient;
@@ -62,13 +62,13 @@ contract PrisonersDAOlemmaHandler is Test {
 
     constructor() {
         owner = vm.addr(ownerPk);
-        verifier = vm.addr(verifierPk);
         treasury = makeAddr("invariant-treasury");
         causeARecipient = makeAddr("invariant-cause-a");
         causeBRecipient = makeAddr("invariant-cause-b");
         causeCRecipient = makeAddr("invariant-cause-c");
 
-        registry = new AgentAuthRegistry(owner, verifier);
+        identityRegistry = new MockAgentIdentityRegistry();
+        registry = new ERC8004AuthAdapter(address(identityRegistry));
         game = new PrisonersDAOlemma(owner, treasury, address(registry), _defaultConfig());
 
         vm.startPrank(owner);
@@ -524,23 +524,8 @@ contract PrisonersDAOlemmaHandler is Test {
         });
     }
 
-    function _registerWallet(address wallet, bytes32 agentKey, bytes32 nonce) internal {
-        AgentAuthRegistry.AuthPermit memory permit = AgentAuthRegistry.AuthPermit({
-            wallet: wallet,
-            agentKey: agentKey,
-            manifestHash: keccak256(abi.encodePacked("manifest://", agentKey)),
-            chainId: block.chainid,
-            gameNamespace: registry.gameNamespace(),
-            issuedAt: uint64(block.timestamp),
-            expiresAt: type(uint64).max,
-            nonce: nonce
-        });
-
-        bytes32 digest = registry.hashAuthPermit(permit);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(verifierPk, digest);
-
-        vm.prank(wallet);
-        registry.registerAuth(permit, abi.encodePacked(r, s, v));
+    function _registerWallet(address wallet, bytes32, bytes32) internal {
+        identityRegistry.mint(wallet);
     }
 }
 

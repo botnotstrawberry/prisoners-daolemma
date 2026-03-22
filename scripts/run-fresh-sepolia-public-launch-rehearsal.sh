@@ -10,7 +10,7 @@ mkdir -p "$ART_DIR" "$ART_DIR/auth" "$ART_DIR/game/commit-bundles" "$ART_DIR/que
 export FOUNDRY_PROFILE=production
 export PRISONERS_OWNER="${PRISONERS_OWNER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
 export PRISONERS_TREASURY="${PRISONERS_TREASURY:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
-export PRISONERS_AUTH_VERIFIER="${PRISONERS_AUTH_VERIFIER:-0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408}"
+export ERC8004_IDENTITY_REGISTRY="${ERC8004_IDENTITY_REGISTRY:-0x7177a6867296406881E20d6647232314736Dd09A}"
 export PRISONERS_ENTRY_FEE_WEI="${PRISONERS_ENTRY_FEE_WEI:-1000000000000000}"
 export PRISONERS_CREATOR_FEE_BPS="${PRISONERS_CREATOR_FEE_BPS:-100}"
 export PRISONERS_CAUSE_FEE_BPS="${PRISONERS_CAUSE_FEE_BPS:-100}"
@@ -253,7 +253,14 @@ PY
   forge script script/VerifyAll.s.sol --ffi --rpc-url baseSepolia | tee "$ART_DIR/verify.log"
 
   log "Deployment summary"
-  node scripts-js/canaryCli.js deployment --rpc-url baseSepolia --out "$ART_DIR/deployment-summary.json" | tee "$ART_DIR/deployment-summary.txt"
+  node scripts-js/canaryCli.js deployment --rpc-url baseSepolia --out "$ART_DIR/deployment-summary.json" --json > "$ART_DIR/deployment-summary.txt"
+  AUTH_REG=$(jq -r '.addresses.authRegistry' "$ART_DIR/deployment-summary.json")
+  GAME_ADDR=$(jq -r '.addresses.game' "$ART_DIR/deployment-summary.json")
+  DEPLOYED_ERC8004_REG=$(jq -r '.onchain.identityRegistry' "$ART_DIR/deployment-summary.json")
+  if [[ "${DEPLOYED_ERC8004_REG,,}" != "${ERC8004_IDENTITY_REGISTRY,,}" ]]; then
+    log "Deployment wired unexpected ERC-8004 registry: $DEPLOYED_ERC8004_REG (expected $ERC8004_IDENTITY_REGISTRY)"
+    exit 1
+  fi
   if [[ -f "$ART_DIR/from-block.txt" ]]; then
     FROM_BLOCK=$(cat "$ART_DIR/from-block.txt")
   fi
@@ -271,13 +278,17 @@ PY
     ensure_player_funded "$idx"
   done
 
-  log "Auth 9 players"
-  REG=$(jq -r '.addresses.registry' "$ART_DIR/deployment-summary.json")
+  log "Register 9 players on ERC-8004 Identity Registry"
   for idx in $(seq 1 "$PLAYER_COUNT"); do
     mkdir -p "$ART_DIR/auth/player-$idx"
-    node scripts-js/authCli.js permit --rpc-url baseSepolia --registry "$REG" --wallet "$(player_addr "$idx")" --agent-key-text "public-launch-player-$idx" --manifest-uri "manifest://public-launch/player-$idx" --ttl-seconds 14400 --nonce-text "public-launch-player-$idx-${RUN_ID}" --verifier-keystore "$OWNER_KS" --verifier-keystore-password-file "$OWNER_PW" --out "$ART_DIR/auth/player-$idx/auth-permit.json"
-    node scripts-js/authCli.js register --rpc-url baseSepolia --permit-file "$ART_DIR/auth/player-$idx/auth-permit.json" --wallet-keystore "$(player_ks "$idx")" --wallet-keystore-password-file "$(player_pw "$idx")" --json > "$ART_DIR/auth/player-$idx/auth-register.json"
-    node scripts-js/authCli.js status --rpc-url baseSepolia --permit-file "$ART_DIR/auth/player-$idx/auth-permit.json" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
+    addr="$(player_addr "$idx")"
+    node scripts-js/authCli.js status --rpc-url baseSepolia --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
+    if [[ "$(jq -r '.isAuthorized' "$ART_DIR/auth/player-$idx/auth-status.json")" == "true" ]]; then
+      jq -n --argjson player "$idx" --arg wallet "$addr" --arg status "already_registered" '{player:$player,wallet:$wallet,status:$status}' > "$ART_DIR/auth/player-$idx/auth-register.json"
+      continue
+    fi
+    node scripts-js/authCli.js register --rpc-url baseSepolia --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --wallet-keystore "$(player_ks "$idx")" --wallet-keystore-password-file "$(player_pw "$idx")" --agent-uri "manifest://public-launch/player-$idx" --json > "$ART_DIR/auth/player-$idx/auth-register.json"
+    node scripts-js/authCli.js status --rpc-url baseSepolia --identity-registry "$ERC8004_IDENTITY_REGISTRY" --auth-registry "$AUTH_REG" --game "$GAME_ADDR" --wallet "$addr" --agent-id "$(jq -r '.agentId' "$ART_DIR/auth/player-$idx/auth-register.json")" --json > "$ART_DIR/auth/player-$idx/auth-status.json"
   done
 
   log "Public launch by player 1, then join players 2-9"

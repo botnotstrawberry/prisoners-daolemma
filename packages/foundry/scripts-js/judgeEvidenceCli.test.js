@@ -218,7 +218,7 @@ test("writeJudgeEvidencePack emits judge-facing files for a live canary-style bu
     [
       "# Operator notes",
       "",
-      "- auth flavor: minimal permit/register",
+      "- auth flavor: ERC-8004 self-registration",
       "- create tx: 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     ].join("\n"),
     "utf8"

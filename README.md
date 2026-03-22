@@ -11,7 +11,7 @@ Hackathon build of an onchain elimination game for autonomous agents on Base.
 - `CANON.md` — frozen product direction
 - `ARCHITECTURE.md` — scoped system architecture
 - `BUILD_PLAN.md` — concrete implementation plan and work order
-- `AUTH_SPEC.md` — recommended SIWA/admission implementation path
+- `AUTH_SPEC.md` — current ERC-8004 permissionless admission spec
 - `CONTRACT_SPEC.md` — recommended contract surfaces and state split
 - `REPLAY_SPEC.md` — required replay/indexing outputs and schemas
 - `TEST_PLAN.md` — validation strategy from Foundry to Anvil to live chain
@@ -63,9 +63,9 @@ A preserved raw host-local saturation proof bundle now also exists at `packages/
 
 The repo now contains:
 
-- Foundry contracts for `AgentAuthRegistry`, `PrisonersDAOlemma`, and `GameChat`
-- Foundry unit, fuzz, and invariant coverage for auth registration, join gating, gameplay/settlement rules, chat posting rules, plus a broader local integration smoke that stitches auth CLI -> gameplay/operator CLI -> evidence export together
-- CLI-first auth tooling for the local SIWA -> permit -> register path
+- Foundry contracts for `ERC8004AuthAdapter`, `PrisonersDAOlemma`, and `GameChat`
+- Foundry unit, fuzz, and invariant coverage for ERC-8004 admission, join gating, gameplay/settlement rules, chat posting rules, plus a broader local integration smoke that stitches auth CLI -> gameplay/operator CLI -> evidence export together
+- CLI-first auth tooling for permissionless ERC-8004 self-registration and onchain admission inspection
 - CLI-first gameplay/operator tooling for cause whitelisting plus create/advance/join/commit/reveal/claim/refund/withdraw/chat flows
 - repo-native local load/chaos harness tooling for multi-player single-game, sequential-game, and bounded host-local multi-instance local runs with machine-readable reports + evidence export
 - CLI-first evidence/query tooling for game/auth/chat exports
@@ -80,7 +80,7 @@ The repo now contains:
 
 Current implemented contract slice:
 
-- `AgentAuthRegistry` stores verifier-signed wallet -> agent bindings with expiry + nonce replay protection
+- `ERC8004AuthAdapter` reads permissionless ERC-8004 wallet ownership and exposes cheap `isAuthorized(wallet)` / `agentKeyOf(wallet)` admission hooks to the game
 - `PrisonersDAOlemma` implements config, cause whitelist snapshots, game creation, auth-gated join, commit/reveal, deterministic round resolution, eliminations, winner/no-winner/cancelled terminal outcomes, winner claims, cancelled refunds, and pull-based treasury/cause withdrawals
 - `GameChat` emits global and cause-scoped public message events tied to game truth
 - the query/export tooling exposes settlement-aware evidence directly from current onchain state/events, including terminal outcome metadata, claim/refund previews, prize/refund/withdrawal events, no-winner routing, and explicit notes when a field remains unavailable in the current contracts or selected evidence window
@@ -95,46 +95,31 @@ Current still-limited observer/query slice:
 
 The repo includes CLI-first auth tooling under `packages/foundry/scripts-js/authCli.js`.
 
-Current boundary:
+Current live boundary:
 
-- `siwa-nonce`, `siwa-sign`, and `siwa-verify` handle the dedicated local SIWA path
-- `permit` and `register` still only consume verifier-approved inputs
-- `permit` / `register` do **not** parse or verify SIWA payloads on their own
-- this keeps the verifier/signing layer honest and auditable
-- no hosted API is required for the local end-to-end auth rehearsal path
+- live admission is **permissionless ERC-8004 ownership auth only**
+- wallets self-register on the ERC-8004 Identity Registry with `register(string agentURI)`
+- `ERC8004AuthAdapter` converts “wallet owns at least one identity token” into the cheap game-facing `isAuthorized(wallet)` / `agentKeyOf(wallet)` interface
+- there is **no verifier-backed permit flow** and **no hybrid admission mode** in the live path
+- `authCli.js permit` is intentionally retired and errors if called
 
 Secret-handling stance:
 
-- prefer Foundry keystores for local verifier/gameplay signing
+- prefer Foundry keystores for gameplay/self-registration signing
 - environment key fallbacks remain available for local automation
-- raw `--verifier-private-key` / `--wallet-private-key` CLI flags are intentionally gated behind `--allow-unsafe-private-key`
 - help/examples avoid printing raw key usage
 
 Useful commands:
 
 - `yarn auth -- --help`
-- `yarn auth:flow -- --help`
-- `yarn auth:smoke -- --help`
-- `yarn siwa-nonce -- --help`
-- `yarn siwa-sign -- --help`
-- `yarn siwa-verify -- --help`
-- `yarn auth:permit -- --help`
-- `yarn auth:status -- --help`
 - `yarn auth:register -- --help`
+- `yarn auth:status -- --help`
 
-Typical local flow:
+Typical flow:
 
-1. run `yarn siwa-nonce -- ... --out siwa-challenge.json`
-2. run `yarn siwa-sign -- --input siwa-challenge.json --wallet-keystore <name|path> ... --out signed-siwa.json`
-3. run `yarn siwa-verify -- --rpc-url <url|network> --input signed-siwa.json ... --out verified-auth.json`
-4. run `yarn auth:permit -- --rpc-url <url|network> --input verified-auth.json --verifier-keystore <name|path> ... --out auth-permit.json`
-5. run `yarn auth:register -- --rpc-url <url|network> --permit-file auth-permit.json --wallet-keystore <name|path> ...`
-6. run `yarn auth:status -- --rpc-url <url|network> --permit-file auth-permit.json` to inspect wallet state and, if desired, bundle health
-
-Thin local wrapper:
-
-- `yarn auth:flow -- ...` or `yarn auth:smoke -- ...`
-- the wrapper still runs the same six commands above, in order
+1. run `yarn auth:register -- --rpc-url <url|network> --identity-registry <address> --wallet-keystore <name|path> --wallet-keystore-password-file <file> --wallet <address> --agent-uri <uri> --json > auth-register.json`
+2. run `yarn auth:status -- --rpc-url <url|network> --identity-registry <address> --wallet <address> --json > auth-status.json`
+3. join the game normally with the same wallet once `isAuthorized` is true
 - it writes every intermediate artifact into a temp/work directory instead of hiding the steps behind a new abstraction
 - the JSON output includes the exact subcommands it executed plus the staged results/files, so you can inspect or re-run any boundary manually
 
@@ -193,10 +178,10 @@ The repo now includes a local load/chaos/adversarial harness under `packages/fou
 
 Current boundary:
 
-- local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys fresh `AgentAuthRegistry` + `PrisonersDAOlemma` contracts for each run
-- if you point it at an existing RPC instead of letting it spawn Anvil, that RPC still needs to be a local dev chain compatible with the selected mnemonic-derived owner/verifier/player accounts
+- local-only by design: it targets a fresh or existing local Anvil/dev chain and deploys a fresh mock ERC-8004 identity registry + `ERC8004AuthAdapter` + `PrisonersDAOlemma` stack for each run
+- if you point it at an existing RPC instead of letting it spawn Anvil, that RPC still needs to be a local dev chain compatible with the selected mnemonic-derived owner/player accounts
 - reuses the current repo-native auth/game/query surface instead of inventing a parallel benchmark API:
-  - verifier-approved permit/register via `authTooling.js`
+  - permissionless ERC-8004 self-registration via `authTooling.js`
   - gameplay writes via the gameplay action helpers already used by `gameCli.js`
   - evidence export via `queryTooling.js`
 - supports a bounded but broader scenario set today:
@@ -206,7 +191,7 @@ Current boundary:
   - `adversarial-random`: seeded synthetic local breakage hunting across sequential games with randomized started-vs-underfilled game selection, random move choices, commit/reveal omissions, wrong-preimage probes, short phase-edge burst probes around late commit/reveal, `advancePhase`, claim/refund, and treasury/cause withdrawals, plus randomized settlement ordering
   - optional deterministic expected-failure injection for duplicate/invalid follow-up operations where practical
   - optional `--same-block-probes` mode for local dev RPCs that support `evm_setAutomine`, using short manual no-automine single-block batches to cover underfilled joining transitions, per-round last-commit/last-reveal vs `advancePhase` ordering in started games, and first-success-vs-loser duplicate settlement actions (`claim`, `refund`, `withdrawTreasury`, `withdrawCause`)
-  - optional bounded `--auth-expiry-chaos` mode that reuses the current auth tooling before selected pre-join batches (default: game 1; configurable via `--auth-expiry-games`) to rehearse: (a) verifier-signed permit bundles expiring before `registerAuth`, and (b) short-lived auth records expiring before `join`, followed by a fresh auth refresh so the requested scenario can still complete
+  - legacy `--auth-expiry-chaos` flags remain accepted for compatibility but are intentionally skipped under the live ERC-8004 admission model
   - one game or repeated sequential games on the same deployment, including mixed scenario plans
 - writes machine-readable artifacts for each run:
   - `report.json` (including top-level `localScaleReadiness`, top-level `breakageSummary`, top-level `sameBlockSummary`, top-level `authChaos`, per-game `probes`, per-game `sameBlock`, per-game `authChaos`, per-game `breakageChecks`, and per-game `postRunOutstanding` drain checks)
@@ -219,7 +204,6 @@ Useful commands:
 
 - `yarn load:harness -- --help`
 - `yarn load:harness:smoke`
-- `yarn load:harness:auth-expiry`
 
 Example runs:
 
@@ -237,9 +221,8 @@ Example runs:
    - `yarn load:harness -- --profile smoke --player-count 6 --cause-count 3 --scenario winner-all-share --same-block-probes --expected-failures`
 7. adversarial many-game local breakage hunt:
    - `yarn load:harness -- --profile smoke --player-count 12 --cause-count 4 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6 --same-block-probes`
-8. repeated auth-expiry rehearsal before every game in a winner-path run:
-   - `yarn load:harness:auth-expiry`
-   - or `yarn load:harness -- --profile smoke --player-count 8 --cause-count 4 --games 3 --scenario winner-all-share --concurrency 4 --auth-expiry-chaos --auth-expiry-games all --auth-expiry-stale-bundles 2 --auth-expiry-join-failures 2 --auth-expiry-ttl-seconds 2`
+8. deprecated auth-expiry compatibility flags are still parsed but skipped under ERC-8004 admission:
+   - `yarn load:harness -- --profile smoke --player-count 8 --cause-count 4 --games 3 --scenario winner-all-share --auth-expiry-chaos --auth-expiry-games all`
 
 ## Broader local soak matrix
 
@@ -253,7 +236,6 @@ Useful commands:
 - `yarn load:harness:matrix:large`
 - `yarn load:harness:matrix:xlarge`
 - `yarn load:harness:matrix:parallel`
-- `yarn load:harness:matrix:auth-expiry`
 - `yarn load:harness:matrix -- --preset adversarial-smoke`
 - `yarn load:harness:matrix -- --preset parallel-local --instance-concurrency 3`
 - `yarn load:harness:matrix -- --preset broader-local --instance-concurrency 6`
@@ -264,8 +246,8 @@ Current built-in presets:
   - one deterministic `mixed` pass (`winner-all-share`, `cancelled-underfilled`, `no-winner-all-catch`) with same-block probes enabled
 - `adversarial-smoke`
   - three seeded `adversarial-random` sweeps on the smoke profile
-- `auth-expiry-local`
-  - two seeded three-game winner-path sweeps on the smoke profile, each repeating bounded stale-bundle plus expired-join auth-expiry recovery before every game
+- `auth-expiry-local` (deprecated compatibility preset)
+  - retained only so old invocations do not hard-fail; under ERC-8004 admission the retired auth-expiry chaos path is skipped
 - `medium-local`
   - one deterministic 16-player `mixed` pass on the scale profile plus two seeded 20-player `adversarial-random` sweeps, all with explicit 40/48-block phase budgets so larger local rounds do not fake-timeout
 - `large-local`
@@ -277,7 +259,7 @@ Current built-in presets:
 - `winner-scale`
   - two larger winner-path drain rehearsals on the scale profile with longer commit/reveal block budgets
 - `broader-local`
-  - combines the same-block smoke, adversarial smoke, auth-expiry-local, and winner-scale coverage families into one bounded default local soak preset
+  - combines the same-block smoke, adversarial smoke, and winner-scale coverage families into one bounded default local soak preset; deprecated auth-expiry compatibility runs may still appear in historical reports but no longer add live-path coverage
 
 The matrix runner keeps the same honest boundary as the base harness: it is still local-dev only. By default it runs sequentially, but `--instance-concurrency > 1` now coordinates multiple isolated harness + Anvil instances in parallel on one host. That is useful for host-local infra breakage hunting only, not as a model of live mempool or distributed production behavior.
 
@@ -299,7 +281,7 @@ What it adds:
   - medium-scale seeded adversarial sweeps on the scale profile with longer phase budgets
   - larger 24-player mixed-family and 28-player adversarial scale-profile sweeps with explicit higher local block budgets
   - bounded 32-player mixed-family plus multi-seed started full-roster 32-player adversarial scale-profile sweeps with explicit 72/80-block phase budgets
-  - repeated pre-join auth-expiry sweeps across selected games, with stale permit/register failures, expired-auth join failures, and fresh-auth recovery recorded in aggregate matrix artifacts
+  - historical auth-expiry sweeps remain archived, but the live ERC-8004 path no longer depends on verifier-era pre-join expiry rehearsal
   - larger winner-path drain/replay rehearsals on the scale profile
   - bounded host-local parallel overlap across isolated harness + Anvil instances when `--instance-concurrency` is raised above 1
 
@@ -317,11 +299,7 @@ What this harness honestly proves today:
     - `advancePhase` before/final-after the last commit in a started round block
     - `advancePhase` before/final-after the last reveal in a started round block
     - duplicate same-block `claim`, `refund`, `withdrawTreasury`, and `withdrawCause` attempts after the first success
-  - optional bounded auth-expiry chaos coverage that can now prove, on a local dev chain, that:
-    - verifier-signed bundles can become non-registerable before `registerAuth`
-    - a wallet with a short-lived auth record can become unauthorized before `join`
-    - the same bounded pre-join auth-expiry rehearsal can repeat before selected sequential games instead of being limited to one once-per-run probe
-    - the harness can refresh that wallet with a fresh verifier-approved auth bundle and still complete the intended gameplay scenario
+  - retired auth-expiry compatibility flags are explicitly skipped, making it clear that current local validation no longer depends on verifier-issued permits or hybrid admission behavior
 - per-game evidence exports now let us assert whether the harness actually drained treasury/cause/refund obligations to zero for the paths it executed and whether preview/claimable/export views stayed consistent
 - deterministic duplicate/invalid follow-up attempts and adversarial probes are accounted for separately instead of getting mixed into normal tx failures
 
@@ -329,8 +307,8 @@ What it intentionally does **not** claim yet:
 
 - live-network realism, mempool behavior, or independent-agent network jitter
 - cross-wallet public mempool ordering games or fee-bid competition; the current same-block mode is intentionally deterministic and usually sequences one caller wallet inside one manually mined local block
-- full SIWA wrapper rehearsal inside the harness itself
-- mid-game auth expiry, unbounded/mass auth-expiry chaos, or expiry behavior that depends on the full SIWA wrapper instead of direct verifier permit/register
+- historical verifier-era wrapper flows beyond the current live ERC-8004 path
+- mid-game identity loss / transfer edge cases beyond the current bounded local coverage
 - proof of exploitable contract bugs just because adversarial local probes did not break a given run
 - exhaustive fuzzing, distributed-agent realism, or heavier 11+ host saturation just because bounded host-local runs reached 10 overlapping isolated instances on one machine
 - that 250-player scale is already CI-proven just because the harness exists
@@ -425,8 +403,8 @@ yarn smoke:integration
 
 What it currently proves end to end:
 
-- local auth wrapper flow (`siwa-nonce -> siwa-sign -> siwa-verify -> permit -> register -> status`) for three wallets
-- onchain auth registration against `AgentAuthRegistry`
+- permissionless ERC-8004 self-registration + status inspection for multiple wallets
+- onchain admission through `ERC8004AuthAdapter`
 - game creation plus auth-gated joins through the gameplay/operator CLI
 - a multi-round winner path ending in finalized settlement plus winner claims through the gameplay/operator CLI
 - a cancelled path ending in finalized settlement plus refunds through the gameplay/operator CLI
@@ -488,8 +466,8 @@ yarn start
 - Base is the target launch chain
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
-- deployment currently creates a fresh `AgentAuthRegistry` + `PrisonersDAOlemma` + `GameChat` trio per run
-- the local auth + SIWA path already exists; what is still missing is real Base Sepolia execution and preserved live artifacts
+- deployment currently creates a fresh `ERC8004AuthAdapter` + `PrisonersDAOlemma` + `GameChat` trio per run, with the adapter pointed at the configured ERC-8004 identity registry
+- the local permissionless ERC-8004 path already exists; what is still missing is real Base Sepolia execution and preserved live artifacts
 
 ## Base Sepolia canary readiness
 
@@ -506,7 +484,7 @@ Repo-native canary references:
 
 Suggested operator flow:
 
-1. copy `packages/foundry/.env.example` to `.env` and set explicit `PRISONERS_OWNER`, `PRISONERS_TREASURY`, `PRISONERS_AUTH_VERIFIER`, plus `BASESCAN_API_KEY`
+1. copy `packages/foundry/.env.example` to `.env` and set explicit `PRISONERS_OWNER`, `PRISONERS_TREASURY`, `ERC8004_IDENTITY_REGISTRY`, plus `BASESCAN_API_KEY`
 2. run `yarn canary:preflight -- --rpc-url baseSepolia --deployer-keystore <name|path>`
 3. deploy with `yarn deploy -- --network baseSepolia --keystore <name|path>`
 4. inspect the deployed wiring with `yarn canary:deployment -- --rpc-url baseSepolia`

@@ -8,7 +8,7 @@
 ## Patch summary
 
 Behavior added:
-- any wallet already admitted under the normal join/auth rules may call `launchGameAndJoin(...)`
+- any wallet already admitted under the normal ERC-8004 join/auth rules may call `launchGameAndJoin(...)`
 - launching auto-joins the caller and requires the normal entry fee
 - only `joinDurationSeconds` is caller-selected
 - public bounds are `300..3600` seconds
@@ -61,7 +61,7 @@ Focused review conclusion:
 - those JS/CLI issues were fixed before final validation
 
 Audit focus areas reviewed:
-- launch auth equivalence with normal join auth
+- launch auth equivalence with normal ERC-8004 join auth
 - launch+join atomicity and revert safety
 - snapshot correctness
 - one-active-game discipline

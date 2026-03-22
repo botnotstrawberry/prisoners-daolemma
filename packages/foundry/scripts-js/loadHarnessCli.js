@@ -36,12 +36,11 @@ Core options:
   --steal-weight <n>             In adversarial-random mode, relative weight for STEAL choices. Defaults to 1.
   --expected-failures            Intentionally submit deterministic duplicate/invalid follow-up operations and count them as expected failures.
   --same-block-probes            On supported local dev RPCs, temporarily disable automine and mine short ordered same-block batches for per-round edge-ordering and duplicate-settlement contention probes.
-  --auth-expiry-chaos            Rehearse bounded auth-expiry failures before selected pre-join batches: stale permit/register attempts,
-                                 short-lived auth expiring before join, expected join rejection, then fresh auth recovery.
-  --auth-expiry-games <list|all>  Comma-separated 1-indexed game numbers (for example 1,3) or 'all'. Defaults to 1 when auth-expiry chaos is enabled.
-  --auth-expiry-stale-bundles <n> Number of stale bundle registration failures to rehearse per selected auth-expiry game. Defaults to 1.
-  --auth-expiry-join-failures <n> Number of short-lived auth records to let expire before a join attempt per selected auth-expiry game. Defaults to 1.
-  --auth-expiry-ttl-seconds <n>  Short TTL used for auth-expiry chaos permits/auth records. Defaults to 2 seconds.
+  --auth-expiry-chaos            Deprecated compatibility flag. The verifier-era auth-expiry chaos mode is retired and skipped under ERC-8004 admission.
+  --auth-expiry-games <list|all> Deprecated compatibility flag; ignored when supplied.
+  --auth-expiry-stale-bundles <n> Deprecated compatibility flag; ignored when supplied.
+  --auth-expiry-join-failures <n> Deprecated compatibility flag; ignored when supplied.
+  --auth-expiry-ttl-seconds <n>  Deprecated compatibility flag; ignored when supplied.
   --skip-claims                  Stop after winner-path games resolve; do not submit winner claims.
   --seed <text>                  Deterministic sampling seed for chaos decisions.
 
@@ -50,7 +49,7 @@ Chain options:
                                  When you supply one, it should be a local dev chain compatible with the selected mnemonic-derived accounts.
   --anvil-port <port>            Port for spawned Anvil. Defaults to 8555.
   --chain-id <id>                Chain id for spawned Anvil. Defaults to 31337.
-  --mnemonic <words>             Mnemonic used for owner/verifier/player wallets. Defaults to the Anvil test mnemonic.
+  --mnemonic <words>             Mnemonic used for owner/player wallets. Defaults to the Anvil test mnemonic.
 
 Output:
   --out <dir>                    Output directory (package-relative or absolute). Defaults to load-harness/<timestamp>.
@@ -62,7 +61,8 @@ Examples:
   node scripts-js/loadHarnessCli.js --profile scale --player-count 64 --games 3 --scenario mixed --concurrency 16 --commit-duration-blocks 96 --reveal-duration-blocks 96
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --scenario no-winner-all-catch --expected-failures --json
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 6 --scenario winner-all-share --same-block-probes --expected-failures
-  node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --games 3 --scenario winner-all-share --auth-expiry-chaos --auth-expiry-games all --auth-expiry-stale-bundles 2 --auth-expiry-join-failures 2 --auth-expiry-ttl-seconds 2
+  # deprecated auth-expiry flags are accepted but skipped under ERC-8004 admission:
+  node scripts-js/loadHarnessCli.js --profile smoke --player-count 8 --cause-count 4 --games 3 --scenario winner-all-share --auth-expiry-chaos --auth-expiry-games all
   node scripts-js/loadHarnessCli.js --profile smoke --player-count 12 --games 8 --scenario adversarial-random --concurrency 6 --commit-duration-blocks 24 --reveal-duration-blocks 24 --skip-commit-rate 0.25 --skip-reveal-rate 0.25 --invalid-reveal-rate 0.15 --underfilled-rate 0.2 --probe-rate 0.6 --same-block-probes
 `);
 }

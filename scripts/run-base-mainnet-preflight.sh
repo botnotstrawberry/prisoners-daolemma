@@ -18,7 +18,6 @@ TIMING_GUARDRAIL_REASON=""
 OUT_DIR="${OUT_DIR:-$ROOT/.mainnet-readiness/$(date -u +%Y%m%dT%H%M%SZ)-base-mainnet-preflight}"
 REQUIRE_CLEAN_GIT="${REQUIRE_CLEAN_GIT:-true}"
 EXPECTED_GIT_COMMIT="${EXPECTED_GIT_COMMIT:-}"
-PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER="${PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER:-false}"
 mkdir -p "$OUT_DIR"
 
 export FOUNDRY_PROFILE=production
@@ -107,7 +106,7 @@ require_clean_git
 for key in \
   PRISONERS_OWNER \
   PRISONERS_TREASURY \
-  PRISONERS_AUTH_VERIFIER \
+  ERC8004_IDENTITY_REGISTRY \
   PRISONERS_ENTRY_FEE_WEI \
   PRISONERS_CREATOR_FEE_BPS \
   PRISONERS_CAUSE_FEE_BPS \
@@ -140,8 +139,8 @@ OWNER_CHECKSUM=$(validate_address PRISONERS_OWNER)
 echo "$OWNER_CHECKSUM" | tee "$OUT_DIR/owner.txt" >/dev/null
 TREASURY_CHECKSUM=$(validate_address PRISONERS_TREASURY)
 echo "$TREASURY_CHECKSUM" | tee "$OUT_DIR/treasury.txt" >/dev/null
-AUTH_VERIFIER_CHECKSUM=$(validate_address PRISONERS_AUTH_VERIFIER)
-echo "$AUTH_VERIFIER_CHECKSUM" | tee "$OUT_DIR/auth-verifier.txt" >/dev/null
+IDENTITY_REGISTRY_CHECKSUM=$(validate_address ERC8004_IDENTITY_REGISTRY)
+echo "$IDENTITY_REGISTRY_CHECKSUM" | tee "$OUT_DIR/identity-registry.txt" >/dev/null
 
 ENTRY_FEE_WEI="$PRISONERS_ENTRY_FEE_WEI"
 CREATOR_FEE_BPS="$PRISONERS_CREATOR_FEE_BPS"
@@ -191,12 +190,10 @@ fi
 (( COMMIT_DURATION_BLOCKS >= TIMING_GUARDRAIL_COMMIT_BLOCKS )) || fail "PRISONERS_COMMIT_DURATION_BLOCKS=${COMMIT_DURATION_BLOCKS} is below the mainnet safety floor ${TIMING_GUARDRAIL_COMMIT_BLOCKS} for maxPlayers=${MAX_PLAYERS} (${TIMING_GUARDRAIL_REASON})"
 (( REVEAL_DURATION_BLOCKS >= TIMING_GUARDRAIL_REVEAL_BLOCKS )) || fail "PRISONERS_REVEAL_DURATION_BLOCKS=${REVEAL_DURATION_BLOCKS} is below the mainnet safety floor ${TIMING_GUARDRAIL_REVEAL_BLOCKS} for maxPlayers=${MAX_PLAYERS} (${TIMING_GUARDRAIL_REASON})"
 
-[[ "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" == "true" ]] || fail "set PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=true after confirming PRISONERS_AUTH_VERIFIER is an EOA with an available signing key"
-
 cat > "$OUT_DIR/launch-config.txt" <<EOF
 PRISONERS_OWNER=${OWNER_CHECKSUM}
 PRISONERS_TREASURY=${TREASURY_CHECKSUM}
-PRISONERS_AUTH_VERIFIER=${AUTH_VERIFIER_CHECKSUM}
+ERC8004_IDENTITY_REGISTRY=${IDENTITY_REGISTRY_CHECKSUM}
 PRISONERS_ENTRY_FEE_WEI=${ENTRY_FEE_WEI}
 PRISONERS_CREATOR_FEE_BPS=${CREATOR_FEE_BPS}
 PRISONERS_CAUSE_FEE_BPS=${CAUSE_FEE_BPS}
@@ -206,7 +203,6 @@ PRISONERS_REVEAL_DURATION_BLOCKS=${REVEAL_DURATION_BLOCKS}
 PRISONERS_MIN_PLAYERS=${MIN_PLAYERS}
 PRISONERS_MAX_PLAYERS=${MAX_PLAYERS}
 PRISONERS_MAX_CAUSES=${MAX_CAUSES}
-PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER=${PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER}
 TIMING_GUARDRAIL_JOIN_SECONDS=${TIMING_GUARDRAIL_JOIN_SECONDS}
 TIMING_GUARDRAIL_COMMIT_BLOCKS=${TIMING_GUARDRAIL_COMMIT_BLOCKS}
 TIMING_GUARDRAIL_REVEAL_BLOCKS=${TIMING_GUARDRAIL_REVEAL_BLOCKS}
@@ -216,7 +212,7 @@ EOF
 jq -n \
   --arg owner "$OWNER_CHECKSUM" \
   --arg treasury "$TREASURY_CHECKSUM" \
-  --arg authVerifier "$AUTH_VERIFIER_CHECKSUM" \
+  --arg identityRegistry "$IDENTITY_REGISTRY_CHECKSUM" \
   --arg entryFeeWei "$ENTRY_FEE_WEI" \
   --argjson creatorFeeBps "$CREATOR_FEE_BPS" \
   --argjson causeFeeBps "$CAUSE_FEE_BPS" \
@@ -229,7 +225,6 @@ jq -n \
   --arg foundryProfile "$FOUNDRY_PROFILE" \
   --arg rpcUrl "$RPC_URL" \
   --arg deployerKeystore "$DEPLOYER_KEYSTORE" \
-  --arg authVerifierConfirmEoaSigner "$PRISONERS_AUTH_VERIFIER_CONFIRM_EOA_SIGNER" \
   --arg expectedGitCommit "$EXPECTED_GIT_COMMIT" \
   --arg timingGuardrailReason "$TIMING_GUARDRAIL_REASON" \
   --argjson timingGuardrailJoinSeconds "$TIMING_GUARDRAIL_JOIN_SECONDS" \
@@ -238,7 +233,7 @@ jq -n \
   '{
     owner: $owner,
     treasury: $treasury,
-    authVerifier: $authVerifier,
+    identityRegistry: $identityRegistry,
     config: {
       entryFeeWei: $entryFeeWei,
       creatorFeeBps: $creatorFeeBps,
@@ -254,7 +249,6 @@ jq -n \
       foundryProfile: $foundryProfile,
       rpcUrl: $rpcUrl,
       deployerKeystore: $deployerKeystore,
-      authVerifierConfirmEoaSigner: $authVerifierConfirmEoaSigner,
       expectedGitCommit: $expectedGitCommit
     },
     bounds: {
@@ -287,11 +281,11 @@ fi
 
 echo "$CHAIN_ID" | tee "$OUT_DIR/chain-id.txt" >/dev/null
 
-AUTH_VERIFIER_CODE=$(cast code "$AUTH_VERIFIER_CHECKSUM" --rpc-url "$RPC_URL")
-if [[ "$AUTH_VERIFIER_CODE" != "0x" && "$AUTH_VERIFIER_CODE" != "0x0" ]]; then
-  fail "PRISONERS_AUTH_VERIFIER must be an EOA signer address; contract code detected at ${AUTH_VERIFIER_CHECKSUM}"
+IDENTITY_REGISTRY_CODE=$(cast code "$IDENTITY_REGISTRY_CHECKSUM" --rpc-url "$RPC_URL")
+if [[ "$IDENTITY_REGISTRY_CODE" == "0x" || "$IDENTITY_REGISTRY_CODE" == "0x0" ]]; then
+  fail "ERC8004_IDENTITY_REGISTRY must point to a deployed contract on Base mainnet"
 fi
-printf '%s\n' 'Confirmed: PRISONERS_AUTH_VERIFIER is expected to be an EOA with an available signing key; contract verifiers (e.g. Safe / EIP-1271) are not supported by the current AgentAuthRegistry ECDSA flow.' > "$OUT_DIR/auth-verifier-requirements.txt"
+printf '%s\n' 'Confirmed: ERC8004_IDENTITY_REGISTRY points to deployed contract code on Base mainnet. Prisoners DAOlemma v1 now relies on permissionless ERC-8004 ownership auth through ERC8004AuthAdapter; no verifier signer is required.' > "$OUT_DIR/identity-registry-requirements.txt"
 
 BALANCE_WEI=$(cast balance "$DEPLOYER_ADDR" --rpc-url "$RPC_URL")
 echo "$BALANCE_WEI" | tee "$OUT_DIR/deployer-balance-wei.txt" >/dev/null
@@ -306,7 +300,7 @@ mkdir -p deployments
 FOUNDRY_PROFILE=production forge build --sizes --skip test | tee "$OUT_DIR/production-build-sizes.log" >/dev/null
 
 cat > "$OUT_DIR/first-game-readiness.txt" <<EOF
-This preflight validates deploy-time config, provenance, chain, signer shape, buildability, and roster-aware timing floors.
+This preflight validates deploy-time config, provenance, chain, ERC-8004 registry wiring, buildability, and roster-aware timing floors.
 It does NOT prove the first game can be opened yet.
 Before createGame(), make sure at least one cause has been whitelisted onchain.
 Do not interpret a tiny-canary timing profile as authorization for a later public-scale roster.
