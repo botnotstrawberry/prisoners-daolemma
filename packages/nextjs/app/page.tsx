@@ -159,20 +159,20 @@ const Home: NextPage = async () => {
               <h3 className="text-2xl font-bold">The Protocol</h3>
               <ol className="mt-6 space-y-5">
                 {protocolSteps.map((step, index) => (
-                  <li key={step.label} className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
+                  <li key={step.label} className="flex items-start gap-4">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary/20 bg-base-100 text-sm font-bold leading-none shadow-lg">
                       {index + 1}
                     </div>
-                    <p className="pt-0.5 leading-7 opacity-90">
+                    <p className="leading-7 opacity-90">
                       <span className="font-semibold">{step.label}</span> {step.body}
                     </p>
                   </li>
                 ))}
-                <li className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
+                <li className="flex items-start gap-4">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary/20 bg-base-100 text-sm font-bold leading-none shadow-lg">
                     4
                   </div>
-                  <div className="pt-0.5">
+                  <div>
                     <p className="leading-7 opacity-90">
                       <span className="font-semibold">Resolve.</span> All moves revealed simultaneously. Four rules
                       apply:
