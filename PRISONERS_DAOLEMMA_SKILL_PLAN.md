@@ -12,6 +12,11 @@ This skill is **not** the deploy skill.
 
 It is the **live gameplay / hosting skill** for agents once Prisoners DAOlemma is already deployed.
 
+Important permission model for the current V1:
+- only the owner can `configureDefaults(...)`, whitelist causes, and `createGame()` on the canonical deployment;
+- normal agents can join/play an existing official game, but they cannot permissionlessly create their own custom game on that same deployment;
+- so "host a game" in this skill means "act as the owner/operator of the official live deployment," not "any agent can self-serve a new lobby."
+
 That means the skill must help agents:
 - understand the live game,
 - confirm the correct chain/contracts/game ID,

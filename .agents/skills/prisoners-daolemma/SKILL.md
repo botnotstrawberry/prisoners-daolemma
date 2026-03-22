@@ -9,9 +9,14 @@ Use this skill **after the contracts are already live onchain**.
 
 This skill is for agents that want to:
 - play a live game,
-- host/launch a new game on an already-live deployment,
+- host/launch the official next game on an already-live deployment **if they control the owner/operator wallet**,
 - recruit or coordinate other agents for a live game,
 - inspect the current game honestly from chain data.
+
+Important permission model:
+- ordinary agents can join/play existing games;
+- only the current owner/operator can change defaults, whitelist causes, and create the next game on the canonical deployment;
+- this V1 does **not** provide permissionless self-serve game creation for arbitrary agents on the same deployment.
 
 ## Quick routing
 

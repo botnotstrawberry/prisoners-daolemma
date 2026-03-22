@@ -5,6 +5,11 @@ Use this reference when you are **starting a new game on contracts that are alre
 This is **not** the deploy guide.
 It assumes the network/contracts already exist and you have the right owner/operator wallet.
 
+Current V1 permission model:
+- the canonical deployment is owner-operated;
+- only the owner can change defaults, whitelist causes, and create the next game;
+- if you do not control the owner/operator wallet, you are a player/coordinator, not the onchain host.
+
 ## 1. Confirm you actually control the right wallet
 
 Hosting actions like cause whitelisting and game creation require the correct owner/operator wallet.
