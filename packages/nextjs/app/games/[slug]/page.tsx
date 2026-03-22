@@ -28,6 +28,19 @@ type GameDetailPageProps = {
   }>;
 };
 
+type DisplayedMessage = {
+  messageId?: number;
+  round?: number | null;
+  phase?: string | null;
+  scope?: string | null;
+  causeId?: number | null;
+  senderCause?: number | null;
+  senderWallet?: string | null;
+  content?: string | null;
+  linkedSignal: any;
+  inferredSignal: string | null;
+};
+
 function outcomeBadge(outcome?: string | null, phase?: string | null) {
   if (phase && phase !== "Terminal" && phase !== "Ended") {
     return {
@@ -67,6 +80,22 @@ function gameOptionLabel(entry: { title: string; networkLabel: string; counts: {
   return `${entry.title} · ${entry.networkLabel} · ${entry.counts.joined} players`;
 }
 
+function inferChoiceSignal(content = "") {
+  const upper = content.toUpperCase();
+  if (/\bSHARE\b/.test(upper)) return "Share";
+  if (/\bCATCH\b/.test(upper)) return "Catch";
+  if (/\bSTEAL\b/.test(upper)) return "Steal";
+  return null;
+}
+
+function messageChannelLabel(message: any) {
+  if (message?.scope === "cause") {
+    return `Cause ${message?.causeId ?? message?.senderCause ?? "—"}`;
+  }
+
+  return "Global";
+}
+
 export async function generateStaticParams() {
   const slugs = await listPublishedGameSlugs();
   return slugs.map(slug => ({ slug }));
@@ -87,6 +116,21 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
   const basescanUrl = bundle.summary?.addresses?.game
     ? `https://sepolia.basescan.org/address/${bundle.summary.addresses.game}`
     : null;
+  const messageSignals = Array.isArray(bundle.manifest.analysis?.messageSignals)
+    ? bundle.manifest.analysis.messageSignals
+    : [];
+  const messageSignalMap = new Map(
+    messageSignals.map(signal => [`${signal.wallet.toLowerCase()}|${signal.round}|${signal.content}`, signal]),
+  );
+  const displayedMessages: DisplayedMessage[] = bundle.messages.slice(0, 6).map((message: any) => ({
+    ...message,
+    linkedSignal:
+      messageSignalMap.get(`${String(message.senderWallet ?? "").toLowerCase()}|${message.round}|${message.content}`) ??
+      null,
+    inferredSignal: inferChoiceSignal(String(message.content ?? "")),
+  }));
+  const causeMessages = bundle.messages.filter((message: any) => message.scope === "cause").length;
+  const globalMessages = bundle.messages.filter((message: any) => message.scope === "global").length;
 
   const downloadFiles = [
     { path: bundle.manifest.urls.gameSummary, name: "summary.json" },
@@ -253,6 +297,66 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
           </div>
         </div>
       </section>
+
+      {displayedMessages.length ? (
+        <section className="px-6 pb-8 md:px-10 lg:px-16">
+          <div className="mx-auto max-w-6xl rounded-3xl bg-base-100 p-7 shadow-lg">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] opacity-60">Agent chat</p>
+                <h2 className="mt-2 text-3xl font-bold">What they actually said</h2>
+                <p className="mt-3 max-w-4xl leading-8 opacity-85">
+                  This case captured {bundle.messages.length} onchain message{bundle.messages.length === 1 ? "" : "s"}:{" "}
+                  {causeMessages} coalition message{causeMessages === 1 ? "" : "s"} and {globalMessages} global message
+                  {globalMessages === 1 ? "" : "s"}. We&apos;re showing a simple sample below.
+                </p>
+              </div>
+              <a href={bundle.manifest.urls.messagesJson} className="btn btn-outline rounded-full px-5">
+                Open messages.json
+              </a>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {displayedMessages.map(message => (
+                <div key={message.messageId} className="rounded-3xl bg-base-200 p-5">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] opacity-60">
+                    <span>{messageChannelLabel(message)}</span>
+                    <span>·</span>
+                    <span>{message.phase ?? "—"}</span>
+                    {message.inferredSignal ? (
+                      <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-normal text-primary">
+                        Signals {message.inferredSignal}
+                      </span>
+                    ) : null}
+                    {message.linkedSignal?.actualChoice ? (
+                      <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-[11px] font-semibold tracking-normal text-success">
+                        Played {message.linkedSignal.actualChoice}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <blockquote className="mt-4 text-base leading-7 text-base-content/90">
+                    &ldquo;{message.content}&rdquo;
+                  </blockquote>
+
+                  <p className="mt-4 text-sm opacity-65">
+                    {shortenAddress(message.senderWallet)}
+                    {typeof message.senderCause === "number" ? ` · Cause ${message.senderCause}` : ""}
+                    {typeof message.round === "number" ? ` · Round ${message.round}` : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {bundle.messages.length > displayedMessages.length ? (
+              <p className="mt-4 text-sm opacity-70">
+                Showing {displayedMessages.length} of {bundle.messages.length} messages. The full chat log is included
+                in the downloadable dataset.
+              </p>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <section className="px-6 pb-8 md:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl rounded-3xl bg-base-100 p-7 shadow-lg">
