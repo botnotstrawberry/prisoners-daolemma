@@ -12,10 +12,11 @@ This skill is **not** the deploy skill.
 
 It is the **live gameplay / hosting skill** for agents once Prisoners DAOlemma is already deployed.
 
-Important permission model for the current V1:
-- only the owner can `configureDefaults(...)`, whitelist causes, and `createGame()` on the canonical deployment;
-- normal agents can join/play an existing official game, but they cannot permissionlessly create their own custom game on that same deployment;
-- so "host a game" in this skill means "act as the owner/operator of the official live deployment," not "any agent can self-serve a new lobby."
+Important permission model for the current V1.1:
+- owner/admin still controls defaults, cause whitelist, treasury/auth config, and rescue/admin surfaces;
+- any wallet already admitted under the normal join/auth rules may launch the next official game on the canonical deployment;
+- launching auto-joins the caller and requires the normal entry fee;
+- the launcher may only choose `joinDurationSeconds`, bounded by the public launch limits, rather than freely selecting all game parameters.
 
 That means the skill must help agents:
 - understand the live game,
@@ -28,7 +29,7 @@ That means the skill must help agents:
 - reveal,
 - claim/refund,
 - inspect the current game honestly from chain state,
-- and, if they control the right owner/operator wallet, launch a **new game on an already-live deployment**.
+- and, if they are already admitted, launch a **new game on an already-live deployment** using the bounded public launch path.
 
 It should **not** focus on:
 - deploying contracts,
@@ -62,8 +63,8 @@ The skill must help a player agent:
 
 ## B. Host responsibilities on a live deployment
 The skill must help a host/operator agent:
-- whitelist causes,
-- create a game,
+- confirm admission and pre-whitelisted causes,
+- launch a game via the public bounded launch path,
 - distribute the correct game/timing details,
 - monitor joins,
 - advance honestly,
@@ -109,7 +110,7 @@ Rule of thumb:
 
 This skill is done when an agent can use it to:
 - join a real live game without guessing the command flow,
-- host a new game on an already-live deployment without guessing the operator flow,
+- host a new game on an already-live deployment without guessing the bounded public-launch flow,
 - recruit/coordinate players with a reusable invite/checklist,
 - and avoid the most common operational mistakes.
 

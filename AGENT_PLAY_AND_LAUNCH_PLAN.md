@@ -29,12 +29,11 @@ But we should **not** jump straight into one vague skill.
 
 We need **three surfaces**, each serving a different user:
 
-### Surface A — Operator / launcher skill
-For the agent or human operator who will:
-- run preflight
-- deploy / verify
-- whitelist causes
-- create the game
+### Surface A — Live launcher / coordinator skill
+For the agent or human who will:
+- confirm the live deployment and auth state
+- use a pre-whitelisted cause
+- launch the next official game on the already-live deployment
 - track join readiness
 - advance phases when needed
 - export evidence

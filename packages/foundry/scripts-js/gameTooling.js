@@ -34,6 +34,8 @@ export const PHASE_NAMES = [
 ];
 export const OUTCOME_NAMES = ["Unset", "Winners", "NoWinners", "Cancelled"];
 export const CHOICE_NAMES = ["Unset", "Share", "Catch", "Steal"];
+export const MIN_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS = 300;
+export const MAX_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS = 3600;
 
 export const GAMEPLAY_ABI = [
   "function owner() view returns (address)",
@@ -41,6 +43,7 @@ export const GAMEPLAY_ABI = [
   "function currentGameId() view returns (uint256)",
   "function activeGameId() view returns (uint256)",
   "function gameExists(uint256 gameId) view returns (bool)",
+  "function getDefaultConfig() view returns ((uint256 entryFeeWei,uint16 creatorFeeBps,uint16 causeFeeBps,uint32 joinDurationSeconds,uint32 commitDurationBlocks,uint32 revealDurationBlocks,uint16 minPlayers,uint16 maxPlayers,uint16 maxCauses))",
   "function getGame(uint256 gameId) view returns ((uint256 entryFeeWei,uint16 creatorFeeBps,uint16 causeFeeBps,uint32 joinDurationSeconds,uint32 commitDurationBlocks,uint32 revealDurationBlocks,uint16 minPlayers,uint16 maxPlayers,uint16 maxCauses,uint16 joinedCount,uint16 aliveCount,uint16 usedCauseCount,uint16 committedCount,uint16 revealedCount,uint64 createdAt,uint64 joinDeadline,uint64 commitDeadlineBlock,uint64 revealDeadlineBlock,uint32 round,uint32 shareStreak,uint8 phase,uint8 outcome,address treasury))",
   "function getPlayer(uint256 gameId, address wallet) view returns ((bool joined,bool alive,bool claimed,bool refunded,bool committedThisRound,bool revealedThisRound,address wallet,bytes32 agentKey,uint16 causeId,bytes32 commitment,uint8 revealedChoice,uint8 effectiveChoice,uint32 lastChoiceRound))",
   "function getCause(uint16 causeId) view returns ((bool active,address recipient,bytes32 metadataHash))",
@@ -48,6 +51,7 @@ export const GAMEPLAY_ABI = [
   "function causeCount() view returns (uint256)",
   "function causeAt(uint256 index) view returns (uint16)",
   "function createGame() returns (uint256 gameId)",
+  "function launchGameAndJoin(uint32 joinDurationSeconds, uint16 causeId) payable returns (uint256 gameId)",
   "function whitelistCause(uint16 causeId, address recipient, bytes32 metadataHash)",
   "function advancePhase(uint256 gameId)",
   "function cancelIfInsufficientPlayers(uint256 gameId)",
@@ -817,6 +821,85 @@ export async function createGameAction(options = {}) {
     minPlayers: snapshot.minPlayers,
     maxPlayers: snapshot.maxPlayers,
     maxCauses: snapshot.maxCauses,
+  };
+}
+
+export async function launchGameAction(options = {}) {
+  const context = await resolveGameContext(options, {
+    requireSigner: true,
+    requireGameId: false,
+  });
+  const joinDurationSeconds = parsePositiveInteger(
+    options.joinDurationSeconds,
+    "joinDurationSeconds"
+  );
+  if (joinDurationSeconds > 4_294_967_295) {
+    throw new Error("joinDurationSeconds must fit into uint32.");
+  }
+  if (
+    joinDurationSeconds < MIN_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS ||
+    joinDurationSeconds > MAX_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS
+  ) {
+    throw new Error(
+      `joinDurationSeconds must be between ${MIN_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS} and ${MAX_PUBLIC_LAUNCH_JOIN_DURATION_SECONDS}.`
+    );
+  }
+
+  const causeId = parsePositiveInteger(options.causeId, "causeId");
+  if (causeId > 65_535) {
+    throw new Error("causeId must fit into uint16.");
+  }
+
+  const defaultConfig = await context.gameReader.getDefaultConfig();
+  const defaultEntryFeeWei = toDecimalString(defaultConfig.entryFeeWei);
+  const valueWei =
+    options.valueWei !== undefined
+      ? parsePositiveDecimalString(options.valueWei, "valueWei")
+      : defaultEntryFeeWei;
+
+  if (valueWei !== defaultEntryFeeWei) {
+    throw new Error(
+      `valueWei ${valueWei} does not match the current default entry fee ${defaultEntryFeeWei}.`
+    );
+  }
+
+  const tx = await context.game.launchGameAndJoin(joinDurationSeconds, causeId, {
+    value: valueWei,
+  });
+  const receipt = await tx.wait();
+  const createdEvent = findReceiptEvent(
+    receipt,
+    context.game.interface,
+    "GameCreated"
+  );
+  const gameId = createdEvent
+    ? toNumber(createdEvent.args.gameId, "gameCreated.gameId")
+    : toNumber(await context.gameReader.currentGameId(), "currentGameId");
+  const player = normalizePlayerState(
+    await context.gameReader.getPlayer(gameId, context.walletAddress)
+  );
+  const snapshot = normalizeGameSnapshot(
+    await context.gameReader.getGame(gameId)
+  );
+
+  return {
+    boundaryNote: GAMEPLAY_BOUNDARY_NOTE,
+    command: "launch",
+    chainId: context.chainId,
+    game: context.gameAddress,
+    wallet: context.walletAddress,
+    gameId,
+    txHash: receipt.transactionHash,
+    blockNumber: receipt.blockNumber,
+    causeId: player.causeId,
+    agentKey: player.agentKey,
+    entryFeeWei: valueWei,
+    joinDurationSeconds: snapshot.joinDurationSeconds,
+    joinDeadline: snapshot.joinDeadline,
+    phase: snapshot.phase,
+    outcome: snapshot.outcome,
+    round: snapshot.round,
+    counts: buildCounts(snapshot),
   };
 }
 

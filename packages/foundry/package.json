@@ -26,6 +26,7 @@
     "game": "node scripts-js/gameCli.js",
     "game:whitelist-cause": "node scripts-js/gameCli.js whitelist-cause",
     "game:create": "node scripts-js/gameCli.js create",
+    "game:launch": "node scripts-js/gameCli.js launch",
     "game:advance": "node scripts-js/gameCli.js advance",
     "game:cancel": "node scripts-js/gameCli.js cancel-if-insufficient",
     "game:join": "node scripts-js/gameCli.js join",

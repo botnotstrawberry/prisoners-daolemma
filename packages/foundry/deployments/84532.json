@@ -1,6 +1,6 @@
 {
-  "0x33DC1e703440c41834eA831184518eCCe815334b": "GameChat",
-  "0x9CAa81E9278E32318f95D9F55875f84eea0241cA": "PrisonersDAOlemma",
-  "0xA4c5a48cE3735A25556ca3D391983cfED0e979ec": "AgentAuthRegistry",
+  "0xB6F0382e6809e013C8D9772a2DA5bF3F204cBB37": "PrisonersDAOlemma",
+  "0xa343C17E44614fB549f32ECFfb2bF2813ECa8AB7": "AgentAuthRegistry",
+  "0xa9bB6E2DBd3b483f89Aa8C42A6e477cfCaE52606": "GameChat",
   "networkName": "base-sepolia"
 }

@@ -221,13 +221,10 @@ test(
 
     const entryFee = ethers.utils.parseEther("0.001");
 
-    // Scenario 1: two winners after three all-share rounds, followed by both claims.
-    const winnerGameId = await createGame(gameplayCli);
-    await joinPlayers(gameplayCli, winnerGameId, [
-      { wallet: player1, causeId: 1 },
-      { wallet: player2, causeId: 2 },
-    ]);
-    await advanceJoinWindow(gameplayCli, winnerGameId);
+    // Scenario 1: public launch + auto-join, then two winners after three all-share rounds, followed by both claims.
+    const winnerGameId = await launchGame(gameplayCli, player1.address, 300, 1);
+    await joinPlayers(gameplayCli, winnerGameId, [{ wallet: player2, causeId: 2 }]);
+    await advanceJoinWindow(gameplayCli, winnerGameId, 301);
 
     await postGlobal(
       gameplayCli,
@@ -992,6 +989,27 @@ async function createGame(gameplayCli) {
   return result.gameId;
 }
 
+async function launchGame(gameplayCli, walletAddress, joinDurationSeconds, causeId) {
+  const result = runGameCliJson([
+    "launch",
+    "--rpc-url",
+    RPC_URL,
+    "--game",
+    gameplayCli.gameAddress,
+    "--join-duration-seconds",
+    String(joinDurationSeconds),
+    "--cause-id",
+    String(causeId),
+    "--wallet",
+    walletAddress,
+    ...buildWalletSignerArgs(gameplayCli, walletAddress),
+  ]);
+  assert.equal(result.wallet.toLowerCase(), walletAddress.toLowerCase());
+  assert.equal(result.causeId, causeId);
+  assert.equal(result.joinDurationSeconds, joinDurationSeconds);
+  return result.gameId;
+}
+
 async function joinPlayers(gameplayCli, gameId, entrants) {
   for (const entrant of entrants) {
     const result = runGameCliJson([
@@ -1014,13 +1032,13 @@ async function joinPlayers(gameplayCli, gameId, entrants) {
   }
 }
 
-async function expireJoinWindow(provider) {
-  await provider.send("evm_increaseTime", [31]);
+async function expireJoinWindow(provider, seconds = 31) {
+  await provider.send("evm_increaseTime", [seconds]);
   await provider.send("evm_mine", []);
 }
 
-async function advanceJoinWindow(gameplayCli, gameId) {
-  await expireJoinWindow(gameplayCli.provider);
+async function advanceJoinWindow(gameplayCli, gameId, seconds = 31) {
+  await expireJoinWindow(gameplayCli.provider, seconds);
   const result = await advancePhase(gameplayCli, gameId);
   assert.equal(result.gameId, gameId);
 }

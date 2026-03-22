@@ -3,22 +3,23 @@
 Use this reference when you are **starting a new game on contracts that are already deployed**.
 
 This is **not** the deploy guide.
-It assumes the network/contracts already exist and you have the right owner/operator wallet.
+It assumes the network/contracts already exist.
 
-Current V1 permission model:
-- the canonical deployment is owner-operated;
-- only the owner can change defaults, whitelist causes, and create the next game;
-- if you do not control the owner/operator wallet, you are a player/coordinator, not the onchain host.
+## Current V1.1 permission model
 
-## 1. Confirm you actually control the right wallet
+- any wallet already admitted under the normal join/auth rules can launch the next official game;
+- launching also auto-joins the caller and requires the normal entry fee;
+- the caller may only choose `joinDurationSeconds`, and it must stay within the public launch bounds;
+- owner/admin still controls defaults, cause whitelist, treasury/auth config, and rescue/admin surfaces.
 
-Hosting actions like cause whitelisting and game creation require the correct owner/operator wallet.
+## 1. Confirm you are using an admitted wallet on the correct live deployment
 
 Before doing anything:
 - confirm the chain,
 - confirm the deployed game contract,
 - confirm the auth registry/chat addresses,
-- confirm you control the wallet that is allowed to manage the live game.
+- confirm your wallet is already admitted under the normal auth/join rules,
+- confirm the cause you intend to use is already whitelisted.
 
 ## 2. Confirm the contract is idle and inspect current state
 
@@ -33,24 +34,20 @@ Check:
 - cause list / current state make sense,
 - you are pointing at the intended deployment.
 
-## 3. Whitelist or update causes while idle
+## 3. Launch a new game and auto-join it
 
 Repo-native command:
 
 ```bash
-yarn game:whitelist-cause -- --rpc-url <network-or-url> --game <game-address> --cause-id <uint16> --recipient <address> --metadata-text "<cause-label>" --wallet-keystore <owner-keystore> --wallet-keystore-password-file <file> --json
+yarn game:launch -- --rpc-url <network-or-url> --game <game-address> --join-duration-seconds <300-3600> --cause-id <uint16> --wallet-keystore <launcher-keystore> --wallet-keystore-password-file <file> --json
 ```
 
 Rules:
-- the selected wallet must be the game owner;
+- the selected wallet must already be admitted/authorized to join;
 - the contract must still be idle;
-- a fresh deployment needs at least one active cause before `createGame()` succeeds.
-
-## 4. Create a new game
-
-```bash
-yarn game:create -- --rpc-url <network-or-url> --game <game-address> --wallet-keystore <owner-keystore> --wallet-keystore-password-file <file> --json
-```
+- launching also joins the caller and requires the normal entry fee;
+- only `joinDurationSeconds` is caller-selected; all other settings come from the current default config;
+- a fresh deployment still needs at least one active whitelisted cause before launch succeeds.
 
 Immediately record:
 - game ID,
@@ -61,7 +58,7 @@ Immediately record:
 
 Then distribute the game ID and timing sheet to players.
 
-## 5. Recruit and coordinate the roster
+## 4. Recruit and coordinate the roster
 
 Before the join window closes, make sure every intended player has:
 - wallet ready,
@@ -73,7 +70,7 @@ Before the join window closes, make sure every intended player has:
 
 Use `references/recruit-and-coordinate.md` for the people/coordination layer.
 
-## 6. Monitor joins honestly
+## 5. Monitor joins honestly
 
 Use:
 
@@ -83,12 +80,12 @@ yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id
 
 Do this repeatedly at meaningful checkpoints, not blindly every second.
 
-## 7. Advance phases only when the game is actually ready
+## 6. Advance phases only when the game is actually ready
 
 Repo-native operator command:
 
 ```bash
-yarn game:advance -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <owner-keystore> --wallet-keystore-password-file <file> --json
+yarn game:advance -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <wallet-keystore> --wallet-keystore-password-file <file> --json
 ```
 
 Notes:
@@ -98,10 +95,10 @@ Notes:
 Cancel underfilled game:
 
 ```bash
-yarn foundry:game:cancel-if-insufficient -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <owner-keystore> --wallet-keystore-password-file <file> --json
+yarn foundry:game:cancel-if-insufficient -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <wallet-keystore> --wallet-keystore-password-file <file> --json
 ```
 
-## 8. Watch live state between rounds
+## 7. Watch live state between rounds
 
 The main honest operator tool remains:
 
@@ -113,7 +110,7 @@ Also useful:
 - `yarn query:messages -- --rpc-url <network-or-url> --game <game-address> --chat <chat-address> --game-id <game-id> --json`
 - `yarn query:auth -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json`
 
-## 9. Finish, export, and package evidence
+## 8. Finish, export, and package evidence
 
 After the game ends, export:
 
@@ -133,14 +130,15 @@ If this run should be published to the site, then publish the correct bundle thr
 yarn games:publish
 ```
 
-## 10. Host checklist summary
+## 9. Host checklist summary
 
 Before launching a live game on an already-live deployment:
-- confirm owner/operator wallet,
-- confirm cause recipients,
+- confirm your wallet is admitted,
+- confirm the intended cause is already whitelisted,
+- confirm the chosen join window is between 300 and 3600 seconds,
 - confirm game parameters and schedule,
 - confirm roster and auth readiness,
-- create one game,
+- launch and auto-join one game,
 - monitor joins,
 - advance honestly,
 - export and publish the correct run.

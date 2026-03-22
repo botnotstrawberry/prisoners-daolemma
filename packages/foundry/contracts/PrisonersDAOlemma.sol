@@ -29,6 +29,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     error InvalidAuthRegistry();
     error InvalidRecipient();
     error InvalidGameConfig();
+    error InvalidLaunchJoinDuration();
     error UnsafePhase();
     error NoWhitelistedCauses();
     error MissingGame();
@@ -76,6 +77,8 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     uint16 public constant MAX_FEE_BPS = 500;
     uint16 public constant BPS_DENOMINATOR = 10_000;
     uint16 public constant NO_WINNER_CAUSE_BPS = 9_000;
+    uint32 public constant MIN_PUBLIC_JOIN_DURATION_SECONDS = 300;
+    uint32 public constant MAX_PUBLIC_JOIN_DURATION_SECONDS = 3600;
 
     enum Choice {
         Unset,
@@ -351,45 +354,23 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
 
     function createGame() external onlyOwner returns (uint256 gameId) {
         _requireIdle();
-        if (_activeCauseCount == 0) revert NoWhitelistedCauses();
+        gameId = _createGame(defaultConfig);
+    }
+
+    function launchGameAndJoin(uint32 joinDurationSeconds, uint16 causeId) external payable returns (uint256 gameId) {
+        _requireIdle();
+        if (
+            joinDurationSeconds < MIN_PUBLIC_JOIN_DURATION_SECONDS
+                || joinDurationSeconds > MAX_PUBLIC_JOIN_DURATION_SECONDS
+        ) {
+            revert InvalidLaunchJoinDuration();
+        }
 
         GameConfig memory config = defaultConfig;
-        uint64 createdAt = uint64(block.timestamp);
-        uint64 joinDeadline = uint64(block.timestamp + uint256(config.joinDurationSeconds));
+        config.joinDurationSeconds = joinDurationSeconds;
 
-        gameId = ++currentGameId;
-        activeGameId = gameId;
-
-        _games[gameId] = GameSnapshot({
-            entryFeeWei: config.entryFeeWei,
-            creatorFeeBps: config.creatorFeeBps,
-            causeFeeBps: config.causeFeeBps,
-            joinDurationSeconds: config.joinDurationSeconds,
-            commitDurationBlocks: config.commitDurationBlocks,
-            revealDurationBlocks: config.revealDurationBlocks,
-            minPlayers: config.minPlayers,
-            maxPlayers: config.maxPlayers,
-            maxCauses: config.maxCauses,
-            joinedCount: 0,
-            aliveCount: 0,
-            usedCauseCount: 0,
-            committedCount: 0,
-            revealedCount: 0,
-            createdAt: createdAt,
-            joinDeadline: joinDeadline,
-            commitDeadlineBlock: 0,
-            revealDeadlineBlock: 0,
-            round: 0,
-            shareStreak: 0,
-            phase: Phase.Joining,
-            outcome: Outcome.Unset,
-            treasury: treasury
-        });
-
-        emit GameCreated(
-            gameId, joinDeadline, config.entryFeeWei, config.minPlayers, config.maxPlayers, config.maxCauses
-        );
-        emit PhaseAdvanced(gameId, Phase.Joining);
+        gameId = _createGame(config);
+        _joinGame(gameId, causeId, msg.sender, msg.value);
     }
 
     function advancePhase(uint256 gameId) external {
@@ -434,59 +415,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     }
 
     function join(uint256 gameId, uint16 causeId) external payable {
-        GameSnapshot storage game = _games[gameId];
-        if (!_gameExists(gameId)) revert MissingGame();
-        if (game.phase != Phase.Joining || activeGameId != gameId) revert GameNotJoining();
-        if (block.timestamp > game.joinDeadline) revert JoinWindowClosed();
-        if (msg.value != game.entryFeeWei) revert EntryFeeMismatch();
-        if (!_isAuthorized(msg.sender)) revert UnauthorizedWallet();
-
-        PlayerState storage existingPlayer = _players[gameId][msg.sender];
-        if (existingPlayer.joined) revert DuplicateWallet();
-        if (game.joinedCount >= game.maxPlayers) revert MaxPlayersReached();
-
-        bytes32 agentKey = IAgentAuthRegistry(authRegistry).agentKeyOf(msg.sender);
-        if (agentKey == bytes32(0)) revert UnauthorizedWallet();
-        if (_agentJoined[gameId][agentKey]) revert DuplicateAgentKey();
-
-        CauseDefinition memory cause = _causes[causeId];
-        if (!cause.active) revert InvalidCause();
-
-        GameCauseState storage gameCause = _gameCauses[gameId][causeId];
-        if (!gameCause.used) {
-            if (game.usedCauseCount >= game.maxCauses) revert MaxCausesReached();
-
-            gameCause.used = true;
-            gameCause.recipient = cause.recipient;
-            gameCause.metadataHash = cause.metadataHash;
-            game.usedCauseCount += 1;
-            _gameCauseIds[gameId].push(causeId);
-        }
-
-        _agentJoined[gameId][agentKey] = true;
-        _playerList[gameId].push(msg.sender);
-        _players[gameId][msg.sender] = PlayerState({
-            joined: true,
-            alive: true,
-            claimed: false,
-            refunded: false,
-            committedThisRound: false,
-            revealedThisRound: false,
-            wallet: msg.sender,
-            agentKey: agentKey,
-            causeId: causeId,
-            commitment: bytes32(0),
-            revealedChoice: Choice.Unset,
-            effectiveChoice: Choice.Unset,
-            lastChoiceRound: 0
-        });
-
-        game.joinedCount += 1;
-        game.aliveCount += 1;
-        gameCause.entrantCount += 1;
-        _increaseAccountedETHLiability(msg.value);
-
-        emit PlayerJoined(gameId, msg.sender, agentKey, causeId, game.joinedCount);
+        _joinGame(gameId, causeId, msg.sender, msg.value);
     }
 
     function commit(uint256 gameId, bytes32 commitment) external {
@@ -875,6 +804,103 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         ) {
             revert InvalidGameConfig();
         }
+    }
+
+    function _createGame(GameConfig memory config) internal returns (uint256 gameId) {
+        if (_activeCauseCount == 0) revert NoWhitelistedCauses();
+
+        uint64 createdAt = uint64(block.timestamp);
+        uint64 joinDeadline = uint64(block.timestamp + uint256(config.joinDurationSeconds));
+
+        gameId = ++currentGameId;
+        activeGameId = gameId;
+
+        _games[gameId] = GameSnapshot({
+            entryFeeWei: config.entryFeeWei,
+            creatorFeeBps: config.creatorFeeBps,
+            causeFeeBps: config.causeFeeBps,
+            joinDurationSeconds: config.joinDurationSeconds,
+            commitDurationBlocks: config.commitDurationBlocks,
+            revealDurationBlocks: config.revealDurationBlocks,
+            minPlayers: config.minPlayers,
+            maxPlayers: config.maxPlayers,
+            maxCauses: config.maxCauses,
+            joinedCount: 0,
+            aliveCount: 0,
+            usedCauseCount: 0,
+            committedCount: 0,
+            revealedCount: 0,
+            createdAt: createdAt,
+            joinDeadline: joinDeadline,
+            commitDeadlineBlock: 0,
+            revealDeadlineBlock: 0,
+            round: 0,
+            shareStreak: 0,
+            phase: Phase.Joining,
+            outcome: Outcome.Unset,
+            treasury: treasury
+        });
+
+        emit GameCreated(
+            gameId, joinDeadline, config.entryFeeWei, config.minPlayers, config.maxPlayers, config.maxCauses
+        );
+        emit PhaseAdvanced(gameId, Phase.Joining);
+    }
+
+    function _joinGame(uint256 gameId, uint16 causeId, address wallet, uint256 valueWei) internal {
+        GameSnapshot storage game = _games[gameId];
+        if (!_gameExists(gameId)) revert MissingGame();
+        if (game.phase != Phase.Joining || activeGameId != gameId) revert GameNotJoining();
+        if (block.timestamp > game.joinDeadline) revert JoinWindowClosed();
+        if (valueWei != game.entryFeeWei) revert EntryFeeMismatch();
+        if (!_isAuthorized(wallet)) revert UnauthorizedWallet();
+
+        PlayerState storage existingPlayer = _players[gameId][wallet];
+        if (existingPlayer.joined) revert DuplicateWallet();
+        if (game.joinedCount >= game.maxPlayers) revert MaxPlayersReached();
+
+        bytes32 agentKey = IAgentAuthRegistry(authRegistry).agentKeyOf(wallet);
+        if (agentKey == bytes32(0)) revert UnauthorizedWallet();
+        if (_agentJoined[gameId][agentKey]) revert DuplicateAgentKey();
+
+        CauseDefinition memory cause = _causes[causeId];
+        if (!cause.active) revert InvalidCause();
+
+        GameCauseState storage gameCause = _gameCauses[gameId][causeId];
+        if (!gameCause.used) {
+            if (game.usedCauseCount >= game.maxCauses) revert MaxCausesReached();
+
+            gameCause.used = true;
+            gameCause.recipient = cause.recipient;
+            gameCause.metadataHash = cause.metadataHash;
+            game.usedCauseCount += 1;
+            _gameCauseIds[gameId].push(causeId);
+        }
+
+        _agentJoined[gameId][agentKey] = true;
+        _playerList[gameId].push(wallet);
+        _players[gameId][wallet] = PlayerState({
+            joined: true,
+            alive: true,
+            claimed: false,
+            refunded: false,
+            committedThisRound: false,
+            revealedThisRound: false,
+            wallet: wallet,
+            agentKey: agentKey,
+            causeId: causeId,
+            commitment: bytes32(0),
+            revealedChoice: Choice.Unset,
+            effectiveChoice: Choice.Unset,
+            lastChoiceRound: 0
+        });
+
+        game.joinedCount += 1;
+        game.aliveCount += 1;
+        gameCause.entrantCount += 1;
+        _increaseAccountedETHLiability(valueWei);
+
+        emit PlayerJoined(gameId, wallet, agentKey, causeId, game.joinedCount);
     }
 
     function _startCommitPhase(uint256 gameId, GameSnapshot storage game) internal {

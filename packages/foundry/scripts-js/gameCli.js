@@ -8,6 +8,7 @@ import {
   commitAction,
   createGameAction,
   joinGameAction,
+  launchGameAction,
   postCauseAction,
   postGlobalAction,
   prepareCommitAction,
@@ -30,7 +31,8 @@ Usage:
 
 Commands:
   whitelist-cause           Owner-only: whitelist or update a cause while the contract is idle.
-  create                    Create a new game from the current default config.
+  create                    Owner-only: create a new game from the current default config.
+  launch                    Public launch path: create the next game and auto-join it with a bounded join window.
   advance                   Advance the selected game to its next onchain phase.
   cancel-if-insufficient    Cancel a joining game after the join window closes without enough players.
   join                      Join a game with the current wallet and selected cause.
@@ -120,6 +122,32 @@ Notes:
 Example:
   node scripts-js/gameCli.js create --rpc-url localhost --game 0xGame \
     --wallet-keystore owner --wallet-keystore-password-file .secrets/owner.pass
+`);
+}
+
+function printLaunchHelp() {
+  console.log(`
+Usage:
+  node scripts-js/gameCli.js launch --rpc-url <url|network> [--game <address|name>] \
+    --join-duration-seconds <300-3600> --cause-id <uint16> [--value-wei <wei>] [signer options] [--json]
+
+${sharedGameOptions({ includeGameId: false })}
+${sharedSignerOptions()}
+Additional options:
+  --join-duration-seconds <seconds>       Required launch join window. Must be between 300 and 3600.
+  --cause-id <uint16>                     Required cause selection for the launching wallet.
+  --value-wei <wei>                       Optional explicit msg.value. Defaults to the current default entry fee.
+
+Notes:
+  - This wraps the public launchGameAndJoin(joinDurationSeconds, causeId) entrypoint.
+  - The selected wallet must already be authorized onchain under the same auth rules as join().
+  - Launching also joins the caller into the new game in the same transaction.
+  - Only joinDurationSeconds is caller-selected; all other game settings come from the current default config.
+
+Example:
+  node scripts-js/gameCli.js launch --rpc-url baseSepolia --game 0xGame \
+    --join-duration-seconds 900 --cause-id 1 \
+    --wallet-keystore player-1 --wallet-keystore-password-file .secrets/player-1.pass
 `);
 }
 
@@ -384,6 +412,10 @@ async function main() {
       printCreateHelp();
       return;
     }
+    if (subcommand === "launch") {
+      printLaunchHelp();
+      return;
+    }
     if (subcommand === "advance") {
       printAdvanceHelp();
       return;
@@ -443,6 +475,8 @@ async function main() {
     result = await whitelistCauseAction(args);
   } else if (subcommand === "create") {
     result = await createGameAction(args);
+  } else if (subcommand === "launch") {
+    result = await launchGameAction(args);
   } else if (subcommand === "advance") {
     result = await advancePhaseAction(args);
   } else if (subcommand === "cancel-if-insufficient") {
@@ -469,7 +503,7 @@ async function main() {
     result = await postCauseAction(args);
   } else {
     throw new Error(
-      `Unknown gameplay command '${subcommand}'. Use whitelist-cause, create, advance, cancel-if-insufficient, join, prepare-commit, commit, reveal, claim, refund, withdraw-treasury, withdraw-cause, post-global, or post-cause.`
+      `Unknown gameplay command '${subcommand}'. Use whitelist-cause, create, launch, advance, cancel-if-insufficient, join, prepare-commit, commit, reveal, claim, refund, withdraw-treasury, withdraw-cause, post-global, or post-cause.`
     );
   }
 

@@ -178,6 +178,112 @@ contract PrisonersDAOlemmaTest is Test {
         game.createGame();
     }
 
+    function testLaunchGameAndJoinAllowsAuthorizedWalletToStartAndAutoJoin() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-1"));
+
+        uint32 joinDurationSeconds = 900;
+
+        vm.prank(player1);
+        uint256 gameId = game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(joinDurationSeconds, CAUSE_A);
+
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        PrisonersDAOlemma.PlayerState memory player = game.getPlayer(gameId, player1);
+
+        assertEq(gameId, 1);
+        assertEq(game.currentGameId(), 1);
+        assertEq(game.activeGameId(), 1);
+        assertEq(snapshot.joinDurationSeconds, joinDurationSeconds);
+        assertEq(snapshot.commitDurationBlocks, _defaultConfig().commitDurationBlocks);
+        assertEq(snapshot.revealDurationBlocks, _defaultConfig().revealDurationBlocks);
+        assertEq(snapshot.minPlayers, _defaultConfig().minPlayers);
+        assertEq(snapshot.maxPlayers, _defaultConfig().maxPlayers);
+        assertEq(snapshot.maxCauses, _defaultConfig().maxCauses);
+        assertEq(snapshot.joinedCount, 1);
+        assertEq(snapshot.aliveCount, 1);
+        assertEq(snapshot.usedCauseCount, 1);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDAOlemma.Phase.Joining));
+        assertEq(game.accountedETHLiabilities(), _defaultConfig().entryFeeWei);
+
+        assertTrue(player.joined);
+        assertTrue(player.alive);
+        assertEq(player.wallet, player1);
+        assertEq(player.agentKey, PLAYER1_AGENT);
+        assertEq(player.causeId, CAUSE_A);
+        assertEq(game.gameCauseRecipient(gameId, CAUSE_A), causeARecipient);
+    }
+
+    function testLaunchGameAndJoinRejectsUnauthorizedWallet() public {
+        vm.expectRevert(PrisonersDAOlemma.UnauthorizedWallet.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(300, CAUSE_A);
+
+        assertEq(game.currentGameId(), 0);
+        assertEq(game.activeGameId(), 0);
+    }
+
+    function testLaunchGameAndJoinRejectsTooShortJoinDuration() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-short"));
+
+        vm.expectRevert(PrisonersDAOlemma.InvalidLaunchJoinDuration.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(299, CAUSE_A);
+    }
+
+    function testLaunchGameAndJoinRejectsTooLongJoinDuration() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-long"));
+
+        vm.expectRevert(PrisonersDAOlemma.InvalidLaunchJoinDuration.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(3601, CAUSE_A);
+    }
+
+    function testLaunchGameAndJoinRequiresIdlePhase() public {
+        vm.prank(owner);
+        game.createGame();
+
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-idle"));
+
+        vm.expectRevert(PrisonersDAOlemma.UnsafePhase.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(300, CAUSE_A);
+    }
+
+    function testLaunchGameAndJoinRejectsEntryFeeMismatch() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-fee"));
+
+        vm.expectRevert(PrisonersDAOlemma.EntryFeeMismatch.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei + 1 }(300, CAUSE_A);
+
+        assertEq(game.currentGameId(), 0);
+        assertEq(game.activeGameId(), 0);
+    }
+
+    function testLaunchGameAndJoinRejectsInvalidCauseAndRevertsCreation() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-cause"));
+
+        vm.expectRevert(PrisonersDAOlemma.InvalidCause.selector);
+        vm.prank(player1);
+        game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(300, 999);
+
+        assertEq(game.currentGameId(), 0);
+        assertEq(game.activeGameId(), 0);
+    }
+
+    function testLaunchGameAndJoinCanStillCancelAndRefundUnderfilledGame() public {
+        _registerWallet(player1, PLAYER1_AGENT, uint64(vm.getBlockTimestamp() + 1 hours), keccak256("nonce-launch-refund"));
+
+        vm.prank(player1);
+        uint256 gameId = game.launchGameAndJoin{ value: _defaultConfig().entryFeeWei }(300, CAUSE_A);
+
+        vm.warp(game.getGame(gameId).joinDeadline + 1);
+        game.cancelIfInsufficientPlayers(gameId);
+
+        PrisonersDAOlemma.GameSnapshot memory snapshot = game.getGame(gameId);
+        assertEq(uint256(snapshot.phase), uint256(PrisonersDAOlemma.Phase.Cancelled));
+        _assertRefundPreview(gameId, player1, _defaultConfig().entryFeeWei, true);
+    }
+
     function testRejectsInvalidGameConfigBounds() public {
         PrisonersDAOlemma.GameConfig memory invalidConfig = _defaultConfig();
 
