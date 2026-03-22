@@ -332,6 +332,14 @@ async function publishManifest({ manifestPath, repoRoot, publicGamesRoot }) {
   return manifest;
 }
 
+async function loadPublishConfig(foundryPackageRoot) {
+  try {
+    return await readJson(path.join(foundryPackageRoot, "published-games.config.json"));
+  } catch {
+    return {};
+  }
+}
+
 async function main() {
   const args = parseArgs();
   const filePath = fileURLToPath(import.meta.url);
@@ -340,6 +348,8 @@ async function main() {
   const repoRoot = path.resolve(foundryRoot, "../..");
   const publicGamesRoot = path.join(repoRoot, "packages", "nextjs", "public", "games");
   const foundryPackageRoot = path.join(repoRoot, "packages", "foundry");
+  const publishConfig = await loadPublishConfig(foundryPackageRoot);
+  const includedSourceRuns = new Set(Array.isArray(publishConfig?.includeSourceRuns) ? publishConfig.includeSourceRuns : []);
 
   if (args.clean) {
     await fs.rm(publicGamesRoot, { recursive: true, force: true });
@@ -349,7 +359,13 @@ async function main() {
   const allFiles = await walk(foundryPackageRoot);
   const manifestPaths = allFiles
     .filter(candidate => candidate.endsWith("export-manifest.json"))
-    .filter(candidate => shouldIncludeManifest(relativePosix(repoRoot, candidate), args))
+    .filter(candidate => {
+      const relativeManifestPath = relativePosix(repoRoot, candidate);
+      if (!shouldIncludeManifest(relativeManifestPath, args)) return false;
+      if (!includedSourceRuns.size) return true;
+      const sourceInfo = deriveSourceInfo(relativeManifestPath, {});
+      return includedSourceRuns.has(sourceInfo.sourceRun);
+    })
     .sort();
 
   const entries = [];
@@ -382,6 +398,9 @@ async function main() {
 
   await fs.writeFile(path.join(publicGamesRoot, "index.json"), `${JSON.stringify(index, null, 2)}\n`, "utf8");
 
+  if (includedSourceRuns.size) {
+    console.log(`Source-run allowlist: ${Array.from(includedSourceRuns).join(", ")}`);
+  }
   console.log(`Published ${entries.length} game bundle${entries.length === 1 ? "" : "s"} to ${relativePosix(repoRoot, publicGamesRoot)}`);
 }
 
