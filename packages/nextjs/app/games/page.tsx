@@ -4,9 +4,9 @@ import { type PublishedGameIndexEntry, pickFeaturedGameEntry, readGamesIndex } f
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Games",
+  title: "Game Data",
   description:
-    "A compact index of published Prisoners DAOlemma games. Open any game to view the full research case study.",
+    "A compact index of published Prisoners DAOlemma game data and case studies. Open any game to view the full research bundle.",
 });
 
 function outcomeLabel(entry: PublishedGameIndexEntry) {
@@ -31,8 +31,8 @@ const GamesPage: NextPage = async () => {
     <div className="flex flex-col grow bg-base-200">
       <section className="px-6 py-12 md:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl rounded-[2rem] bg-base-100 p-8 shadow-xl md:p-10">
-          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Games</p>
-          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game index</h1>
+          <p className="text-sm uppercase tracking-[0.25em] opacity-60">Game Data</p>
+          <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game data</h1>
           <p className="mt-4 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
             Browse published evidence bundles and open any game as a full case study. The featured case below is the
             recent 30+ player Sepolia run.

@@ -19,7 +19,7 @@ type HeaderMenuLink = {
 
 export const menuLinks: HeaderMenuLink[] = [
   {
-    label: "Games",
+    label: "Game Data",
     href: "/games",
     icon: <QueueListIcon className="h-4 w-4" />,
   },

@@ -21,7 +21,7 @@ export const Footer = () => {
               Home
             </Link>
             <Link href="/games" className="link">
-              Games
+              Game Data
             </Link>
             <Link href="/judge" className="link">
               Judge Overview
