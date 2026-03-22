@@ -2,6 +2,8 @@
 pragma solidity ^0.8.23;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IAgentAuthRegistry {
@@ -21,6 +23,8 @@ interface IAgentAuthRegistry {
 ///      - elimination, share-streak, terminal outcomes, and settlement finalization
 ///      - winner claims, cancelled-game refunds, and pull-based cause/treasury withdrawals
 contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     error InvalidTreasury();
     error InvalidAuthRegistry();
     error InvalidRecipient();
@@ -44,6 +48,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     error DuplicateWallet();
     error DuplicateAgentKey();
     error InvalidCause();
+    error InvalidRescueToken();
     error EntryFeeMismatch();
     error MaxPlayersReached();
     error MaxCausesReached();
@@ -62,6 +67,9 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     error NothingToWithdraw();
     error TransferFailed();
     error SettlementAlreadyFinalized();
+    error InvalidRescueAmount();
+    error RescueUnavailableDuringLiveGame();
+    error InsufficientExcessETH(uint256 requested, uint256 available);
 
     uint16 public constant MAX_PLAYER_CAP = 256;
     uint16 public constant MAX_CAUSE_CAP = 16;
@@ -186,6 +194,10 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     uint256 public currentGameId;
     uint256 public activeGameId;
 
+    /// @dev Aggregate outstanding ETH obligations across joined pots, unclaimed refunds/prizes,
+    ///      and unwithdrawn cause/treasury balances. Force-sent ETH is intentionally excluded.
+    uint256 private _accountedETHLiabilities;
+
     uint16 private _activeCauseCount;
 
     mapping(uint16 causeId => CauseDefinition cause) private _causes;
@@ -279,6 +291,8 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
     event TreasuryAccrued(uint256 indexed gameId, address indexed treasury, uint256 amountWei);
     event TreasuryWithdrawal(uint256 indexed gameId, address indexed recipient, uint256 amountWei);
     event CauseWithdrawal(uint256 indexed gameId, uint16 indexed causeId, address indexed recipient, uint256 amountWei);
+    event ForeignTokenRescued(address indexed token, address indexed to, uint256 amount);
+    event ExcessETHRescued(address indexed to, uint256 amount);
 
     constructor(address owner_, address treasury_, address authRegistry_, GameConfig memory defaultConfig_)
         Ownable(owner_)
@@ -470,6 +484,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         game.joinedCount += 1;
         game.aliveCount += 1;
         gameCause.entrantCount += 1;
+        _increaseAccountedETHLiability(msg.value);
 
         emit PlayerJoined(gameId, msg.sender, agentKey, causeId, game.joinedCount);
     }
@@ -549,6 +564,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         player.refunded = true;
 
         uint256 refundWei = settlement.refundPerPlayerWei;
+        _decreaseAccountedETHLiability(refundWei);
         _payout(msg.sender, refundWei);
 
         emit RefundClaimed(gameId, msg.sender, refundWei);
@@ -563,6 +579,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         if (amountWei == 0) revert NothingToWithdraw();
 
         settlement.treasuryWithdrawnWei += amountWei;
+        _decreaseAccountedETHLiability(amountWei);
         _payout(game.treasury, amountWei);
 
         emit TreasuryWithdrawal(gameId, game.treasury, amountWei);
@@ -578,9 +595,44 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         if (amountWei == 0) revert NothingToWithdraw();
 
         _gameCauseWithdrawnWei[gameId][causeId] += amountWei;
+        _decreaseAccountedETHLiability(amountWei);
         _payout(causeState.recipient, amountWei);
 
         emit CauseWithdrawal(gameId, causeId, causeState.recipient, amountWei);
+    }
+
+    function rescueERC20(address token, address to, uint256 amount) external onlyOwner nonReentrant {
+        if (token == address(0)) revert InvalidRescueToken();
+        if (to == address(0)) revert InvalidRecipient();
+        if (amount == 0) revert InvalidRescueAmount();
+        _requireRescueWindow();
+
+        IERC20(token).safeTransfer(to, amount);
+
+        emit ForeignTokenRescued(token, to, amount);
+    }
+
+    function rescueExcessETH(address payable to, uint256 amount) external onlyOwner nonReentrant {
+        if (to == address(0)) revert InvalidRecipient();
+        if (amount == 0) revert InvalidRescueAmount();
+        _requireRescueWindow();
+
+        uint256 available = excessETH();
+        if (amount > available) revert InsufficientExcessETH(amount, available);
+
+        _payout(to, amount);
+
+        emit ExcessETHRescued(to, amount);
+    }
+
+    function accountedETHLiabilities() public view returns (uint256) {
+        return _accountedETHLiabilities;
+    }
+
+    function excessETH() public view returns (uint256) {
+        uint256 contractBalance = address(this).balance;
+        uint256 liabilities = _accountedETHLiabilities;
+        return contractBalance > liabilities ? contractBalance - liabilities : 0;
     }
 
     function previewWinnerClaim(uint256 gameId, address wallet)
@@ -771,6 +823,11 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
 
     function _requireIdle() internal view {
         if (activeGameId != 0) revert UnsafePhase();
+    }
+
+    function _requireRescueWindow() internal view {
+        if (!_liveGameActive()) return;
+        revert RescueUnavailableDuringLiveGame();
     }
 
     function _setTreasury(address newTreasury) internal {
@@ -1226,6 +1283,7 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
             _gameCauseRoutedWei[gameId][player.causeId] += causeCutWei;
         }
 
+        _decreaseAccountedETHLiability(netPrizeWei);
         _payout(recipient, netPrizeWei);
 
         emit PrizeClaimed(gameId, winner, player.causeId, grossPrizeWei, causeCutWei, netPrizeWei, causeState.recipient);
@@ -1253,6 +1311,22 @@ contract PrisonersDAOlemma is Ownable, ReentrancyGuard {
         returns (bytes32)
     {
         return keccak256(abi.encode(gameId, round, wallet, choice, salt));
+    }
+
+    function _increaseAccountedETHLiability(uint256 amountWei) internal {
+        _accountedETHLiabilities += amountWei;
+    }
+
+    function _decreaseAccountedETHLiability(uint256 amountWei) internal {
+        if (amountWei == 0) return;
+        _accountedETHLiabilities -= amountWei;
+    }
+
+    function _liveGameActive() internal view returns (bool) {
+        if (activeGameId == 0) return false;
+
+        Phase phase = _games[activeGameId].phase;
+        return phase == Phase.Joining || phase == Phase.Commit || phase == Phase.Reveal;
     }
 
     function _isAuthorized(address wallet) internal view returns (bool) {
