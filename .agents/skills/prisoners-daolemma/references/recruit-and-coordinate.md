@@ -1,74 +1,85 @@
 # Recruit and Coordinate Agents for a Live Game
 
-Use this reference when you are helping fill a roster for a live Prisoners DAOlemma game.
+Use this reference when you are trying to assemble a roster for a live Prisoners DAOlemma game.
 
-## Goal
+## 1. Objective
 
-Get enough agents ready to complete a live game without last-minute confusion.
+For the current final push, the objective is not open matchmaking.
+It is to reliably recruit and coordinate a **known invited roster** for one clean live game.
 
-For the current project push, the main target is:
-- **one full 9-agent Base mainnet game**
+## 2. What the invite must communicate
 
-## 1. What to tell invited agents up front
+Every invited agent should get, in plain language:
+- what the game is,
+- why they are being invited,
+- which chain the game is on,
+- the stake / entry fee,
+- the expected start time,
+- the rough time commitment,
+- whether they need manual wallet control or an automated agent loop,
+- what they must have ready before join,
+- who to contact if stuck.
 
-Every invite should include:
-- what the game is in one sentence
-- why they are being invited
-- chain (`Base mainnet` or `Base Sepolia`)
-- expected stake / entry fee
-- expected time window
-- that auth is required before join
-- that they need ETH for entry + gas
-- who to contact if they get stuck
+## 3. Minimum roster tracker fields
 
-## 2. What confirmations to collect
-
-For each invited agent, confirm:
-- agent name / label
+Track this for each invited player:
+- agent name / handle
 - wallet address
-- can they use Base on the required chain?
-- funded for entry + gas?
-- auth-ready?
-- willing to join at the scheduled time?
-- preferred cause if relevant?
+- auth status
+- funded status
+- cause preference
+- join confirmed
+- commit confirmed
+- reveal confirmed
+- claim confirmed
+- notes / problems
 
-## 3. Coordination checklist
+## 4. Coordination checkpoints
 
-Track these states explicitly:
-- invited
-- confirmed
-- funded
-- auth-ready
-- joined
-- committed
-- revealed
-- claimed
+### Before join opens
+Confirm:
+- wallet exists,
+- ETH is funded,
+- auth path is understood,
+- agent received the game details.
 
-If the repo has a roster tracker file, keep it updated in one place.
+### Before join closes
+Confirm:
+- agent has actually joined,
+- cause choice is recorded correctly.
 
-## 4. Communication cadence
+### Before commit closes
+Confirm:
+- agent prepared a bundle,
+- agent submitted commit.
 
-At minimum, remind players at:
-- invite / confirmation time
-- auth/setup deadline
-- just before join opens
-- just before join closes
-- commit window start
-- reveal window start
-- settlement / claim time
+### Before reveal closes
+Confirm:
+- agent still has the bundle,
+- agent submitted reveal.
 
-## 5. Recruitment packet structure
+### After game end
+Confirm:
+- winners know to claim,
+- evidence/export work is complete.
 
-A short outreach packet should answer:
-- what is Prisoners DAOlemma?
-- why should the agent play?
-- what wallet and auth setup are required?
-- what exact chain and timeline are involved?
-- how do they confirm participation?
+## 5. Coordination style
 
-## 6. Escalation rule
+Use short explicit reminders.
+Good reminder content:
+- game ID
+- phase
+- deadline/window
+- exact action required now
+- help path if stuck
 
-If a player is not funded, not auth-ready, or not responsive close to deadline:
-- escalate early
-- do not assume they will recover in time
-- either replace them or explicitly resize expectations before a live game starts
+Avoid long theory messages during live play.
+
+## 6. Recommended invite shape
+
+Use the template in `../assets/agent-invite-template.txt` as the starting point.
+
+## 7. Honesty rule
+
+Do not tell players "you’re probably fine" when the chain says otherwise.
+The operator/coordinator should always confirm with chain state before reassuring participants.

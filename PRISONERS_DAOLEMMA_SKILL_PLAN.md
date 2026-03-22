@@ -2,122 +2,114 @@
 
 **Date:** 2026-03-22 UTC  
 **Status:** active planning doc  
-**Purpose:** define the single agent-facing skill required for live Prisoners DAOlemma participation after the contracts are deployed.
+**Purpose:** define the actual gameplay skill deliverable for agents who want to use the live Prisoners DAOlemma system after deployment.
 
 ---
 
-## 1. Correction / scope
+## 1. Correct scope
 
-This skill is **not** for protocol implementation, contract deployment, or Solidity work.
+This skill is **not** the deploy skill.
 
-This skill is for agents operating **against an already-live Prisoners DAOlemma deployment**.
+It is the **live gameplay / hosting skill** for agents once Prisoners DAOlemma is already deployed.
 
-It should help an agent:
-- understand the live game flow
-- determine whether it is acting as a **host/operator** or **player/participant**
-- recruit and coordinate other agents
-- complete auth
-- find / confirm the active game
-- join the game
-- prepare commits, commit, reveal, and claim
-- optionally host/launch a new game on the live deployment by using the existing deployed contracts
+That means the skill must help agents:
+- understand the live game,
+- confirm the correct chain/contracts/game ID,
+- complete or verify admission,
+- join a game,
+- post messages,
+- prepare commit bundles,
+- commit,
+- reveal,
+- claim/refund,
+- inspect the current game honestly from chain state,
+- and, if they control the right owner/operator wallet, launch a **new game on an already-live deployment**.
 
-It should **not** teach agents to:
-- redeploy contracts
-- modify Solidity
-- rerun audits
-- change protocol parameters without operator approval
+It should **not** focus on:
+- deploying contracts,
+- protocol development,
+- Solidity changes,
+- audit workflows.
 
 ---
 
-## 2. Required deliverable
+## 2. Deliverable definition
 
-Add one new local project skill:
+The repo should ship a local project skill:
 
 - `.agents/skills/prisoners-daolemma/SKILL.md`
 
-This should be treated as a finishing deliverable for the project.
+This skill should be treated as a finishing deliverable for the hackathon/mainnet push.
 
 ---
 
-## 3. What the skill must cover
+## 3. Skill responsibilities
 
-## Mode A — Host / launch a game on a live deployment
-This mode is for an owner/operator agent using the already-deployed contract set.
+## A. Player responsibilities
+The skill must help a player agent:
+- confirm the game details,
+- confirm auth status,
+- join correctly,
+- keep commit bundles safe,
+- commit/reveal correctly,
+- claim/refund correctly,
+- avoid wrong-chain / wrong-game / wrong-round mistakes.
 
-It must cover:
-- verifying chain + contract addresses
-- confirming causes are whitelisted
-- whitelisting/updating causes if authorized
-- creating a game on the existing deployment
-- monitoring join readiness
-- advancing phases when ready
-- exporting and publishing evidence after the game
+## B. Host responsibilities on a live deployment
+The skill must help a host/operator agent:
+- whitelist causes,
+- create a game,
+- distribute the correct game/timing details,
+- monitor joins,
+- advance honestly,
+- cancel underfilled games when appropriate,
+- export and publish the correct run.
 
-## Mode B — Join and play a game
-This mode is for normal participant agents.
-
-It must cover:
-- understanding the rules and incentives
-- auth / admission
-- confirming chain + game ID + cause choice + deadlines
-- joining successfully
-- preparing commit bundle safely
-- committing
-- revealing from the saved bundle
-- claiming if eligible
-
-## Mode C — Recruit and coordinate players
-This mode is for agents helping fill a roster.
-
-It must cover:
-- how to explain the game simply
-- what to tell invited agents to prepare
-- how to collect confirmations
-- how to track who is funded/auth-ready/joined
-- how to remind agents about join / commit / reveal windows
+## C. Recruitment / coordination responsibilities
+The skill must help a coordinator:
+- recruit agents,
+- communicate the key game details,
+- track roster readiness,
+- send phase reminders,
+- reduce deadline misses.
 
 ---
 
-## 4. Recommended structure
+## 4. Packaged references
 
-Use a single skill with a routing layer and reference files:
-
-- `SKILL.md`
-- `references/host-game.md`
-- `references/play-game.md`
+The first useful version should include:
+- `references/play-live-game.md`
+- `references/host-live-game.md`
 - `references/recruit-and-coordinate.md`
+- `assets/agent-invite-template.txt`
 
-The top-level skill should tell the agent which reference to read based on the task.
+Those references can later feed standalone public docs if needed.
 
 ---
 
-## 5. Inputs this skill depends on
+## 5. Interaction with other project skills
 
-Before this skill can be fully finalized, we should pin:
-- live mainnet addresses
-- final first-game parameter sheet
-- roster target / cause list
-- preferred gameplay cadence / reminder cadence
-- where the active game ID and current live deployment metadata will live
+This skill should complement, not replace:
+- `.agents/skills/prisoners-auth/SKILL.md`
+- `.agents/skills/prisoners-comms-replay/SKILL.md`
 
-So the skill can be built now, but Phase A will let us tighten it from placeholders into live instructions.
+Rule of thumb:
+- use `prisoners-daolemma` for end-user gameplay/hosting flow,
+- use `prisoners-auth` when the auth boundary itself needs deeper handling,
+- use `prisoners-comms-replay` when replay/message analysis is the main task.
 
 ---
 
 ## 6. Definition of done
 
-This deliverable is done when:
-- an outside agent can read the skill and understand how to participate
-- a host/operator agent can use it to launch a game on the live deployment without redeploying contracts
-- a player agent can use it to auth, join, commit, reveal, and claim
-- a coordinator can use it to help recruit/fill a roster for a live game
+This skill is done when an agent can use it to:
+- join a real live game without guessing the command flow,
+- host a new game on an already-live deployment without guessing the operator flow,
+- recruit/coordinate players with a reusable invite/checklist,
+- and avoid the most common operational mistakes.
 
 ---
 
-## 7. Next step after this plan
+## 7. Relation to Phase A
 
-After this plan is accepted:
-1. finalize Phase A parameters and live operator inputs
-2. tighten the skill references with those live values
-3. add any missing player/host quickstart docs the skill should reference
+This skill can be scaffolded before Phase A, but the final polish should happen **after Phase A values are locked**, because the best version should eventually point at the exact live chain, contract addresses, and roster/coordination expectations for the first mainnet run.

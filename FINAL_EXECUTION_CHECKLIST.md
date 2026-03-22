@@ -207,9 +207,10 @@ Recommended current target for the 9-agent game:
 
 ## 8. Phase E — submission package completion
 
-## E1. Must-have submission assets
+## E1. Must-have submission assets / agent-facing deliverables
 - [ ] `submission/PROOF_INDEX.md`
 - [ ] `submission/PRIZE_MAP.md`
+- [ ] `.agents/skills/prisoners-daolemma/` live gameplay skill for post-deploy launch/join/play flows
 - [ ] 4–6 screenshots
 - [ ] 60–90 second backup demo video
 - [ ] one architecture diagram
@@ -288,6 +289,22 @@ If time is short, do this in order:
 5. Export + judge-pack + publish the run
 6. Promote mainnet proof to top slot on the site
 7. Capture screenshots + record backup demo video
+8. Fill Devfolio with canonical copy + track labels
+9. Submit
+
+---
+
+## 11. What is *not* left
+
+These are **not** the bottlenecks anymore:
+- broad protocol redesign
+- more Solidity feature work
+- waiting on another generic planning cycle
+- proving Sepolia/local from scratch again
+
+Those proof layers already exist.
+The remaining job is to **execute the mainnet proof + package it clearly**.
+ots + record backup demo video
 8. Fill Devfolio with canonical copy + track labels
 9. Submit
 
