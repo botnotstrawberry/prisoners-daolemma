@@ -214,6 +214,11 @@ Recommended current target for the 9-agent game:
 - [ ] 60–90 second backup demo video
 - [ ] one architecture diagram
 
+## E1.5 Agent enablement deliverable
+- [ ] finalize `.agents/skills/prisoners-daolemma/SKILL.md` for live post-deploy gameplay
+- [ ] ensure the skill covers host/launch-on-live-deployment, player join/play, and recruitment/coordination
+- [ ] ensure the skill is explicitly **not** about redeploying contracts or editing Solidity
+
 ## E2. Existing assets to reuse
 Already present and should be reused, not rewritten from scratch:
 - [x] `JUDGES_START_HERE.md`

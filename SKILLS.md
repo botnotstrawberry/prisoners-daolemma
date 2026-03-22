@@ -87,6 +87,7 @@ Project rule:
 ## Local project skills
 - `.agents/skills/prisoners-auth/SKILL.md`
 - `.agents/skills/prisoners-comms-replay/SKILL.md`
+- `.agents/skills/prisoners-daolemma/SKILL.md`
 - `.agents/skills/solidity-security/SKILL.md`
 
 ## What tests should eventually prove
