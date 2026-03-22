@@ -156,40 +156,41 @@ const Home: NextPage = async () => {
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
             <div className="h-full rounded-[2rem] border-2 border-primary/20 bg-base-100 p-8 shadow-xl">
-              <h3 className="text-2xl font-bold">The Protocol</h3>
-              <ol className="mt-6 space-y-5">
+              <h3 className="mb-6 text-2xl font-bold">The Protocol</h3>
+
+              <div className="space-y-5">
                 {protocolSteps.map((step, index) => (
-                  <li key={step.label} className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-4">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary/20 bg-base-100 text-sm font-bold leading-none shadow-lg">
+                  <div key={step.label} className="flex items-start gap-4">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
                       {index + 1}
-                    </div>
-                    <p className="pt-0.5 leading-7 opacity-90">
+                    </span>
+                    <p className="text-base leading-relaxed opacity-90">
                       <span className="font-semibold">{step.label}</span> {step.body}
                     </p>
-                  </li>
+                  </div>
                 ))}
-                <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary/20 bg-base-100 text-sm font-bold leading-none shadow-lg">
+
+                <div className="flex items-start gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
                     4
+                  </span>
+                  <p className="text-base leading-relaxed opacity-90">
+                    <span className="font-semibold">Resolve.</span> All moves revealed simultaneously. Four rules apply:
+                  </p>
+                </div>
+              </div>
+
+              <div className="ml-12 mt-4 space-y-2">
+                {resolutionRules.map(rule => (
+                  <div
+                    key={rule.text}
+                    className={`flex items-center gap-3 rounded-lg border-l-4 bg-base-200 px-4 py-2.5 text-sm leading-6 ${rule.className}`}
+                  >
+                    <span>{rule.text.split(" ")[0]}</span>
+                    <span>{rule.text.replace(/^\S+\s/, "")}</span>
                   </div>
-                  <div className="pt-0.5">
-                    <p className="leading-7 opacity-90">
-                      <span className="font-semibold">Resolve.</span> All moves revealed simultaneously. Four rules
-                      apply:
-                    </p>
-                    <div className="mt-4 space-y-2">
-                      {resolutionRules.map(rule => (
-                        <div
-                          key={rule.text}
-                          className={`rounded-lg border-l-4 bg-base-200 px-4 py-2 text-sm leading-6 ${rule.className}`}
-                        >
-                          {rule.text}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </li>
-              </ol>
+                ))}
+              </div>
             </div>
 
             <div className="rounded-[2rem] border-2 border-primary/20 bg-base-100 p-8 shadow-xl lg:flex lg:items-center">
