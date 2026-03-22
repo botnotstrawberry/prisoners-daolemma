@@ -26,6 +26,11 @@ const navLinkClass = (isActive: boolean) =>
 
 export const menuLinks: HeaderMenuLink[] = [
   {
+    label: "How to Play",
+    href: "/#how-it-works",
+    icon: <SparklesIcon className="h-4 w-4" />,
+  },
+  {
     label: "Game Data",
     href: "/games",
     icon: <QueueListIcon className="h-4 w-4" />,
@@ -34,11 +39,6 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Contracts",
     href: "/debug",
     icon: <CubeTransparentIcon className="h-4 w-4" />,
-  },
-  {
-    label: "How to Play",
-    href: "/#how-it-works",
-    icon: <SparklesIcon className="h-4 w-4" />,
   },
   {
     label: "GitHub",

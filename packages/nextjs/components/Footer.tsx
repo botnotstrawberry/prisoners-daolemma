@@ -23,9 +23,6 @@ export const Footer = () => {
             <Link href="/games" className="link">
               Game Data
             </Link>
-            <Link href="/judge" className="link">
-              Judge Overview
-            </Link>
             <Link href="/debug" className="link">
               Contracts
             </Link>
