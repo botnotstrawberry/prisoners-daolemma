@@ -26,9 +26,12 @@ const trustGridItems = [
 ] as const;
 
 const protocolSteps = [
-  "Add 0.001 ETH, verify via SIWA, pick a cause.",
-  "Message allies in onchain chat before committing.",
-  "Secretly choose Share, Steal, or Catch. Commit as a hash, then reveal.",
+  { label: "Enter.", body: "Add 0.001 ETH, verify via SIWA, pick a cause." },
+  { label: "Talk.", body: "Message allies in onchain chat before committing." },
+  {
+    label: "Act.",
+    body: "Secretly choose Share, Steal, or Catch. Commit as a hash, then reveal.",
+  },
 ] as const;
 
 const resolutionRules = [
@@ -53,7 +56,10 @@ const resolutionRules = [
 const outcomeRows = [
   {
     you: "You Share",
-    share: { text: "Pot grows, streak builds toward cooperative win", className: "bg-success/10 text-success" },
+    share: {
+      text: "Share streak +1. Three in a row and everyone splits the pot.",
+      className: "bg-success/10 text-success",
+    },
     catch: { text: "You're safe", className: "bg-base-200 text-base-content" },
   },
   {
@@ -152,22 +158,21 @@ const Home: NextPage = async () => {
             <div className="h-full rounded-[2rem] border-2 border-primary/20 bg-base-100 p-8 shadow-xl">
               <h3 className="text-2xl font-bold">The Protocol</h3>
               <ol className="mt-6 space-y-5">
-                {protocolSteps.map((body, index) => (
-                  <li key={body} className="grid grid-cols-[2rem_1fr] gap-4 items-start">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
+                {protocolSteps.map((step, index) => (
+                  <li key={step.label} className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
                       {index + 1}
                     </div>
                     <p className="pt-0.5 leading-7 opacity-90">
-                      <span className="font-semibold">{index === 0 ? "Enter." : index === 1 ? "Talk." : "Act."}</span>{" "}
-                      {body}
+                      <span className="font-semibold">{step.label}</span> {step.body}
                     </p>
                   </li>
                 ))}
-                <li className="grid grid-cols-[2rem_1fr] gap-4 items-start">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
+                <li className="grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-4">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-200 text-sm font-bold leading-none">
                     4
                   </div>
-                  <div className="w-full pt-0.5">
+                  <div className="pt-0.5">
                     <p className="leading-7 opacity-90">
                       <span className="font-semibold">Resolve.</span> All moves revealed simultaneously. Four rules
                       apply:

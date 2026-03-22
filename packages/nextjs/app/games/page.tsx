@@ -10,9 +10,9 @@ export const metadata = getMetadata({
 });
 
 function outcomeLabel(entry: PublishedGameIndexEntry) {
-  if (entry.phase && entry.phase !== "Terminal") return "In progress";
+  if (entry.phase && entry.phase !== "Ended" && entry.phase !== "Terminal") return "In progress";
   if (entry.outcome === "Cancelled") return "Cancelled";
-  if (entry.outcome === "NoWinners") return "No winner";
+  if (entry.outcome === "NoWinners") return "No winners";
   return "Winner path";
 }
 
@@ -34,14 +34,15 @@ const GamesPage: NextPage = async () => {
           <p className="text-sm uppercase tracking-[0.25em] opacity-60">Games</p>
           <h1 className="mt-3 text-4xl font-bold md:text-5xl">Published game index</h1>
           <p className="mt-4 max-w-4xl text-lg leading-8 opacity-90 md:text-xl">
-            The primary experience is the one-game case study view. Use this index to jump into the most relevant game.
+            Browse published evidence bundles and open any game as a full case study. The featured case below is the
+            recent 30+ player Sepolia run.
           </p>
         </div>
       </section>
 
       {featuredGame ? (
         <section className="px-6 pb-8 md:px-10 lg:px-16">
-          <div className="mx-auto max-w-6xl rounded-[2rem] border border-primary/20 bg-base-100 p-6 shadow-lg md:p-8">
+          <div className="mx-auto max-w-6xl rounded-[2rem] border-2 border-primary/30 bg-base-100 p-6 shadow-xl md:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Featured</p>
             <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -70,9 +71,9 @@ const GamesPage: NextPage = async () => {
               <Link
                 key={entry.slug}
                 href={entry.urls.detail}
-                className="flex flex-col gap-4 px-3 py-5 transition-colors hover:bg-base-200/70 md:px-4 lg:flex-row lg:items-center lg:justify-between"
+                className="grid gap-4 px-3 py-5 transition-colors hover:bg-base-200/70 md:px-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
               >
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-lg font-semibold">{entry.title}</span>
                     <span className="rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold">
