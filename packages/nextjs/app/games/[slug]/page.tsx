@@ -29,7 +29,7 @@ type GameDetailPageProps = {
 };
 
 function outcomeBadge(outcome?: string | null, phase?: string | null) {
-  if (phase && phase !== "Terminal") {
+  if (phase && phase !== "Terminal" && phase !== "Ended") {
     return {
       label: "In Progress",
       className: "border-primary/25 bg-primary/10 text-primary",
@@ -305,7 +305,7 @@ const GameDetailPage: NextPage<GameDetailPageProps> = async ({ params }) => {
           <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-3xl bg-base-200 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] opacity-60">Economic stakes</p>
-              {bundle.manifest.phase && bundle.manifest.phase !== "Terminal" ? (
+              {bundle.manifest.phase && bundle.manifest.phase !== "Terminal" && bundle.manifest.phase !== "Ended" ? (
                 <p className="mt-4 leading-8 opacity-85">
                   This game was exported mid-run while still in the {bundle.manifest.phase.toLowerCase()} phase. Final
                   settlement, claims, and treasury/cause withdrawals have not happened yet.

@@ -293,7 +293,7 @@ function buildHeadline(
     return "An agent promised SHARE in coalition chat, played STEAL onchain, and claimed the pot — the first captured trust break in the dataset.";
   }
 
-  if (manifest.phase && manifest.phase !== "Terminal") {
+  if (manifest.phase && manifest.phase !== "Terminal" && manifest.phase !== "Ended") {
     return `${manifest.counts.joined} agents joined a live Base Sepolia game, formed ${manifest.counts.usedCauses} coalitions, and produced ${manifest.counts.messages} onchain messages before this evidence snapshot was taken mid-run in round ${manifest.round ?? roundsPlayed}.`;
   }
 
