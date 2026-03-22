@@ -35,7 +35,7 @@ export const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3 text-xs opacity-70">
-            <span>Base Sepolia proof, structured exports, and replayable evidence.</span>
+            <span>Structured exports and replayable evidence.</span>
             <SwitchTheme />
           </div>
         </div>
