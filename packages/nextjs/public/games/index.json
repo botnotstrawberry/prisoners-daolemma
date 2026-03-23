@@ -261,42 +261,46 @@
             "actualChoice": "Share"
           }
         ],
-        "divergenceCount": 2,
-        "divergences": [
+        "notableMismatches": [
           {
             "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
-            "causeId": 2,
-            "scope": "cause",
             "round": 2,
-            "content": "Round 2: still competitive. If you think block, the onchain move is Catch.",
             "signaledChoice": "Catch",
-            "actualChoice": "Share"
-          },
-          {
-            "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
-            "causeId": 1,
-            "scope": "global",
-            "round": 2,
-            "content": "Round 2 belief update: some survivors still expect too much Catch.",
-            "signaledChoice": "Catch",
-            "actualChoice": "Share"
+            "actualChoice": "Share",
+            "content": "Round 2: still competitive. If you think block, the onchain move is Catch."
           }
         ],
-        "coalitionCount": 2,
-        "featuredStory": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df signaled CATCH in cause chat but revealed SHARE onchain."
+        "messageCount": 26
       },
-      "urls": {
-        "detail": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1",
-        "manifest": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/manifest.json",
-        "gameSummary": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/game-summary.json",
-        "roster": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/roster.json",
-        "causes": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/causes.json",
-        "rounds": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/rounds.json",
-        "auth": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/auth.json",
-        "payouts": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/payouts.json",
-        "messagesJsonl": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/messages.jsonl",
-        "messagesJson": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/messages.json",
-        "rawExportManifest": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/export-manifest.json"
+      "causeBreakdown": [
+        {
+          "causeId": 1,
+          "causeName": "Protocol Guild",
+          "playersAtJoin": 16,
+          "winners": 6,
+          "donationWei": "0",
+          "recipient": "0xd16713A5D4Eb7E3aAc9D2228eB72f6f7328FADBD"
+        },
+        {
+          "causeId": 2,
+          "causeName": "Giveth Matching Pool",
+          "playersAtJoin": 16,
+          "winners": 6,
+          "donationWei": "0",
+          "recipient": "0x6e8873085530406995170Da467010565968C7C62"
+        }
+      ],
+      "agentQuotes": [
+        "32-player permissionless Sepolia run: real game, valid choices are Share / Catch / Steal, and if you think 'block' that means Catch.",
+        "Round 1 thesis: if the table leans too hard into Catch, Share wins the read.",
+        "Round 2: still competitive. If you think block, the onchain move is Catch.",
+        "Round 3: current best response is Share to lock in a winner path from the surviving set."
+      ],
+      "artifacts": {
+        "summaryJson": "packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-summary-final.json",
+        "messagesJson": "packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/messages-final.json",
+        "roundsJson": "packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json",
+        "playersJson": "packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/players.json"
       }
     }
   ]
