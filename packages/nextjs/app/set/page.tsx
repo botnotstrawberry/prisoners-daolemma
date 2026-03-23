@@ -1,5 +1,5 @@
-import type { Metadata, NextPage } from "next";
 import { OwnerCauseSetter } from "./_components/OwnerCauseSetter";
+import type { Metadata, NextPage } from "next";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata: Metadata = {

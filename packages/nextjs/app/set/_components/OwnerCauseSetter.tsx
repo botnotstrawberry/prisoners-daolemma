@@ -1,16 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Address, Hex, isAddress, isAddressEqual } from "viem";
-import {
-  useDeployedContractInfo,
-  useScaffoldReadContract,
-  useScaffoldWriteContract,
-  useTargetNetwork,
-} from "~~/hooks/scaffold-eth";
+import { baseSepolia } from "viem/chains";
+import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import deployedContracts from "~~/contracts/deployedContracts";
 
 const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex;
+const prisonersContract = deployedContracts[baseSepolia.id].PrisonersDAOlemma;
 
 const truncateHex = (value?: string) => {
   if (!value) return "—";
@@ -64,16 +61,12 @@ const CauseCard = ({ causeId, active, recipient, metadataHash, onLoad }: CauseCa
 };
 
 export const OwnerCauseSetter = () => {
-  const { address: connectedAddress, isConnected } = useAccount();
-  const { targetNetwork } = useTargetNetwork();
-  const { data: deployedContractData, isLoading: contractLoading } = useDeployedContractInfo({
-    contractName: "PrisonersDAOlemma",
-  });
-  const { writeContractAsync, isMining } = useScaffoldWriteContract({ contractName: "PrisonersDAOlemma" });
+  const { address: connectedAddress, chainId, isConnected } = useAccount();
+  const { writeContractAsync, isPending: isWriting } = useWriteContract();
 
   const [causeIdInput, setCauseIdInput] = useState("1");
   const [recipientInput, setRecipientInput] = useState("");
-  const [metadataHashInput, setMetadataHashInput] = useState(ZERO_HASH);
+  const [metadataHashInput, setMetadataHashInput] = useState<string>(ZERO_HASH);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedTxHash, setSubmittedTxHash] = useState<Hex | null>(null);
 
@@ -82,51 +75,82 @@ export const OwnerCauseSetter = () => {
     if (!/^\d+$/.test(trimmed)) return null;
     const parsed = Number(trimmed);
     if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 65535) return null;
-    return BigInt(parsed);
+    return parsed;
   }, [causeIdInput]);
 
   const recipient = recipientInput.trim();
   const metadataHash = metadataHashInput.trim();
   const isRecipientValid = isAddress(recipient);
   const isMetadataHashValid = isBytes32(metadataHash);
+  const onCorrectChain = chainId === baseSepolia.id;
 
-  const { data: owner } = useScaffoldReadContract({
-    contractName: "PrisonersDAOlemma",
+  const ownerRead = useReadContract({
+    chainId: baseSepolia.id,
+    address: prisonersContract.address,
+    abi: prisonersContract.abi,
     functionName: "owner",
   });
+  const owner = ownerRead.data;
 
-  const { data: causeCount } = useScaffoldReadContract({
-    contractName: "PrisonersDAOlemma",
+  const causeCountRead = useReadContract({
+    chainId: baseSepolia.id,
+    address: prisonersContract.address,
+    abi: prisonersContract.abi,
     functionName: "causeCount",
   });
+  const causeCount = causeCountRead.data;
 
-  const { data: selectedCause } = useScaffoldReadContract({
-    contractName: "PrisonersDAOlemma",
+  const selectedCauseRead = useReadContract({
+    chainId: baseSepolia.id,
+    address: prisonersContract.address,
+    abi: prisonersContract.abi,
     functionName: "getCause",
-    args: [selectedCauseId ?? 0n],
+    args: [selectedCauseId ?? 0] as const,
     query: {
       enabled: selectedCauseId !== null,
     },
   });
+  const selectedCause = selectedCauseRead.data;
 
-  const { data: causeOne } = useScaffoldReadContract({
-    contractName: "PrisonersDAOlemma",
+  const causeOneRead = useReadContract({
+    chainId: baseSepolia.id,
+    address: prisonersContract.address,
+    abi: prisonersContract.abi,
     functionName: "getCause",
-    args: [1n],
+    args: [1] as const,
   });
+  const causeOne = causeOneRead.data;
 
-  const { data: causeTwo } = useScaffoldReadContract({
-    contractName: "PrisonersDAOlemma",
+  const causeTwoRead = useReadContract({
+    chainId: baseSepolia.id,
+    address: prisonersContract.address,
+    abi: prisonersContract.abi,
     functionName: "getCause",
-    args: [2n],
+    args: [2] as const,
   });
+  const causeTwo = causeTwoRead.data;
 
   const connectedIsOwner = Boolean(connectedAddress && owner && isAddressEqual(connectedAddress, owner as Address));
-  const blockExplorerUrl = targetNetwork.blockExplorers?.default?.url;
-  const contractAddressUrl = blockExplorerUrl && deployedContractData?.address
-    ? `${blockExplorerUrl}/address/${deployedContractData.address}`
-    : undefined;
+  const blockExplorerUrl = baseSepolia.blockExplorers?.default?.url;
+  const contractAddressUrl = blockExplorerUrl ? `${blockExplorerUrl}/address/${prisonersContract.address}` : undefined;
   const txUrl = blockExplorerUrl && submittedTxHash ? `${blockExplorerUrl}/tx/${submittedTxHash}` : undefined;
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    chainId: baseSepolia.id,
+    hash: submittedTxHash ?? undefined,
+    query: {
+      enabled: Boolean(submittedTxHash),
+    },
+  });
+
+  useEffect(() => {
+    if (!isConfirmed) return;
+    void selectedCauseRead.refetch();
+    void causeOneRead.refetch();
+    void causeTwoRead.refetch();
+    void causeCountRead.refetch();
+    void ownerRead.refetch();
+  }, [causeCountRead, causeOneRead, causeTwoRead, isConfirmed, ownerRead, selectedCauseRead]);
 
   const loadCause = (causeId: number, nextRecipient?: string, nextMetadataHash?: string) => {
     setCauseIdInput(String(causeId));
@@ -144,6 +168,11 @@ export const OwnerCauseSetter = () => {
       return;
     }
 
+    if (!onCorrectChain) {
+      setSubmitError("Wallet must be connected to Base Sepolia.");
+      return;
+    }
+
     if (!isRecipientValid) {
       setSubmitError("Recipient must be a valid 0x address.");
       return;
@@ -156,6 +185,9 @@ export const OwnerCauseSetter = () => {
 
     try {
       const txHash = await writeContractAsync({
+        chainId: baseSepolia.id,
+        address: prisonersContract.address,
+        abi: prisonersContract.abi,
         functionName: "whitelistCause",
         args: [selectedCauseId, recipient as Address, metadataHash as Hex],
       });
@@ -174,7 +206,7 @@ export const OwnerCauseSetter = () => {
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-warning">Hidden owner tool</p>
         <h2 className="mt-3 text-3xl font-bold">/set</h2>
         <p className="mt-3 max-w-3xl text-base leading-7 opacity-80">
-          This page is intentionally unlinked. Connect the owner wallet on {targetNetwork.name} and call
+          This page is intentionally unlinked. Connect the owner wallet on {baseSepolia.name} and call
           <span className="mx-2 rounded-full bg-base-100 px-3 py-1 font-mono text-sm shadow-sm">
             whitelistCause(causeId, recipient, metadataHash)
           </span>
@@ -185,24 +217,22 @@ export const OwnerCauseSetter = () => {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-3xl bg-base-100 p-5 shadow-sm">
           <p className="text-xs uppercase tracking-[0.22em] opacity-60">Network</p>
-          <p className="mt-3 text-lg font-semibold">{targetNetwork.name}</p>
+          <p className="mt-3 text-lg font-semibold">{baseSepolia.name}</p>
         </div>
 
         <div className="rounded-3xl bg-base-100 p-5 shadow-sm">
           <p className="text-xs uppercase tracking-[0.22em] opacity-60">Contract</p>
-          {contractLoading ? (
-            <p className="mt-3 text-sm opacity-70">Loading contract…</p>
-          ) : contractAddressUrl ? (
+          {contractAddressUrl ? (
             <a
               href={contractAddressUrl}
               target="_blank"
               rel="noreferrer"
               className="mt-3 block break-all font-mono text-sm text-primary hover:opacity-80"
             >
-              {deployedContractData?.address}
+              {prisonersContract.address}
             </a>
           ) : (
-            <p className="mt-3 text-sm text-error">Contract not found on selected chain.</p>
+            <p className="mt-3 text-sm text-error">Contract explorer link unavailable.</p>
           )}
         </div>
 
@@ -214,8 +244,8 @@ export const OwnerCauseSetter = () => {
         <div className="rounded-3xl bg-base-100 p-5 shadow-sm">
           <p className="text-xs uppercase tracking-[0.22em] opacity-60">Connected wallet</p>
           <p className="mt-3 break-all font-mono text-sm">{connectedAddress || "Not connected"}</p>
-          <span className={`badge mt-3 ${connectedIsOwner ? "badge-success" : "badge-ghost"}`}>
-            {connectedIsOwner ? "Owner connected" : "Owner not connected"}
+          <span className={`badge mt-3 ${connectedIsOwner && onCorrectChain ? "badge-success" : "badge-ghost"}`}>
+            {connectedIsOwner && onCorrectChain ? "Owner ready" : "Needs owner on Base Sepolia"}
           </span>
         </div>
       </div>
@@ -226,7 +256,9 @@ export const OwnerCauseSetter = () => {
             <p className="text-xs uppercase tracking-[0.22em] opacity-60">Current slots</p>
             <h3 className="mt-2 text-2xl font-bold">Quick load cause slots</h3>
           </div>
-          <p className="text-sm opacity-70">Current cause count: {causeCount !== undefined ? causeCount.toString() : "…"}</p>
+          <p className="text-sm opacity-70">
+            Current cause count: {causeCount !== undefined ? causeCount.toString() : "…"}
+          </p>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -254,7 +286,11 @@ export const OwnerCauseSetter = () => {
               <p className="text-xs uppercase tracking-[0.22em] opacity-60">Owner write</p>
               <h3 className="mt-2 text-2xl font-bold">Set donation recipient</h3>
             </div>
-            <button type="button" className="btn btn-ghost btn-sm rounded-full" onClick={() => setMetadataHashInput(ZERO_HASH)}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm rounded-full"
+              onClick={() => setMetadataHashInput(ZERO_HASH)}
+            >
               Zero metadata hash
             </button>
           </div>
@@ -318,7 +354,11 @@ export const OwnerCauseSetter = () => {
           {submittedTxHash && txUrl ? (
             <div className="alert alert-success mt-5 text-sm">
               <span>
-                Submitted. <a href={txUrl} target="_blank" rel="noreferrer" className="font-medium underline">View tx</a>
+                Submitted.{" "}
+                <a href={txUrl} target="_blank" rel="noreferrer" className="font-medium underline">
+                  View tx
+                </a>
+                {isConfirming ? " (confirming…)" : isConfirmed ? " (confirmed)" : ""}
               </span>
             </div>
           ) : null}
@@ -327,12 +367,23 @@ export const OwnerCauseSetter = () => {
             <button
               type="submit"
               className="btn btn-primary rounded-full px-6"
-              disabled={!isConnected || !connectedIsOwner || !isRecipientValid || !isMetadataHashValid || selectedCauseId === null || isMining}
+              disabled={
+                !isConnected ||
+                !onCorrectChain ||
+                !connectedIsOwner ||
+                !isRecipientValid ||
+                !isMetadataHashValid ||
+                selectedCauseId === null ||
+                isWriting ||
+                isConfirming
+              }
             >
-              {isMining ? "Submitting…" : "Write whitelistCause"}
+              {isWriting || isConfirming ? "Submitting…" : "Write whitelistCause"}
             </button>
             <span className="text-sm opacity-70">
-              {connectedIsOwner ? "Owner wallet ready." : "Connect the owner wallet to enable writes."}
+              {connectedIsOwner && onCorrectChain
+                ? "Owner wallet ready."
+                : "Connect the owner wallet on Base Sepolia to enable writes."}
             </span>
           </div>
         </form>
@@ -362,11 +413,12 @@ export const OwnerCauseSetter = () => {
 
           <div className="mt-6 rounded-2xl border border-base-300 p-4 text-sm leading-7 opacity-80">
             <p>
-              The connected wallet must match <span className="font-mono">owner()</span> or the transaction will revert.
+              The connected wallet must match <span className="font-mono">owner()</span> and be on Base Sepolia or the
+              transaction will revert.
             </p>
             <p className="mt-3">
-              Suggested flow: load slot 1 or 2, paste the recipient wallet, keep metadata hash at zero unless you explicitly
-              want a non-zero bytes32, then submit.
+              Suggested flow: load slot 1 or 2, paste the recipient wallet, keep metadata hash at zero unless you want a
+              specific non-zero bytes32, then submit.
             </p>
             <p className="mt-3">
               Preview: <span className="font-mono">{truncateHex(recipient || selectedCause?.recipient)}</span>

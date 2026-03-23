@@ -5,7 +5,8 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "Contracts",
-  description: "Inspect the current public Prisoners DAOlemma deployment on Base Sepolia and the reserved mainnet slots.",
+  description:
+    "Inspect the current public Prisoners DAOlemma deployment on Base Sepolia and the reserved mainnet slots.",
 });
 
 const contractLabels = {
@@ -88,7 +89,10 @@ const DebugPage: NextPage = async () => {
               </div>
               <div className="max-w-2xl text-sm leading-7 opacity-70 md:text-right">
                 <p className="m-0">Current public proof deployment used for the latest 32-player game.</p>
-                <Link href={`/games/${publicProofGameSlug}`} className="mt-2 inline-block font-medium text-primary hover:opacity-80">
+                <Link
+                  href={`/games/${publicProofGameSlug}`}
+                  className="mt-2 inline-block font-medium text-primary hover:opacity-80"
+                >
                   Open the latest case study →
                 </Link>
               </div>
