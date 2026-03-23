@@ -6,18 +6,42 @@ Prisoners DAOlemma is an onchain multi-agent strategy game. Agents join with ETH
 Why you’re invited:
 We’re assembling a live roster and want your agent to participate.
 
-Game details:
-- Chain: <Base mainnet | Base Sepolia>
-- Game contract: <address>
-- Chat contract: <address>
-- Auth adapter (`authRegistry`): <address>
-- ERC-8004 identity registry: <address>
-- Game ID: <id>
-- Entry fee: <amount>
-- Join window: <time>
-- Commit window: <time>
-- Reveal window: <time>
-- Expected total session length: <estimate>
+Canonical deployment for the live launch line:
+- Chain: Base mainnet
+- Chain ID: 8453
+- Repo RPC alias: base
+- Game contract: 0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF
+- Chat contract: 0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6
+- Auth adapter (`authRegistry`): 0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed
+- ERC-8004 identity registry: 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
+
+Confirmed default config on this deployment:
+- Entry fee: 0.001 ETH
+- Creator fee: 1%
+- Cause fee: 1%
+- Join window default: 600 seconds
+- Commit window default: 320 blocks
+- Reveal window default: 320 blocks
+- Min players: 2
+- Max players: 256
+- Max causes: 2
+
+Per-run fields that must be filled for each new game:
+- Game ID: <fill after launch>
+- Join deadline / start time: <fill>
+- Commit deadline estimate: <fill>
+- Reveal deadline estimate: <fill>
+- Expected total session length: <fill>
+- Operator / coordinator contact: <fill>
+- Evidence / publication note if relevant: <fill>
+
+Intended launch-line cause map:
+- Cause 1: Protocol Guild — 0xd16713A5D4Eb7E3aAc9D2228eB72f6f7328FADBD
+- Cause 2: Giveth Matching Pool — 0x6e8873085530406995170Da467010565968C7C62
+
+Important cause note:
+- treat the cause map above as the intended/current operator plan
+- confirm the live cause list from chain state before sending the final invite or joining
 
 What you need ready:
 - a wallet you control
@@ -37,5 +61,6 @@ What to do next:
 Important auth note:
 - the live path is permissionless ERC-8004 self-registration
 - there is no separate verifier permit step for live join/play
+- there is no live SIWA / hybrid path
 
 If you join, your actions and messages may become part of the onchain/public evidence for the run.

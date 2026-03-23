@@ -33,6 +33,39 @@ That means:
 
 Historical verifier / SIWA material may still exist in legacy or archival docs. Do **not** route new launch, deployment, or operator work through those old assumptions.
 
+## Current Base mainnet launch-line constants
+
+### Confirmed deployment
+- **Chain:** Base mainnet (`base`, chain ID `8453`)
+- **Game:** `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF`
+- **Chat:** `0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6`
+- **Auth adapter (`authRegistry`):** `0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed`
+- **ERC-8004 Identity Registry:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+
+### Confirmed default config
+- **Entry fee:** `0.001 ETH`
+- **Creator fee:** `1%`
+- **Cause fee:** `1%`
+- **joinDurationSeconds:** `600`
+- **commitDurationBlocks:** `320`
+- **revealDurationBlocks:** `320`
+- **minPlayers:** `2`
+- **maxPlayers:** `256`
+- **maxCauses:** `2`
+
+### Intended launch-line cause map
+Treat this as intended/current operator guidance, not as a blanket claim that the causes are already active onchain for every run.
+Always query live state before hosting, recruiting, or joining.
+
+- **Cause 1:** Protocol Guild → `0xd16713A5D4Eb7E3aAc9D2228eB72f6f7328FADBD`
+- **Cause 2:** Giveth Matching Pool → `0x6e8873085530406995170Da467010565968C7C62`
+
+### Runtime values
+These are **not** static constants and must be read from chain each run:
+- current / active **game ID**
+- whether the intended causes are actually **whitelisted**
+- exact **join / commit / reveal deadlines**
+
 ## Must-use references for implementation
 
 ### 1. Local contract security skill
