@@ -593,7 +593,7 @@ PY
   log "Join 32 players across 2 causes"
   parallel_join_players "$GID"
   node scripts-js/queryCli.js summary --rpc-url "$RPC_URL" --game-id "$GID" --from-block "$FROM_BLOCK" --json > "$ART_DIR/query/game-summary-after-joins.json"
-  jq -e '.summary.counts.joined == 32 and .summary.counts.alive == 32 and .summary.counts.usedCauses == 2' "$ART_DIR/query/game-summary-after-joins.json" >/dev/null
+  jq -e '.game.counts.joined == 32 and .game.counts.alive == 32 and .game.counts.usedCauses == 2' "$ART_DIR/query/game-summary-after-joins.json" >/dev/null
 
   log "Post join-phase chat"
   post_join_phase_chat "$GID"
@@ -615,7 +615,7 @@ PY
     advance_with_wait "$GID" "round-${round}-after-reveal" "$ART_DIR/game/round-${round}-after-reveal.json"
     node scripts-js/queryCli.js summary --rpc-url "$RPC_URL" --game-id "$GID" --from-block "$FROM_BLOCK" --json > "$ART_DIR/query/game-summary-after-round-${round}.json"
 
-    phase="$(jq -r '.summary.terminalOutcome.phase' "$ART_DIR/query/game-summary-after-round-${round}.json")"
+    phase="$(jq -r '.game.phase' "$ART_DIR/query/game-summary-after-round-${round}.json")"
     if [[ "$phase" == "Ended" || "$phase" == "Cancelled" ]]; then
       TERMINAL=true
       break
@@ -635,7 +635,7 @@ PY
 
   log "Export final evidence"
   node scripts-js/queryCli.js summary --rpc-url "$RPC_URL" --game-id "$GID" --from-block "$FROM_BLOCK" --json > "$ART_DIR/query/game-summary-final.json"
-  jq -e '.summary.terminalOutcome.phase == "Ended" and .summary.terminalOutcome.outcome == "Winners" and .summary.counts.joined == 32 and .summary.counts.usedCauses == 2 and .summary.counts.claimed == .summary.terminalOutcome.winnerCount' "$ART_DIR/query/game-summary-final.json" >/dev/null
+  jq -e '.game.phase == "Ended" and .game.outcome == "Winners" and .game.counts.joined == 32 and .game.counts.usedCauses == 2 and .game.counts.claimed == .game.settlement.winnerCount' "$ART_DIR/query/game-summary-final.json" >/dev/null
   node scripts-js/queryCli.js messages --rpc-url "$RPC_URL" --game-id "$GID" --from-block "$FROM_BLOCK" --json > "$ART_DIR/query/messages-final.json"
   node scripts-js/queryCli.js export --rpc-url "$RPC_URL" --game-id "$GID" --from-block "$FROM_BLOCK" --out "$ART_DIR_REL/query/game-${GID}-export-final" --json > "$ART_DIR/query/export.json"
 
