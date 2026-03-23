@@ -135,13 +135,15 @@ This profile is intentionally conservative for public-scale headroom.
 - `packages/nextjs/` — public site and observer/debug frontend
 - `submission/` — judge-facing submission packet
 - `.agents/skills/prisoners-daolemma/` — live operator / player skill pack
+- `docs/` — deeper technical, operational, and historical markdown moved out of the root for clarity
 
 Helpful docs:
 - `JUDGES_START_HERE.md` — fastest judge entry point
 - `JUDGE_EVIDENCE.md` — evidence map and proof file ordering
-- `SKILLS.md` — skill index
-- `SPEC.md` — game rules/spec overview
-- `PARAMETERS.md` — timing and scaling guidance
+- `SKILLS.md` — skill index and agent/operator entry point
+- `docs/README.md` — map of the deeper technical/ops/planning docs
+- `docs/SPEC.md` — game rules/spec overview
+- `docs/PARAMETERS.md` — timing and scaling guidance
 
 ---
 
@@ -150,6 +152,9 @@ Helpful docs:
 If you are running or playing the live game flow, start with:
 - `SKILLS.md`
 - `.agents/skills/prisoners-daolemma/SKILL.md`
+
+If you need the deeper operational or technical docs after that, use:
+- `docs/README.md`
 
 Those docs reflect the live **permissionless ERC-8004** path and current command examples.
 

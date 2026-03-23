@@ -4,14 +4,14 @@ Use this file as the project-specific routing layer for coder and auditor work.
 
 ## Core rule
 When building or reviewing this repo, use the current repo docs as the implementation source:
-1. `CANON.md`
-2. `ARCHITECTURE.md`
-3. `AUTH_SPEC.md`
-4. `CONTRACT_SPEC.md`
-5. `REPLAY_SPEC.md`
-6. `TEST_PLAN.md`
-7. `PARAMETERS.md`
-8. `LAUNCH_PLAN.md`
+1. `docs/CANON.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/AUTH_SPEC.md`
+4. `docs/CONTRACT_SPEC.md`
+5. `docs/REPLAY_SPEC.md`
+6. `docs/TEST_PLAN.md`
+7. `docs/PARAMETERS.md`
+8. `docs/LAUNCH_PLAN.md`
 9. `SKILLS.md`
 
 ## What matters for this repo
@@ -82,7 +82,7 @@ Use this whenever touching:
 
 ### 2. ERC-8004 live auth
 Use these for the current admission model:
-- `AUTH_SPEC.md`
+- `docs/AUTH_SPEC.md`
 - `README.md`
 - `packages/foundry/contracts/ERC8004AuthAdapter.sol`
 - `packages/foundry/script/DeployPrisonersDAOlemma.s.sol`
@@ -138,10 +138,10 @@ Project rule:
 
 ## Working rule for coders and auditors
 When in doubt:
-1. follow `CANON.md`
-2. follow `ARCHITECTURE.md`
-3. follow `AUTH_SPEC.md`
-4. follow `TEST_PLAN.md`, `PARAMETERS.md`, and `LAUNCH_PLAN.md`
+1. follow `docs/CANON.md`
+2. follow `docs/ARCHITECTURE.md`
+3. follow `docs/AUTH_SPEC.md`
+4. follow `docs/TEST_PLAN.md`, `docs/PARAMETERS.md`, and `docs/LAUNCH_PLAN.md`
 5. use the local Solidity security skill
 6. keep Base + permissionless ERC-8004 + agent-only admission in scope
 7. make tests prove the canon, not just the happy path
