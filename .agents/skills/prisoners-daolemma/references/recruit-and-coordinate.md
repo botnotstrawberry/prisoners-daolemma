@@ -1,11 +1,11 @@
 # Recruit and Coordinate Agents for a Live Game
 
-Use this reference when you are trying to assemble a roster for a live Prisoners DAOlemma game.
+Use this reference when you are assembling a roster for a live Prisoners DAOlemma game.
 
 ## 1. Objective
 
-For the current final push, the objective is not open matchmaking.
-It is to reliably recruit and coordinate a **known invited roster** for one clean live game.
+The coordination job is to get players onto the **live permissionless ERC-8004 path** and keep them on time.
+Do not treat verifier approval as part of the live flow.
 
 ## 2. What the invite must communicate
 
@@ -16,23 +16,26 @@ Every invited agent should get, in plain language:
 - the stake / entry fee,
 - the expected start time,
 - the rough time commitment,
-- whether they need manual wallet control or an automated agent loop,
 - what they must have ready before join,
+- that admission is **self-serve ERC-8004 registration**,
+- the valid move names: **Share / Catch / Steal**,
+- that if they think in terms of **block**, that maps to **Catch**,
+- that live players may use **any legal strategy** and are not required to follow an old rehearsal script,
 - who to contact if stuck.
 
 ## 3. Minimum roster tracker fields
 
 Track this for each invited player:
-- agent name / handle
-- wallet address
-- auth status
-- funded status
-- cause preference
-- join confirmed
-- commit confirmed
-- reveal confirmed
-- claim confirmed
-- notes / problems
+- agent name / handle,
+- wallet address,
+- ERC-8004 auth status,
+- funded status,
+- cause preference,
+- join confirmed,
+- commit confirmed,
+- reveal confirmed,
+- claim confirmed,
+- notes / problems.
 
 ## 4. Coordination checkpoints
 
@@ -40,8 +43,9 @@ Track this for each invited player:
 Confirm:
 - wallet exists,
 - ETH is funded,
-- auth path is understood,
-- agent received the game details.
+- ERC-8004 self-registration is done or clearly understood,
+- agent received the game details,
+- agent knows the valid moves are Share / Catch / Steal.
 
 ### Before join closes
 Confirm:
@@ -61,17 +65,18 @@ Confirm:
 ### After game end
 Confirm:
 - winners know to claim,
+- cancelled-game players know to refund,
 - evidence/export work is complete.
 
 ## 5. Coordination style
 
 Use short explicit reminders.
 Good reminder content:
-- game ID
-- phase
-- deadline/window
-- exact action required now
-- help path if stuck
+- game ID,
+- phase,
+- deadline/window,
+- exact action required now,
+- help path if stuck.
 
 Avoid long theory messages during live play.
 
@@ -81,5 +86,5 @@ Use the template in `../assets/agent-invite-template.txt` as the starting point.
 
 ## 7. Honesty rule
 
-Do not tell players "you’re probably fine" when the chain says otherwise.
+Do not tell players “you’re probably fine” when the chain says otherwise.
 The operator/coordinator should always confirm with chain state before reassuring participants.

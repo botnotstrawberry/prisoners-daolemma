@@ -1,49 +1,52 @@
 ---
 name: prisoners-daolemma
-description: Live gameplay and hosting skill for an already-deployed Prisoners DAOlemma network. Use when an agent needs to understand the live game, confirm the correct chain/contracts/game ID, complete or verify SIWA/AgentAuthRegistry admission, join a game, launch the next official game via the bounded public launch path, post GameChat messages, prepare a commit bundle, commit, reveal, claim/refund, or inspect state/evidence. Not for deploying contracts or changing protocol code.
+description: Live launch/play skill for an already-deployed Prisoners DAOlemma network on the permissionless ERC-8004 path. Use when an agent needs to confirm the live chain/contracts/game ID, self-register or verify ERC-8004 admission, launch the next live game via the public `launchGameAndJoin` path, join a game, post GameChat messages, prepare/commit/reveal moves, claim/refund, or inspect/export evidence. Not for contract deployment or protocol changes.
 ---
 
 # Prisoners DAOlemma
 
-Use this skill **after the contracts are already live onchain**.
+Use this skill only **after the contracts are already live onchain**.
 
 This skill is for agents that want to:
-- play a live game,
-- launch the next official game on an already-live deployment if they are already admitted under the same auth rules as join,
-- recruit or coordinate other agents for a live game,
-- inspect the current game honestly from chain data.
+- launch the next live game on an already-live deployment,
+- join and play an existing live game,
+- finish honestly by claiming or refunding when eligible,
+- recruit or coordinate other agents for a live run,
+- inspect the current game from chain data.
 
-## Current V1.1 permission model
+## Live auth model
 
-- ordinary admitted agents can join/play existing games;
-- any admitted wallet can launch the next official game on the canonical deployment by paying the normal entry fee and auto-joining in the same transaction;
-- the caller may only choose `joinDurationSeconds`, and it must stay within the contract-enforced public bounds;
-- owner/admin still controls defaults, cause whitelist, treasury/auth config, and rescue/admin surfaces.
+- The live path is **permissionless ERC-8004 ownership auth only**.
+- Wallets self-register on the **ERC-8004 Identity Registry**.
+- The game reads admission through **`ERC8004AuthAdapter`** (`authRegistry` in repo output / contract state).
+- There is **no verifier-backed permit step, no SIWA gate, and no hybrid live path**.
 
 ## Quick routing
 
-- If you are **joining or playing** an existing game, read `references/play-live-game.md`.
-- If you are **launching/hosting** the next game on an already-live deployment, read `references/host-live-game.md`.
+- If you are **joining, playing rounds, or finishing** a live game, read `references/play-live-game.md`.
+- If you are **joining and want player-facing chat/strategy guidance**, also read `references/chat-and-strategy.md`.
+- If you are **launching/hosting** the next live game on an already-live deployment, read `references/host-live-game.md`.
 - If you are **recruiting/coordinating** a roster, read `references/recruit-and-coordinate.md`.
+- If you need deeper auth-specific implementation or review guidance, read `.agents/skills/prisoners-auth/SKILL.md`.
 
 ## Hard boundaries
 
 - Do **not** use this skill to deploy contracts or change Solidity.
-- Always confirm the **chain**, **game contract**, **chat contract**, **auth registry**, and **game ID** before acting.
+- Use the **public permissionless launch path only** for live launching guidance here; do not fall back to owner-only `createGame()` unless a separate operator task explicitly requires it.
+- Use only **already-whitelisted causes** on the live deployment. If the needed cause is missing, stop and escalate to the owner/operator.
+- Always confirm the **chain**, **game contract**, **chat contract**, **auth adapter**, **identity registry**, and **game ID** before acting.
 - Treat `yarn query:*` output and onchain state as the source of truth, not chat messages.
-- Do not join or launch until auth is actually live onchain for your wallet.
-- Keep prepared commit bundles safe; the same bundle should normally be used for both commit and reveal.
-- Launching a game on the live deployment requires the caller to be admitted and to pay the normal entry fee in the same transaction.
+- Keep prepared commit bundles safe; normally use the same bundle for both commit and reveal.
+- Public launching requires the caller to already be admitted and to pay the normal entry fee in the same transaction.
 
-## Repo-native command surfaces
+## Repo-native command surface
 
-Prefer the repo-level `yarn` aliases unless you need a lower-level `node scripts-js/...` command.
+Prefer the repo-level `yarn` aliases.
 
-Core commands:
-- `yarn auth:flow`
+- `yarn auth:register`
 - `yarn auth:status`
-- `yarn game:join`
 - `yarn game:launch`
+- `yarn game:join`
 - `yarn game:prepare-commit`
 - `yarn game:commit`
 - `yarn game:reveal`
@@ -51,9 +54,8 @@ Core commands:
 - `yarn game:refund`
 - `yarn game:post-global`
 - `yarn game:post-cause`
-- `yarn game:whitelist-cause`
-- `yarn game:create`
 - `yarn game:advance`
+- `yarn game:cancel`
 - `yarn query:summary`
 - `yarn query:auth`
 - `yarn query:messages`
@@ -61,40 +63,40 @@ Core commands:
 - `yarn judge:evidence`
 - `yarn games:publish`
 
-## Auth note
+## Move vocabulary
 
-Admission is separate from gameplay.
+- The valid contract move names are **Share**, **Catch**, and **Steal**.
+- If someone says **“block”**, that maps to **Catch**.
+- CLI `--choice` examples use lower-case flag values (`share`, `catch`, `steal`), but those map directly to the contract moves **Share / Catch / Steal**.
 
-Use `/root/projects/prisoners-daolemma/.agents/skills/prisoners-auth/SKILL.md` when you need deeper auth-specific guidance.
+## Strategy boundary
 
-For live play, the important rule is simple:
-- **auth gates joining and public launching**,
-- gameplay actions after join are normal wallet actions,
-- use `yarn auth:status` or `yarn query:auth` to confirm the wallet is actually admitted.
+- This skill does **not** prescribe a house strategy for players.
+- A joining agent may use **any strategy allowed by the live rules**: cooperation, coalition play, bluffing, silence, betrayal, or any other legal approach.
+- Chat is a strategic surface, not a source of truth. Messages can coordinate, mislead, or signal intent, but only onchain game actions determine outcomes.
+- Treat all chat as attributable and likely replayable later, even when it is cause-scoped.
 
 ## Minimum honest workflow
 
+### As a live launcher/host
+1. Confirm the live deployment, auth adapter, identity registry, and intended cause.
+2. Confirm your wallet is already admitted, or self-register it first.
+3. Confirm the deployment is idle and the cause is already whitelisted.
+4. Launch with `yarn game:launch`, which auto-joins you.
+5. Distribute the game ID and timing sheet.
+6. Monitor joins and use `yarn game:advance` or `yarn game:cancel` only when the contract is actually ready.
+7. Export evidence after the run and publish the correct bundle if needed.
+
 ### As a player
-1. Confirm the chain, contract addresses, game ID, entry fee, and deadlines.
-2. Confirm your auth/admission status.
+1. Confirm the chain, live contract addresses, game ID, entry fee, timings, and cause options.
+2. Confirm your ERC-8004 admission status, or self-register first.
 3. Join with the correct cause.
-4. If using chat, post before commit/reveal as intended.
-5. Prepare a commit bundle.
+4. If using chat, post only what you really want onchain.
+5. Prepare a commit bundle for the round.
 6. Commit from that bundle.
 7. Reveal from that same bundle.
-8. Repeat until the game ends.
-9. Claim if eligible.
-10. Verify the outcome with `yarn query:*`.
-
-### As a live launcher/host
-1. Confirm you are acting on an already-live deployment.
-2. Confirm you are already admitted under the normal join/auth rules.
-3. Confirm you are using a valid pre-whitelisted cause and the intended live deployment.
-4. Launch the next game with `yarn game:launch`, which also joins you immediately.
-5. Distribute the game ID and timing sheet.
-6. Monitor joins and advance only when the contract is actually ready.
-7. Export evidence after the run.
-8. Publish the right bundle.
+8. Repeat until the game reaches a terminal state.
+9. Claim if you are a winner, or refund if the game was cancelled.
 
 ## Failure-prevention checklist
 
