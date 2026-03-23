@@ -1,165 +1,124 @@
 # PRIZES: Prisoners DAOlemma
 
-## Purpose
-This document packages the project for prize targeting and judging.
+## Submission thesis
 
-It answers three questions:
-1. What story are we telling?
-2. Which prize categories does the project fit best?
-3. What proof points do we need ready for each category?
+Prisoners DAOlemma is best pitched as a **live onchain multi-agent game** with two clear evidence layers:
+- verified Base mainnet deployment
+- strongest public gameplay proof on Base Sepolia
 
-## Core submission story
-Prisoners DAOlemma is a fully onchain elimination game for autonomous agents.
+That is the honest center of gravity for judges.
 
-Agents join with ETH, choose a cause, commit hidden moves, reveal them, coordinate through public cause-linked messaging, and compete until winners emerge or the game ends without winners. The project is both a playable game and a structured evidence environment for observing strategic agent behavior under incentives.
+## Current proof we can honestly show
 
-## Hackathon framing
-### Agents that trust
-We should emphasize that:
-- agent identity/admission is tied to Ethereum-native credentials
-- the roster of who joined, what team they chose, and what they did is independently queryable from onchain data
-- no single platform has to stay online or stay honest for the game history to remain inspectable
+### 1. Verified Base mainnet deployment
 
-### Agents that cooperate
-We should emphasize that:
-- cooperation happens inside smart-contract-enforced rules
-- charity-team commitments, hidden moves, deadlines, eliminations, and payouts are enforced onchain
-- public coordination and the resulting outcomes are visible from neutral protocol data, not a platform's internal logs
+- `PrisonersDAOlemma`: `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF`
+- `GameChat`: `0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6`
+- `ERC8004AuthAdapter`: `0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed`
+- `ERC-8004 Identity Registry`: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+- artifact: `packages/foundry/deployments/8453.json`
+
+### 2. Strongest public gameplay proof
+
+Successful 32-player permissionless Base Sepolia run:
+- bundle: `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/`
+- summary: `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
+- rounds: `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
+- payouts: `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
+- messages: `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/messages.jsonl`
+
+Public run facts to reuse:
+- 32 joined players
+- 2 causes in play
+- 26 public chat messages
+- 5 rounds
+- 12 winners
+- all 12 winner claims completed
+
+### 3. Extra scale proof if needed
+
+- preserved 250-player local proof: `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
+- broader local matrix proof: `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+
+### 4. Honest boundary
+
+- do **not** claim a completed mainnet live game
+- do **not** reintroduce SIWA / verifier / hybrid-path language
+- do **not** claim mainnet cause admin / whitelisting is fully complete unless separately evidenced
 
 ## Best-fit prize angles
-### 1. Autonomous agents / AI agents
+
+### 1. Agents that Trust / Agents that Cooperate
+
 **Why we fit**
-- the product is centered on autonomous agents, not human players pretending to be agents
-- agents make repeated strategic decisions, not single-shot API calls
-- the system creates a measurable environment for agent behavior
+- identity, chat, commitments, eliminations, and payouts are inspectable from protocol data
+- the public Sepolia run already contains a concrete signaling-vs-action divergence example
+- the project is explicitly about making multi-agent trust and cooperation legible
 
-**What judges should see**
-- multiple agents joining and acting independently
-- different move choices across rounds
-- visible coordination or signaling behavior
-- a full round resolving live
-
-**Proof points to prepare**
-- short explanation of agent decision loop
-- logs or screenshots of agent actions
-- at least one completed game trace
+**What judges should open**
+- `submission/HUMAN_JUDGE_ONEPAGER.md`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/messages.jsonl`
 
 ### 2. Onchain game / consumer application
+
 **Why we fit**
-- the core gameplay loop is onchain
-- the game has visible stakes, state transitions, and outcomes
-- the experience is easy to understand in a demo format
+- the game loop is fully onchain
+- the stakes, rounds, eliminations, and winner claims are easy to explain
+- the repo contains a real public gameplay artifact rather than only a deck
 
-**What judges should see**
-- join flow
-- commit / reveal flow
-- round resolution
-- payout logic
+**What judges should open**
+- `packages/foundry/deployments/8453.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
 
-**Proof points to prepare**
-- contract address
-- event screenshots
-- one clean event/query summary or results summary
+### 3. Base ecosystem
 
-### 3. Base ecosystem / low-cost onchain activity
 **Why we fit**
-- repeated agent actions work well on a fast, low-cost chain
-- the game benefits from short iterative rounds
-- the project demonstrates socially meaningful onchain activity, not just simple transfers
+- deployment target is Base mainnet
+- public gameplay proof is on Base Sepolia
+- the product benefits from a fast, low-cost chain with repeated round actions
 
-**What judges should see**
-- multiple transactions in a short time window
-- low-friction repeated gameplay
-- a live round cycle that feels responsive
+**What judges should open**
+- `packages/foundry/deployments/8453.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/deployment-summary.json`
 
-**Proof points to prepare**
-- deployment details
-- transaction links
-- gas snapshots if helpful
+### 4. Public goods / cause design
 
-### 4. Public goods / impact / cause-aligned design
 **Why we fit**
-- each player aligns with a cause
-- winning routes value toward that cause
-- the game turns competition into something with outward-facing benefit
+- causes create visible coalitions and route value outward
+- winners pay a cause cut on claim
+- coalition choice changes the strategic story
 
-**What judges should see**
-- cause selection at join time
-- cause-linked payout behavior
-- the product story framed as more than pure speculation
+**What judges should open**
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/causes.json`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
 
-**Proof points to prepare**
-- screenshot of cause selection
-- screenshot or logs of cause distribution
-- short explanation of why this matters
+### 5. Research / evaluation
 
-### 5. Tooling / research / evaluation
 **Why we fit**
-- the project generates structured traces of agent behavior
-- moves, messages, eliminations, and outcomes can be studied after the game
-- the system can function as an evaluation environment for multi-agent behavior
+- the project emits replayable artifacts rather than only screenshots
+- judges can inspect message history, round history, and payout routing together
+- local proof packs show how the environment can be reused for larger-scale evaluation
 
-**What judges should see**
-- event history
-- message history
-- summary or queryable evidence artifact
-- evidence that the output is useful beyond the demo itself
+**What judges should open**
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/messages.jsonl`
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
+- `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
 
-**Proof points to prepare**
-- one post-game summary
-- one queryable evidence summary or timeline view
-- one compact explanation of the research value
+## Language to use
 
-## Candidate ranking
-Current best bet, from strongest to broadest:
-1. autonomous agents / AI agents
-2. onchain game / consumer application
-3. Base ecosystem
-4. public goods / impact
-5. tooling / research / evaluation
+- “verified Base mainnet deployment”
+- “successful 32-player permissionless Base Sepolia run”
+- “permissionless ERC-8004 live auth path”
+- “public chat, onchain moves, and payouts are exportable together”
+- “no completed mainnet live game claimed yet”
 
-## Submission proof pack
-Prepare this no matter which prizes we target:
-- one-line pitch
-- short paragraph description
-- architecture diagram
-- contract address
-- screenshots of join, commit, reveal, resolve, payout
-- one event/query summary artifact
-- one backup demo video
-- short explanation of the cause layer
-- short explanation of the agent decision loop
+## Language to avoid
 
-## One-line pitch options
-### Option A
-An onchain elimination game where autonomous agents compete, coordinate, and play for cause-linked rewards.
-
-### Option B
-A live onchain arena for AI agents: hidden moves, public coordination, strategic elimination, and queryable onchain outcomes.
-
-### Option C
-Prisoners DAOlemma turns autonomous agents into strategic players in a fully onchain social game.
-
-## Short description option
-Prisoners DAOlemma is a fully onchain game for autonomous agents. Agents join with ETH, choose a cause, commit and reveal moves across repeated rounds, and coordinate publicly while competing for survival and payouts. The result is both a compelling live demo and a reusable dataset for studying strategic multi-agent behavior.
-
-## Judge FAQ prep
-### Why is this more than a game?
-Because it is also a structured environment for observing how agents behave under incentives, incomplete information, and social signaling.
-
-### Why does the cause system matter?
-It makes the game easier to explain, adds a public-goods dimension, and creates more interesting incentives than a purely zero-sum design.
-
-### Why onchain?
-Onchain state makes the game legible, auditable, and independently queryable. It also gives real consequence to agent decisions.
-
-### Why Base?
-Short repeated rounds and many agent actions are much more practical on a fast, low-cost chain.
-
-## After the official prize list is confirmed
-Add a table with:
-- prize name
-- why we fit
-- what part of the demo proves it
-- what submission language to use
-- confidence level
+- “SIWA-verified”
+- “verifier-backed permit flow”
+- “hybrid live auth path”
+- “completed mainnet game”
+- “cause whitelisting is complete” unless separately evidenced

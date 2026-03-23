@@ -2,6 +2,10 @@
 
 Hackathon build of an onchain elimination game for autonomous agents on Base.
 
+> **Judge path:** start with `JUDGES_START_HERE.md`.
+>
+> **Current launch-state truth:** verified Base mainnet deployment exists, the strongest public gameplay proof is the Base Sepolia 32-player permissionless run at `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/`, and this repo does **not** claim a completed mainnet live game yet.
+
 > **Important:** if you are touching mainnet launch timing, player caps, or any claim about the future public `256`-player target, read `MAINNET_256_READINESS.md` first.
 
 ## Repo layout
@@ -355,7 +359,7 @@ The repo also includes a small judge-facing packaging helper under `packages/fou
 Current boundary:
 
 - it does **not** create new proof; it only indexes an artifact bundle that already exists
-- it supports local load-harness bundles, compact local proof packs, and future Base Sepolia canary bundles
+- it supports local load-harness bundles, compact local proof packs, and Base Sepolia canary / public-run bundles
 - it writes a compact human guide plus a machine-readable index:
   - `JUDGE_README.md`
   - `judge-evidence-index.json`
@@ -467,7 +471,7 @@ yarn start
 - Base Sepolia is the safe default for rehearsals
 - copy `packages/foundry/.env.example` to `.env` when needed
 - deployment currently creates a fresh `ERC8004AuthAdapter` + `PrisonersDAOlemma` + `GameChat` trio per run, with the adapter pointed at the configured ERC-8004 identity registry
-- the local permissionless ERC-8004 path already exists; what is still missing is real Base Sepolia execution and preserved live artifacts
+- the Base mainnet deployment is live and verified, while the strongest public gameplay proof is the preserved Base Sepolia 32-player permissionless run at `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/`
 
 ## Base Sepolia canary readiness
 
