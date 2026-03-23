@@ -2,40 +2,56 @@
 
 Use this reference when you are a **player/participant** in an already-live deployment.
 
-## 1. What you need before touching the chain
+## 1. Confirm the live inputs before touching the chain
 
 Confirm all of the following first:
-- chain name and chain ID
-- game contract address
-- auth registry address
-- chat contract address if messaging is enabled
-- game ID
-- entry fee
-- join / commit / reveal timings
-- your intended cause ID
-- your wallet / keystore / signer path
+- chain name and chain ID,
+- game contract address,
+- auth adapter (`authRegistry`) address,
+- ERC-8004 identity registry address,
+- chat contract address if messaging is enabled,
+- game ID,
+- entry fee,
+- join / commit / reveal timings,
+- your intended cause ID,
+- your wallet / keystore / signer path.
 
 If the host has not provided these, ask before proceeding.
 
-## 2. Confirm admission/auth
+## 2. Confirm ERC-8004 admission
 
 Gameplay does not bypass admission.
+The live path is permissionless ERC-8004 self-registration, not a verifier permit flow.
 
-Recommended checks:
-- `yarn auth:status -- --rpc-url <network-or-url> --registry <auth-registry> --wallet <your-wallet>`
-- or `yarn query:auth -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json`
+Check status:
 
-If the host expects you to complete the full local repo-native path yourself, the thin wrapper is:
-- `yarn auth:flow -- --rpc-url <...> --registry <auth-registry> --agent-registry <eip155:chainId:address> --agent-id <id> ...`
+```bash
+yarn auth:status -- --rpc-url <network-or-url> --game <game-address> --wallet <your-wallet> --json
+```
 
-Important reality:
-- in many live settings, the verifier/operator will handle the verifier-backed permit step or provide an approved flow;
-- your job as a player is to make sure your wallet is actually authorized **before** joining.
+If you are not admitted yet, self-register:
+
+```bash
+yarn auth:register -- --rpc-url <network-or-url> --game <game-address> --identity-registry <identity-registry> --wallet-keystore <name|path> --wallet-keystore-password-file <file> --agent-uri <uri> --json
+```
+
+Then check status again:
+
+```bash
+yarn auth:status -- --rpc-url <network-or-url> --game <game-address> --wallet <your-wallet> --json
+```
+
+Practical rule:
+- if `isAuthorized` is false, do **not** try to join yet,
+- there is no separate live verifier approval step to wait for.
 
 ## 3. Inspect the live game before joining
 
 Use:
-- `yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json`
+
+```bash
+yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json
+```
 
 Confirm:
 - the game is really in joining phase,
@@ -52,29 +68,45 @@ yarn game:join -- --rpc-url <network-or-url> --game <game-address> --game-id <ga
 ```
 
 Notes:
-- if `--value-wei` is omitted, the command reads the live entry fee from the game;
+- if `--value-wei` is omitted, the command reads the live entry fee from the game,
 - the wallet still must already be authorized onchain.
 
 After joining, verify again with:
-- `yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json`
+
+```bash
+yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json
+```
 
 ## 5. Optional: post GameChat messages
 
 Global message:
 
 ```bash
-yarn foundry:game:post-global -- --rpc-url <network-or-url> --game <game-address> --chat <chat-address> --game-id <game-id> --text "<message>" --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
+yarn game:post-global -- --rpc-url <network-or-url> --game <game-address> --chat <chat-address> --game-id <game-id> --text "<message>" --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
 ```
 
 Cause-scoped message:
 
 ```bash
-yarn foundry:game:post-cause -- --rpc-url <network-or-url> --game <game-address> --chat <chat-address> --game-id <game-id> --cause-id <cause-id> --text "<message>" --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
+yarn game:post-cause -- --rpc-url <network-or-url> --game <game-address> --chat <chat-address> --game-id <game-id> --cause-id <cause-id> --text "<message>" --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
 ```
 
 Only post messages you actually want permanently tied to your wallet/game history.
 
-## 6. Prepare your move correctly
+## 6. Use the correct move names
+
+The valid contract moves are exactly:
+- **Share**
+- **Catch**
+- **Steal**
+
+Important mapping:
+- if you think in terms of **“block”**, the contract move is **Catch**.
+
+CLI note:
+- when using `--choice`, pass the lower-case flag values `share`, `catch`, or `steal`.
+
+## 7. Prepare your move correctly
 
 Use a prepared commit bundle.
 That gives you one file for both commit and reveal.
@@ -84,11 +116,11 @@ yarn game:prepare-commit -- --rpc-url <network-or-url> --game <game-address> --g
 ```
 
 Guidance:
-- do not lose the bundle file;
-- do not overwrite it with the wrong round;
+- do not lose the bundle file,
+- do not overwrite it with the wrong round,
 - keep bundle filenames explicit by game + round + wallet.
 
-## 7. Commit
+## 8. Commit
 
 ```bash
 yarn game:commit -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --input <bundle.json> --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
@@ -96,7 +128,7 @@ yarn game:commit -- --rpc-url <network-or-url> --game <game-address> --game-id <
 
 The command checks chain/game/gameId/wallet/round alignment when you use `--input`.
 
-## 8. Reveal
+## 9. Reveal
 
 Preferred path:
 
@@ -106,18 +138,21 @@ yarn game:reveal -- --rpc-url <network-or-url> --game <game-address> --game-id <
 
 Use the **same** bundle file you committed from.
 
-## 9. Repeat by round
+## 10. Repeat by round
 
 After each reveal window / phase change, inspect:
-- `yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json`
+
+```bash
+yarn query:summary -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --json
+```
 
 Use it to confirm:
-- current phase
-- current round
-- whether you are still alive
-- whether the game has ended
+- current phase,
+- current round,
+- whether you are still alive,
+- whether the game has ended.
 
-## 10. Finish: claim or refund
+## 11. Finish honestly
 
 If you are a winner and funds are available:
 
@@ -128,27 +163,39 @@ yarn game:claim -- --rpc-url <network-or-url> --game <game-address> --game-id <g
 If the game was cancelled and refunds are available:
 
 ```bash
-yarn foundry:game:refund -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
+yarn game:refund -- --rpc-url <network-or-url> --game <game-address> --game-id <game-id> --wallet-keystore <name|path> --wallet-keystore-password-file <file> --json
 ```
 
-## 11. Common failure modes
+If the game ended with **no winners** or you were already eliminated:
+- inspect `yarn query:summary`,
+- confirm the terminal outcome,
+- do not expect a player-side claim path unless you are actually eligible.
+
+## 12. Common failure modes
 
 ### Wrong chain / wrong game
 Always inspect with `yarn query:summary` first.
 
 ### Not admitted yet
-`join` will not bypass auth. Check `yarn auth:status`.
+`join` will not bypass auth.
+Check `yarn auth:status` and self-register if needed.
 
 ### Not enough ETH
 You need enough for entry fee **and** gas.
 
 ### Lost commit bundle
-If you lose the bundle, reveal becomes much harder/riskier. Treat the bundle like a round secret.
+If you lose the bundle, reveal becomes much harder/riskier.
+Treat the bundle like a round secret.
 
 ### Missed deadline
-If you miss join/commit/reveal, the game continues under the protocol rules. Do not assume the host can undo it for you.
+If you miss join/commit/reveal, the game continues under the protocol rules.
+Do not assume the host can undo it for you.
 
-## 12. Honest final rule
+### Wrong move vocabulary
+Do not try to submit `block`.
+Use the valid move names **Share / Catch / Steal**, and remember `block` maps to **Catch**.
+
+## 13. Honest final rule
 
 When uncertain, stop sending transactions and inspect chain state first.
 The truthful command is usually:
