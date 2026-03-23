@@ -49,9 +49,9 @@ If the task touches **mainnet launch timing**, **player caps**, or any claim abo
 
 ## Current readiness snapshot
 
-For the current done-locally vs still-unproven vs external-blocked split, start with `LOCAL_READINESS.md`.
+For the current repo readiness and honest evidence boundary, start with `LOCAL_READINESS.md`.
 
-That file is intentionally short and should be kept in sync whenever local validation meaningfully advances.
+That file is intentionally short and should be kept in sync whenever the live state, public proof surface, or submission boundary meaningfully changes.
 
 A full preserved 250-player local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`. It carries the raw `report.json`, `txs.jsonl`, per-game evidence export, and generated judge-facing index from a clean scale-profile single-game winner-path run that joined and claimed through all 250 players with explicit 320/320/320 local timing budgets.
 

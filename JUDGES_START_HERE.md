@@ -2,6 +2,8 @@
 
 If you only open one file, open `submission/HUMAN_JUDGE_ONEPAGER.md`.
 
+If you want the repo-native evidence map and structured document index, also open `JUDGE_EVIDENCE.md` and `submission/judge-index.json`.
+
 ## Status at a glance
 
 ### 1. Base mainnet deployment is live and verified
@@ -45,15 +47,22 @@ Open these artifacts first:
 1. `submission/HUMAN_JUDGE_ONEPAGER.md`
 2. `submission/AI_JUDGE_PACKET.md`
 3. `submission/CANONICAL_PITCH.md`
-4. `submission/judge-index.json`
-5. `POST_CANARY_SUMMARY.md`
-6. `packages/foundry/deployments/8453.json`
-7. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
-8. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
-9. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
-10. `packages/nextjs/public/games/index.json`
-11. `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
-12. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+4. `JUDGE_EVIDENCE.md`
+5. `submission/judge-index.json`
+6. `POST_CANARY_SUMMARY.md`
+7. `packages/foundry/deployments/8453.json`
+8. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
+9. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
+10. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
+11. `packages/nextjs/public/games/index.json`
+12. `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
+13. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+
+## Other submission docs
+
+- `submission/JUDGE_FAQ.md`
+- `submission/CORE_STORY.md`
+- `submission/DEVFOLIO_COPY.md`
 
 ## One-sentence takeaway
 

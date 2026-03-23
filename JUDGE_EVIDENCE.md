@@ -2,6 +2,12 @@
 
 This is the repo-native map for the current judge-facing evidence story.
 
+Core cross-links:
+- `JUDGES_START_HERE.md`
+- `submission/HUMAN_JUDGE_ONEPAGER.md`
+- `submission/AI_JUDGE_PACKET.md`
+- `submission/judge-index.json`
+
 It is intentionally conservative:
 - it separates verified deployment proof from public gameplay proof
 - it separates public-chain proof from local scale proof
@@ -34,14 +40,16 @@ If a judge only has a few minutes, use this order:
 
 1. `JUDGES_START_HERE.md`
 2. `submission/HUMAN_JUDGE_ONEPAGER.md`
-3. `POST_CANARY_SUMMARY.md`
-4. `packages/foundry/deployments/8453.json`
-5. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
-6. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
-7. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
-8. `packages/nextjs/public/games/index.json`
-9. `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
-10. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
+3. `submission/AI_JUDGE_PACKET.md`
+4. `submission/judge-index.json`
+5. `POST_CANARY_SUMMARY.md`
+6. `packages/foundry/deployments/8453.json`
+7. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/game-summary.json`
+8. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/rounds.json`
+9. `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final/payouts.json`
+10. `packages/nextjs/public/games/index.json`
+11. `packages/foundry/proof/local/20260316-250-player-single-game-proof/JUDGE_README.md`
+12. `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/JUDGE_README.md`
 
 ## What each layer proves
 

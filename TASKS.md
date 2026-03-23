@@ -8,7 +8,13 @@
 ## Status note
 This checklist is now best treated as a backlog, not as the authoritative completion record.
 
-For the current done-locally vs still-open status, start with `LOCAL_READINESS.md`.
+Important: many checklist items below are historical pre-launch backlog entries. They are **not** the current live auth model, submission status, or judge-facing truth surface.
+
+For the current repo status and honest submission boundary, start with:
+- `JUDGES_START_HERE.md`
+- `JUDGE_EVIDENCE.md`
+- `submission/judge-index.json`
+- `LOCAL_READINESS.md`
 
 ## First read
 Before implementing, use:

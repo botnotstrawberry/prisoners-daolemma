@@ -6,6 +6,7 @@ Launch target: **Base mainnet**.
 Current mainnet status: **deployed and verified**.
 Strongest public gameplay proof: **successful 32-player permissionless Base Sepolia run**.
 For a structured index of docs, contracts, and evidence, see `submission/judge-index.json`.
+For the repo-native evidence map, see `JUDGE_EVIDENCE.md`.
 For published game artifacts, see `packages/nextjs/public/games/index.json`.
 
 ## Locked pitch

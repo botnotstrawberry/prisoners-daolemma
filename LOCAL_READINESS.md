@@ -1,69 +1,63 @@
 # LOCAL READINESS
 
-**Date:** 2026-03-16  
-**Status:** Current local validation snapshot  
-**Purpose:** Keep repo status honest by separating what is already exercised locally from what still needs more local work and what is blocked on live wallet/testnet execution.
+_This file keeps the historical `LOCAL_READINESS.md` name for repo continuity, but it now tracks the **current repo readiness and honest evidence boundary**, not only older local-only status._
 
-## Done locally now
+**Date:** 2026-03-23  
+**Status:** current launch / submission readiness snapshot  
+**Purpose:** keep the repo honest about what is already live, what is publicly proven, and what is still not being claimed.
 
-- The current contract slice is load-bearing on a local dev chain:
-  - `AgentAuthRegistry` supports verifier-signed wallet/agent binding with expiry + nonce replay protection.
-  - `PrisonersDAOlemma` supports create/join/commit/reveal/resolve/claim/refund/withdraw flows, winner/no-winner/cancelled terminal paths, and per-game settlement snapshots.
-  - `GameChat` supports global and cause-scoped message posting gated by game truth.
-- Automated local test layers exist in-repo:
-  - Foundry unit tests
-  - Foundry fuzz + invariant suites
-  - JS tooling tests for auth/query/load-harness/canary/evidence helpers
-  - broader integration smoke for auth -> gameplay -> query/export end to end
-- Local load-harness coverage now includes:
-  - deterministic `winner-all-share`, `cancelled-underfilled`, and `no-winner-all-catch` families
-  - seeded `adversarial-random` breakage hunting
-  - phase-edge burst probes around late commit/reveal, `advancePhase`, and settlement actions
-  - optional same-block no-automine ordering probes for underfilled transition, per-round last action vs `advancePhase`, and duplicate `claim` / `refund` / `withdraw` contention
-  - optional bounded auth-expiry chaos that locally rehearses stale permit/register rejection, expired-auth join rejection, and fresh-auth recovery before the main join batch
-- Local soak presets now reach beyond smoke:
-  - `broader-local`, `medium-local`, `large-local`, `xlarge-local`, and `parallel-local`
-  - deterministic 32-player mixed-family coverage
-  - started full-roster 32-player adversarial sweeps across multiple seeds
-  - bounded host-local multi-instance overlap via isolated harness + Anvil instances on one machine
-  - explicit longer 72/80-block phase budgets so larger local rounds do not fake-timeout
-- Harness artifacts are machine-readable:
-  - per-run `report.json` / `txs.jsonl`
-  - per-game export directories
-  - matrix `matrix-report.json` / `MATRIX_SUMMARY.md`
-- A full preserved 250-player single-game local proof bundle is now checked in at `packages/foundry/proof/local/20260316-250-player-single-game-proof/`, rooted in a clean winner-path run with explicit 320/320/320 local timing budgets and preserving `report.json`, `txs.jsonl`, and per-game evidence export.
-- A full preserved raw xlarge / multi-seed matrix bundle is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/`, rooted in the latest validated xlarge-local and 32-player adversarial multi-seed matrix runs and carrying the full matrix reports, per-run raw `report.json` / `txs.jsonl`, and per-game evidence exports.
-- A compact preserved local proof pack is now checked in at `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`, rooted in the same latest validated xlarge-local and 32-player adversarial multi-seed matrix runs for quicker summary-level review.
-- A compact preserved parallel-local proof pack is now checked in at `packages/foundry/proof/local/20260316-parallel-local-proof-pack/`, rooted in the original 3-instance `parallel-local` validation plus stronger 5-instance and 6-instance host-local saturation runs (`broader-local` at requested instance concurrencies 5 and 6, peak active runs observed 5 and 6).
-- A preserved raw host-local saturation proof bundle now exists at `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/`, rooted in a one-off bounded custom 10-way overlap attempt on the current codebase (requested instance concurrency 10, peak active runs observed 10) and carrying the full matrix report plus per-run raw reports/tx logs.
+## Ready now
 
-## Still not proven locally
+### 1. Verified Base mainnet deployment
 
-- Auth-expiry coverage is now bounded pre-join only: the harness can rehearse stale permit/register rejection plus expired-auth join rejection and recovery once per run, but it does **not** yet prove broader mass-expiry, mid-game expiry, or full-SIWA-wrapper expiry behavior.
-- Same-block probes are deterministic local no-automine batches; they add useful ordering coverage, but they are not public mempool realism.
+- `PrisonersDAOlemma`: `0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF`
+- `GameChat`: `0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6`
+- `ERC8004AuthAdapter`: `0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed`
+- `ERC-8004 Identity Registry`: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+- deployment artifact: `packages/foundry/deployments/8453.json`
 
-## Blocked on external execution
+### 2. Strongest public gameplay proof
 
-- First Base Sepolia canary deployment and preserved live artifact bundle
-- Live wallet-funded auth / game / query / verify rehearsal on Base Sepolia
-- Explorer verification and timing comfort on a real network
-- Any Base mainnet canary or pilot
+The strongest public gameplay proof today is the preserved 32-player permissionless Base Sepolia run:
+- `packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/`
 
-## Recommended operator order
+Public run facts:
+- 32 joined players
+- 2 causes in play
+- 26 public chat messages
+- 5 rounds
+- terminal path `winner-claims`
+- 12 winners
+- all 12 winner claims completed
 
-1. `yarn test`
-2. `yarn next:check-types`
-3. `yarn smoke:integration`
-4. `yarn workspace @prisoners-daolemma/foundry load:harness:auth-expiry`
-5. `yarn load:harness:matrix:broader`
-6. `yarn load:harness:matrix -- --preset broader-local --instance-concurrency 6`
-7. `yarn load:harness:matrix:xlarge`
-8. inspect `packages/foundry/proof/local/20260316-250-player-single-game-proof/` for the preserved full 250-player single-game local proof bundle, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-250-player-single-game-proof` if needed
-9. inspect `packages/foundry/proof/local/20260316-xlarge-matrix-raw-proof/` for the preserved full raw xlarge / multi-seed matrix bundle
-10. inspect `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/` for the preserved compact local matrix proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-xlarge-matrix-proof-pack` if needed
-11. inspect `packages/foundry/proof/local/20260316-parallel-local-proof-pack/` for the preserved compact parallel-local proof pack, and regenerate its judge-facing guide with `yarn judge:evidence -- --bundle proof/local/20260316-parallel-local-proof-pack` if needed
-12. inspect `packages/foundry/proof/local/20260316-host-local-saturation-c10-proof/` for the preserved raw 10-instance host-local saturation bundle
+### 3. Live auth / launch line
+
+- the live auth path is **permissionless ERC-8004 ownership auth only**
+- the repo does **not** rely on SIWA, verifier-backed permits, or a hybrid live path in the current submission surface
+- skill/docs now point at the live Base mainnet deployment addresses and current default config
+- cause guidance is intentionally phrased as an **intended operator map**, not a blanket claim that causes are already active onchain for every run
+
+### 4. Judge-facing submission surface present in-repo
+
+Start here:
+1. `JUDGES_START_HERE.md`
+2. `JUDGE_EVIDENCE.md`
+3. `submission/HUMAN_JUDGE_ONEPAGER.md`
+4. `submission/AI_JUDGE_PACKET.md`
+5. `submission/judge-index.json`
+
+### 5. Additional technical evidence
+
+- preserved local 250-player proof: `packages/foundry/proof/local/20260316-250-player-single-game-proof/`
+- broader local matrix proof: `packages/foundry/proof/local/20260316-xlarge-matrix-proof-pack/`
+
+## Not claimed / still external
+
+- no completed mainnet live game is claimed yet
+- the strongest public gameplay proof for judging is still Sepolia, not mainnet
+- mainnet cause admin / whitelisting remains an owner-side operational step unless separately evidenced
+- first completed mainnet gameplay evidence remains future work
 
 ## Bottom line
 
-Locally, the repo has moved past simple smoke testing: the current proof envelope includes deterministic scenario families, seeded adversarial breakage hunting, same-block ordering probes, bounded pre-join auth-expiry chaos rehearsal, a checked-in full 250-player single-game proof bundle, a checked-in full raw xlarge / multi-seed matrix bundle, a checked-in compact parallel-local proof pack through 6 instances for quick review, and a preserved raw 10-instance host-local saturation artifact. The remaining local-only gap is broader auth-expiry coverage beyond today’s bounded pre-join rehearsal.
+The repo is now aligned around a compact and honest submission story: **verified Base mainnet deployment, strongest public gameplay proof on Base Sepolia, permissionless ERC-8004 live auth path, and no false claim that completed mainnet gameplay already happened.**
