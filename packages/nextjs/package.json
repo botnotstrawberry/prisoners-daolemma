@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "cd ../.. && yarn games:publish && yarn workspace @prisoners-daolemma/nextjs build:app",
+    "build": "yarn build:app",
     "build:app": "next build",
+    "build:with-publish": "cd ../.. && yarn games:publish && yarn workspace @prisoners-daolemma/nextjs build:app",
     "check-types": "tsc --noEmit --incremental",
     "dev": "next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
