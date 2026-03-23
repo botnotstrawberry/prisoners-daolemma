@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-global",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0xC52D960200545832167756854c178fD724A5565b",
+  "gameId": 1,
+  "txHash": "0x114d9e3d66d7c737bf08322eb6e193a13450e18c50c14b0cd365c97f8188b3a5",
+  "blockNumber": 39226880,
+  "messageId": 14,
+  "round": 2,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "global",
+  "causeId": null,
+  "createdAt": 1774222048,
+  "text": "Round 2 belief update: others think the field will overcorrect after the first wipeout."
+}

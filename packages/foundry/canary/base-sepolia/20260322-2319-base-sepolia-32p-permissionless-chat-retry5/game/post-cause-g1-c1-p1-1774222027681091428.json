@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0x98b7bb7db42cdbf1b02528fbfeddd3781d2e48baee967151189c28b16944ffde",
+  "blockNumber": 39226871,
+  "messageId": 11,
+  "round": 2,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "cause",
+  "causeId": 1,
+  "createdAt": 1774222030,
+  "text": "Round 2: survivors keep optimizing. Share / Catch / Steal remain the only valid choices."
+}

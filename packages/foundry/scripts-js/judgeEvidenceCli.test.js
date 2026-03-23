@@ -9,17 +9,94 @@ import {
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { resolveFromPackageRoot } from "./authTooling.js";
 import {
   buildJudgeEvidenceIndex,
   renderJudgeEvidenceReadme,
   writeJudgeEvidencePack,
 } from "./judgeEvidenceCli.js";
 
-test("buildJudgeEvidenceIndex summarizes the tracked local load-harness bundle honestly", () => {
-  const bundleDir = resolveFromPackageRoot(
-    "load-harness/manual-scale-proof-2026-03-15-64x3"
+test("buildJudgeEvidenceIndex summarizes a local load-harness bundle honestly", () => {
+  const bundleDir = mkdtempSync(join(tmpdir(), "pd-local-load-harness-"));
+
+  writeFileSync(
+    join(bundleDir, "report.json"),
+    JSON.stringify(
+      {
+        status: "ok",
+        mode: "matrix",
+        options: {
+          playerCount: 64,
+          games: 3,
+          selectedScenarioTypes: ["winners", "no-winners"],
+        },
+        localScaleReadiness: {
+          replayConsistentGames: 3,
+        },
+      },
+      null,
+      2
+    ),
+    "utf8"
   );
+  writeFileSync(join(bundleDir, "txs.jsonl"), "{}\n", "utf8");
+
+  const makeGameEvidence = (gameId, outcome, terminalPath) => {
+    const evidenceDir = join(bundleDir, `game-${gameId}`, "evidence");
+    mkdirSync(evidenceDir, { recursive: true });
+
+    const summary = {
+      gameId,
+      chainId: 31337,
+      game: {
+        outcome,
+        terminalOutcome: { terminalPath },
+        counts: {
+          joined: 64,
+          messages: 0,
+        },
+      },
+      notes: ["Synthetic local proof fixture for judge evidence tests."],
+    };
+
+    writeFileSync(
+      join(evidenceDir, "game-summary.json"),
+      JSON.stringify(summary, null, 2),
+      "utf8"
+    );
+    writeFileSync(
+      join(evidenceDir, "rounds.json"),
+      JSON.stringify({ rounds: [] }, null, 2),
+      "utf8"
+    );
+    writeFileSync(
+      join(evidenceDir, "payouts.json"),
+      JSON.stringify({ settlement: { terminalPath } }, null, 2),
+      "utf8"
+    );
+    writeFileSync(
+      join(evidenceDir, "export-manifest.json"),
+      JSON.stringify(
+        {
+          gameId,
+          chainId: 31337,
+          produced: [
+            { artifact: "game-summary.json" },
+            { artifact: "rounds.json" },
+            { artifact: "payouts.json" },
+            { artifact: "export-manifest.json" },
+          ],
+          skipped: [],
+        },
+        null,
+        2
+      ),
+      "utf8"
+    );
+  };
+
+  makeGameEvidence(1, "Winners", "winner-claims");
+  makeGameEvidence(2, "NoWinners", "no-winner-cause-split");
+  makeGameEvidence(3, "Winners", "winner-claims");
 
   const index = buildJudgeEvidenceIndex({
     bundleDir,

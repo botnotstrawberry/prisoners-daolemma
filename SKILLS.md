@@ -3,26 +3,35 @@
 Use this file as the project-specific routing layer for coder and auditor work.
 
 ## Core rule
-When building this repo, use the current repo docs as the implementation source:
+When building or reviewing this repo, use the current repo docs as the implementation source:
 1. `CANON.md`
 2. `ARCHITECTURE.md`
-3. `BUILD_PLAN.md`
-4. `AUTH_SPEC.md`
-5. `CONTRACT_SPEC.md`
-6. `REPLAY_SPEC.md`
-7. `TEST_PLAN.md`
-8. `PARAMETERS.md`
-9. `LAUNCH_PLAN.md`
-10. `SKILLS.md`
+3. `AUTH_SPEC.md`
+4. `CONTRACT_SPEC.md`
+5. `REPLAY_SPEC.md`
+6. `TEST_PLAN.md`
+7. `PARAMETERS.md`
+8. `LAUNCH_PLAN.md`
+9. `SKILLS.md`
 
 ## What matters for this repo
-This project is a **Base-native, agent-only, onchain game**. The most useful skills are the ones that help with:
+This project is a **Base-native, agent-only, onchain game**. The most useful skills and references are the ones that help with:
 - Solidity correctness and safety
-- Base deployment
-- SIWA / ERC-8128 admission flow
-- ERC-8004 agent identity compatibility
-- optional agent comms and replay analysis
-- optional ENS identity polish
+- Base deployment and verification
+- **permissionless ERC-8004 admission** through `ERC8004AuthAdapter`
+- replay/export correctness
+- optional agent comms and analysis
+
+## Current live-auth rule
+The launch line now uses **permissionless ERC-8004 ownership auth**.
+
+That means:
+- the live path depends on `ERC8004_IDENTITY_REGISTRY`
+- the game checks auth through `ERC8004AuthAdapter`
+- there is **no live verifier-backed permit flow**
+- there is **no live SIWA gate** in the current deployment/run path
+
+Historical verifier / SIWA material may still exist in legacy or archival docs. Do **not** route new launch, deployment, or operator work through those old assumptions.
 
 ## Must-use references for implementation
 
@@ -38,33 +47,27 @@ Use this whenever touching:
 - withdraw functions
 - phase advancement
 
-### 2. SIWA / ERC-8128
-Use these for required agent admission design:
-- `/root/.openclaw/workspace/skills/bankr-skills/siwa/SKILL.md`
-- `/root/.openclaw/workspace/skills/bankr-skills/siwa/references/server-side.md`
-- `/root/.openclaw/workspace/skills/bankr-skills/siwa/references/bankr-signer.md`
+### 2. ERC-8004 live auth
+Use these for the current admission model:
+- `AUTH_SPEC.md`
+- `README.md`
+- `packages/foundry/contracts/ERC8004AuthAdapter.sol`
+- `packages/foundry/script/DeployPrisonersDAOlemma.s.sol`
+- `scripts/run-base-mainnet-preflight.sh`
 
 Project rule:
-- SIWA is required for **admission** to the official game path.
-- SIWA should not be repeated for every commit/reveal/claim action.
+- keep auth checks simple and cheap in the game contract
+- keep operator docs aligned with permissionless ERC-8004 admission
+- reject any launch guidance that still requires `PRISONERS_AUTH_VERIFIER`
 
-### 3. ERC-8004
-Use these for onchain agent identity compatibility:
-- `/root/.openclaw/workspace/skills/bankr-skills/erc-8004/SKILL.md`
-- `/root/.openclaw/workspace/skills/bankr-skills/erc-8004/references/erc-8004-spec.md`
-
-Project rule:
-- the game should remain compatible with ERC-8004-style agent identity flows
-- but the game contract itself should keep auth checks simple and cheap
-
-### 4. Base deployment and account setup
+### 3. Base deployment and account setup
 Use these for deployment and network-specific setup:
 - `/root/.openclaw/workspace/skills/base-skills/skills/building-with-base-account/SKILL.md`
 - `/root/.openclaw/workspace/skills/base-skills/skills/deploying-contracts-on-base/SKILL.md`
 
 Project rule:
 - Base is the primary launch chain
-- Base Sepolia is the safe default for rehearsals and early deployment work
+- Base Sepolia is the rehearsal/public-proof chain until mainnet proof exists
 
 ## Optional but useful references
 
@@ -90,7 +93,7 @@ Project rule:
 - `.agents/skills/prisoners-daolemma/SKILL.md`
 - `.agents/skills/solidity-security/SKILL.md`
 
-## What tests should eventually prove
+## What tests should prove
 - truth-table correctness
 - share-streak correctness
 - non-reveal defaults to `SHARE`
@@ -100,19 +103,12 @@ Project rule:
 - auth gating correctness
 - limits and edge cases
 
-## Not required for this repo
-These may still be useful globally, but they are not project-critical skills:
-- generic reviewer-agent personas
-- generic editor/MCP config
-- Farcaster-specific patterns
-- generic DeFi templates unrelated to this game
-
 ## Working rule for coders and auditors
 When in doubt:
 1. follow `CANON.md`
 2. follow `ARCHITECTURE.md`
-3. follow `BUILD_PLAN.md`
+3. follow `AUTH_SPEC.md`
 4. follow `TEST_PLAN.md`, `PARAMETERS.md`, and `LAUNCH_PLAN.md`
 5. use the local Solidity security skill
-6. keep Base + SIWA + agent-only admission in scope
+6. keep Base + permissionless ERC-8004 + agent-only admission in scope
 7. make tests prove the canon, not just the happy path

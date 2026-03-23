@@ -1,9 +1,9 @@
 # Phase A Operator Input Sheet
 
-**Date:** 2026-03-22 UTC  
-**Purpose:** collect the exact operator-controlled inputs needed to move from planning into the first Base mainnet game execution path.
+**Date:** 2026-03-23 UTC  
+**Purpose:** collect the exact operator-controlled inputs needed before the first Base mainnet deployment/run on the permissionless ERC-8004 launch line.
 
-Fill this in before final preflight/deploy/run steps.
+Fill this in before final preflight / deploy / run steps.
 
 ---
 
@@ -14,7 +14,7 @@ Fill this in before final preflight/deploy/run steps.
 
 - Address: `<fill>`
 - Do you control it right now? `<yes/no>`
-- Is it funded with Base ETH for deploy + verify + setup txs? `<yes/no>`
+- Is it funded with Base ETH for deploy + verify + setup + live operations? `<yes/no>`
 - Notes: `<fill>`
 
 ### 1.2 Owner address (`PRISONERS_OWNER`)
@@ -42,24 +42,30 @@ Important:
 - Same as owner? `<yes/no>`
 - Notes: `<fill>`
 
-### 1.4 Auth verifier address (`PRISONERS_AUTH_VERIFIER`)
-**Definition:** the trusted Base/EOA signer whose signatures authorize AgentAuthRegistry admission permits.
+### 1.4 Identity registry address (`ERC8004_IDENTITY_REGISTRY`)
+**Definition:** the deployed ERC-8004 / ERC-721 identity registry contract that the live deployment will trust for permissionless admission.
 
-This is the verifier identity behind the join-admission path.
-It is **not** a normal player wallet unless intentionally chosen.
+This is **not** a verifier key and it is **not** a player wallet. The live path checks token ownership in this registry through `ERC8004AuthAdapter`.
 
 Important:
-- current v1 assumes an **EOA signer**,
-- this signer effectively controls who can enter the official game path.
+- this address must point to deployed contract code on Base mainnet,
+- it must be the intended registry for the wallets that will join,
+- a wrong registry here will break live admission.
 
 - Address: `<fill>`
-- Is it an EOA signer? `<yes/no>`
-- Same as owner? `<yes/no>`
-- Operational owner of verifier key: `<fill>`
+- Does it have deployed contract code on Base mainnet? `<yes/no>`
+- Is it the intended player identity registry? `<yes/no>`
+- Notes: `<fill>`
 
 ---
 
 ## 2. First-game economic / timing parameters
+
+### 2.0 Timing guardrail reminder
+The current mainnet preflight enforces these minimums:
+- `maxPlayers <= 8`: join `>=300s`, commit `>=60`, reveal `>=60`
+- `9 <= maxPlayers <= 32`: join `>=300s`, commit `>=120`, reveal `>=120`
+- `maxPlayers > 32`: join `>=600s`, commit `>=320`, reveal `>=320`
 
 ### 2.1 Join window
 **Definition:** the number of seconds players have to join after the game is created.
@@ -87,7 +93,7 @@ Important:
 ### 2.5 Maximum players
 **Definition:** the maximum number of seats available in the created game.
 
-For the first mainnet proof, this should match the intended live roster plan.
+For the first mainnet run, this should match the intended live roster plan and the timing guardrails above.
 
 - `maxPlayers`: `<fill>`
 
@@ -127,11 +133,6 @@ Template:
    Recipient: `<fill>`  
    Recipient controller: `<fill>`
 
-3. Cause ID: `<fill>`  
-   Label: `<fill>`  
-   Recipient: `<fill>`  
-   Recipient controller: `<fill>`
-
 (Add as many as needed.)
 
 Important:
@@ -150,7 +151,7 @@ Important:
 For each invited player, specify:
 - agent name/handle
 - wallet address
-- auth-ready? (`yes/no`)
+- ERC-8004 identity ready? (`yes/no`)
 - funded for gas + entry? (`yes/no`)
 - intended cause (if known)
 
@@ -158,13 +159,13 @@ Template:
 
 1. Agent: `<fill>`  
    Wallet: `<fill>`  
-   Auth ready: `<yes/no>`  
+   Identity ready: `<yes/no>`  
    Funded: `<yes/no>`  
    Intended cause: `<fill>`
 
 2. Agent: `<fill>`  
    Wallet: `<fill>`  
-   Auth ready: `<yes/no>`  
+   Identity ready: `<yes/no>`  
    Funded: `<yes/no>`  
    Intended cause: `<fill>`
 
@@ -182,9 +183,9 @@ Template:
 ### 5.2 What is the top proof target after the run?
 **Definition:** how the site/judge path should rank the evidence after success.
 
-Expected answer for the current plan:
-- primary proof = Base mainnet 9-agent run
-- secondary proof = slower 32-agent Base Sepolia run
+Suggested current answer:
+- before mainnet success: primary proof = Base Sepolia `20260322-2319-base-sepolia-32p-permissionless-chat-retry5`
+- after clean mainnet success: primary proof = Base mainnet first-run proof, with Sepolia retained as secondary rehearsal evidence
 
 - Confirmed? `<yes/no>`
 
@@ -200,4 +201,4 @@ Expected answer for the current plan:
 
 When everything above is decided, write one lock statement:
 
-> First Base mainnet run will use owner `<address>`, treasury `<address>`, verifier `<address>`, parameters `<join/commit/reveal/min/max/entry>`, and target roster `<n>` on the frozen contract candidate `<commit>`.
+> First Base mainnet run will use owner `<address>`, treasury `<address>`, identity registry `<address>`, parameters `<join/commit/reveal/min/max/entry>`, cause list `<summary>`, and target roster `<n>` on the frozen contract candidate `<commit>`.

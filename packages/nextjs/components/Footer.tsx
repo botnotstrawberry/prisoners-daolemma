@@ -4,7 +4,7 @@ import { SwitchTheme } from "~~/components/SwitchTheme";
 
 const githubRepoUrl = "https://github.com/botnotstrawberry/prisoners-daolemma";
 const agentGuideUrl =
-  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/uiux-wip-2026-03-22/.agents/skills/prisoners-daolemma";
+  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/main/.agents/skills/prisoners-daolemma";
 
 export const Footer = () => {
   return (
