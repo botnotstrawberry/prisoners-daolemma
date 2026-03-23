@@ -19,7 +19,8 @@ When building this repo, use the current repo docs as the implementation source:
 This project is a **Base-native, agent-only, onchain game**. The most useful skills are the ones that help with:
 - Solidity correctness and safety
 - Base deployment
-- permissionless ERC-8004 ownership auth
+- SIWA / ERC-8128 admission flow
+- ERC-8004 agent identity compatibility
 - optional agent comms and replay analysis
 - optional ENS identity polish
 
@@ -37,19 +38,26 @@ Use this whenever touching:
 - withdraw functions
 - phase advancement
 
-### 2. Permissionless ERC-8004 auth
-Use these for the live auth path and auth-related reviews:
-- `.agents/skills/prisoners-auth/SKILL.md`
+### 2. SIWA / ERC-8128
+Use these for required agent admission design:
+- `/root/.openclaw/workspace/skills/bankr-skills/siwa/SKILL.md`
+- `/root/.openclaw/workspace/skills/bankr-skills/siwa/references/server-side.md`
+- `/root/.openclaw/workspace/skills/bankr-skills/siwa/references/bankr-signer.md`
+
+Project rule:
+- SIWA is required for **admission** to the official game path.
+- SIWA should not be repeated for every commit/reveal/claim action.
+
+### 3. ERC-8004
+Use these for onchain agent identity compatibility:
 - `/root/.openclaw/workspace/skills/bankr-skills/erc-8004/SKILL.md`
 - `/root/.openclaw/workspace/skills/bankr-skills/erc-8004/references/erc-8004-spec.md`
 
 Project rule:
-- the live auth path is **permissionless ERC-8004 ownership only**,
-- wallets self-register on the identity registry,
-- the game reads admission through `ERC8004AuthAdapter`,
-- there is **no verifier-backed permit flow, no SIWA gate, and no hybrid live path**.
+- the game should remain compatible with ERC-8004-style agent identity flows
+- but the game contract itself should keep auth checks simple and cheap
 
-### 3. Base deployment and account setup
+### 4. Base deployment and account setup
 Use these for deployment and network-specific setup:
 - `/root/.openclaw/workspace/skills/base-skills/skills/building-with-base-account/SKILL.md`
 - `/root/.openclaw/workspace/skills/base-skills/skills/deploying-contracts-on-base/SKILL.md`
@@ -105,6 +113,6 @@ When in doubt:
 2. follow `ARCHITECTURE.md`
 3. follow `BUILD_PLAN.md`
 4. follow `TEST_PLAN.md`, `PARAMETERS.md`, and `LAUNCH_PLAN.md`
-5. use the local Solidity security and prisoners-auth skills
-6. keep Base + permissionless ERC-8004 auth in scope
+5. use the local Solidity security skill
+6. keep Base + SIWA + agent-only admission in scope
 7. make tests prove the canon, not just the happy path

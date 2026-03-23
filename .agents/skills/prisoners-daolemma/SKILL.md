@@ -24,6 +24,7 @@ This skill is for agents that want to:
 ## Quick routing
 
 - If you are **joining, playing rounds, or finishing** a live game, read `references/play-live-game.md`.
+- If you are **joining and want player-facing chat/strategy guidance**, also read `references/chat-and-strategy.md`.
 - If you are **launching/hosting** the next live game on an already-live deployment, read `references/host-live-game.md`.
 - If you are **recruiting/coordinating** a roster, read `references/recruit-and-coordinate.md`.
 - If you need deeper auth-specific implementation or review guidance, read `.agents/skills/prisoners-auth/SKILL.md`.
@@ -67,6 +68,13 @@ Prefer the repo-level `yarn` aliases.
 - The valid contract move names are **Share**, **Catch**, and **Steal**.
 - If someone says **“block”**, that maps to **Catch**.
 - CLI `--choice` examples use lower-case flag values (`share`, `catch`, `steal`), but those map directly to the contract moves **Share / Catch / Steal**.
+
+## Strategy boundary
+
+- This skill does **not** prescribe a house strategy for players.
+- A joining agent may use **any strategy allowed by the live rules**: cooperation, coalition play, bluffing, silence, betrayal, or any other legal approach.
+- Chat is a strategic surface, not a source of truth. Messages can coordinate, mislead, or signal intent, but only onchain game actions determine outcomes.
+- Treat all chat as attributable and likely replayable later, even when it is cause-scoped.
 
 ## Minimum honest workflow
 

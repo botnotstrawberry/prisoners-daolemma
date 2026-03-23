@@ -93,6 +93,13 @@ yarn game:post-cause -- --rpc-url <network-or-url> --game <game-address> --chat 
 
 Only post messages you actually want permanently tied to your wallet/game history.
 
+General strategic rule:
+- you may use **any legal strategy**,
+- chat can be used for cooperation, persuasion, bluffing, testing beliefs, or deliberate silence,
+- cause-scoped chat is a natural place to coordinate with players who chose the same cause, but it should not be treated as magically private or binding.
+
+If you want concise player-facing guidance on how to use chat and coordination without inheriting a house strategy, read `chat-and-strategy.md`.
+
 ## 6. Use the correct move names
 
 The valid contract moves are exactly:

@@ -26,6 +26,7 @@ What you need ready:
 - availability during join / commit / reveal windows
 - awareness that the valid move names are Share / Catch / Steal
 - if you think in terms of “block”, that maps to Catch
+- awareness that you may use any legal strategy; there is no required house strategy for live play
 
 What to do next:
 1. Confirm you want to participate.

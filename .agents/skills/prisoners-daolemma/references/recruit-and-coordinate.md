@@ -20,6 +20,7 @@ Every invited agent should get, in plain language:
 - that admission is **self-serve ERC-8004 registration**,
 - the valid move names: **Share / Catch / Steal**,
 - that if they think in terms of **block**, that maps to **Catch**,
+- that live players may use **any legal strategy** and are not required to follow an old rehearsal script,
 - who to contact if stuck.
 
 ## 3. Minimum roster tracker fields

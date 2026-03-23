@@ -112,9 +112,9 @@ This should track:
 This role owns:
 - run parameters
 - deployer wallet
-- owner / treasury / auth-adapter / identity-registry settings
-- cause whitelist readiness
-- public game launch
+- owner / treasury / verifier settings
+- cause whitelist
+- game creation
 - phase advancement
 - evidence capture
 - publishing
@@ -124,21 +124,22 @@ This role uses the repo’s existing operator surfaces, especially:
 - `yarn prod:base:deploy`
 - `yarn prod:base:verify`
 - `yarn game:whitelist-cause`
-- `yarn game:launch`
+- `yarn game:create`
 - `yarn game:advance`
-- `yarn game:cancel`
 - `yarn judge:evidence`
 - `yarn games:publish`
 
 ## 4.2 Player / participant
 This role owns:
 - wallet control
-- ERC-8004 self-registration / auth confirmation
+- SIWA/auth completion
 - joining the game
 - commit/reveal actions
-- claim or refund action if eligible
+- claim action if eligible
 
 This role uses the repo’s existing player/auth surfaces, especially:
+- `yarn auth:flow`
+- `yarn auth:permit`
 - `yarn auth:register`
 - `yarn auth:status`
 - `yarn game:join`
@@ -146,7 +147,6 @@ This role uses the repo’s existing player/auth surfaces, especially:
 - `yarn game:commit`
 - `yarn game:reveal`
 - `yarn game:claim`
-- `yarn game:refund`
 
 ## 4.3 Recruiter / coordinator
 This may be the same entity as the operator, but conceptually it is separate.
@@ -217,18 +217,18 @@ That packet should include:
 Each player agent must:
 - have a compatible wallet
 - have enough ETH for entry + gas
-- complete ERC-8004 self-registration if not already admitted
+- complete SIWA/auth flow
 - confirm onchain auth status before join
 
 The player playbook should make this explicit:
 - auth gates **admission to the official game path**
 - auth is required before join
-- the live path is permissionless ERC-8004 ownership auth, not a verifier workflow
+- auth expiry/revocation handling should be explained simply
 
-## Step 4 — whitelist causes + launch game
+## Step 4 — whitelist causes + create game
 Operator must:
-- whitelist at least one cause before public launch can succeed
-- launch the next game via the public `launchGameAndJoin` path
+- whitelist at least one cause before `createGame()`
+- create the game
 - distribute game ID + addresses + deadlines to players
 
 ## Step 5 — join window
@@ -277,7 +277,7 @@ It should answer:
 - how to verify the target commit
 - how to run preflight
 - how to fund the deployer
-- how to confirm owner/treasury/auth-adapter/identity-registry values
+- how to confirm owner/treasury/verifier values
 - how to lock first-game causes
 
 ### B. Deployment
@@ -287,8 +287,8 @@ It should answer:
 - how to record final addresses
 
 ### C. Game setup
-- how to confirm causes are already whitelisted
-- how to public-launch the game
+- how to whitelist causes
+- how to create the game
 - how to share the game ID with players
 - how to monitor joins
 
@@ -319,7 +319,7 @@ It should answer:
 ### B. What the player needs
 - wallet
 - ETH for gas + entry
-- ERC-8004 self-registration path
+- auth approval path
 - schedule awareness
 
 ### C. How to join
@@ -401,7 +401,7 @@ Why this order:
 Use when an agent needs to run or assist with:
 - preflight
 - deploy/verify
-- whitelist/public-launch/advance
+- whitelist/create/advance
 - roster coordination
 - export/publish
 
@@ -456,7 +456,7 @@ After this planning doc is accepted, the next concrete step should be:
 That should lock:
 - owner
 - treasury
-- auth adapter / identity registry wiring
+- verifier
 - causes
 - join/commit/reveal timings
 - entry fee
