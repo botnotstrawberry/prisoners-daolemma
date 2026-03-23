@@ -297,7 +297,39 @@ fi
 echo "FOUNDRY_PROFILE=${FOUNDRY_PROFILE}" | tee "$OUT_DIR/foundry-profile.txt" >/dev/null
 cd "$FOUNDRY_DIR"
 mkdir -p deployments
+
+set +e
 FOUNDRY_PROFILE=production forge build --sizes --skip test | tee "$OUT_DIR/production-build-sizes.log" >/dev/null
+BUILD_STATUS=${PIPESTATUS[0]}
+set -e
+
+check_size_margin() {
+  local contract="$1"
+  local row runtime_margin init_margin
+  row=$(grep -F "| ${contract} " "$OUT_DIR/production-build-sizes.log" || true)
+  [[ -n "$row" ]] || fail "missing size row for ${contract} in production build output"
+
+  runtime_margin=$(echo "$row" | awk -F'|' '{gsub(/[ ,]/, "", $5); print $5}')
+  init_margin=$(echo "$row" | awk -F'|' '{gsub(/[ ,]/, "", $6); print $6}')
+
+  [[ "$runtime_margin" =~ ^-?[0-9]+$ ]] || fail "could not parse runtime margin for ${contract}: ${runtime_margin}"
+  [[ "$init_margin" =~ ^-?[0-9]+$ ]] || fail "could not parse initcode margin for ${contract}: ${init_margin}"
+
+  (( runtime_margin >= 0 )) || fail "${contract} exceeds the EIP-170 runtime size limit"
+  (( init_margin >= 0 )) || fail "${contract} exceeds the initcode size limit"
+}
+
+check_size_margin "ERC8004AuthAdapter"
+check_size_margin "GameChat"
+check_size_margin "PrisonersDAOlemma"
+
+if (( BUILD_STATUS != 0 )); then
+  if grep -q "some contracts exceed the runtime size limit" "$OUT_DIR/production-build-sizes.log"; then
+    printf '%s\n' "forge build --sizes reported oversize non-deploy script/helper contracts, but deployable target contracts remained within limits." > "$OUT_DIR/production-build-sizes-warning.txt"
+  else
+    fail "forge build --sizes failed; see $OUT_DIR/production-build-sizes.log"
+  fi
+fi
 
 cat > "$OUT_DIR/first-game-readiness.txt" <<EOF
 This preflight validates deploy-time config, provenance, chain, ERC-8004 registry wiring, buildability, and roster-aware timing floors.
