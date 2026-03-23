@@ -26,3 +26,8 @@ dist
 # Curated proof bundles should live under packages/foundry/proof or canary paths instead.
 .mainnet-readiness/
 .mainnet-readiness-private/
+
+# generated local review/query clutter
+packages/foundry/exports/
+packages/foundry/*.call-graph.dot
+packages/foundry/inheritance-graph.dot
