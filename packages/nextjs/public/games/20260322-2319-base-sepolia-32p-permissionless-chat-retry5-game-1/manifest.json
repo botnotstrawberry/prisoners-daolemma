@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "prisoners-daolemma/web-game-manifest-v1",
+  "slug": "20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1",
+  "title": "Game 1 · Base Sepolia",
+  "sourceKind": "canary",
+  "sourceRun": "base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5",
+  "sourceLabel": "Canary run 20260322-2319-base-sepolia-32p-permissionless-chat-retry5 (base-sepolia)",
+  "sourcePath": "packages/foundry/canary/base-sepolia/20260322-2319-base-sepolia-32p-permissionless-chat-retry5/query/game-1-export-final",
+  "gameId": 1,
+  "chainId": 84532,
+  "networkKey": "base-sepolia",
+  "networkLabel": "Base Sepolia",
+  "createdAt": 1774221422,
+  "exportedAt": 1774222844,
+  "phase": "Ended",
+  "outcome": "Winners",
+  "terminalPath": "winner-claims",
+  "round": 5,
+  "shareStreak": 3,
+  "counts": {
+    "joined": 32,
+    "alive": 12,
+    "claimed": 12,
+    "refunded": 0,
+    "usedCauses": 2,
+    "committed": 12,
+    "revealed": 12,
+    "messages": 26,
+    "rounds": 5
+  },
+  "economics": {
+    "entryFeeWei": "1000000000000000",
+    "totalPotWei": "32000000000000000",
+    "creatorFeeWei": "320000000000000",
+    "winnerCount": 12,
+    "winnerShareWei": "2640000000000000",
+    "noWinnerCausePoolWei": "0"
+  },
+  "takeaway": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df signaled CATCH in cause chat but revealed SHARE onchain.",
+  "analysis": {
+    "messageSignals": [
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 0,
+        "content": "32-player permissionless Sepolia run: real game, valid choices are Share / Catch / Steal, and if you think 'block' that means Catch.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 0,
+        "content": "Protocol Guild: remember the only valid moves are Share, Catch, Steal. Opening posture is competitive; round 10+ converges to Share if we get there.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 0,
+        "content": "Giveth Matching Pool: same rules. We are trying to win first; only round 10+ hard-converges to Share.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 1,
+        "content": "Round 1: we are playing to win. Valid moves are Share / Catch / Steal. If you say block, submit Catch.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 1,
+        "content": "Round 1: same reminder — Share / Catch / Steal only. Competitive opening, no auto-share proof run.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 1,
+        "content": "Round 1 thesis: if the table leans too hard into Catch, Share wins the read.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0xC52D960200545832167756854c178fD724A5565b",
+        "causeId": 1,
+        "scope": "global",
+        "round": 1,
+        "content": "Round 1 thesis: if the table leans too hard into Steal, Catch is the punish.",
+        "signaledChoice": "Catch",
+        "actualChoice": null
+      },
+      {
+        "wallet": "0x1899BD66aF9b1C98cc243aC5537b8D73eae950cF",
+        "causeId": 1,
+        "scope": "global",
+        "round": 1,
+        "content": "Round 1 thesis: if the table leans too hard into Share, Steal is the punish.",
+        "signaledChoice": "Share",
+        "actualChoice": null
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 2,
+        "content": "Round 2: survivors keep optimizing. Share / Catch / Steal remain the only valid choices.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 2,
+        "content": "Round 2: still competitive. If you think block, the onchain move is Catch.",
+        "signaledChoice": "Catch",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 2,
+        "content": "Round 2 belief update: some survivors still expect too much Catch.",
+        "signaledChoice": "Catch",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 3,
+        "content": "Round 3: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 3,
+        "content": "Round 3: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 3,
+        "content": "Round 3: current best response is Share to lock in a winner path from the surviving set.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 4,
+        "content": "Round 4: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 4,
+        "content": "Round 4: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 4,
+        "content": "Round 4: current best response is Share to lock in a winner path from the surviving set.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 5,
+        "content": "Round 5: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 5,
+        "content": "Round 5: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 5,
+        "content": "Round 5: current best response is Share to lock in a winner path from the surviving set.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "cause",
+        "round": 5,
+        "content": "Round 6: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 5,
+        "content": "Round 6: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 5,
+        "content": "Round 6: current best response is Share to lock in a winner path from the surviving set.",
+        "signaledChoice": "Share",
+        "actualChoice": "Share"
+      }
+    ],
+    "divergenceCount": 2,
+    "divergences": [
+      {
+        "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+        "causeId": 2,
+        "scope": "cause",
+        "round": 2,
+        "content": "Round 2: still competitive. If you think block, the onchain move is Catch.",
+        "signaledChoice": "Catch",
+        "actualChoice": "Share"
+      },
+      {
+        "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+        "causeId": 1,
+        "scope": "global",
+        "round": 2,
+        "content": "Round 2 belief update: some survivors still expect too much Catch.",
+        "signaledChoice": "Catch",
+        "actualChoice": "Share"
+      }
+    ],
+    "coalitionCount": 2,
+    "featuredStory": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df signaled CATCH in cause chat but revealed SHARE onchain."
+  },
+  "urls": {
+    "detail": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1",
+    "manifest": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/manifest.json",
+    "gameSummary": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/game-summary.json",
+    "roster": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/roster.json",
+    "causes": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/causes.json",
+    "rounds": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/rounds.json",
+    "auth": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/auth.json",
+    "payouts": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/payouts.json",
+    "messagesJsonl": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/messages.jsonl",
+    "messagesJson": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/messages.json",
+    "rawExportManifest": "/games/20260322-2319-base-sepolia-32p-permissionless-chat-retry5-game-1/export-manifest.json"
+  }
+}

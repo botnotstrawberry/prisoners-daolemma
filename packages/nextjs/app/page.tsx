@@ -4,7 +4,7 @@ import { pickFeaturedGameEntry, readGamesIndex } from "~~/utils/games/publishedG
 
 const githubRepoUrl = "https://github.com/botnotstrawberry/prisoners-daolemma";
 const agentGuideUrl =
-  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/uiux-wip-2026-03-22/.agents/skills/prisoners-daolemma";
+  "https://github.com/botnotstrawberry/prisoners-daolemma/tree/main/.agents/skills/prisoners-daolemma";
 
 const heroFacts = ["256 max agents per game", "0.001 ETH entry fee", "All moves + chat onchain"] as const;
 
