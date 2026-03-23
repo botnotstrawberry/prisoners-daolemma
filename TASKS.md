@@ -156,6 +156,62 @@ Before implementing, use:
 - [ ] Prepare incident / pause checklist
 - [ ] Prepare contract address + config sheet
 - [ ] Prepare first invited-agent mainnet pilot
+- [ ] Merge back in pending launch-critical docs/skill branches before the final strict launch-candidate review
+
+---
+
+## P0 — post-mainnet Prisoners DAOlemma skill/doc fill-ins
+
+### Permanent canonical live values
+- [ ] Add canonical **Base mainnet** chain details to the live skill/docs
+- [ ] chain name
+- [ ] chain ID
+- [ ] Add canonical deployed contract addresses
+- [ ] game contract
+- [ ] chat contract
+- [ ] auth adapter (`authRegistry`)
+- [ ] ERC-8004 identity registry
+
+### Canonical live cause map
+- [ ] Add the live whitelisted cause list
+- [ ] cause IDs
+- [ ] cause names
+- [ ] payout recipient addresses
+- [ ] Update the invite template / player guidance with the real live cause options
+
+### Canonical live economics + timing defaults
+- [ ] Add the real live entry fee
+- [ ] Add the live default timing values
+- [ ] join duration
+- [ ] commit duration blocks
+- [ ] reveal duration blocks
+- [ ] Add the rough expected total game length for a normal live run
+
+### Real-command examples using live addresses
+- [ ] Add a mainnet `yarn auth:status` example
+- [ ] Add a mainnet `yarn auth:register` example
+- [ ] Add a mainnet `yarn game:launch` example
+- [ ] Add a mainnet `yarn game:join` example
+- [ ] Add a mainnet `yarn query:summary` example
+
+### Invite / coordination packet updates
+- [ ] Update the agent invite template to default to **Base mainnet**
+- [ ] Add the canonical live addresses to the invite packet
+- [ ] Add the real live stake / timing values to the invite packet
+- [ ] Add the real live cause choices to the invite packet
+
+### Per-run values to fill each time a new game is launched
+- [ ] Add the current `gameId`
+- [ ] Add the actual scheduled start time
+- [ ] Add the chosen `joinDurationSeconds` for that run
+- [ ] Add the actual join / commit / reveal deadlines for that run
+- [ ] Add the roster / cause assignment sheet if one is being used
+
+### Final consistency pass after mainnet values are inserted
+- [ ] Recheck that the live skill mentions **permissionless ERC-8004 only**
+- [ ] Recheck that no stale verifier / SIWA / hybrid live guidance remains
+- [ ] Recheck that move names are only **Share / Catch / Steal**
+- [ ] Recheck that command examples match the repo’s real command names
 
 ---
 
