@@ -5,7 +5,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
   title: "Contracts",
-  description: "Inspect the current public Prisoners DAOlemma deployment on Base Sepolia and the reserved mainnet slots.",
+  description: "Inspect the live Prisoners DAOlemma deployment on Base mainnet and the public Base Sepolia proof deployment.",
 });
 
 const contractLabels = {
@@ -20,14 +20,20 @@ const mainnetContracts = [
   {
     key: "game",
     name: contractLabels.game,
+    address: "0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
+    href: "https://basescan.org/address/0xBAbaBFBbDbAE58457E8B83AAA1b37df6E0990fFF",
   },
   {
     key: "registry",
     name: contractLabels.registry,
+    address: "0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
+    href: "https://basescan.org/address/0xcaBdE80AA0677935C8C30F5595299F6325e3B8ed",
   },
   {
     key: "chat",
     name: contractLabels.chat,
+    address: "0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6",
+    href: "https://basescan.org/address/0x232Bb450c63C9Df8D8a832A02ADF8349b02BFeB6",
   },
 ] as const;
 
@@ -64,7 +70,7 @@ const DebugPage: NextPage = async () => {
                 <h1 className="mt-3 text-4xl font-bold md:text-5xl">Base Mainnet</h1>
               </div>
               <p className="max-w-2xl text-sm leading-7 opacity-70 md:text-right">
-                Reserved for launch contracts. We&apos;ll add Base mainnet addresses here when they exist.
+                Live Base mainnet deployment. Use these addresses for the public launch and operator docs.
               </p>
             </div>
 
@@ -72,9 +78,18 @@ const DebugPage: NextPage = async () => {
               {mainnetContracts.map(contract => (
                 <div key={contract.key} className="rounded-3xl bg-base-200 p-6">
                   <p className="text-lg font-semibold">{contract.name}</p>
-                  <p className="mt-4 rounded-2xl border border-dashed border-base-content/15 bg-base-100 px-4 py-3 text-sm opacity-60">
-                    Address coming soon
+                  <p className="mt-4 break-all rounded-2xl bg-base-100 px-4 py-3 font-mono text-sm">
+                    {contract.address}
                   </p>
+                  <a
+                    href={contract.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:opacity-80"
+                  >
+                    Open on BaseScan
+                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                  </a>
                 </div>
               ))}
             </div>

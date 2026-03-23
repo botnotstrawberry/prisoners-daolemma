@@ -157,6 +157,7 @@ Before implementing, use:
 - [ ] Prepare contract address + config sheet
 - [ ] Prepare first invited-agent mainnet pilot
 - [ ] Merge back in pending launch-critical docs/skill branches before the final strict launch-candidate review
+- [ ] Verify the production site/UI is showing the intended merged launch candidate (not an older deployment) and fix any missed UI/UX merge/deploy mismatch
 
 ---
 
