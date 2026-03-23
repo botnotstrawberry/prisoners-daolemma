@@ -1,0 +1,26 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_5241_IAgentAuthRegistry {
+label = "IAgentAuthRegistry"
+"5241_isAuthorized" [label="isAuthorized"]
+"5241_agentKeyOf" [label="agentKeyOf"]
+}subgraph cluster_114_ERC8004AuthAdapter {
+label = "ERC8004AuthAdapter"
+"114_agentKeyOf" [label="agentKeyOf"]
+"114_slitherConstructorConstantVariables" [label="slitherConstructorConstantVariables"]
+"114_constructor" [label="constructor"]
+"114_isAuthorized" [label="isAuthorized"]
+}subgraph cluster_solidity {
+label = "[Solidity]"
+"revert InvalidIdentityRegistry()" 
+"code(address)" 
+"keccak256(bytes)" 
+"abi.encodePacked()" 
+"114_agentKeyOf" -> "keccak256(bytes)"
+"114_constructor" -> "revert InvalidIdentityRegistry()"
+"114_slitherConstructorConstantVariables" -> "keccak256(bytes)"
+"114_agentKeyOf" -> "abi.encodePacked()"
+"114_constructor" -> "code(address)"
+}
+}

@@ -1,0 +1,15 @@
+{
+  "chainId": 84532,
+  "game": "0x5A28d5fF79811cb4A5b223473eab6834A653B9D1",
+  "authRegistry": "0x0c8a34C80D4dFa22d10D605d72276598242fcff3",
+  "identityRegistry": "0x7177a6867296406881E20d6647232314736Dd09A",
+  "wallet": "0xdb7bAca89282130D98dfD125b4CBC1188310C635",
+  "balance": "1",
+  "isAuthorized": true,
+  "agentKey": "0x1793f854b776f0851c6f234e295152861da1575e3c9edaf7c3e8d7702c01f790",
+  "token": {
+    "agentId": "588",
+    "owner": "0x5f24946dfaaa238255F759bdD774505BbA4C5D8E",
+    "tokenUri": "data:application/json;base64,eyJ0eXBlIjoiaHR0cHM6Ly9laXBzLmV0aGVyZXVtLm9yZy9FSVBTL2VpcC04MDA0I3JlZ2lzdHJhdGlvbi12MSIsIm5hbWUiOiJwcmlzb25lcnMtMzJwLXBsYXllci0yNyIsImRlc2NyaXB0aW9uIjoiUHJpc29uZXJzIERBT2xlbW1hIDMyLXBsYXllciBCYXNlIFNlcG9saWEgY29tcGV0aXRpdmUgY2hhdCBydW4gYWdlbnQgMjcgZm9yIHJ1biAyMDI2MDMyMi0yMjU5LWJhc2Utc2Vwb2xpYS0zMnAtcGVybWlzc2lvbmxlc3MtY2hhdCJ9"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "status": "ok",
+  "chainId": 84532,
+  "deploymentFile": "/root/projects/prisoners-daolemma/packages/foundry/deployments/84532.json",
+  "addresses": {
+    "authRegistry": "0xc893Ca037b796e7710a4948Bbb6fBfb94539b806",
+    "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+    "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99"
+  },
+  "onchain": {
+    "owner": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "treasury": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408",
+    "authRegistry": "0xc893Ca037b796e7710a4948Bbb6fBfb94539b806",
+    "identityRegistry": "0x7177a6867296406881E20d6647232314736Dd09A",
+    "chatGame": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a"
+  },
+  "checks": [
+    {
+      "label": "game.authRegistry",
+      "ok": true,
+      "severity": "info",
+      "message": "Game points at the deployed ERC8004AuthAdapter."
+    },
+    {
+      "label": "chat.game",
+      "ok": true,
+      "severity": "info",
+      "message": "GameChat points at the deployed game."
+    },
+    {
+      "label": "owner",
+      "ok": true,
+      "severity": "info",
+      "message": "Onchain owner matches PRISONERS_OWNER.",
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408"
+    },
+    {
+      "label": "treasury",
+      "ok": true,
+      "severity": "info",
+      "message": "Onchain treasury matches PRISONERS_TREASURY.",
+      "value": "0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408"
+    },
+    {
+      "label": "identityRegistry",
+      "ok": true,
+      "severity": "info",
+      "message": "Adapter identity registry matches ERC8004_IDENTITY_REGISTRY.",
+      "value": "0x7177a6867296406881E20d6647232314736Dd09A"
+    }
+  ]
+}

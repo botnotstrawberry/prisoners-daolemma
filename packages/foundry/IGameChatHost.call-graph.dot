@@ -1,0 +1,14 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_5261_IGameChatHost {
+label = "IGameChatHost"
+"5261_isJoined" [label="isJoined"]
+"5261_isAlive" [label="isAlive"]
+"5261_playerCause" [label="playerCause"]
+"5261_gameExists" [label="gameExists"]
+"5261_chatContext" [label="chatContext"]
+}subgraph cluster_solidity {
+label = "[Solidity]"
+}
+}

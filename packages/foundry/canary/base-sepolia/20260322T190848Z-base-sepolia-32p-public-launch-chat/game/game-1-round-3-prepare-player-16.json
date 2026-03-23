@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "prisoners-daolemma/commit-bundle-v0",
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "secretHandlingNote": "Prepared commit bundles include the salt needed for reveal. Treat the bundle as round-secret material until reveal is submitted.",
+  "preparedAt": "2026-03-22T19:28:38.587Z",
+  "command": "prepare-commit",
+  "chainId": 84532,
+  "game": "0x32DBb599efA5AB0c139B43af30C9960bB956427c",
+  "gameId": 1,
+  "round": 3,
+  "phase": "Commit",
+  "wallet": "0xfE2A2d2cD4d423Df9b60ddad5BCA09b262428975",
+  "choice": "Share",
+  "choiceCode": 1,
+  "salt": "0x05754cad4834d432be8ca590b6f5555bfd5664f79fb3c61849fcda3e56a4db96",
+  "commitment": "0xd231df111a6d6c9d5cc1c9579b7cbe19c4d641085d7d685d406a762b5efb56fb",
+  "outputFile": "/root/projects/prisoners-daolemma/packages/foundry/canary/base-sepolia/20260322T190848Z-base-sepolia-32p-public-launch-chat/game/commit-bundles/game-1-round-3-player-16.json"
+}

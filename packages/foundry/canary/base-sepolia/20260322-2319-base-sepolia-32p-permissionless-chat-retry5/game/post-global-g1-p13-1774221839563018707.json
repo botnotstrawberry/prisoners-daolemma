@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-global",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x1899BD66aF9b1C98cc243aC5537b8D73eae950cF",
+  "gameId": 1,
+  "txHash": "0xe288151d941d92bf5ff41eea1bff6e3848fd9b167b248152e777ac6801f4ed4f",
+  "blockNumber": 39226777,
+  "messageId": 9,
+  "round": 1,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "global",
+  "causeId": null,
+  "createdAt": 1774221842,
+  "text": "Round 1 thesis: if the table leans too hard into Share, Steal is the punish."
+}

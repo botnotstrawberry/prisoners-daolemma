@@ -1,0 +1,11 @@
+{
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "authRegistry": "0xc893Ca037b796e7710a4948Bbb6fBfb94539b806",
+  "identityRegistry": "0x7177a6867296406881E20d6647232314736Dd09A",
+  "wallet": "0xE88E974c584aE6F222371f4f4D68564D534cc29d",
+  "balance": "1",
+  "isAuthorized": true,
+  "agentKey": "0x652b0b54b9a7ac0e9b3e8053cd9be71cda6b0c61c9ecafd33faf8e3c4e98c4b8",
+  "token": null
+}

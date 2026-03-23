@@ -1,0 +1,25 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_5513_MockAgentIdentityRegistry {
+label = "MockAgentIdentityRegistry"
+"5513_mint" [label="mint"]
+"5513_tokenURI" [label="tokenURI"]
+"5513_ownerOf" [label="ownerOf"]
+"5513__mint" [label="_mint"]
+"5513_setOwner" [label="setOwner"]
+"5513_register" [label="register"]
+"5513_balanceOf" [label="balanceOf"]
+"5513_slitherConstructorVariables" [label="slitherConstructorVariables"]
+"5513_mint" -> "5513__mint"
+"5513_register" -> "5513__mint"
+}subgraph cluster_solidity {
+label = "[Solidity]"
+"revert NotRegistered()" 
+"revert InvalidOwner()" 
+"5513_tokenURI" -> "revert NotRegistered()"
+"5513__mint" -> "revert InvalidOwner()"
+"5513_ownerOf" -> "revert NotRegistered()"
+"5513_balanceOf" -> "revert InvalidOwner()"
+}
+}

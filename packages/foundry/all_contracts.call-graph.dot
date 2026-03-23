@@ -1,0 +1,537 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_6401_IERC721 {
+label = "IERC721"
+"6401_ownerOf" [label="ownerOf"]
+"6401_approve" [label="approve"]
+"6401_safeTransferFrom" [label="safeTransferFrom"]
+"6401_setApprovalForAll" [label="setApprovalForAll"]
+"6401_transferFrom" [label="transferFrom"]
+"6401_isApprovedForAll" [label="isApprovedForAll"]
+"6401_balanceOf" [label="balanceOf"]
+"6401_getApproved" [label="getApproved"]
+}subgraph cluster_5829_IERC20 {
+label = "IERC20"
+"5829_totalSupply" [label="totalSupply"]
+"5829_approve" [label="approve"]
+"5829_allowance" [label="allowance"]
+"5829_transfer" [label="transfer"]
+"5829_balanceOf" [label="balanceOf"]
+"5829_transferFrom" [label="transferFrom"]
+}subgraph cluster_5287_IGameChatHost {
+label = "IGameChatHost"
+"5287_gameExists" [label="gameExists"]
+"5287_chatContext" [label="chatContext"]
+"5287_isAlive" [label="isAlive"]
+"5287_isJoined" [label="isJoined"]
+"5287_playerCause" [label="playerCause"]
+}subgraph cluster_5224_PrisonersDAOlemma {
+label = "PrisonersDAOlemma"
+"5224_constructor" [label="constructor"]
+"5224_previewWinnerClaim" [label="previewWinnerClaim"]
+"5224_gameCauseClaimableAmount" [label="gameCauseClaimableAmount"]
+"5224_claim" [label="claim"]
+"5224__createGame" [label="_createGame"]
+"5224__computeCommitment" [label="_computeCommitment"]
+"5224_getDefaultConfig" [label="getDefaultConfig"]
+"5224__revealPhaseReadyForResolution" [label="_revealPhaseReadyForResolution"]
+"5224_causeAt" [label="causeAt"]
+"5224_playerCount" [label="playerCount"]
+"5224_cancelIfInsufficientPlayers" [label="cancelIfInsufficientPlayers"]
+"5224__finalizeEndedSettlement" [label="_finalizeEndedSettlement"]
+"5224_isRoundReadyForResolution" [label="isRoundReadyForResolution"]
+"5224_playerAt" [label="playerAt"]
+"5224_isJoined" [label="isJoined"]
+"5224__joinGame" [label="_joinGame"]
+"5224_chatContext" [label="chatContext"]
+"5224__isAuthorized" [label="_isAuthorized"]
+"5224_createGame" [label="createGame"]
+"5224_isCauseWhitelisted" [label="isCauseWhitelisted"]
+"5224__setTreasury" [label="_setTreasury"]
+"5224_computeCommitment" [label="computeCommitment"]
+"5224_previewRefund" [label="previewRefund"]
+"5224__gameExists" [label="_gameExists"]
+"5224_join" [label="join"]
+"5224_commit" [label="commit"]
+"5224_gameCauseWithdrawnAmount" [label="gameCauseWithdrawnAmount"]
+"5224_withdrawTreasury" [label="withdrawTreasury"]
+"5224_gameExists" [label="gameExists"]
+"5224_reveal" [label="reveal"]
+"5224_canAdvancePhase" [label="canAdvancePhase"]
+"5224_getGameCause" [label="getGameCause"]
+"5224_gameCauseRecipient" [label="gameCauseRecipient"]
+"5224_withdrawCause" [label="withdrawCause"]
+"5224_claimTo" [label="claimTo"]
+"5224_getGame" [label="getGame"]
+"5224_claimRefund" [label="claimRefund"]
+"5224_removeCause" [label="removeCause"]
+"5224__commitPhaseAdvanceReady" [label="_commitPhaseAdvanceReady"]
+"5224__setDefaultConfig" [label="_setDefaultConfig"]
+"5224__validateGameConfig" [label="_validateGameConfig"]
+"5224__startCommitPhase" [label="_startCommitPhase"]
+"5224__increaseAccountedETHLiability" [label="_increaseAccountedETHLiability"]
+"5224__startRevealPhase" [label="_startRevealPhase"]
+"5224_configureDefaults" [label="configureDefaults"]
+"5224__setAuthRegistry" [label="_setAuthRegistry"]
+"5224__materializeEffectiveChoices" [label="_materializeEffectiveChoices"]
+"5224_advancePhase" [label="advancePhase"]
+"5224__decreaseAccountedETHLiability" [label="_decreaseAccountedETHLiability"]
+"5224_setTreasury" [label="setTreasury"]
+"5224_whitelistCause" [label="whitelistCause"]
+"5224_excessETH" [label="excessETH"]
+"5224_accountedETHLiabilities" [label="accountedETHLiabilities"]
+"5224_gameCauseAt" [label="gameCauseAt"]
+"5224_getPlayer" [label="getPlayer"]
+"5224__resolveRound" [label="_resolveRound"]
+"5224__requireRescueWindow" [label="_requireRescueWindow"]
+"5224__finalizeCancelledSettlement" [label="_finalizeCancelledSettlement"]
+"5224_admissionAgentKey" [label="admissionAgentKey"]
+"5224_getCause" [label="getCause"]
+"5224_treasuryClaimableAmount" [label="treasuryClaimableAmount"]
+"5224__cancelGame" [label="_cancelGame"]
+"5224_rescueERC20" [label="rescueERC20"]
+"5224__effectiveChoiceFor" [label="_effectiveChoiceFor"]
+"5224_launchGameAndJoin" [label="launchGameAndJoin"]
+"5224__distributeNoWinnerCausePool" [label="_distributeNoWinnerCausePool"]
+"5224_rescueExcessETH" [label="rescueExcessETH"]
+"5224_playerCause" [label="playerCause"]
+"5224_claimFor" [label="claimFor"]
+"5224__eliminateMatchingChoice" [label="_eliminateMatchingChoice"]
+"5224_causeCount" [label="causeCount"]
+"5224_isAlive" [label="isAlive"]
+"5224__claimPrize" [label="_claimPrize"]
+"5224_causeEntrants" [label="causeEntrants"]
+"5224_gameCauseRoutedAmount" [label="gameCauseRoutedAmount"]
+"5224_isAdmissionReady" [label="isAdmissionReady"]
+"5224_setAuthRegistry" [label="setAuthRegistry"]
+"5224__liveGameActive" [label="_liveGameActive"]
+"5224__requireIdle" [label="_requireIdle"]
+"5224__payout" [label="_payout"]
+"5224__resetRoundStateForAlivePlayers" [label="_resetRoundStateForAlivePlayers"]
+"5224_getSettlement" [label="getSettlement"]
+"5224_activeCauseCount" [label="activeCauseCount"]
+"5224_gameCauseCount" [label="gameCauseCount"]
+"5224__endResolvedGame" [label="_endResolvedGame"]
+"5224_rescueExcessETH" -> "5224_onlyOwner"
+"5224__resolveRound" -> "5224__eliminateMatchingChoice"
+"5224_isAdmissionReady" -> "5224__isAuthorized"
+"5224__claimPrize" -> "5224__payout"
+"5224_whitelistCause" -> "5224__requireIdle"
+"5224_withdrawCause" -> "5224__payout"
+"5224__setDefaultConfig" -> "5224__validateGameConfig"
+"5224__requireRescueWindow" -> "5224__liveGameActive"
+"5224_withdrawCause" -> "5224_nonReentrant"
+"5224_setTreasury" -> "5224_onlyOwner"
+"5224_constructor" -> "5224__setDefaultConfig"
+"5224_claimRefund" -> "5224__decreaseAccountedETHLiability"
+"5224_rescueERC20" -> "5224_onlyOwner"
+"5224_previewWinnerClaim" -> "5224__gameExists"
+"5224__claimPrize" -> "5224__gameExists"
+"5224_whitelistCause" -> "5224_onlyOwner"
+"5224__materializeEffectiveChoices" -> "5224__effectiveChoiceFor"
+"5224_configureDefaults" -> "5224__setDefaultConfig"
+"5224_claim" -> "5224_nonReentrant"
+"5224_rescueExcessETH" -> "5224__payout"
+"5224_reveal" -> "5224__gameExists"
+"5224__endResolvedGame" -> "5224__finalizeEndedSettlement"
+"5224_advancePhase" -> "5224__revealPhaseReadyForResolution"
+"5224_removeCause" -> "5224__requireIdle"
+"5224_setAuthRegistry" -> "5224_onlyOwner"
+"5224_claimRefund" -> "5224_nonReentrant"
+"5224_withdrawTreasury" -> "5224__payout"
+"5224__joinGame" -> "5224__increaseAccountedETHLiability"
+"5224_canAdvancePhase" -> "5224__revealPhaseReadyForResolution"
+"5224__joinGame" -> "5224__gameExists"
+"5224_rescueERC20" -> "5224__requireRescueWindow"
+"5224_commit" -> "5224__gameExists"
+"5224__resolveRound" -> "5224__endResolvedGame"
+"5224__cancelGame" -> "5224__finalizeCancelledSettlement"
+"5224_withdrawCause" -> "5224__gameExists"
+"5224_withdrawTreasury" -> "5224_nonReentrant"
+"5224_gameExists" -> "5224__gameExists"
+"5224_constructor" -> "5224__setAuthRegistry"
+"5224_withdrawCause" -> "5224__decreaseAccountedETHLiability"
+"5224_claimRefund" -> "5224__payout"
+"5224_claim" -> "5224__claimPrize"
+"5224_rescueERC20" -> "5224_nonReentrant"
+"5224_removeCause" -> "5224_onlyOwner"
+"5224_reveal" -> "5224__computeCommitment"
+"5224_advancePhase" -> "5224__commitPhaseAdvanceReady"
+"5224_isRoundReadyForResolution" -> "5224__gameExists"
+"5224_setAuthRegistry" -> "5224__setAuthRegistry"
+"5224_createGame" -> "5224_onlyOwner"
+"5224_claimFor" -> "5224__claimPrize"
+"5224_claimTo" -> "5224__claimPrize"
+"5224_withdrawCause" -> "5224_gameCauseClaimableAmount"
+"5224__claimPrize" -> "5224__decreaseAccountedETHLiability"
+"5224_previewRefund" -> "5224__gameExists"
+"5224_rescueExcessETH" -> "5224__requireRescueWindow"
+"5224_withdrawTreasury" -> "5224__gameExists"
+"5224_cancelIfInsufficientPlayers" -> "5224__gameExists"
+"5224_join" -> "5224__joinGame"
+"5224__resolveRound" -> "5224__materializeEffectiveChoices"
+"5224_claimTo" -> "5224_nonReentrant"
+"5224__startCommitPhase" -> "5224__resetRoundStateForAlivePlayers"
+"5224_createGame" -> "5224__createGame"
+"5224_configureDefaults" -> "5224__requireIdle"
+"5224_advancePhase" -> "5224__cancelGame"
+"5224_launchGameAndJoin" -> "5224__joinGame"
+"5224_withdrawTreasury" -> "5224__decreaseAccountedETHLiability"
+"5224_canAdvancePhase" -> "5224__gameExists"
+"5224__finalizeEndedSettlement" -> "5224__distributeNoWinnerCausePool"
+"5224_advancePhase" -> "5224__gameExists"
+"5224_constructor" -> "5224__setTreasury"
+"5224_configureDefaults" -> "5224_onlyOwner"
+"5224_claimRefund" -> "5224__gameExists"
+"5224_advancePhase" -> "5224__resolveRound"
+"5224_setTreasury" -> "5224__setTreasury"
+"5224_canAdvancePhase" -> "5224__commitPhaseAdvanceReady"
+"5224_computeCommitment" -> "5224__computeCommitment"
+"5224_advancePhase" -> "5224__startCommitPhase"
+"5224_setTreasury" -> "5224__requireIdle"
+"5224_advancePhase" -> "5224__startRevealPhase"
+"5224_launchGameAndJoin" -> "5224__createGame"
+"5224_cancelIfInsufficientPlayers" -> "5224__cancelGame"
+"5224_withdrawTreasury" -> "5224_treasuryClaimableAmount"
+"5224_launchGameAndJoin" -> "5224__requireIdle"
+"5224_rescueExcessETH" -> "5224_nonReentrant"
+"5224_setAuthRegistry" -> "5224__requireIdle"
+"5224_createGame" -> "5224__requireIdle"
+"5224_isRoundReadyForResolution" -> "5224__revealPhaseReadyForResolution"
+"5224_rescueExcessETH" -> "5224_excessETH"
+"5224_claimFor" -> "5224_nonReentrant"
+"5224__joinGame" -> "5224__isAuthorized"
+"5224_constructor" -> "5224_constructor"
+"5224__resolveRound" -> "5224__startCommitPhase"
+}subgraph cluster_5513_MockAgentIdentityRegistry {
+label = "MockAgentIdentityRegistry"
+"5513_mint" [label="mint"]
+"5513_tokenURI" [label="tokenURI"]
+"5513_ownerOf" [label="ownerOf"]
+"5513__mint" [label="_mint"]
+"5513_setOwner" [label="setOwner"]
+"5513_register" [label="register"]
+"5513_balanceOf" [label="balanceOf"]
+"5513_mint" -> "5513__mint"
+"5513_register" -> "5513__mint"
+}subgraph cluster_6284_SafeERC20 {
+label = "SafeERC20"
+"6284_transferFromAndCallRelaxed" [label="transferFromAndCallRelaxed"]
+"6284_safeTransfer" [label="safeTransfer"]
+"6284_forceApprove" [label="forceApprove"]
+"6284_trySafeTransferFrom" [label="trySafeTransferFrom"]
+"6284_transferAndCallRelaxed" [label="transferAndCallRelaxed"]
+"6284__safeTransfer" [label="_safeTransfer"]
+"6284_safeIncreaseAllowance" [label="safeIncreaseAllowance"]
+"6284_safeDecreaseAllowance" [label="safeDecreaseAllowance"]
+"6284_approveAndCallRelaxed" [label="approveAndCallRelaxed"]
+"6284__safeTransferFrom" [label="_safeTransferFrom"]
+"6284_trySafeTransfer" [label="trySafeTransfer"]
+"6284_safeTransferFrom" [label="safeTransferFrom"]
+"6284__safeApprove" [label="_safeApprove"]
+"6284_trySafeTransfer" -> "6284__safeTransfer"
+"6284_safeTransfer" -> "6284__safeTransfer"
+"6284_safeIncreaseAllowance" -> "6284_forceApprove"
+"6284_approveAndCallRelaxed" -> "6284_forceApprove"
+"6284_safeTransferFrom" -> "6284__safeTransferFrom"
+"6284_forceApprove" -> "6284__safeApprove"
+"6284_transferAndCallRelaxed" -> "6284_safeTransfer"
+"6284_trySafeTransferFrom" -> "6284__safeTransferFrom"
+"6284_safeDecreaseAllowance" -> "6284_forceApprove"
+"6284_transferFromAndCallRelaxed" -> "6284_safeTransferFrom"
+}subgraph cluster_6668_StorageSlot {
+label = "StorageSlot"
+"6668_getBytes32Slot" [label="getBytes32Slot"]
+"6668_getUint256Slot" [label="getUint256Slot"]
+"6668_getBytesSlot" [label="getBytesSlot"]
+"6668_getInt256Slot" [label="getInt256Slot"]
+"6668_getStringSlot" [label="getStringSlot"]
+"6668_getBooleanSlot" [label="getBooleanSlot"]
+"6668_getAddressSlot" [label="getAddressSlot"]
+}subgraph cluster_5743_IERC1363 {
+label = "IERC1363"
+"5743_approveAndCall" [label="approveAndCall"]
+"5743_transferAndCall" [label="transferAndCall"]
+"5743_transferFromAndCall" [label="transferFromAndCall"]
+}subgraph cluster_6544_ReentrancyGuard {
+label = "ReentrancyGuard"
+"6544__reentrancyGuardStorageSlot" [label="_reentrancyGuardStorageSlot"]
+"6544__nonReentrantBefore" [label="_nonReentrantBefore"]
+"6544__nonReentrantBeforeView" [label="_nonReentrantBeforeView"]
+"6544__reentrancyGuardEntered" [label="_reentrancyGuardEntered"]
+"6544_constructor" [label="constructor"]
+"6544__nonReentrantAfter" [label="_nonReentrantAfter"]
+"6544__nonReentrantAfter" -> "6544__reentrancyGuardStorageSlot"
+"6544__nonReentrantBefore" -> "6544__reentrancyGuardStorageSlot"
+"6544_constructor" -> "6544__reentrancyGuardStorageSlot"
+"6544__nonReentrantBefore" -> "6544__nonReentrantBeforeView"
+"6544__nonReentrantBeforeView" -> "6544__reentrancyGuardEntered"
+"6544__reentrancyGuardEntered" -> "6544__reentrancyGuardStorageSlot"
+}subgraph cluster_114_ERC8004AuthAdapter {
+label = "ERC8004AuthAdapter"
+"114_agentKeyOf" [label="agentKeyOf"]
+"114_constructor" [label="constructor"]
+"114_isAuthorized" [label="isAuthorized"]
+}subgraph cluster_372_GameChat {
+label = "GameChat"
+"372_postGlobal" [label="postGlobal"]
+"372__validateMessage" [label="_validateMessage"]
+"372__requireExistingGame" [label="_requireExistingGame"]
+"372_constructor" [label="constructor"]
+"372_postCause" [label="postCause"]
+"372__post" [label="_post"]
+"372_postCause" -> "372__requireExistingGame"
+"372_postGlobal" -> "372__requireExistingGame"
+"372_postCause" -> "372__post"
+"372_postGlobal" -> "372__post"
+"372__post" -> "372__validateMessage"
+}subgraph cluster_6680_IERC165 {
+label = "IERC165"
+"6680_supportsInterface" [label="supportsInterface"]
+}subgraph cluster_5241_IAgentAuthRegistry {
+label = "IAgentAuthRegistry"
+"5241_isAuthorized" [label="isAuthorized"]
+"5241_agentKeyOf" [label="agentKeyOf"]
+}subgraph cluster_5661_Ownable {
+label = "Ownable"
+"5661_owner" [label="owner"]
+"5661_constructor" [label="constructor"]
+"5661__transferOwnership" [label="_transferOwnership"]
+"5661__checkOwner" [label="_checkOwner"]
+"5661_transferOwnership" [label="transferOwnership"]
+"5661_renounceOwnership" [label="renounceOwnership"]
+"5661__checkOwner" -> "5661__msgSender"
+"5661_renounceOwnership" -> "5661__transferOwnership"
+"5661__checkOwner" -> "5661_owner"
+"5661_transferOwnership" -> "5661_onlyOwner"
+"5661_constructor" -> "5661__transferOwnership"
+"5661_transferOwnership" -> "5661__transferOwnership"
+"5661_renounceOwnership" -> "5661_onlyOwner"
+}subgraph cluster_6431_Context {
+label = "Context"
+"6431__msgData" [label="_msgData"]
+"6431__msgSender" [label="_msgSender"]
+"6431__contextSuffixLength" [label="_contextSuffixLength"]
+}subgraph cluster_solidity {
+label = "[Solidity]"
+"revert SettlementAlreadyFinalized()" 
+"revert InvalidGameConfig()" 
+"revert InsufficientExcessETH(uint256,uint256)" 
+"revert WrongCause()" 
+"revert DuplicateReveal()" 
+"revert EmptyMessage()" 
+"revert InvalidResolutionState()" 
+"gas()" 
+"abi.encode()" 
+"revert OwnableUnauthorizedAccount(address)" 
+"revert OwnableInvalidOwner(address)" 
+"balance(address)" 
+"revert(uint256,uint256)" 
+"revert ReentrancyGuardReentrantCall()" 
+"revert InvalidRevealPreimage()" 
+"returndatasize()" 
+"revert AlreadyClaimed()" 
+"revert GameNotCommitPhase()" 
+"revert RefundUnavailable()" 
+"revert JoinWindowClosed()" 
+"mload(uint256)" 
+"revert NotAlive()" 
+"revert DuplicateCommit()" 
+"revert InvalidIdentityRegistry()" 
+"revert EntryFeeMismatch()" 
+"revert MaxCausesReached()" 
+"returndatacopy(uint256,uint256,uint256)" 
+"revert InvalidChoice()" 
+"revert InvalidPhaseAdvance()" 
+"revert CommitPhaseStillOpen()" 
+"revert CommitWindowClosed()" 
+"revert RescueUnavailableDuringLiveGame()" 
+"code(address)" 
+"revert SafeERC20FailedDecreaseAllowance(address,uint256,uint256)" 
+"revert RevealPhaseStillOpen()" 
+"revert SafeERC20FailedOperation(address)" 
+"revert NoWhitelistedCauses()" 
+"revert GameNotJoining()" 
+"revert InvalidRecipient()" 
+"revert InvalidRescueToken()" 
+"revert MinimumPlayersMet()" 
+"revert UnauthorizedWallet()" 
+"revert InvalidOwner()" 
+"revert RevealWindowClosed()" 
+"revert InvalidLaunchJoinDuration()" 
+"revert MessageTooLong()" 
+"keccak256(bytes)" 
+"revert DuplicateAgentKey()" 
+"revert MaxPlayersReached()" 
+"revert TransferFailed()" 
+"revert InvalidTreasury()" 
+"revert InvalidRescueAmount()" 
+"revert PlayerNotAlive()" 
+"revert PlayerNotJoined()" 
+"revert MissingGame()" 
+"mstore(uint256,uint256)" 
+"revert UnsafePhase()" 
+"revert InvalidAuthRegistry()" 
+"revert MissingCommitment()" 
+"revert DuplicateWallet()" 
+"revert InvalidGameContract()" 
+"revert JoinWindowStillOpen()" 
+"revert InvalidCommitment()" 
+"revert AlreadyRefunded()" 
+"revert GameNotRevealPhase()" 
+"revert NotJoined()" 
+"revert ClaimUnavailable()" 
+"revert InvalidCause()" 
+"revert NotRegistered()" 
+"abi.encodePacked()" 
+"revert NothingToWithdraw()" 
+"call(uint256,uint256,uint256,uint256,uint256,uint256,uint256)" 
+"6284__safeTransferFrom" -> "revert(uint256,uint256)"
+"5224__materializeEffectiveChoices" -> "revert InvalidChoice()"
+"6284__safeTransfer" -> "call(uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+"5224_reveal" -> "revert MissingGame()"
+"5224__createGame" -> "revert NoWhitelistedCauses()"
+"372_postGlobal" -> "revert NotJoined()"
+"6284__safeTransferFrom" -> "gas()"
+"6284_approveAndCallRelaxed" -> "revert SafeERC20FailedOperation(address)"
+"5224__computeCommitment" -> "abi.encode()"
+"6284__safeApprove" -> "call(uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+"6284__safeApprove" -> "returndatacopy(uint256,uint256,uint256)"
+"5224_withdrawCause" -> "revert InvalidCause()"
+"6284_safeTransfer" -> "revert SafeERC20FailedOperation(address)"
+"5224_advancePhase" -> "revert InvalidPhaseAdvance()"
+"5224_reveal" -> "revert InvalidRevealPreimage()"
+"372__requireExistingGame" -> "revert MissingGame()"
+"6284_transferAndCallRelaxed" -> "revert SafeERC20FailedOperation(address)"
+"6284__safeTransferFrom" -> "mload(uint256)"
+"5224_reveal" -> "revert MissingCommitment()"
+"5224__claimPrize" -> "revert MissingGame()"
+"5224__joinGame" -> "revert MaxPlayersReached()"
+"6284__safeTransfer" -> "mload(uint256)"
+"5224__finalizeCancelledSettlement" -> "revert SettlementAlreadyFinalized()"
+"5224__joinGame" -> "revert MaxCausesReached()"
+"6284_transferAndCallRelaxed" -> "code(address)"
+"5224_withdrawCause" -> "revert NothingToWithdraw()"
+"5224_commit" -> "revert PlayerNotAlive()"
+"5224_advancePhase" -> "revert RevealPhaseStillOpen()"
+"6284__safeApprove" -> "mload(uint256)"
+"5224__setTreasury" -> "revert InvalidTreasury()"
+"6284__safeApprove" -> "revert(uint256,uint256)"
+"6284__safeTransfer" -> "returndatasize()"
+"5224__claimPrize" -> "revert PlayerNotJoined()"
+"5661__checkOwner" -> "revert OwnableUnauthorizedAccount(address)"
+"5224_rescueExcessETH" -> "revert InvalidRescueAmount()"
+"5224_claimRefund" -> "revert MissingGame()"
+"5224__validateGameConfig" -> "revert InvalidGameConfig()"
+"5224__finalizeEndedSettlement" -> "revert InvalidResolutionState()"
+"5224__payout" -> "revert TransferFailed()"
+"6284__safeTransferFrom" -> "call(uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+"5224_withdrawCause" -> "revert MissingGame()"
+"5224__claimPrize" -> "revert AlreadyClaimed()"
+"5224_commit" -> "revert GameNotCommitPhase()"
+"6284__safeTransferFrom" -> "mstore(uint256,uint256)"
+"6284__safeApprove" -> "mstore(uint256,uint256)"
+"5224_reveal" -> "revert PlayerNotJoined()"
+"372__validateMessage" -> "revert MessageTooLong()"
+"5224_cancelIfInsufficientPlayers" -> "revert GameNotJoining()"
+"5513__mint" -> "revert InvalidOwner()"
+"5224__finalizeEndedSettlement" -> "revert SettlementAlreadyFinalized()"
+"372__validateMessage" -> "revert EmptyMessage()"
+"6284_transferFromAndCallRelaxed" -> "code(address)"
+"5224_reveal" -> "revert PlayerNotAlive()"
+"5224_advancePhase" -> "revert CommitPhaseStillOpen()"
+"5224__setAuthRegistry" -> "revert InvalidAuthRegistry()"
+"5224_removeCause" -> "revert InvalidCause()"
+"5661_constructor" -> "revert OwnableInvalidOwner(address)"
+"5224_advancePhase" -> "revert MissingGame()"
+"5224__joinGame" -> "revert DuplicateWallet()"
+"5661_transferOwnership" -> "revert OwnableInvalidOwner(address)"
+"6284__safeApprove" -> "returndatasize()"
+"5224_launchGameAndJoin" -> "revert InvalidLaunchJoinDuration()"
+"114_agentKeyOf" -> "abi.encodePacked()"
+"6284__safeTransfer" -> "returndatacopy(uint256,uint256,uint256)"
+"5224__joinGame" -> "revert MissingGame()"
+"5224_cancelIfInsufficientPlayers" -> "revert MissingGame()"
+"5224_commit" -> "revert InvalidCommitment()"
+"6544__nonReentrantBeforeView" -> "revert ReentrancyGuardReentrantCall()"
+"5224__requireRescueWindow" -> "revert RescueUnavailableDuringLiveGame()"
+"5224_excessETH" -> "balance(address)"
+"5224_cancelIfInsufficientPlayers" -> "revert MinimumPlayersMet()"
+"5224_claimRefund" -> "revert PlayerNotJoined()"
+"5224_reveal" -> "revert DuplicateReveal()"
+"5224_rescueExcessETH" -> "revert InvalidRecipient()"
+"5224_rescueERC20" -> "revert InvalidRescueToken()"
+"5224_rescueERC20" -> "revert InvalidRecipient()"
+"6284_forceApprove" -> "revert SafeERC20FailedOperation(address)"
+"5224__joinGame" -> "revert DuplicateAgentKey()"
+"5224_rescueERC20" -> "revert InvalidRescueAmount()"
+"114_constructor" -> "code(address)"
+"5224_commit" -> "revert CommitWindowClosed()"
+"6284__safeTransfer" -> "revert(uint256,uint256)"
+"6284_safeDecreaseAllowance" -> "revert SafeERC20FailedDecreaseAllowance(address,uint256,uint256)"
+"5224_withdrawTreasury" -> "revert MissingGame()"
+"5224__joinGame" -> "revert JoinWindowClosed()"
+"5224_commit" -> "revert PlayerNotJoined()"
+"5224_claimRefund" -> "revert RefundUnavailable()"
+"5224__payout" -> "revert InvalidRecipient()"
+"6284__safeApprove" -> "gas()"
+"5224_rescueExcessETH" -> "revert InsufficientExcessETH(uint256,uint256)"
+"5224__computeCommitment" -> "keccak256(bytes)"
+"5224__requireIdle" -> "revert UnsafePhase()"
+"372_constructor" -> "revert InvalidGameContract()"
+"372_postCause" -> "revert NotJoined()"
+"5224_commit" -> "revert MissingGame()"
+"6284__safeTransfer" -> "mstore(uint256,uint256)"
+"5224_claimRefund" -> "revert AlreadyClaimed()"
+"5224__joinGame" -> "revert EntryFeeMismatch()"
+"6284__safeTransferFrom" -> "returndatacopy(uint256,uint256,uint256)"
+"114_constructor" -> "revert InvalidIdentityRegistry()"
+"5224_reveal" -> "revert GameNotRevealPhase()"
+"5224__resolveRound" -> "revert InvalidResolutionState()"
+"5224__claimPrize" -> "revert AlreadyRefunded()"
+"372_postCause" -> "revert NotAlive()"
+"5224_commit" -> "revert DuplicateCommit()"
+"5224__joinGame" -> "revert GameNotJoining()"
+"5513_ownerOf" -> "revert NotRegistered()"
+"5224_reveal" -> "revert RevealWindowClosed()"
+"5224_reveal" -> "revert InvalidChoice()"
+"5224_advancePhase" -> "revert JoinWindowStillOpen()"
+"6284_transferFromAndCallRelaxed" -> "revert SafeERC20FailedOperation(address)"
+"5224__joinGame" -> "revert InvalidCause()"
+"372_postCause" -> "revert WrongCause()"
+"5224__claimPrize" -> "revert ClaimUnavailable()"
+"5513_tokenURI" -> "revert NotRegistered()"
+"6284__safeTransfer" -> "gas()"
+"5224_cancelIfInsufficientPlayers" -> "revert JoinWindowStillOpen()"
+"5513_balanceOf" -> "revert InvalidOwner()"
+"5224__joinGame" -> "revert UnauthorizedWallet()"
+"114_agentKeyOf" -> "keccak256(bytes)"
+"6284_safeTransferFrom" -> "revert SafeERC20FailedOperation(address)"
+"5224_claimRefund" -> "revert AlreadyRefunded()"
+"5224_whitelistCause" -> "revert InvalidRecipient()"
+"6284_approveAndCallRelaxed" -> "code(address)"
+"5224_withdrawTreasury" -> "revert NothingToWithdraw()"
+"6284__safeTransferFrom" -> "returndatasize()"
+}"6284_approveAndCallRelaxed" -> "5743_approveAndCall"
+"6284_safeIncreaseAllowance" -> "5829_allowance"
+"372__post" -> "5287_chatContext"
+"372_postCause" -> "5287_isJoined"
+"114_isAuthorized" -> "6401_balanceOf"
+"6544__nonReentrantAfter" -> "6668_getUint256Slot"
+"6544__nonReentrantBefore" -> "6668_getUint256Slot"
+"372_postCause" -> "5287_playerCause"
+"5224_rescueERC20" -> "6284_safeTransfer"
+"114_agentKeyOf" -> "6401_balanceOf"
+"372__requireExistingGame" -> "5287_gameExists"
+"5224_admissionAgentKey" -> "5241_agentKeyOf"
+"5224__isAuthorized" -> "5241_isAuthorized"
+"372_postGlobal" -> "5287_isJoined"
+"372_postCause" -> "5287_isAlive"
+"6544_constructor" -> "6668_getUint256Slot"
+"5224__joinGame" -> "5241_agentKeyOf"
+"6544__reentrancyGuardEntered" -> "6668_getUint256Slot"
+"6284_safeDecreaseAllowance" -> "5829_allowance"
+"6284_transferFromAndCallRelaxed" -> "5743_transferFromAndCall"
+"6284_transferAndCallRelaxed" -> "5743_transferAndCall"
+}

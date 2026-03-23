@@ -1,0 +1,59 @@
+{
+  "gameId": 1,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 11,
+      "timestamp": 1774220618
+    },
+    "logRange": {
+      "requestedFromBlock": 0,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 0,
+      "resolvedToBlock": 11,
+      "coversFullHistoryToStateSnapshot": true,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "usedCauses": [
+    {
+      "causeId": 1,
+      "used": true,
+      "entrantCount": 1,
+      "recipient": "0x9eF6c02FB2ECc446146E05F1fF687a788a8BF76d",
+      "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc",
+      "members": [
+        "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+      ],
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0"
+    },
+    {
+      "causeId": 2,
+      "used": true,
+      "entrantCount": 1,
+      "recipient": "0x08A2DE6F3528319123b25935C92888B16db8913E",
+      "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786",
+      "members": [
+        "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+      ],
+      "routedFromGameWei": "0",
+      "claimableFromGameWei": "0",
+      "withdrawnFromGameWei": "0"
+    }
+  ],
+  "whitelist": [
+    {
+      "causeId": 1,
+      "active": true,
+      "recipient": "0x9eF6c02FB2ECc446146E05F1fF687a788a8BF76d",
+      "metadataHash": "0xcd8d566b010ee1fa5a793646319da8b00a2f7e2822a04a48e890c727730124dc"
+    },
+    {
+      "causeId": 2,
+      "active": true,
+      "recipient": "0x08A2DE6F3528319123b25935C92888B16db8913E",
+      "metadataHash": "0x23c2ddb6bbf14102c604d70e77c7f4bd570aa5c545311bc896796e5d1f58c786"
+    }
+  ]
+}

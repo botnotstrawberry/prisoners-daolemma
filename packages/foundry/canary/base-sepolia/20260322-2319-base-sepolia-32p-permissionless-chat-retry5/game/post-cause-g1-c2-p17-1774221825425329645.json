@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+  "gameId": 1,
+  "txHash": "0xcdb230609b86a39a582290bc988abfecb9160b87eefeba2d4cceff96cdd96f72",
+  "blockNumber": 39226770,
+  "messageId": 6,
+  "round": 1,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "cause",
+  "causeId": 2,
+  "createdAt": 1774221828,
+  "text": "Round 1: same reminder — Share / Catch / Steal only. Competitive opening, no auto-share proof run."
+}

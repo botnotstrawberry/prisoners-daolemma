@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0xf99454b6503adf17b390dbc31095c3b972d1c5c1c0f49d77d98ca74053736339",
+  "blockNumber": 39226767,
+  "messageId": 5,
+  "round": 1,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "cause",
+  "causeId": 1,
+  "createdAt": 1774221822,
+  "text": "Round 1: we are playing to win. Valid moves are Share / Catch / Steal. If you say block, submit Catch."
+}

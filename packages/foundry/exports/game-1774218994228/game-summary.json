@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "prisoners-daolemma/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: ERC-8004 admission status, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "gameId": 1,
+  "chainId": 31337,
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 11,
+      "timestamp": 1774218993
+    },
+    "logRange": {
+      "requestedFromBlock": 0,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 0,
+      "resolvedToBlock": 11,
+      "coversFullHistoryToStateSnapshot": true,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "addresses": {
+    "game": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "registry": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "chat": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+  },
+  "game": {
+    "currentGameId": 1,
+    "activeGameId": 1,
+    "createdAt": 1774218993,
+    "createdAtBlock": 9,
+    "parameterSnapshot": {
+      "entryFeeWei": "1000000000000000",
+      "creatorFeeBps": 500,
+      "causeFeeBps": 500,
+      "joinDurationSeconds": 60,
+      "commitDurationBlocks": 5,
+      "revealDurationBlocks": 5,
+      "minPlayers": 2,
+      "maxPlayers": 32,
+      "maxCauses": 8
+    },
+    "treasury": "0xEe7f6A930B29d7350498Af97f0F9672EaecbeeFf",
+    "phase": "Joining",
+    "phaseCode": 1,
+    "outcome": "Unset",
+    "outcomeCode": 0,
+    "settlement": {
+      "finalized": false,
+      "terminalPath": "pending",
+      "totalPotWei": "0",
+      "creatorFeeWei": "0",
+      "treasuryAccruedWei": "0",
+      "treasuryWithdrawnWei": "0",
+      "treasuryClaimableWei": "0",
+      "winnerCount": 0,
+      "winnerShareWei": "0",
+      "refundPerPlayerWei": "0",
+      "noWinnerCausePoolWei": "0",
+      "noWinnerCauseDistributedWei": "0"
+    },
+    "terminalOutcome": {
+      "terminal": false,
+      "terminalPath": "pending",
+      "phase": "Joining",
+      "phaseCode": 1,
+      "outcome": "Unset",
+      "outcomeCode": 0,
+      "round": 0,
+      "shareStreak": 0,
+      "aliveCount": 2,
+      "winnerCount": 0,
+      "gameEndedEvent": null,
+      "gameCancelledEvent": null,
+      "settlementFinalizedEvent": null,
+      "notes": [
+        "Game has not yet reached a terminal phase at the selected state snapshot block."
+      ]
+    },
+    "round": 0,
+    "shareStreak": 0,
+    "counts": {
+      "joined": 2,
+      "alive": 2,
+      "claimed": 0,
+      "refunded": 0,
+      "usedCauses": 2,
+      "committed": 0,
+      "revealed": 0,
+      "messages": 0
+    },
+    "phaseHistory": [
+      {
+        "phase": "Joining",
+        "phaseCode": 1,
+        "blockNumber": 9,
+        "txHash": "0x75811fe615e2a0d76a1c7e34e8336235c8ad587f3a9eedb6d29f04625e01ec51",
+        "timestamp": 1774218993
+      }
+    ]
+  },
+  "capabilities": {
+    "available": [
+      "game-parameter-snapshot",
+      "current-phase-and-round-context",
+      "player-roster-and-cause-selection",
+      "used-cause-team-state",
+      "auth-records-for-participants",
+      "commit-and-reveal-event-inspection",
+      "round-resolution-outcomes",
+      "elimination-history",
+      "winner-no-winner-terminal-state",
+      "claim-refund-settlement-data",
+      "payout-destination-audit",
+      "game-chat-message-export"
+    ],
+    "unavailable": []
+  },
+  "notes": [
+    "Round resolution, eliminations, terminal outcomes, and per-game settlement snapshots are exported when their onchain events/state exist inside the selected evidence window.",
+    "Per-game routed, claimable, and withdrawn payout amounts are exported from the contract's own settlement counters and events rather than inferred from generic recipient balances.",
+    "Message-time liveness is derived from elimination timing when the selected evidence window makes that history available; otherwise global-message liveness fields stay null instead of guessing from final state.",
+    "Game has not yet reached a terminal phase at the selected state snapshot block."
+  ]
+}

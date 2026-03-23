@@ -1,0 +1,48 @@
+# Operator Notes
+
+- Run id: 20260322-2319-base-sepolia-32p-permissionless-chat-retry5
+- Commit: ecb6baa0153e71289915879e2dc79b3652a535dc
+- RPC: https://sepolia.base.org
+- Game id: 1
+- Deploy tx: 0x7387eed6311c07f2fc1294e36f1bbd8fc3be9c220f635181943f9ca2518b3cf8
+- Profile: join=300s commit=60 reveal=40 min=32 max=32 causes=2 entryFeeWei=1000000000000000
+- Timing rationale: user-directed data-driven 32p profile using 300s / 60 / 40 from the successful slower Sepolia artifact evidence
+- Cause 1: Protocol Guild -> 0xd16713A5D4Eb7E3aAc9D2228eB72f6f7328FADBD
+- Cause 2: Giveth Matching Pool -> 0x6e8873085530406995170Da467010565968C7C62
+- Realistic routing note: those addresses are used as recipient addresses for realistic cause routing on Sepolia
+- Strategy profile: competitive opening using Share/Catch/Steal beliefs, then Share convergence for surviving winners; hard rule is Share from round 10 onward
+- Cause withdrawals: intentionally skipped because the configured cause recipients are external realistic addresses whose private keys are not available in this environment
+
+## Player wallets
+- Player 1: 0x373c73a96C40F82D8E684448527E78Aa90572AaA (keystore canary-player-1, cause 1, cluster share)
+- Player 2: 0xd5B820002455D9E19044b2830Bb30eD813bf3424 (keystore canary-player-2, cause 1, cluster share)
+- Player 3: 0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384 (keystore canary-player-3, cause 1, cluster share)
+- Player 4: 0x99026D4196D093F6a315408775b00312Fc1F5797 (keystore canary-player-4, cause 1, cluster share)
+- Player 5: 0xE88E974c584aE6F222371f4f4D68564D534cc29d (keystore canary-player-5, cause 1, cluster share)
+- Player 6: 0xc5AB7152c9ea027c753589D343934c4E5CD5d305 (keystore canary-player-6, cause 1, cluster share)
+- Player 7: 0xC52D960200545832167756854c178fD724A5565b (keystore canary-player-7, cause 1, cluster catch)
+- Player 8: 0x1d0E244a40D59eB6eCF9c62ec0c07Ed77723a35c (keystore canary-player-8, cause 1, cluster catch)
+- Player 9: 0xBD592997601d44dfC40B7fD3B7FA5b506392B6A7 (keystore canary-player-9, cause 1, cluster catch)
+- Player 10: 0xf8A384913Aa0895e37A11E469EAD1C7Fc1db57F7 (keystore canary-player-10, cause 1, cluster catch)
+- Player 11: 0x41Aa374bBF153E755e32A8d6a3f865ff047A9FaB (keystore canary-player-11, cause 1, cluster catch)
+- Player 12: 0x75c0B76AdC78eb2Ca867BbecDaFF2EB31f18c492 (keystore canary-player-12, cause 1, cluster catch)
+- Player 13: 0x1899BD66aF9b1C98cc243aC5537b8D73eae950cF (keystore canary-player-13, cause 1, cluster steal)
+- Player 14: 0x4A5eFa2B26015F277b00233E3893D0E92131780d (keystore canary-player-14, cause 1, cluster steal)
+- Player 15: 0x4E228BE0901a7c274Ba16d0499f320F796a3c9BF (keystore canary-player-15, cause 1, cluster steal)
+- Player 16: 0xfE2A2d2cD4d423Df9b60ddad5BCA09b262428975 (keystore canary-player-16, cause 1, cluster steal)
+- Player 17: 0x405891A535E1802bC3b9B02Bd808AE32DB4570df (keystore canary-player-17, cause 2, cluster share)
+- Player 18: 0xc1E95Db1F919f6381F77CC1F73F88D2867bE251B (keystore canary-player-18, cause 2, cluster share)
+- Player 19: 0x5326aAB2630aD92dd19485643075632E5856B621 (keystore canary-player-19, cause 2, cluster share)
+- Player 20: 0xb3ac4868F83beE82d2993C580B1D4B7717652709 (keystore canary-player-20, cause 2, cluster share)
+- Player 21: 0xddDcf99A3dB347F8464D12541D7A4207694C6515 (keystore canary-player-21, cause 2, cluster share)
+- Player 22: 0x03b8D945FD329B8fFf754F7821fd479e5f3D899b (keystore canary-player-22, cause 2, cluster share)
+- Player 23: 0x55c4b7E46A01D7023929359126ab04a5Da6c045B (keystore canary-player-23, cause 2, cluster catch)
+- Player 24: 0xcC383467a2DBE08Ad0d71A5EE82ffe99c544085E (keystore canary-player-24, cause 2, cluster catch)
+- Player 25: 0xe033310Dd4DBD32C011B0DB1E5f636594E33050f (keystore canary-player-25, cause 2, cluster catch)
+- Player 26: 0x5b6BA41AC71e2201609eC81BaaE4f876aabb303E (keystore canary-player-26, cause 2, cluster catch)
+- Player 27: 0x5f24946dfaaa238255F759bdD774505BbA4C5D8E (keystore canary-player-27, cause 2, cluster catch)
+- Player 28: 0xd7cF069cE508aF03C8D4611679Db3ff50B92709f (keystore canary-player-28, cause 2, cluster catch)
+- Player 29: 0x5032bD27718a3d0Ba9098EfED91de48b17dc4915 (keystore canary-player-29, cause 2, cluster steal)
+- Player 30: 0x86772124fe3e21069FC72dC8345d0465c0492563 (keystore canary-player-30, cause 2, cluster steal)
+- Player 31: 0xdb7bAca89282130D98dfD125b4CBC1188310C635 (keystore canary-player-31, cause 2, cluster steal)
+- Player 32: 0x3D47Ed4b80bb9331c99F7DD6f7d18456Aed48Dd2 (keystore canary-player-32, cause 2, cluster steal)

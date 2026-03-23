@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-global",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x373c73a96C40F82D8E684448527E78Aa90572AaA",
+  "gameId": 1,
+  "txHash": "0x03dc8fca78914a483571614d08ed456f76d12399e60d21bcaf9fc5014a91e171",
+  "blockNumber": 39227056,
+  "messageId": 20,
+  "round": 4,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "global",
+  "causeId": null,
+  "createdAt": 1774222400,
+  "text": "Round 4: current best response is Share to lock in a winner path from the surviving set."
+}

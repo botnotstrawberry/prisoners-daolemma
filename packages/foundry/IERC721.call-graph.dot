@@ -1,0 +1,20 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_6680_IERC165 {
+label = "IERC165"
+"6680_supportsInterface" [label="supportsInterface"]
+}subgraph cluster_6401_IERC721 {
+label = "IERC721"
+"6401_ownerOf" [label="ownerOf"]
+"6401_approve" [label="approve"]
+"6401_safeTransferFrom" [label="safeTransferFrom"]
+"6401_setApprovalForAll" [label="setApprovalForAll"]
+"6401_transferFrom" [label="transferFrom"]
+"6401_isApprovedForAll" [label="isApprovedForAll"]
+"6401_balanceOf" [label="balanceOf"]
+"6401_getApproved" [label="getApproved"]
+}subgraph cluster_solidity {
+label = "[Solidity]"
+}
+}

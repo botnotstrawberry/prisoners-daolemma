@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "prisoners-daolemma/evidence-v0",
+  "boundaryNote": "This evidence/query tooling exports the settlement surface the current contracts actually expose onchain today: ERC-8004 admission status, game snapshots/rosters/causes, commit/reveal activity, round-resolution and terminal outcomes, settlement snapshots, winner/refund preview state, prize/refund/withdrawal events, no-winner cause routing, per-game treasury/cause claimable and withdrawn balances, and optional GameChat messages with explicit message-time liveness notes.",
+  "evidenceWindow": {
+    "stateSnapshot": {
+      "blockNumber": 11,
+      "timestamp": 1774221049
+    },
+    "logRange": {
+      "requestedFromBlock": 0,
+      "requestedToBlock": "latest",
+      "resolvedFromBlock": 0,
+      "resolvedToBlock": 11,
+      "coversFullHistoryToStateSnapshot": true,
+      "isHybridAgainstStateSnapshot": false
+    }
+  },
+  "outputDir": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130",
+  "gameId": 1,
+  "chainId": 31337,
+  "produced": [
+    {
+      "artifact": "game-summary.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/game-summary.json"
+    },
+    {
+      "artifact": "roster.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/roster.json"
+    },
+    {
+      "artifact": "causes.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/causes.json"
+    },
+    {
+      "artifact": "rounds.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/rounds.json"
+    },
+    {
+      "artifact": "auth.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/auth.json"
+    },
+    {
+      "artifact": "payouts.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/payouts.json"
+    },
+    {
+      "artifact": "messages.jsonl",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/messages.jsonl",
+      "count": 0
+    },
+    {
+      "artifact": "export-manifest.json",
+      "path": "/root/projects/prisoners-daolemma/packages/foundry/exports/game-1774221050130/export-manifest.json"
+    }
+  ],
+  "skipped": []
+}

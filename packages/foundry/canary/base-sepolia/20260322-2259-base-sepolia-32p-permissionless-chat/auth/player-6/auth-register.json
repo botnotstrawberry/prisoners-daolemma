@@ -1,0 +1,15 @@
+{
+  "chainId": 84532,
+  "wallet": "0xc5AB7152c9ea027c753589D343934c4E5CD5d305",
+  "game": "0x5A28d5fF79811cb4A5b223473eab6834A653B9D1",
+  "authRegistry": "0x0c8a34C80D4dFa22d10D605d72276598242fcff3",
+  "identityRegistry": "0x7177a6867296406881E20d6647232314736Dd09A",
+  "agentId": "564",
+  "agentUri": "data:application/json;base64,eyJ0eXBlIjoiaHR0cHM6Ly9laXBzLmV0aGVyZXVtLm9yZy9FSVBTL2VpcC04MDA0I3JlZ2lzdHJhdGlvbi12MSIsIm5hbWUiOiJwcmlzb25lcnMtMzJwLXBsYXllci02IiwiZGVzY3JpcHRpb24iOiJQcmlzb25lcnMgREFPbGVtbWEgMzItcGxheWVyIEJhc2UgU2Vwb2xpYSBjb21wZXRpdGl2ZSBjaGF0IHJ1biBhZ2VudCA2IGZvciBydW4gMjAyNjAzMjItMjI1OS1iYXNlLXNlcG9saWEtMzJwLXBlcm1pc3Npb25sZXNzLWNoYXQifQ==",
+  "derivedAgentKey": "0xd27c209f6e47536717175c34fa62fef10a1a294596eba2dfd0636a1c37a5cec0",
+  "owner": "0xbae5f91Cca261A85b7f2BCCb02b1de5F6cE88384",
+  "balance": "1",
+  "transactionHash": "0x48198d108968fee950d4b01dddba5446495db613287ce6c674e4013df524f372",
+  "blockNumber": 39226224,
+  "registerable": true
+}

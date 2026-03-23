@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "prisoners-daolemma/commit-bundle-v0",
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "secretHandlingNote": "Prepared commit bundles include the salt needed for reveal. Treat the bundle as round-secret material until reveal is submitted.",
+  "preparedAt": "2026-03-22T19:22:55.648Z",
+  "command": "prepare-commit",
+  "chainId": 84532,
+  "game": "0x32DBb599efA5AB0c139B43af30C9960bB956427c",
+  "gameId": 1,
+  "round": 1,
+  "phase": "Commit",
+  "wallet": "0x55c4b7E46A01D7023929359126ab04a5Da6c045B",
+  "choice": "Share",
+  "choiceCode": 1,
+  "salt": "0x293baf0f5cb24e41d49eb19d67b3bf76060cd98985a174937975222bcea1e7b9",
+  "commitment": "0xe84f5e8201a9cf084d3bd2bfc9bda142512b2ec73de24eb3cac5e6d1838d79fd"
+}

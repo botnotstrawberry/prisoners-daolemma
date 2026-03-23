@@ -1,0 +1,19 @@
+
+🧪 Base Sepolia canary preflight
+RPC target:     baseSepolia
+Chain ID:       84532
+Latest block:   39219123
+Deployer:       0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Keystore:       botnotstrawberry-base-wallet
+Owner:          0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Treasury:       0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Auth verifier:  0xDb463b29c82138188d5e425EDe5E0Fcbb09f1408
+Profile:        entryFeeWei=1000000000000000 | creatorFeeBps=100 | causeFeeBps=100 | join=300s | commit=120 blocks | reveal=120 blocks | min=32 | max=32 | maxCauses=8
+Recommended:    no
+BaseScan key:   present
+Warnings:
+  - Deploy config joinDurationSeconds=300 differs from the recommended Base Sepolia canary value 900.
+  - Deploy config commitDurationBlocks=120 differs from the recommended Base Sepolia canary value 20.
+  - Deploy config revealDurationBlocks=120 differs from the recommended Base Sepolia canary value 20.
+  - Deploy config minPlayers=32 differs from the recommended Base Sepolia canary value 3.
+Output:         /root/projects/prisoners-daolemma/packages/foundry/canary/base-sepolia/20260322T190848Z-base-sepolia-32p-public-launch-chat/preflight.json

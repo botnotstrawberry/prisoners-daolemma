@@ -1,0 +1,19 @@
+{
+  "boundaryNote": "This gameplay/operator CLI only submits the current onchain game/chat actions and locally prepares commit preimages. It does not replace the separate auth boundary, does not invent offchain game state, and does not replace queryCli.js for honest state/evidence export.",
+  "command": "post-cause",
+  "chainId": 84532,
+  "game": "0x42892BEc3d1d926Db25FfB6A144ee363AaE40A1a",
+  "chat": "0xc2604D5C87663efE959342F23c3DC9E4D9Db3e99",
+  "wallet": "0x405891A535E1802bC3b9B02Bd808AE32DB4570df",
+  "gameId": 1,
+  "txHash": "0x359768877f801915f5d7070f062c704ba9750b98325f510860f1eabcfa3cd632",
+  "blockNumber": 39227114,
+  "messageId": 22,
+  "round": 5,
+  "phase": "Commit",
+  "phaseCode": 2,
+  "scope": "cause",
+  "causeId": 2,
+  "createdAt": 1774222516,
+  "text": "Round 5: surviving players now judge Share the best path to preserve a winner set. Hard rule remains Share from round 10 onward."
+}

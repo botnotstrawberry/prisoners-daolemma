@@ -1,0 +1,11 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_384_IAgentAuthRegistry {
+label = "IAgentAuthRegistry"
+"384_agentKeyOf" [label="agentKeyOf"]
+"384_isAuthorized" [label="isAuthorized"]
+}subgraph cluster_solidity {
+label = "[Solidity]"
+}
+}

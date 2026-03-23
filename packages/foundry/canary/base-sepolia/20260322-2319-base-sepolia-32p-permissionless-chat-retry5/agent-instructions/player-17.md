@@ -1,0 +1,28 @@
+# Player 17 prompt
+
+- Wallet: 0x405891A535E1802bC3b9B02Bd808AE32DB4570df
+- Cause: 2 — Giveth Matching Pool
+- Cluster: share
+
+## Contract-valid choices
+Use these exact onchain choice names only:
+- Share
+- Catch
+- Steal
+
+If you would normally say "block", use **Catch**.
+
+## Goal
+Try to WIN. Before round 10 you should choose what you believe is the optimal strategy for survival and eventual victory.
+
+## Planned beliefs / choices
+- Round 1 planned choice: share
+  - You believe the table is leaning too hard into Catch, so Share is your best response.
+- Round 2 planned choice if still alive: share
+  - You believe the surviving field still overweights Catch, so Share remains your best response.
+- Rounds 3-9 planned choice if still alive: Share
+  - From this point you believe Share is the optimal path to preserve a winner set and close the game cleanly.
+- Round 10+ hard convergence rule: Share
+
+## Reminder
+These prompts are for a real game test, not an all-share proof. The opening rounds are intentionally competitive.

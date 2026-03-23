@@ -1,0 +1,36 @@
+strict digraph {
+rankdir="LR"
+node [shape=box]
+subgraph cluster_372_GameChat {
+label = "GameChat"
+"372_postGlobal" [label="postGlobal"]
+"372__validateMessage" [label="_validateMessage"]
+"372__requireExistingGame" [label="_requireExistingGame"]
+"372_constructor" [label="constructor"]
+"372_slitherConstructorConstantVariables" [label="slitherConstructorConstantVariables"]
+"372_postCause" [label="postCause"]
+"372__post" [label="_post"]
+"372_postCause" -> "372__requireExistingGame"
+"372_postGlobal" -> "372__requireExistingGame"
+"372_postCause" -> "372__post"
+"372_postGlobal" -> "372__post"
+"372__post" -> "372__validateMessage"
+}subgraph cluster_solidity {
+label = "[Solidity]"
+"revert MissingGame()" 
+"revert WrongCause()" 
+"revert EmptyMessage()" 
+"revert InvalidGameContract()" 
+"revert MessageTooLong()" 
+"revert NotJoined()" 
+"revert NotAlive()" 
+"372__validateMessage" -> "revert EmptyMessage()"
+"372__validateMessage" -> "revert MessageTooLong()"
+"372_postCause" -> "revert WrongCause()"
+"372_constructor" -> "revert InvalidGameContract()"
+"372_postGlobal" -> "revert NotJoined()"
+"372_postCause" -> "revert NotJoined()"
+"372__requireExistingGame" -> "revert MissingGame()"
+"372_postCause" -> "revert NotAlive()"
+}
+}
