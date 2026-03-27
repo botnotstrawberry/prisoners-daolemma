@@ -26,3 +26,37 @@ dist
 # Curated proof bundles should live under packages/foundry/proof or canary paths instead.
 .mainnet-readiness/
 .mainnet-readiness-private/
+
+# OpenClaw secret-safety
+# Never commit local environments, keys, tokens, or secret-bearing config.
+.venv/
+.venvs/
+venv/
+.env
+.env.*
+!.env.example
+!.env.*.example
+.envrc
+.credentials.json
+.credentials.*.json
+!.credentials.example.json
+.secrets/
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.kdbx
+*.pkcs12
+*.vault
+*.agekey
+*.secret
+*.secrets
+*.token
+*.credentials
+*.local
